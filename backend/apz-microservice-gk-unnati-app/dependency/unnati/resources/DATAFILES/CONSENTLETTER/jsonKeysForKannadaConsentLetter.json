@@ -1,0 +1,33 @@
+{
+  "keysForContent": {
+    "applicationName": "<font face='Tunga'>ಅನುಮತಿ ಪತ್ರ</font>",
+    "date": "<font face='Tunga'>ದಿನಾಂಕ: </font>",
+    "from": "<font face='Tunga'>ರಿಂದ,</font>",
+    "to": "<font face='Tunga'>ಇವರಿಗೆ,</font>",
+	
+    "subject": "<font face='Tunga'>ಕ್ರೆಡಿಟ್ ಆಕ್ಸೆಸ್ ಗ್ರಾಮೀಣ್‌ ಲಿಮಿಟೆಡ್ (ಸಿಎ ಗ್ರಾಮೀಣ್‌),</font>",
+	
+    "line1": "<font face='Tunga'>1. ನಾನು/ನಾವು <font face='Arial Unicode MS'>CA Grameen</font> ಗೆ, ನನ್ನ/ನಮ್ಮ ಗ್ರಾಮೀಣ ಉನ್ನತಿ ಸಾಲ <font face='Arial Unicode MS'>ID <loanId></font> ರೂ. <font face='Arial Unicode MS'><sanctionedAmount> (<sanctionedAmountInWords>)</font> ನಿಂದ ನನ್ನ/ನಮ್ಮ ಗುಂಪು ಸಾಲು(ಗಳು)/ರಿಟೇಲ್ ಫೈನಾನ್ಸ್ ಸಾಲ(ಗಳು)/ಇತರೆ ಸಾಲ(ಗಳು)ಗಳ ಮುಕ್ತಾಯಕ್ಕಾಗಿ, ವಿನಿ<font face='Arial Unicode MS'>ಯೋ</font>ಗಿಸಲು ಒಟ್ಟು ಬಾಕಿಯಿರುವ <font face='Arial Unicode MS'>ಮೊ</font>ತ್ತ ರೂ. <font face='Arial Unicode MS'><totalLoanOutstandingAmount></font> (ರೂಪಾಯಿ <font face='Arial Unicode MS'><totalLoanOutstandingAmountInWords></font> ಮಾತ್ರ) ಡೆಬಿಟ್ ಮಾಡಲು ಅನುಮತಿಯನ್ನು ನೀಡುತ್ತೇವೆ.</font>",
+	"line1Restr": "<font face='Tunga'>1. ನಾನು/ನಾವು <font face='Arial Unicode MS'>CA Grameen</font> ಗೆ, ನನ್ನ/ನಮ್ಮ ಗ್ರಾಮೀಣ ಉನ್ನತಿ ರಿಸ್ಟಾರ್ಟ್ ಸಾಲ <font face='Arial Unicode MS'>ID <loanId></font> ರೂ. <font face='Arial Unicode MS'><sanctionedAmount> (<sanctionedAmountInWords>)</font> ನಿಂದ ನನ್ನ/ನಮ್ಮ ಗುಂಪು ಸಾಲು(ಗಳು)/ರಿಟೇಲ್ ಫೈನಾನ್ಸ್ ಸಾಲ(ಗಳು)/ಇತರೆ ಸಾಲ(ಗಳು)ಗಳ ಮುಕ್ತಾಯಕ್ಕಾಗಿ, ವಿನಿ<font face='Arial Unicode MS'>ಯೋ</font>ಗಿಸಲು ಒಟ್ಟು ಬಾಕಿಯಿರುವ <font face='Arial Unicode MS'>ಮೊ</font>ತ್ತ ರೂ. <font face='Arial Unicode MS'><totalLoanOutstandingAmount></font> (ರೂಪಾಯಿ <font face='Arial Unicode MS'><totalLoanOutstandingAmountInWords></font> ಮಾತ್ರ) ಡೆಬಿಟ್ ಮಾಡಲು ಅನುಮತಿಯನ್ನು ನೀಡುತ್ತೇವೆ.</font>",
+	"line1UnnatiLite": "<font face='Tunga'>1. ನಾನು/ನಾವು <font face='Arial Unicode MS'>CA Grameen</font> ಗೆ, ನನ್ನ/ನಮ್ಮ ಗ್ರಾಮೀಣ ಉನ್ನತಿ ಸಾಲ <font face='Arial Unicode MS'>ID <loanId></font> ರೂ. <font face='Arial Unicode MS'><sanctionedAmount> (<sanctionedAmountInWords>)</font> ನಿಂದ ನನ್ನ/ನಮ್ಮ ಗುಂಪು ಸಾಲು(ಗಳು)/ರಿಟೇಲ್ ಫೈನಾನ್ಸ್ ಸಾಲ(ಗಳು)/ಇತರೆ ಸಾಲ(ಗಳು)ಗಳ ಮುಕ್ತಾಯಕ್ಕಾಗಿ, ವಿನಿ<font face='Arial Unicode MS'>ಯೋ</font>ಗಿಸಲು ಒಟ್ಟು ಬಾಕಿಯಿರುವ <font face='Arial Unicode MS'>ಮೊ</font>ತ್ತ ರೂ. <font face='Arial Unicode MS'><totalLoanOutstandingAmount></font> (ರೂಪಾಯಿ <font face='Arial Unicode MS'><totalLoanOutstandingAmountInWords></font> ಮಾತ್ರ) ಡೆಬಿಟ್ ಮಾಡಲು ಅನುಮತಿಯನ್ನು ನೀಡುತ್ತೇವೆ.</font>",
+    "line2": "<font face='Tunga'>2. ನಾನು/ನಾವು, ಮೇಲೆ ಉಲ್ಲೇಖಿಸಲಾದ ಸಾಲದ <font face='Arial Unicode MS'>ಮೊ</font>ತ್ತವಾದ ರೂ. <font face='Arial Unicode MS'><sanctionedAmount></font> (ರೂಪಾಯಿ <font face='Arial Unicode MS'><sanctionedAmountInWords></font> ಮಾತ್ರ) ನ ಸಾಲದಾರನಾಗಿದ್ದು/ಸಾಲದಾರರಾಗಿದ್ದು, ಇದನ್ನು ಸಿಎ ಗ್ರಾಮೀಣ್‌ನಿಂದ ನನಗೆ/ ನಮಗೆ ಮಂಜೂರು ಮಾಡಲಾಗಿದೆ.</font>",
+    "line3": "<font face='Tunga'>3. ಮೇಲಿನ ಸಾಲಕ್ಕೆ ಸಂಬಂಧಿಸಿದಂತೆ,  ನಾನು/ನಾವು ಎಲ್ಲಾ ಅಗತ್ಯ ಸಾಲದ ದಾಖಲೆಗಳನ್ನು ಸಲ್ಲಿಸಿದ್ದೇನೆ/ವೆ. ನಾನು/ನಾವು, ಗುಂಪು ಸಾಲ(ಗಳು) /ರಿಟೇಲ್ ಫೈನಾನ್ಸ್ ಸಾಲ(ಗಳು) /ಇತರೆ ಸಾಲ(ಗಳು)ದ ಎಲ್ಲಾ ಬಾಕಿಗಳು ಹಾಗೂ ಮಂಜೂರು ಪತ್ರದಲ್ಲಿ ನಮೂದಿಸಲಾದ ಅನ್ವಯವಾಗುವ ಶುಲ್ಕಗಳನ್ನು ಕಳೆದ ಬಳಿಕ ಪಾವತಿ ಹಣವನ್ನು  <font face='Arial Unicode MS'><bankName></font> ನ <font face='Arial Unicode MS'><bankBranchName></font> ಶಾಖೆಯಲ್ಲಿರುವ <font face='Arial Unicode MS'><applicantName></font> ಅವರ, ಬ್ಯಾಂಕ್ ಖಾತೆ ಸಂ. <font face='Arial Unicode MS'><bankAccountNumber></font> ಗೆ ಜಮೆ ಮಾಡಲು ಈ ಮೂಲಕ ಸಿಎ ಗ್ರಾಮೀಣ್‌ಗೆ ಅಧಿಕಾರ ನೀಡುತ್ತೇನೆ/ವೆ.</font>",
+    "line4": "<font face='Tunga'>4. ನಾನು/ನಾವು, ಸಾಲದಾರರು ಅಥವಾ ಸಹ ಸಾಲದಾರರು ಸಾಲದ ಒಪ್ಪಂದದ ಪರಿಚ್ಛೇದ ಎ ನಲ್ಲಿ ನಮೂದಿಸಲಾದ ರೀತಿಯಲ್ಲಿ ಸಾಲದ ಮರುಪಾವತಿ ಅಥವಾ ಕಂತುಗಳ ಪಾವತಿಗಾಗಿ ಎನ್‌ಎಸಿಎಚ್/ಇ-ಎನ್ಎಸಿಎಚ್ ಆದೇಶಗಳನ್ನು ಕಂಪನಿಗೆ ಒದಗಿಸಬೇಕು ಎಂಬುದನ್ನು ಅರ್ಥ ಮಾಡಿಕೊಂಡಿದ್ದೇನೆ/ವೆ. ಮೇಲೆ ಹೇಳಿದಂತೆ ಅಂತಹ ಸೂಚನೆಗಳನ್ನು ಸಲ್ಲಿಸುವುದು ಸಾಲದ ಮರುಪಾವತಿಗಾಗಿ ಅಂತಹ ಸಾಧನಗಳನ್ನು ಪ್ರಸ್ತುತಪಡಿಸಲು ಕಂಪನಿಗೆ ನಾವು ನೀಡಿದ ಬೇಷರತ್ತಾದ ಮತ್ತು ಮರುಪಡೆಯಲಾಗದ ಅಧಿಕಾರವಾಗಿದೆ. ಆ ಸಾಧನಗಳನ್ನು <font face='Arial Unicode MS'>ಮೊ</font>ದಲ ಪ್ರಸ್ತುತಿಯಲ್ಲಿ ಗೌರವಿಸಲಾಗುವುದು ಎಂದು ನಾನು/ನಾವು ಖಾತರಿಪಡಿಸುತ್ತೇನೆ/ವೆ.</font>",
+	"line5": "<font face='Tunga'>5. ನಾನು/ನಾವು ಅರ್ಜಿದಾರರ <font face='Arial Unicode MS'>NACH</font> ಮ್ಯಾಂಡೇಟ್ ಲಭ್ಯವಿಲ್ಲದಿದ್ದರೆ ಅಥವಾ ವಿಫಲವಾದಲ್ಲಿ ಸಹ-ಅರ್ಜಿದಾರರಿಗಾಗಿ <font face='Arial Unicode MS'>NACH</font> ಮ್ಯಾಂಡೇಟ್ ಸಂಗ್ರಹಿಸಲು ಒಪ್ಪಿಗೆ ನೀಡುತ್ತೇವೆ.</font>",
+	
+	"line6": "<font face='Tunga'>6. ನೋಂದಾಯಿತ <font face='Arial Unicode MS'>NACH</font> ವಿವರಗಳು</font>",
+	
+    "serialNo": "<font face='Tunga'>ಕ್ರ.ಮ ಸಂ</font>",
+	"applicantType": "<font face='Tunga'>ಅರ್ಜಿದಾರರ ಪ್ರಕಾರ</font>",
+    "eNachRef": "<font face='Tunga'><font face='Arial Unicode MS'>eNACH</font> ಉಲ್ಲೇಖ</font>",
+	"bankAccountName": "<font face='Tunga'>ಬ್ಯಾಂಕ್ ಖಾತೆ ಹೆಸರು</font>",
+    "branchName": "<font face='Tunga'>ಶಾಖೆಯ ಹೆಸರು</font>",
+	"ifscCode": "<font face='Tunga'><font face='Arial Unicode MS'>IFSC</font> ಕೋಡ್</font>",
+	"accountNo": "<font face='Tunga'>ಖಾತೆ ಸಂಖ್ಯೆ</font>",
+	
+    "signature": "<font face='Tunga'>ಸಹಿ:</font>",
+    "borrowerName": "<font face='Tunga'>ಸಾಲದಾರರ ಹೆಸರು:</font>",
+	"coborrowerName": "<font face='Tunga'>ಸಹಸಾಲದಾರರ ಹೆಸರು:</font>"
+    
+}
+}

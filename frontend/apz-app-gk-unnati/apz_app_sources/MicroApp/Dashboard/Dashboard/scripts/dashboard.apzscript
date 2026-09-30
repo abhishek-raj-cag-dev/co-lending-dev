@@ -1,0 +1,2193 @@
+var DashboardScrId = 'Dashbo__dashboard__';
+var Widget1 = "Widget1";
+window.searchValue = "";
+var count = 0;
+var pinCodeVerified = false;
+window.slectedProductsArr = [];
+window.productassetsdata = [];
+window.assetsdata = [];
+var LoadedSuccessfully = false;
+var listofSubFilter = []
+var CommSelectProduct = ApzCOB.GetCommonCodes("SELECTPRODUCT")["SELECTPRODUCT"];
+var selectedSubFilterOptions = [];
+window.counter = 0;
+window.CO_APP_ADDED_COUNT = 1;
+window.RejectReason = '';
+window.isRevAndConfEdit = false;
+window.isRevAndConfEditCustType = "";
+window.dontReloadRC = false;
+window.IS_CB_RETRIGGER = false;
+window.IS_REINITIATE_APPLICATION = false;
+window.IS_REJECTED_APPLICATION = false;
+window.REJECT_REQUEST_CALL = false;
+window.isRPCLogin = false;
+window.FormattedDashboardList = [];
+window.currentPage = 1;
+window.pageSize = 25;
+window.totalRecords = 0;
+window.botEnabledBranch = "N";
+window.allSubTypes = {
+    "SOURCING": "Sourcing stage",
+    "BM_APPROVAL": "BM sourcing approval",
+    "RPC_VERIFICATION": "RPC verification",
+    "CREDIT_ASSESSMENT": "Credit assessment",
+    "DEVIATION_RA": "Deviation/re-assesment",
+    "SANCTION": "Sanction",
+    "DISBURSEMENT_INPROGRESS": "Disbursement inprogress",
+    "DISBURSED": "Disbursed",
+    "POSTDISBRUSEMENT": "Post disbursement ",
+    "REJECTED": "Rejected",
+    "OVERALLEADS": "Overall leads",
+    "UNACTIONED_LEADS": "Not actioned leads"
+};
+window.selectedTitleArray = [];
+if (gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 === 'KM') {
+    ACTIONABLES = ['Not actioned leads', 'Sourcing stage', 'UNACTIONED_LEADS', 'SOURCING', 'Rejected', 'REJECTED'];
+}
+if (gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 === 'BM') {
+    ACTIONABLES = ['BM sourcing approval', 'Sanction', 'Disbursement inprogress', 'Credit assessment', 'Disbursed', 'BM_APPROVAL',
+        'CREDIT_ASSESSMENT', 'SANCTION', 'DISBURSEMENT_INPROGRESS', 'DISBURSED',
+    ];
+}
+if (gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 === 'AM') {
+    ACTIONABLES = ['Sanction', 'Deviation/re-assesment', 'SANCTION', 'DEVIATION_RA'];
+}
+if (['DM', 'RM'].includes(gApzCOB.LoggedInUserDetails.loginResponse.addInfo1)) {
+    ACTIONABLES = ['Sanction', 'SANCTION'];
+}
+if (['BCM', 'ACM'].includes(gApzCOB.LoggedInUserDetails.loginResponse.addInfo1)) {
+    ACTIONABLES = ['Deviation/re-assesment', 'DEVIATION_RA', 'SANCTION', 'Sanction'];
+}
+if (['CCM'].includes(gApzCOB.LoggedInUserDetails.loginResponse.addInfo1)) {
+    ACTIONABLES = ['Deviation/re-assesment', 'DEVIATION_RA'];
+}
+var screenId = DashboardScrId;
+apz.app.onLoad_dashboard = function () {
+    // Nothing
+  try{    
+    PRIMARY_DEDUPE_STATUS = null;
+    PRIMARY_KYC_VERIFICATION = null;
+    SECONDARY_KYC_VERIFICATION = null;
+    ALTERNATE_KYC_VERIFICATION = null;
+    ALTERNATE_DEDUPE_STATUS = null;
+    SECONDARY_DEDUPE_STATUS = null;
+    APPLICANT_CIBIL_STATUS = "";
+    CO_APPLICANT_CIBIL_STATUS = "";
+    CB_HIGHMARK_REPORT_LINK = "";
+    IS_APPLICANT_PRIMARY_DEDUPE = null;
+    IS_CO_APPLICANT_PRIMARY_DEDUPE = null;
+    IS_CO_APPLICANT_SECONDARY_DEDUPE = null;
+    IS_CO_APPLICANT_ALTERNATE_DEDUPE = null;
+    CO_APPLICANT_PRIMARY_KYC_VERIFICATION = null;
+    CO_APPLICANT_SECONDARY_KYC_VERIFICATION = null;
+    CO_APPLICANT_ALTERNATE_KYC_VERIFICATION = null;
+    window.IS_APPLICANT_CB_EXPIRED = null;
+    window.IS_CO_APPLICANT_CB_EXPIRED = null;
+    ApzCOB.initSourcingQuery();
+    $(`#${BaseScrId}sourcingQueryRow,#${BaseScrId}sorcingRemarksSec`).addClass('sno');
+    window.PUSHBACK_ACTION_HISTORY = [];
+    apz.app.BaseScreens.initializeVariables();
+    $('#'+ DashboardScrId + 'ADDITIONALPRODUCTPENDING_SA_txtcnt').text('Not Actioned');
+    if (!Array.isArray(apz.data.scrdata.Select__IpaintProduct_Res)) {
+        apz.app.Dashboard.FetchProducts();
+    } else {
+         if (apz.isNull(apz.data.scrdata.Dashbo__PaintData_Res)) {
+                apz.data.scrdata.Dashbo__PaintData_Res = {};
+            }
+        if (apz.isNull(apz.data.scrdata.Dashbo__PaintData_Res.ViewAllProducts)) {
+            apz.data.scrdata.Dashbo__PaintData_Res.Products = [];
+            apz.data.scrdata.Dashbo__PaintData_Res.ViewAllProducts = [];
+            apz.data.scrdata.Select__IpaintProduct_Res.filter(function (el) {
+                var obj = {};
+                obj.productGroupCode = el.productGroupCode;
+                apz.data.scrdata.Dashbo__PaintData_Res.Products.push(obj)
+                apz.data.scrdata.Dashbo__PaintData_Res.ViewAllProducts.push(obj)
+            })
+        }
+        apz.data.loadData('PaintData', 'Dashbo');
+        $('#' + DashboardScrId + 'dashProductList_row_0').addClass('active');
+    }
+    $('li[id^= "' + BaseScrId + '' + "menulist_row_" + '"]').removeClass('progress');
+    $('li[id^= "' + BaseScrId + '' + "menulist_row_" + '"]').removeClass('completed');
+    $("#APZCBO__BaseScreens__sidebarController").removeClass('sno');
+    completeArray = [];
+    inprogressArray = [];
+    ApzCOB.updateStepperStage();
+    applicantState = '';
+    $('#APZCBO__BaseScreens__landingRowHeader').addClass('sno');
+  } catch(e){
+    ApzCOB.traceFrontEndError(e,"");  
+  }
+};
+apz.app.onShown_dashboard = function () {
+   try{    
+    $('body').removeClass('unati sanction-dev crdas sanction-suc-scr dbkit ajs-no-overflow');
+    $('body').addClass('newdashboardlat');
+    window.ISPUSHBACKPPL = false;
+    window.IS_BM_DOC_EDIT = false;
+    window.PUSHBACKVIEWALL = false;
+    window.isBRERejected = false;
+    ApzCOB.fetchSubProduct();
+    $("#APZCBO__BaseScreens__sidebarController").removeClass('sno');
+    $(`#${BaseScrId}RefNumDiv`).addClass('sno');
+    ApzCOB.AddOrRemoveDisableFields([`${BaseScrId}backIcon`], false);
+    $("#" + BaseScrId + "SettingIconCol").removeClass('sno');
+    window.selectedDashboProduct = 'LOAN';
+    $("#header").removeClass("sno");
+    $('body').addClass('LoginBase');
+    $("#" + BaseScrId + "dashBoardList").removeClass("sno");
+    $("#" + BaseScrId + "menulist").addClass("sno");
+    $("#" + BaseScrId + "sidebaricon").addClass("sno");
+    $("#" + BaseScrId + "searchByNum").val('');
+    $('#' + DashboardScrId + 'MBsearchRow').addClass('sno');
+    if (apz.deviceType === "WEB") {
+        $("#" + BaseScrId + "searchByNumCol").removeClass('sno');
+        $("#" + BaseScrId + "applnStatus").addClass('sno');
+        $("#" + BaseScrId + "sc_col_5").removeClass("sno");
+        $("#" + BaseScrId + "sc_col_4").removeClass("sno");
+        $("#" + BaseScrId + "sc_col_3").removeClass("sno");
+    } else {
+        $("#" + BaseScrId + "searchByNumCol").addClass('sno');
+        $('#' + BaseScrId + 'sc_col_34').addClass('sno');
+        $("#" + BaseScrId + "sc_col_5").removeClass("sno");
+        $("#" + BaseScrId + "sc_col_53").addClass("sno");
+    }
+    if (!apz.isNull(gApzCOB.LoggedInUserDetails.loginResponse.userDet.name)) {
+        apz.setElmValue(BaseScrId + "userName_txtcnt", `${LoggedInUserDetails.loginResponse.userDet.name} (${LoggedInUserDetails.loginResponse.userDet.id})`);
+        apz.setElmValue(BaseScrId + "userRole_txtcnt", gApzCOB.LoggedInUserDetails.loginResponse.addInfo1);
+    }
+    apz.app.Dashboard.paintlastLogin();
+    $('div[id^=' + "'" + BaseScrId + "STAGE" + "'" + ']').addClass('sno')
+    gApzCOB['requestNodes']['nomineeDetailsWrapperList'] = [];
+    $('#' + BaseScrId + 'baseScroll').removeClass('product-screen');
+    document.getElementById('APZCBO__BaseScreens__BaseDIV')?.classList.remove('verify_approve');
+    gApzCOB.currentApplicant = $("#Dashbo__ReviewConfirm__applicantNameList_row_0").hasClass("active") ? 1 : 2;
+    $('body').removeClass('modal-open')
+    $(`#${BaseScrId}custIDandName`).addClass('sno');
+    gApzCOB.product = gApzCOB.product ?? 'LOAN';
+    gApzCOB.mainProductGroupCode = 'LOAN';
+    dashBoardKey = '';
+    if (ApplicationType === 'NEW') {
+        gApzCOB.productCode = '1009';
+    } else if (ApplicationType === 'OpenMarket') {
+        gApzCOB.productCode = '1001';
+    } else if (ApplicationType === 'RENEWAL') {
+        gApzCOB.productCode = '1002';
+    } else if (ApplicationType === 'Vishesh') {
+        gApzCOB.productCode = '1003';
+    }
+    gApzCOB.SelectedProductName = productCodeBasedName[gApzCOB.productCode];
+    apz.app.BaseScreens.getCommomCodeBasedOnProduct();
+    if (isNotLoginCB) {
+        apz.app.BaseScreens.fetchRole();
+    } else {
+        if (gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 === 'HOM') {
+            $('#Dashbo__dashboard__dashboardMainCol').children().addClass('sno');
+            $("#Dashbo__dashboard__headofficer_dashboard_screen").removeClass("sno");
+            return;
+        } else {
+            $("#Dashbo__dashboard__headofficer_dashboard_screen").addClass("sno")
+        }
+        if (apz.deviceType === 'WEB') {
+            apz.app.Dashboard.showNewDashboardStats();
+        } else {
+            apz.app.Dashboard.showNewDashboardStatsTab();
+        }
+    }
+    if (isNotLoginCB || logoClicked) {
+        $('#' + DashboardScrId + 'gr_row_33').addClass('mt0');
+    }
+    IS_DASHBOARD_VIEW_DATA = false;
+    if (window.deepLink) {
+        let containerId = document.getElementById("scr__Dashbo__dashboard__main");
+        if (containerId) {
+            containerId.style.visibility = "hidden";
+        }
+    }
+    if (DBKIT_MASTERDATA.length === 0) {
+        ApzCOB.FetchDBKITMasterData("ALL");
+    }
+   } catch(e){
+    ApzCOB.traceFrontEndError(e,"");  
+  }
+    if(window.deepLink && !apz.isNull(window.deepLinkres.CustomerId)){
+        if(["1002","1003","1009"].includes(gApzCOB.productCode)) {
+            gApzCOB.userDetails.customerId = window.deepLinkres.CustomerId;
+            UNATTENDED_DATA = true;
+            //apz.app.Login.OnClickMakerChecker();
+            ApzCOB.FetchApplication();
+            return;
+        }   
+    }
+};
+//On Enter call master searchFunction
+$(`#${DashboardScrId}masterSearch`).keypress(function (e) {
+    if (e.which === 13) {
+        $(`#${DashboardScrId}el_icn_6`).click();
+    }
+});
+$(`#Dashbo__dashboard__searchHOM`).on('keydown', function (e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        apz.app.Dashboard.masterSearchInpData();
+    }
+});
+
+$('.search-app').off('click').on('click', function () {
+    apz.app.Dashboard.masterSearchInpData();
+});
+apz.app.Dashboard.PaintDashboardTabs = function () {
+    apz.data.scrdata.Dashbo__PaintLoanProducts_Res = {};
+    apz.data.scrdata.Dashbo__PaintLoanProducts_Res.LoanProducts = [];
+    apz.data.scrdata.Dashbo__PaintLoanProducts_Res.LoanProducts = DASHBOARD_TABS.map(a => ({ ...a }));
+    apz.data.loadData('PaintLoanProducts', 'Dashbo');
+    if (ApplicationType === 'NEW') {
+        $('#' + DashboardScrId + 'LoanProductsList_row_0').addClass('active');
+        $(`#${DashboardScrId}LoanProductsList_row_1`).removeClass('active');
+    } else {
+        $('#' + DashboardScrId + 'LoanProductsList_row_1').addClass('active');
+        $(`#${DashboardScrId}LoanProductsList_row_0`).removeClass('active');
+    }
+    if (!apz.isNull(DASHBOARD_CONFIG)) {
+        if (DASHBOARD_CONFIG.SHOW_DASHBOARD) {
+            let branchId = gApzCOB.LoggedInUserDetails.loginResponse.addInfo2;
+            if (DASHBOARD_CONFIG.DASHBOARD_ALLOWED_BRANCH_ID.includes(branchId) || ["ACM", "AM", "DM", "RM"].some(role => gApzCOB.LoggedInUserDetails.loginResponse.addInfo1.includes(role))) {
+                $('#Dashbo__dashboard__dashBoardBtn').removeClass('sno');
+                $('#Dashbo__dashboard__showDashBoardRow').removeClass('sno');
+            }
+        }
+    }
+};
+apz.app.Dashboard.LoadWidgets = function () {
+    /*gApzCOB.FetchRole.accessPermission = "B" Both
+    gApzCOB.FetchRole.accessPermission = "I" Initiator/Maker
+    gApzCOB.FetchRole.accessPermission = "A" Authorizer/Checker
+    gApzCOB.FetchRole.accessPermission = "VO" ViewOnly
+    gApzCOB.FetchRole.accessPermission === "V" Verifier
+    */
+    $("#" + BaseScrId + "sc_col_53").removeClass("sno")
+    $("#" + BaseScrId + "BaseDIV").removeClass("sno");
+    if (["BM", "KM"].includes(gApzCOB.LoggedInUserDetails?.loginResponse?.addInfo1)) {
+        apz.app.Dashboard.LoadDefaultWidgets();
+    }
+};
+apz.app.Dashboard.DashBoardCountClick = function (key) {
+    window.DASHBOARD_WIDGET_SELECTED_DATA = {};
+    dashBoardKey = key;
+    let obj = {};
+    if (!apz.isNull(dashBoardKey)) {
+        if (!ApzCOB.isObjEmpty(DASHBOARD_WIDGETS_DATA)) {
+            obj.data = DASHBOARD_WIDGETS_DATA[dashBoardKey].map.value.myArrayList;
+            obj.title = dashBoardKey;
+            if (obj.data.length > 0) {
+                window.DASHBOARD_WIDGET_SELECTED_DATA = obj;
+                apz.data.scrdata.Dashbo__NewDashboardPaintData_Res = {};
+                apz.app.Dashboard.formatViewAllObj(obj.data);
+                apz.data.scrdata.Dashbo__NewDashboardPaintData_Res = FormattedDashboardList;
+                apz.data.loadData('NewDashboardPaintData', 'Dashbo');
+                $("#" + DashboardScrId + "noRecordRow").addClass('sno');
+                $("#" + DashboardScrId + "mainDataRow").removeClass('sno');
+                var dashboardTitle = obj.title.replaceAll('_', ' ')
+                $('#' + DashboardScrId + 'selectedDashTitle').text(dashboardTitle);
+            } else {
+                $("#" + DashboardScrId + "noRecordRow").removeClass('sno');
+                $("#" + DashboardScrId + "mainDataRow").addClass('sno');
+            }
+        }
+    }
+};
+apz.app.Dashboard.LoadDefaultWidgets = function () {
+    var DashboardWidgets = JSON.parse(gApzCOB.FetchRole.allowedFeature)["DashboardWidgets"];
+    $("#" + DashboardScrId + "Widget0" + ",#" + DashboardScrId + "Widget1" + ",#" + DashboardScrId + "Widget2" + ",#" + DashboardScrId +
+        "Widget3, #" + DashboardScrId + "Widget4, #" + DashboardScrId + "Widget5, #" + DashboardScrId + "Widget6" + ",#" + DashboardScrId +
+        "Widget7" + ",#" + DashboardScrId + "Widget8" + ",#" + DashboardScrId + "Widget9" + ",#" + DashboardScrId + "Widget10").addClass(
+            "sno");
+    if (DashboardWidgets.indexOf('STATUSREPORT') >= 0) {
+        ApzCOB.launchMicroApp('Widget', 'StatusReport', DashboardScrId + 'Widget0', '');
+        $("#" + DashboardScrId + "Widget0").removeClass("sno");
+        // if (window.selectedDashboProduct === 'ALL') {
+        //     ApzCOB.launchMicroApp('Widget', 'ProductStatusReport', DashboardScrId + 'Widget1', '');
+        //     $("#" + DashboardScrId + "Widget1").removeClass("sno");
+        // } else {
+        //     $("#" + DashboardScrId + "Widget1").addClass("sno");
+        // }
+    }
+    if (DashboardWidgets.indexOf('INPROGRESS') >= 0) {
+        ApzCOB.launchMicroApp('Widget', 'InProgress', DashboardScrId + 'Widget3', '');
+        $("#" + DashboardScrId + "Widget3").removeClass('sno');
+    }
+    if (DashboardWidgets.indexOf('PENDING') >= 0) {
+        ApzCOB.launchMicroApp('Widget', 'Approvals', DashboardScrId + 'Widget4', '');
+        $("#" + DashboardScrId + "Widget4").removeClass('sno');
+    }
+    if (DashboardWidgets.indexOf('APPROVED') >= 0) {
+        ApzCOB.launchMicroApp('Widget', 'Completed', DashboardScrId + 'Widget6', '');
+        $("#" + DashboardScrId + "Widget6").removeClass('sno');
+    }
+    if (DashboardWidgets.indexOf('REJECTED') >= 0) {
+        ApzCOB.launchMicroApp('Widget', 'Rejected', DashboardScrId + 'Widget7', '');
+        $("#" + DashboardScrId + "Widget7").removeClass('sno');
+    }
+    if (DashboardWidgets.indexOf('BCMPI') >= 0) {
+        ApzCOB.launchMicroApp('Widget', 'PendingCreditAssesment', DashboardScrId + 'Widget8', '');
+        $("#" + DashboardScrId + "Widget8").removeClass('sno');
+    }
+    if (DashboardWidgets.indexOf('PUSHBACK') >= 0) {
+        ApzCOB.launchMicroApp('Widget', 'PushBack', DashboardScrId + 'Widget5', '');
+        $("#" + DashboardScrId + "Widget5").removeClass("sno");
+    }
+    if (DashboardWidgets.indexOf('CREATEAPPLICATION') >= 0) {
+        ApzCOB.launchMicroApp('Widget', 'CreateLead', DashboardScrId + 'Widget2', '');
+        $("#" + DashboardScrId + "Widget2").removeClass("sno");
+    }
+    if (DashboardWidgets.indexOf('SEARCHLEADS') >= 0) {
+        ApzCOB.launchMicroApp('Widget', 'SearchLeads', DashboardScrId + 'Widget1', '');
+        $("#" + DashboardScrId + "Widget1").removeClass("sno");
+    }
+    $("#" + BaseScrId + "searchByNum").text(ApzCOB.getDescfromLitCode("LIT_COMM_TITLE_TXT_SEARCHBYMOBREFNO"));
+    /*if (gApzCOB.FetchRole.accessPermission === "I") {
+         ApzCOB.launchMicroApp('Widget', 'AssignedLeads', 'Dashbo__dashboard__Widget1', '');
+         ApzCOB.launchMicroApp('Widget', 'InProgress', 'Dashbo__dashboard__Widget3', '');
+         ApzCOB.launchMicroApp('Widget', 'Completed', 'Dashbo__dashboard__Widget4', '');
+         ApzCOB.launchMicroApp('Widget', 'Rejected', 'Dashbo__dashboard__Widget5', '');
+         $("#" + DashboardScrId + Widget1 + ",#" + DashboardScrId + "Widget3, #" + DashboardScrId + "Widget4, #" + DashboardScrId + "Widget5").removeClass(
+             "sno");
+     } else if (gApzCOB.FetchRole.accessPermission === "A") {
+         ApzCOB.launchMicroApp('Widget', 'Approvals', 'Dashbo__dashboard__Widget1', '');
+         ApzCOB.launchMicroApp('Widget', 'Completed', 'Dashbo__dashboard__Widget3', '');
+         ApzCOB.launchMicroApp('Widget', 'Rejected', 'Dashbo__dashboard__Widget4', '');
+         $("#" + DashboardScrId + Widget1 + ",#" + DashboardScrId + "Widget3, #" + DashboardScrId + "Widget4").removeClass("sno");
+     } else if (gApzCOB.FetchRole.accessPermission === "B" || gApzCOB.FetchRole.accessPermission === "V" || gApzCOB.FetchRole.accessPermission ===
+         "VO") {
+         ApzCOB.launchMicroApp('Widget', 'Approvals', 'Dashbo__dashboard__Widget1', '');
+         ApzCOB.launchMicroApp('Widget', 'InProgress', 'Dashbo__dashboard__Widget3', '');
+         ApzCOB.launchMicroApp('Widget', 'AssignedLeads', 'Dashbo__dashboard__Widget4', '');
+         ApzCOB.launchMicroApp('Widget', 'Completed', 'Dashbo__dashboard__Widget5', '');
+         ApzCOB.launchMicroApp('Widget', 'Rejected', 'Dashbo__dashboard__Widget6', '');
+         $("#" + DashboardScrId + Widget1 + ",#" + DashboardScrId + "Widget3, #" + DashboardScrId + "Widget4, #" + DashboardScrId + "Widget5, #" +
+             DashboardScrId + "Widget6").removeClass("sno");
+     }*/
+    LoadedSuccessfully = true;
+};
+apz.app.Dashboard.paintlastLogin = function () {
+    if (apz.isNull(gApzCOB.LoggedInUserDetails.loginResponse.userDet.lastLogin)) {
+        $("#" + BaseScrId + "lastlogin_txtcnt").addClass("sno");
+    } else {
+        var lastlogin = gApzCOB.LoggedInUserDetails.loginResponse.userDet.lastLogin;
+        var lastloginArr = lastlogin.split(" ");
+        var ldate = new Date(lastloginArr[0]).format('d M Y');
+        var timestr = lastloginArr[1].slice(0, -3);
+        var timeArr = timestr.split(":");
+        if (apz.isNull(gApzCOB.LoggedInUserDetails.loginResponse.userDet.lastLogin)) {
+            timeArr[3] = gApzCOB.LoggedInUserDetails.loginResponse.userDet.lastLogin.split(" ")[2].split('.')[0];
+        } else {
+            timeArr[3] = +timeArr[0] < 12 ? ' AM' : ' PM';
+        }
+        timeArr[0] = +timeArr[0] % 12 || 12;
+        delete timeArr[2];
+        var ltime = timeArr[0] + ":" + timeArr[1] + timeArr[3];
+        var lastLoginStr = apz.lits["Dashbo"][apz.language].LIT_lastLogin + " " + ldate + " " + ltime;
+        // apz.setElmValue(BaseScrId + "lastlogin_txtcnt", lastLoginStr);
+    }
+};
+apz.app.Dashboard.LaunchDashboard = function () {
+    if(window.deepLink) {
+      const baseScreen = document.querySelector("body.unati .base-screen");
+      if (baseScreen) {
+        baseScreen.style.removeProperty("padding");
+      }
+    }
+    window.deepLink = false;
+    UNATTENDED_DATA = false;
+    isNotLoginCB = true;
+    $("#" + BaseScrId + "fundRow").addClass('sno');
+    $("#" + BaseScrId + "footerbtnRow").addClass('sno');
+    document.getElementById('APZCBO__BaseScreens__BaseDIV')?.classList.remove('verify_approve');
+    ApzCOB.launchMicroApp('Dashbo', 'dashboard', 'APZCBO__BaseScreens__BaseDIV', '');
+    //ApzCOB.fnDisplayMsg(apz.lits.Dashbo[apz.language].LIT_HOMESCREENMSG, "C", apz.app.Dashboard.LaunchDashboardCB);
+    if ($('#Reside__ResPinCode__' + "ResidentialPinCodeModal").is(':visible')) {
+        ApzCOB.toggleModal(ResiDenPinCDScrId + "ResidentialPinCodeModal");
+    }
+    if ($('.backdrop').hasClass('in')) {
+        apz.toggleSidebar();
+    }
+    document.getElementById('APZCBO__BaseScreens__BaseDIV')?.classList.remove('verify_approve');
+};
+apz.app.Dashboard.LaunchDashboardCB = function (params) {
+    if (params.choice === true) {
+        $("#" + BaseScrId + "footerbtnRow").addClass('sno');
+        $("#" + BaseScrId + "BaseDIV").removeClass('sno');
+        ApzCOB.launchMicroApp('Dashbo', 'dashboard', 'APZCBO__BaseScreens__BaseDIV', '');
+    }
+};
+apz.app.Dashboard.Setpassword = function () {
+    ApzCOB.launchMicroApp('ChgPas', 'SetPassword', gAppId + '__BaseScreens__BaseDIV', gApzCOB.LoggedInUserDetails.loginResponse.userDet.id);
+    $("#" + BaseScrId + "headerText").removeClass('sno');
+};
+apz.app.Dashboard.setScreenType = function () {
+    window.clickList = false;
+    var screenType;
+    var applicationStatus = gApzCOB.requestNodes.applicationMaster.applicationStatus;
+    switch (applicationStatus) {
+        case "INPROGRESS":
+            window.currentApplication = "InProgress";
+            screenType = "InProgress";
+            break;
+        case "PENDING":
+            window.currentApplication = "Approvals";
+            screenType = "Approvals";
+            break;
+        case "REJECTED":
+            window.currentApplication = "Rejected";
+            screenType = "Rejected";
+            break;
+        case "APPROVED":
+            window.currentApplication = "Completed";
+            screenType = "Completed";
+            break;
+        case "PUSHBACK":
+        case "CAPUSHBACK":
+        case "IPUSHBACK":
+            window.currentApplication = "Pushback";
+            screenType = "Pushback";
+            break;
+        case "BCMPI":
+            window.currentApplication = "PendingCreditAssesment";
+            screenType = "PendingCreditAssesment";
+            break;
+        default:
+            break;
+    }
+    return screenType;
+};
+//Fetch products Service
+apz.app.Dashboard.FetchProducts = function () {
+    var req = {
+        "appId": gAppId,
+    }
+    apz.startLoader();
+    ApzCOB.serverBuildParam(gAppId, "FetchProducts", "N", "N", req, false, apz.app.Dashboard.FetchProductsCB);
+};
+//Fetch products Service Callback
+apz.app.Dashboard.FetchProductsCB = function (params) {
+    apz.stopLoader();
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            var ifaceName = ApzCOB.GetInterfaceResMap(params);
+            var response = JSON.parse(params.res[ifaceName].apiResponse.ResponseBody.responseObj);
+            apz.data.scrdata.Select__IpaintProduct_Res = {};
+            response.forEach(function (k, l) {
+                Object.getOwnPropertyNames(CommSelectProduct).forEach(function (el) {
+                    if (el.split('~')[0] === k.productGroupCode) {
+                        //response[l]['Image'] = {}
+                        response[l]['Image'] = el.split('~')[1];
+                    }
+                })
+            })
+            if (apz.isNull(apz.data.scrdata.Dashbo__PaintData_Res) || apz.data.scrdata.Dashbo__PaintData_Res.length === 0) {
+                apz.data.scrdata.Dashbo__PaintData_Res = {};
+                apz.data.scrdata.Dashbo__PaintData_Res.Products = [];
+                apz.data.scrdata.Dashbo__PaintData_Res.ViewAllProducts = [];
+                // var lobj = {};
+                // lobj.productGroupCode = 'ALL'
+                // apz.data.scrdata.Dashbo__PaintData_Res.Products.push(lobj);
+                response.filter(function (el) {
+                    var obj = {};
+                    obj.productGroupCode = el.productGroupCode;
+                    apz.data.scrdata.Dashbo__PaintData_Res.Products.push(obj)
+                    apz.data.scrdata.Dashbo__PaintData_Res.ViewAllProducts.push(obj)
+                })
+            }
+            // apz.store('PRODUCTS', apz.data.scrdata.Dashbo__PaintData_Res.Products)
+            apz.data.scrdata.Select__IpaintProduct_Res = response;
+            apz.data.loadData('IpaintProduct', apz.currAppId);
+            apz.data.loadData('PaintData', 'Dashbo');
+            $('#' + DashboardScrId + 'dashProductList_row_0').click();
+            $('#' + DashboardScrId + 'dashProductList_row_0').addClass('active');
+        }
+    } catch (e) {
+        apz.stopLoader();
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_TECHNICALDIFF"), "E");
+    }
+};
+apz.app.Dashboard.selectedLoanProduct = async function (pthis) {
+    isNotLoginCB = true;
+    dashBoardKey = '';
+    var selProd = pthis.textContent;
+    let selKey = DASHBOARD_TABS.filter(id => id.productType === selProd)[0].key;
+    if (selKey == '1') {
+        window.ApplicationType = 'NEW';
+        $(`#${DashboardScrId}LoanProductsList_row_0`).addClass('active');
+        $(`#${DashboardScrId}LoanProductsList_row_1`).removeClass('active');
+    } else if (selKey == '2') {
+        window.ApplicationType = 'RENEWAL';
+        $(`#${DashboardScrId}LoanProductsList_row_1`).addClass('active');
+        $(`#${DashboardScrId}LoanProductsList_row_0`).removeClass('active');
+    }
+    await ApzCOB.launchMicroApp('Dashbo', 'dashboard', 'APZCBO__BaseScreens__BaseDIV', '');
+    // apz.app.BaseScreens.fetchRole();
+}
+apz.app.Dashboard.selectedProduct = function (pthis) {
+    LoadedSuccessfully = false;
+    apz.startLoader();
+    window.selectedDashboProduct = $(pthis).text();
+    $("#" + DashboardScrId + 'dashProductList').find('li').removeClass('active');
+    $(pthis).parent().parent().addClass('active');
+    apz.app.Dashboard.filterByProducts(window.selectedDashboProduct);
+    apz.app.Dashboard.LoadDefaultWidgets();
+    if (!LoadedSuccessfully) {
+        $("#" + DashboardScrId + 'dashProductList').find('li').addClass('active');
+        $(pthis).parent().parent().removeClass('active');
+    }
+    //apz.stopLoader();
+    apz.app.Dashboard.callServiceCheck();
+};
+apz.app.Dashboard.filterByProducts = function (product) {
+    if (count === 0) {
+        var indexVal = slectedProductsArr.findIndex(function (e) {
+            return e === product;
+        })
+        if (indexVal < 0) {
+            slectedProductsArr.push(product)
+        } else {
+            slectedProductsArr.splice(indexVal, 1);
+        }
+        count++;
+    } else {
+        count = 0
+    }
+    LoadedSuccessfully = true;
+};
+apz.app.Dashboard.callServiceCheck = function (product) {
+    if (window.selectedDashboProduct === 'COLLECTION') {
+        var req = {
+            "apiRequest": {
+                "appId": gAppId,
+                "requestObj": {
+                    "appId": gAppId,
+                }
+            }
+        }
+        ApzCOB.serverBuildParam(gAppId, "CollectionServiceCheck", "N", "N", req, false, apz.app.Dashboard.callServiceCheckCB);
+    } else {
+        apz.stopLoader();
+    }
+};
+apz.app.Dashboard.callServiceCheckCB = function (params) {
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+        } else {
+            apz.stopLoader();
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_SERVICE_DOWN"), "E");
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_SERVICE_DOWN"), "E");
+    }
+};
+apz.app.Dashboard.refreshDashBoard = function () {
+    apz.startLoader()
+    ApzCOB.fetchDashboard();
+}
+apz.app.Dashboard.showDashboardStats = function () {
+    if (!apz.isNull(ApplicationType)) {
+        let filteredDashBoardData = DASHBOARD_COUNT_DATA.filter((dash) => {
+            return dash.product === ApplicationType
+        })
+        if (filteredDashBoardData.length > 0) {
+            window.DASHBOARD_WIDGETS_DATA = filteredDashBoardData[0].dashboardData;
+            if (!ApzCOB.isObjEmpty(DASHBOARD_WIDGETS_DATA)) {
+                let dashBoardCounts = [];
+                for (let data in DASHBOARD_WIDGETS_DATA) {
+                    if (!apz.isNull(DASHBOARD_WIDGETS_DATA[data].map.value.myArrayList)) {
+                        dashBoardCounts.push({
+                            'key': data,
+                            'order': DASHBOARD_WIDGETS_DATA[data].map.order,
+                            'count': DASHBOARD_WIDGETS_DATA[data].map.value.myArrayList.length
+                        })
+                    }
+                }
+                dashBoardCounts = dashBoardCounts.sort((a, b) => a.order - b.order);
+                if (dashBoardCounts.length > 0) {
+                    let selectElementID = 'Dashbo__dashboard__dashboardCountItem_0';
+                    let parentDiv = $('#Dashbo__dashboard__dashboard_count');
+                    dashBoardCounts.forEach((dash, index) => {
+                        let currentIndex = parseInt(index) + 1;
+                        ApzCOB.cloneDashboardDivs(selectElementID, parentDiv, currentIndex);
+                        $(`#Dashbo__dashboard__dashboardCountItem_${currentIndex} .dashCountItemLabel label.pri`).text(dash.key.replaceAll('_', ' '));
+                        $(`#Dashbo__dashboard__dashboardCountItem_${currentIndex} .dashCountItemCount label`).text(dash.count);
+                        $(`#Dashbo__dashboard__dashboardCountItem_${currentIndex} .dashCountItemPanel`).attr('onClick', `apz.app.Dashboard.DashBoardCountClick('${dash.key}')`)
+                        $('#Dashbo__dashboard__dashboardCountItem_' + currentIndex).removeClass('sno');
+                    })
+                }
+                apz.stopLoader();
+                if (IS_DASHBOARD_COUNT_ENABLED.indexOf(ApplicationType) < 0) {
+                    IS_DASHBOARD_COUNT_ENABLED.push(ApplicationType)
+                }
+                $('#Dashbo__dashboard__showDashBoardRow').addClass('sno');
+                $('#Dashbo__dashboard__dashboard_count').removeClass('sno');
+            }
+        } else {
+            apz.startLoader()
+            ApzCOB.fetchDashboard();
+        }
+    }
+}
+apz.app.Dashboard.showNewDashboardStats = function () {
+    if (!apz.isNull(ApplicationType)) {
+        // let lovDets = gLovs.filter(item => item.lovName === 'DASHBOARDORDER');
+        // let dashboardCountData = JSON.parse(lovDets[0].lovDtls);
+        let filteredDashBoardData = DASHBOARDORDER[0];
+        let dashboardCountStore = '';
+        if (window.fetchRoleCount !== undefined) {
+            dashboardCountStore = window.fetchRoleCount;
+        } else {
+            dashboardCountStore = window.dataCountDashboard;
+        }
+        if (window.isFilterApplied) {
+            window.isFilterApplied = false;
+            dashboardCountStore = window.dataCountDashboard;
+        }
+        if (!ApzCOB.isObjEmpty(filteredDashBoardData)) {
+            if (!ApzCOB.isObjEmpty(dashboardCountStore)) {
+                let dashBoardNewCounts = Object.keys(dashboardCountStore).filter(key => filteredDashBoardData.hasOwnProperty(key)).map(key => {
+                    var meta = filteredDashBoardData[key];
+                    return {
+                        name: meta.name,
+                        count: dashboardCountStore[key],
+                        order: parseInt(meta.order, 10)
+                    };
+                })
+                dashBoardNewCounts = dashBoardNewCounts.sort((a, b) => a.order - b.order);
+                window.storeDashboardCount = dashBoardNewCounts;
+                if (dashBoardNewCounts.length > 0) {
+                    let selectElementID = 'Dashbo__dashboard__dashboardCountItem_0';
+                    let parentDiv = $('#Dashbo__dashboard__dashboard_count');
+                    dashBoardNewCounts.forEach((dash, index) => {
+                        let currentIndex = index + 1;
+                        ApzCOB.cloneDashboardDivs(selectElementID, parentDiv, currentIndex);
+                        $(`#Dashbo__dashboard__dashboardCountItem_${currentIndex} .dashCountItemLabel label.pri`).text(dash.name === "Post disbursement " ? "LUC" : dash.name);
+                        $(`#Dashbo__dashboard__dashboardCountItem_${currentIndex} .dashCountItemCount label`).text(dash.count);
+                        let statusKey = 'PENDING';
+                        if (dash.name === 'Deviation/re-assesment') {
+                            statusKey = 'CA_DEVIATION';
+                        } else if (dash.name.trim() === "Post disbursement") {
+                            statusKey = 'LUC';
+                        }
+                        let onClickHandler = '';
+                        if (dash.name === 'Not actioned leads') {
+                            onClickHandler = "apz.app.Dashboard.loadUnttendedData(this,'UNATTENDED_LEADS')";
+                        } else if (dash.name === 'Overall leads') {
+                            onClickHandler = '';
+                        } else {
+                            onClickHandler = (dash.count > 0) ?
+                                `apz.app.BaseScreens.fetchRoleData('${dash.name}', '${statusKey}', this, "1", 'initial'); apz.app.Dashboard.handleActiveCard(this);` :
+                                `apz.app.Dashboard.handleNorecord('${dash.name}'); apz.app.Dashboard.handleActiveCard(this);`;
+                        }
+                        $(`#Dashbo__dashboard__dashboardCountItem_${currentIndex}`).attr('onClick', onClickHandler);
+                        $(`#Dashbo__dashboard__dashboardCountItem_${currentIndex}`).removeClass('sno');
+                    });
+                }
+                // apz.stopLoader();
+                if (IS_DASHBOARD_COUNT_ENABLED.indexOf(ApplicationType) < 0) {
+                    IS_DASHBOARD_COUNT_ENABLED.push(ApplicationType)
+                }
+                $('#Dashbo__dashboard__showDashBoardRow').addClass('sno');
+                $('#Dashbo__dashboard__dashboard_count').removeClass('sno');
+                $("li[onclick]").css("cursor", "pointer");
+                if (!recordClicked) {
+                    let roleToDashboardName = {
+                        'KM': 'Sourcing stage',
+                        'BM': 'BM sourcing approval',
+                        'BCM': 'Deviation/re-assesment',
+                        'ACM': 'Sanction',
+                        'AM': 'Sanction',
+                        'RM': 'Sanction',
+                        'DM': 'Sanction'
+                    };
+                    let userRole = gApzCOB.LoggedInUserDetails.loginResponse.addInfo1;
+                    let dashboardName = roleToDashboardName[userRole];
+                    if(window.subFilterType === 'ADDITIONALPRODUCTPENDING'){
+                        dashboardName = 'Sanction';
+                        dashBoardKey = 'SANCTION';
+                    }
+                    if (dashboardName) {
+                        let matchingItem = dashBoardNewCounts.find(item => item.name === dashboardName);
+                        if (matchingItem) {
+                            let elementId = 'Dashbo__dashboard__dashboardCountItem_' + matchingItem.order;
+                            document.getElementById(elementId)?.click();
+                        }
+                    }
+                } else {
+                    apz.app.BaseScreens.fetchRoleData(selectedTitle, SELECTED_SUB_STATUS, '', '1', 'progress');
+                    var lastId = StoreNavData[StoreNavData.length - 1].id;
+                    $("[id^='Dashbo__dashboard__dashboardCountItem_']").removeClass('active');
+                    document.getElementById(lastId)?.classList.add('active'); // chinna km to rpc added null handler for classList
+                }
+            }
+        } else {
+            apz.startLoader()
+            ApzCOB.fetchDashboard();
+        }
+    }
+};
+apz.app.Dashboard.showNewDashboardStatsTab = function () {
+    if (!apz.isNull(ApplicationType)) {
+        apz.startLoader();
+        let lovDets = gLovs.filter(item => item.lovName === 'DASHBOARDORDER');
+        let dashboardCountData = JSON.parse(lovDets[0].lovDtls);
+        let filteredDashBoardData = dashboardCountData.DASHBOARDORDER[0];
+        if (!ApzCOB.isObjEmpty(filteredDashBoardData)) {
+            if (!ApzCOB.isObjEmpty(window.dataCountDashboard)) {
+                let dashBoardNewCounts = Object.keys(dataCountDashboard).filter(key => filteredDashBoardData.hasOwnProperty(key)).map(key => {
+                    var meta = filteredDashBoardData[key];
+                    return {
+                        name: meta.name,
+                        count: dataCountDashboard[key],
+                        order: parseInt(meta.order, 10)
+                    };
+                })
+                dashBoardNewCounts = dashBoardNewCounts.sort((a, b) => a.order - b.order);
+                window.storeDashboardCount = dashBoardNewCounts;
+                if (dashBoardNewCounts.length > 0) {
+                    let selectElementID = 'Dashbo__dashboard__dashboardCountItem_0';
+                    let parentDiv = $('#Dashbo__dashboard__dashboard_count');
+                    dashBoardNewCounts.forEach((dash, index) => {
+                        let currentIndex = index + 1;
+                        let statusKey = 'PENDING';
+                        if (dash.name === 'Deviation/re-assesment') {
+                            statusKey = 'CA_DEVIATION';
+                        } else if (dash.name.trim() === "Post disbursement") {
+                            statusKey = 'LUC';
+                        }
+                        ApzCOB.cloneDashboardDivs(selectElementID, parentDiv, currentIndex);
+                        $(`#Dashbo__dashboard__dashboardCountItem_${currentIndex} .dashCountItemLabel label.pri`).text(dash.name === "Post disbursement " ? "LUC" : dash.name);
+                        $(`#Dashbo__dashboard__dashboardCountItem_${currentIndex} .dashCountItemCount label`).text(dash.count);
+                        let onClickHandler = '';
+                        if (dash.name === 'Not actioned leads') {
+                            onClickHandler = "apz.app.Dashboard.loadUnttendedData(this,'UNATTENDED_LEADS')";
+                        } else if (dash.name === 'Overall leads') {
+                            onClickHandler = '';
+                        } else {
+                            onClickHandler = (dash.count > 0) ?
+                                `apz.app.BaseScreens.fetchRoleData('${dash.name}', '${statusKey}', this, "1", "initial"); apz.app.Dashboard.handleActiveCard(this);` :
+                                `apz.app.Dashboard.handleNorecord('${dash.name}'); apz.app.Dashboard.handleActiveCard(this);`;
+                        }
+                        $(`#Dashbo__dashboard__dashboardCountItem_${currentIndex}`).attr('onClick', onClickHandler);
+                        $(`#Dashbo__dashboard__dashboardCountItem_${currentIndex}`).removeClass('sno');
+                    });
+                }
+                if (IS_DASHBOARD_COUNT_ENABLED.indexOf(ApplicationType) < 0) {
+                    IS_DASHBOARD_COUNT_ENABLED.push(ApplicationType)
+                }
+                $('#Dashbo__dashboard__showDashBoardRow').addClass('sno');
+                $('#Dashbo__dashboard__dashboard_count').removeClass('sno');
+                if (!recordClicked) {
+                    let roleToDashboardName = {
+                        'KM': 'Sourcing stage',
+                        'BM': 'BM sourcing approval',
+                        'BCM': 'Deviation/re-assesment',
+                        'ACM': 'Sanction',
+                        'AM': 'Sanction',
+                        'RM': 'Sanction',
+                        'DM': 'Sanction'
+                    };
+                    let userRole = gApzCOB.LoggedInUserDetails.loginResponse.addInfo1;
+                    let dashboardName = roleToDashboardName[userRole];
+                    if (dashboardName) {
+                        let matchingItem = dashBoardNewCounts.find(item => item.name === dashboardName);
+                        if (matchingItem) {
+                            let elementId = 'Dashbo__dashboard__dashboardCountItem_' + matchingItem.order;
+                            document.getElementById(elementId)?.click();
+                        }
+                    }
+                } else {
+                    apz.app.BaseScreens.fetchRoleData(selectedTitle, SELECTED_SUB_STATUS, '', '1', 'progress');
+                    var lastId = StoreNavData[StoreNavData.length - 1].id;
+                    $("[id^='Dashbo__dashboard__dashboardCountItem_']").removeClass('active');
+                    document.getElementById(lastId)?.classList.add('active'); // chinna added null handler km to rpc
+                }
+            }
+        } else {
+            apz.startLoader()
+            ApzCOB.fetchDashboard();
+        }
+    }
+}
+apz.app.Dashboard.closeDashboard = function () {
+    let dataIndex = IS_DASHBOARD_COUNT_ENABLED.findIndex(dash => {
+        return dash === ApplicationType
+    })
+    if (dataIndex >= 0) {
+        IS_DASHBOARD_COUNT_ENABLED.splice(dataIndex, 1);
+    }
+    $('#Dashbo__dashboard__showDashBoardRow').removeClass('sno');
+    $('#Dashbo__dashboard__dashboard_count').addClass('sno');
+}
+//DBKIT
+apz.app.Dashboard.launchDbMicroApp = function () {
+    applicationStatus = '';
+    gApzCOB.userDetails.applicationId = '1741070411056942';
+    gApzCOB.userDetails.versionNum = 1;
+    var applnId = gApzCOB.userDetails.applicationId;
+    var req = {
+        apiRequest: {
+            interfaceName: "",
+            appId: gAppId,
+            requestObj: {
+                applicationId: applnId,
+                userId: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                //  "applicationId": "16202346089849322",
+                appId: gApzCOB.userDetails.appId,
+                versionNum: gApzCOB.userDetails.versionNum,
+            },
+        },
+    };
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "FetchApplication", "N", "N", req, false, apz.app.Dashboard.launchDbMicroAppCB);
+    }, 1000);
+}
+apz.app.Dashboard.launchDbMicroAppCB = function (params) {
+    let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchApplication_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+            .APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            ApzCOB.fetchSubProduct();
+            ApzCOB.launchMicroApp('DBkitG', 'DBbase', `${gAppId}__BaseScreens__BaseDIV`, ' ');
+        } else {
+            apz.stopLoader();
+            $(`#${scrId}locktxt_txtcnt`).text(errMsg);
+            ApzCOB.toggleModal(scrId + 'lockModal');
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.toggleModal(scrId + 'lockModal');
+        $(`#${scrId}locktxt_txtcnt`).html(technicalErrMsg);
+    }
+};
+apz.app.Dashboard.formatViewAllObj = function (dashboardData) {
+    window.FormattedDashboardList = [];
+    dashboardData.map(item => {
+        let lresp = item.map;
+        let memberId = apz.isNull(lresp.memberId) ? "" : lresp.memberId;
+        if (apz.isNull(memberId)) {
+            memberId = apz.isNull(lresp.customerId) ? "" : lresp.customerId;
+        }
+        let memberName = apz.isNull(lresp.firstName) ? "" : lresp.firstName;
+        if (apz.isNull(memberName)) {
+            memberName = apz.isNull(lresp.customerName) ? "" : lresp.customerName;
+        }
+        let currentStatus = apz.isNull(lresp.currentStatus) ? "" : lresp.currentStatus;
+        if (!apz.isNull(lresp.currentStageNo)) {
+            if (KM_STAGES.length > 0) {
+                const currentStage = KM_STAGES.find(stage => parseInt(stage.key) === lresp.currentStageNo);
+                if (currentStage) {
+                    currentStatus = currentStage.value;
+                } else {
+                    currentStatus = dashBoardtitle;
+                }
+            } else {
+                currentStatus = dashBoardtitle;
+            }
+        } else {
+            currentStatus = dashBoardtitle;
+        }
+        let priority = apz.isNull(lresp.priority) ? "" : lresp.priority;
+        let obj = {};
+        obj.memberId = (!apz.isNull(memberId)) ? memberId : "";
+        obj.memberName = (!apz.isNull(memberName)) ? memberName : "";;
+        obj.kendraName = (!apz.isNull(lresp.kendraName)) ? lresp.kendraName : "";;
+        obj.kendraId = (!apz.isNull(lresp.kendraId)) ? lresp.kendraId : "";;
+        obj.vintage = (!apz.isNull(lresp.kendraVintageYrs)) ? ApzCOB.fn_unFormatAmount(lresp.kendraVintageYrs) : "";;
+        obj.meetingDay = (!apz.isNull(lresp.kendraMeetingDay)) ? lresp.kendraMeetingDay : "";;
+        obj.outstandingAmount = (!apz.isNull(lresp.caglOs)) ? ApzCOB.CustomizedAmountFormatting(Number(lresp.caglOs)) : "";;
+        obj.kmID = (!apz.isNull(lresp.createdBy)) ? lresp.createdBy : "";;
+        obj.priority = (!apz.isNull(priority)) ? priority : "";;
+        obj.currentStatus = (!apz.isNull(currentStatus)) ? currentStatus : dashBoardtitle;
+        obj.applicationId = (!apz.isNull(lresp.applicationId)) ? lresp.applicationId : "";;
+        FormattedDashboardList.push(obj);
+    })
+    if (dashBoardtitle === 'Not actioned leads' || dashBoardtitle === 'UNACTIONED_LEADS') {
+        window.FormattedDashboardList = apz.app.BaseScreens.sortLeads(DashboardViewList);
+    }
+    return window.FormattedDashboardList;
+}
+apz.app.Dashboard.formatLOan_TAT = function (params) {
+    if (!Array.isArray(params)) return;
+    for (let i of params) {
+        if (i.hasOwnProperty('loanAmount')) {
+            if (!i.loanAmount.toString().includes("₹")) {
+                i.loanAmount = "₹" + ApzCOB.fn_FormatAmount(i.loanAmount);
+            }
+        } else {
+            i.loanAmount = "";
+        }if (
+            !i.hasOwnProperty('rpcTAT') ||
+            i.rpcTAT == null ||
+            i.rpcTAT === "" ||
+            i.rpcTAT.toString().toLowerCase() === "null"
+        ) {
+            i.rpcTAT = "";
+        } else {
+            const tat = i.rpcTAT.toString().toLowerCase();
+
+            if (
+                !tat.includes("days") &&
+                !tat.includes("hours") &&
+                !tat.includes("minutes") &&
+                !tat.includes("just")
+            ) {
+                i.rpcTAT = apz.app.Dashboard.tat_formatDate(i.rpcTAT);
+                i.rpcTAT = i.rpcTAT.replace(/(\d{1,5})([a-zA-Z]{1,10})/, '$1 $2');
+            }
+        }
+    }
+};
+apz.app.Dashboard.formatProductName = function (data) {
+    var productList = apz?.data?.scrdata?.Select__IpaintProductDetails_Res?.data || [];
+    data.forEach(item => {
+        const match = productList.find(prod => prod.productCode === item.productCode);
+        if (match) {
+            item.productCode = match.productName;
+        }
+    });
+};
+apz.app.Dashboard.tat_formatDate = function (input) {
+    const timeRegex = /(\d{1,5})S\|(\d{1,5})M\|(\d{1,5})H\|(\d{1,5})D/;
+    const match = input.match(timeRegex);
+    let str = "";
+    if (!match) {
+        throw new Error("Invalid input format");
+    }
+    if (match[match.length - 1] != 0) {
+        str = match[match.length - 1] + "Days Before";
+    } else if (match[match.length - 2] != 0) {
+        str = match[match.length - 2] + "hours Before";
+    } else if (match[match.length - 3] != 0) {
+        str = match[match.length - 3] + "minutes Before";
+    } else if (match[match.length - 4] != 0) {
+        str = "Just now";
+    }
+    return str;
+};
+apz.app.Dashboard.sortTat = function (params) {
+    const getSeconds = (tat) => {
+        if (tat?.toLowerCase()?.includes("day")) {
+            return parseInt(tat) * 24 * 60 * 60;
+        }
+        if (tat?.toLowerCase()?.includes("hour")) {
+            return parseInt(tat) * 60 * 60;
+        }
+        if (tat?.toLowerCase()?.includes("minutes")) {
+            return parseInt(tat) * 60;
+        }
+        return 0;
+    };
+    apz.data.scrdata.Dashbo__NewDashboardPaintData_Res.sort((a, b) => {
+        const tatA = getSeconds(a.rpcTAT);
+        const tatB = getSeconds(b.rpcTAT);
+        return params === "One" ? tatA - tatB : tatB - tatA;
+    });
+    $(`#Dashbo__dashboard__tatSortDown,#Dashbo__dashboard__tatSortUp`).attr('style', '');
+    rpctatCSS = { 'fill': 'rgb(0, 72, 134)' };
+    if (params === "One") {
+        $(`#${DashboardScrId}tatSortDown`).css(rpctatCSS);
+    } else {
+        $(`#${DashboardScrId}tatSortUp`).css(rpctatCSS);
+    }
+    apz.data.loadData('NewDashboardPaintData', 'Dashbo');
+};
+apz.app.Dashboard.paintNewDashboardData = function (key, status) {
+    if (gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 === 'HOM') {
+        return;
+    }
+    $("#" + DashboardScrId + "dashBoardDataRow").removeClass('sno');
+    dashBoardKey = key;
+    let normalizedTitle = allSubTypes[selectedTitle.trim()] || selectedTitle.trim();
+    if (apz.deviceType === 'WEB') {
+        if (!apz.isNull(dashBoardKey)) {
+            let matchedItem = storeDashboardCount.find(item => item.name.trim() === normalizedTitle);
+            if (matchedItem && matchedItem.count > 0) {
+                apz.data.scrdata.Dashbo__NewDashboardPaintData_Res = {};
+                apz.data.loadData('NewDashboardPaintData', 'Dashbo');
+                if (window.selectedTitle !== 'Not actioned leads' && window.selectedTitle !== 'UNACTIONED_LEADS') {
+                    apz.app.Dashboard.formatLOan_TAT(newDashboardStoreData);
+                    apz.app.Dashboard.formatProductName(newDashboardStoreData);
+                }
+                apz.app.Dashboard.handleDataPaintCol();
+                apz.data.scrdata.Dashbo__NewDashboardPaintData_Res = newDashboardStoreData.map(item => ({ ...item, productCode: item.productCode === "Vishesh" ? "Unnati Lite" : item.productCode }));
+                apz.data.loadData('NewDashboardPaintData', 'Dashbo');
+                $(`#Dashbo__dashboard__tatSortDown,#Dashbo__dashboard__tatSortUp`).attr('style', '');
+                rpctatCSS = { 'fill': 'rgb(0, 72, 134)' };
+                $(`#${DashboardScrId}tatSortDown`).css(rpctatCSS);
+                $("#" + DashboardScrId + "noRecordRow").addClass('sno');
+                $("#" + DashboardScrId + "mainDataRowTab").addClass('sno');
+                $("#" + DashboardScrId + "mainDataRowWeb").removeClass('sno');
+                $('#' + DashboardScrId + 'selectedDashTitle').text(normalizedTitle === "Post disbursment " ? "LUC" : normalizedTitle);
+                apz.app.Dashboard.handleStatus(key, status, newDashboardStoreData, normalizedTitle);
+                if (window.selectedTitle === 'Credit assessment' || window.selectedTitle === 'CREDIT_ASSESSMENT') {
+                    for (let i = 0; i < newDashboardStoreData.length; i++) {
+                        $("#Dashbo__dashboard__ct_lst_4_row_" + i).attr('onClick', `apz.app.Dashboard.creditAssFetchAppDetails(this)`);
+                    }
+                } else {
+                    for (let i = 0; i < newDashboardStoreData.length; i++) {
+                        $("#Dashbo__dashboard__ct_lst_4_row_" + i).attr('onClick', `apz.app.Dashboard.listOnClick(this)`);
+                    }
+                }
+                $("li[onclick]").css("cursor", "pointer");
+                if (SELECTED_SUB_STATUS === 'APPROVED') { //future development for approved status
+                    for (let i = 0; i < newDashboardStoreData.length; i++) {
+                        $("#Dashbo__dashboard__ct_lst_4_row_" + i).attr('onClick', ``);
+                        $("#Dashbo__dashboard__ct_lst_4_row_" + i).css("cursor", "default");
+                    }
+                }
+            } else {
+                $('#' + DashboardScrId + 'selectedDashTitle').text(normalizedTitle === "Post disbursment " ? "LUC" : normalizedTitle);
+                $("#" + DashboardScrId + "noRecordRow").removeClass('sno');
+                $("#" + DashboardScrId + "mainDataRowWeb").addClass('sno');
+                $("#" + DashboardScrId + "mainDataRowTab").addClass('sno');
+            }
+        }
+    } else {
+        if (!apz.isNull(dashBoardKey)) {
+            let matchedItemTab = storeDashboardCount.find(item => item.name.trim() === normalizedTitle);
+            if (matchedItemTab && matchedItemTab.count > 0) {
+                apz.data.scrdata.Dashbo__NewDashboardPaintDataTab_Res = {};
+                apz.data.loadData('NewDashboardPaintDataTab', 'Dashbo');
+                if (window.selectedTitle !== 'Not actioned leads' && window.selectedTitle !== 'UNACTIONED_LEADS') {
+                    apz.app.Dashboard.formatLOan_TAT(newDashboardStoreData);
+                    apz.app.Dashboard.formatProductName(newDashboardStoreData);
+                }
+                apz.app.Dashboard.handleDataPaintCol();
+                apz.data.scrdata.Dashbo__NewDashboardPaintDataTab_Res = newDashboardStoreData.map(item => ({ ...item, productCode: item.productCode === "Vishesh" ? "Unnati Lite" : item.productCode }));
+                apz.data.loadData('NewDashboardPaintDataTab', 'Dashbo');
+                $("#" + DashboardScrId + "noRecordRow").addClass('sno');
+                $("#" + DashboardScrId + "mainDataRowWeb").addClass('sno');
+                $("#" + DashboardScrId + "mainDataRowTab").removeClass('sno');
+                $('#' + DashboardScrId + 'selectedDashTitle').text(normalizedTitle === "Post disbursment " ? normalizedTitle : "LUC");
+                apz.app.Dashboard.handleStatusTab(key, status, newDashboardStoreData, normalizedTitle);
+                if (window.selectedTitle === 'Credit assessment' || window.selectedTitle === 'CREDIT_ASSESSMENT') {
+                    for (let i = 0; i < newDashboardStoreData.length; i++) {
+                        $("#Dashbo__dashboard__ct_lst_11_row_" + i).attr('onClick', `apz.app.Dashboard.creditAssFetchAppDetails(this)`);
+                    }
+                } else {
+                    for (let i = 0; i < newDashboardStoreData.length; i++) {
+                        $("#Dashbo__dashboard__ct_lst_11_row_" + i).attr('onClick', `apz.app.Dashboard.listOnClick(this)`);
+                    }
+                }
+                if (SELECTED_SUB_STATUS === 'APPROVED') { //future development for approved status
+                    for (let i = 0; i < newDashboardStoreData.length; i++) {
+                        $("#Dashbo__dashboard__ct_lst_11_row_" + i).attr('onClick', ``);
+                    }
+                }
+            } else {
+                $('#' + DashboardScrId + 'selectedDashTitle').text(normalizedTitle === "Post disbursment " ? normalizedTitle : "LUC");
+                $("#" + DashboardScrId + "noRecordRow").removeClass('sno');
+                $("#" + DashboardScrId + "mainDataRowTab").addClass('sno');
+                $("#" + DashboardScrId + "mainDataRowWeb").addClass('sno');
+            }
+        }
+    }
+    apz.app.Dashboard.updatePaginationControls(dashBoardKey, status);
+};
+apz.app.Dashboard.handleDataPaintCol = function () {
+    if (apz.deviceType === "WEB") {
+        if (window.selectedTitle === 'Not actioned leads' || window.selectedTitle === 'UNACTIONED_LEADS') {
+            $("#" + DashboardScrId + "prodCol_li").addClass('sno');
+            $("#" + DashboardScrId + "tatCol_li").addClass('sno');
+            $("#" + DashboardScrId + "loanAmtCol_li").addClass('sno');
+            for (let i = 0; i < newDashboardStoreData.length; i++) {
+                $("#Dashbo__NewDashboardPaintData__o__Dashbo__NewDashboardPaintData_Res__productCode_" + i).parents().eq(0).addClass('sno');
+                $("#Dashbo__NewDashboardPaintData__o__Dashbo__NewDashboardPaintData_Res__rpcTAT_" + i).parents().eq(0).addClass('sno');
+                $("#Dashbo__NewDashboardPaintData__o__Dashbo__NewDashboardPaintData_Res__loanAmount_" + i).parents().eq(0).addClass('sno');
+            }
+        } else {
+            $("#" + DashboardScrId + "prodCol_li").removeClass('sno');
+            $("#" + DashboardScrId + "tatCol_li").removeClass('sno');
+            $("#" + DashboardScrId + "loanAmtCol_li").removeClass('sno');
+            for (let i = 0; i < newDashboardStoreData.length; i++) {
+                $("#Dashbo__NewDashboardPaintData__o__Dashbo__NewDashboardPaintData_Res__productCode_" + i).parents().eq(0).removeClass('sno');
+                $("#Dashbo__NewDashboardPaintData__o__Dashbo__NewDashboardPaintData_Res__rpcTAT_" + i).parents().eq(0).removeClass('sno');
+                $("#Dashbo__NewDashboardPaintData__o__Dashbo__NewDashboardPaintData_Res__loanAmount_" + i).parents().eq(0).removeClass('sno');
+            }
+        }
+    } else {
+        if (window.selectedTitle === 'Not actioned leads' || window.selectedTitle === 'UNACTIONED_LEADS') {
+            $("#" + DashboardScrId + "tabProdCol_li").addClass('sno');
+            for (let i = 0; i < newDashboardStoreData.length; i++) {
+                $("#Dashbo__NewDashboardPaintData__o__Dashbo__NewDashboardPaintData_Res__productCode_" + i).parents().eq(0).addClass('sno');
+            }
+        } else {
+            $("#" + DashboardScrId + "tabProdCol_li").removeClass('sno');
+            for (let i = 0; i < newDashboardStoreData.length; i++) {
+                $("#Dashbo__NewDashboardPaintData__o__Dashbo__NewDashboardPaintData_Res__productCode_" + i).parents().eq(0).removeClass('sno');
+            }
+        }
+    }
+};
+apz.app.Dashboard.handleStatus = function (key, status, count, title) {
+    let statusTypes = ["PENDING", "SUBMITTED", "SANCTION", "PUSHBACK", "REJECTED", "CAPUSHBACK", "APPROVED", "DBKITVERIFIED", "CA_DEVIATION",
+        "REASSESSMENT", "RESANCTION", "DBPUSHBACK", "PRESANCTION", "ADDITIONALPRODUCTPENDING", "LUC", "PENDINGLUCVERIFICATION", "LUCVERIFIED"];
+    let suffixes = ["_SO", "_BM", "_RPC", "_DA", "_SA", "_DIP", "_DIS", "_UL", "_CA", "_ALL", "_POST"];
+    statusTypes.forEach(type => {
+        suffixes.forEach(suffix => {
+            $("#" + DashboardScrId + type + suffix).removeClass('active');
+        });
+    });
+    if (count.length === 0) {
+        $('#' + DashboardScrId + 'selectedDashTitle').text(title);
+        $("#" + DashboardScrId + "noRecordRow").removeClass('sno');
+        $("#" + DashboardScrId + "dataRow").addClass('sno');
+    } else {
+        $('#' + DashboardScrId + 'selectedDashTitle').text(title);
+        $("#" + DashboardScrId + "noRecordRow").addClass('sno');
+        $("#" + DashboardScrId + "dataRow").removeClass('sno');
+    }
+    let sourcingRow = $("#" + DashboardScrId + "SOURCING_ROW");
+    let bmApprovalRow = $("#" + DashboardScrId + "BM_APPROVAL_ROW");
+    let rpcVerfRow = $("#" + DashboardScrId + "RPC_VERIFICATION_ROW");
+    let sanctionRow = $("#" + DashboardScrId + "SANCTION_ROW");
+    let deviationRow = $("#" + DashboardScrId + "DEVIATION_RA_ROW");
+    let disProgRow = $("#" + DashboardScrId + "DISBURSEMENT_INPROGRESS_ROW");
+    let disburdedRow = $("#" + DashboardScrId + "DISBURSED_ROW");
+    let creditRow = $("#" + DashboardScrId + "CREDIT_ASSESSMENT_ROW");
+    let postDisRow = $("#" + DashboardScrId + "POSTDISBRUSEMENT_ROW");
+    let overallRow = $("#" + DashboardScrId + "OVERALLEADS_ROW");
+    let rejectedRow = $("#" + DashboardScrId + "REJECTED_ROW");
+    sourcingRow.addClass('sno');
+    bmApprovalRow.addClass('sno');
+    rpcVerfRow.addClass('sno');
+    sanctionRow.addClass('sno');
+    deviationRow.addClass('sno');
+    disProgRow.addClass('sno');
+    disburdedRow.addClass('sno');
+    creditRow.addClass('sno');
+    postDisRow.addClass('sno');
+    overallRow.addClass('sno');
+    rejectedRow.addClass('sno');
+    if (key === 'Sourcing stage' || key === 'SOURCING') {
+        switch (status) {
+            case 'PENDING':
+            case 'PUSHBACK':
+            case 'REJECTED':
+            case 'SUBMITTED':
+            case 'CAPUSHBACK':
+                $("#" + DashboardScrId + status + '_SO').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_SO").addClass('active');
+        }
+        sourcingRow.removeClass('sno');
+    } else if (key === 'BM sourcing approval' || key === 'BM_APPROVAL') {
+        switch (status) {
+            case 'PENDING':
+            case 'PUSHBACK':
+            case 'REJECTED':
+            case 'APPROVED':
+                $("#" + DashboardScrId + status + '_BM').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_BM").addClass('active');
+        }
+        bmApprovalRow.removeClass('sno');
+    } else if (key === 'RPC verification' || key === 'RPC_VERIFICATION') {
+        switch (status) {
+            case 'PENDING':
+                $("#" + DashboardScrId + status + '_RPC').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_RPC").addClass('active');
+        }
+        rpcVerfRow.removeClass('sno');
+    } else if (key === 'Credit assessment' || key === 'CREDIT_ASSESSMENT') {
+        switch (status) {
+            case 'PENDING':
+            case 'APPROVED':
+            case 'CAPUSHBACK':
+            case 'PUSHBACK':
+            case 'REJECTED':
+                $("#" + DashboardScrId + status + '_CA').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_CA").addClass('active');
+        }
+        creditRow.removeClass('sno');
+    } else if (key === 'Deviation/re-assesment' || key === 'DEVIATION_RA') {
+        switch (status) {
+            case 'CA_DEVIATION':
+            case 'REASSESSMENT':
+            case 'APPROVED':
+            case 'PUSHBACK':
+            case 'REJECTED':
+                $("#" + DashboardScrId + status + '_DA').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "CA_DEVIATION_DA").addClass('active');
+        }
+        deviationRow.removeClass('sno');
+    } else if (key === 'Sanction' || key === 'SANCTION') {
+        // const userRole = gApzCOB.LoggedInUserDetails.loginResponse.addInfo1;
+        // const preSanctionSelector = `#${DashboardScrId}preSanction`;
+        // if (['AM', 'ACM'].includes(userRole)) {
+        //     $(preSanctionSelector).removeClass('sno');
+        // } else {
+        //     $(preSanctionSelector).addClass('sno');
+        // }
+        const validStatuses = ['PENDING', 'RESANCTION', 'PUSHBACK', 'REJECTED', 'PRESANCTION', 'ADDITIONALPRODUCTPENDING'];
+        const highlightStatus = validStatuses.includes(status) ? status : 'PENDING';
+        $(`#${DashboardScrId}${highlightStatus}_SA`).addClass('active');
+        sanctionRow.removeClass('sno');
+    } else if (key === 'Disbursement inprogress' || key === 'DISBURSEMENT_INPROGRESS') {
+        switch (status) {
+            case 'PENDING':
+            case 'DBPUSHBACK':
+            case 'DBKITVERIFIED':
+                $("#" + DashboardScrId + status + '_DIP').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_DIP").addClass('active');
+        }
+        disProgRow.removeClass('sno');
+    } else if (key === 'Disbursed' || key === 'DISBURSED') {
+        switch (status) {
+            case 'PENDING':
+            case 'APPROVED':
+                $("#" + DashboardScrId + status + '_DIS').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_DIS").addClass('active');
+        }
+        disburdedRow.removeClass('sno');
+    } else if (key === 'Rejected' || key === 'REJECTED') {
+        switch (status) {
+            case 'PENDING':
+                $("#" + DashboardScrId + status + '_REJ').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_REJ").addClass('active');
+        }
+        rejectedRow.removeClass('sno');
+    } else if (key === 'Post disbursement ' || key === 'POSTDISBRUSEMENT') {
+        switch (status) {
+            case 'LUC':
+            case 'PENDINGLUCVERIFICATION':
+            case 'LUCVERIFIED':
+                $("#" + DashboardScrId + status + '_POST').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "LUC_POST").addClass('active');
+        }
+        postDisRow.removeClass('sno');
+    } else if (key === 'Overall leads' || key === 'OVERALLEADS') {
+        switch (status) {
+            case 'PENDING':
+                $("#" + DashboardScrId + status + '_ALL').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_ALL").addClass('active');
+        }
+        overallRow.removeClass('sno');
+    }
+};
+apz.app.Dashboard.handleStatusTab = function (key, status, count, title) {
+    let statusTypes = ["PENDING", "SUBMITTED", "SANCTION", "PUSHBACK", "REJECTED", "CAPUSHBACK", "APPROVED", "DBKITVERIFIED", "CA_DEVIATION",
+        "REASSESSMENT", "RESANCTION", "DBPUSHBACK", "PRESANCTION", "ADDITIONALPRODUCTPENDING", "LUC", "PENDINGLUCVERIFICATION", "LUCVERIFIED"];
+    let suffixes = ["_SO_TAB", "_BM_TAB", "_RPC_TAB", "_DA_TAB", "_SA_TAB", "_DIP_TAB", "_DIS_TAB", "_UL_TAB", "_CA_TAB", "_ALL_TAB", "_POST_TAB"];
+    statusTypes.forEach(type => {
+        suffixes.forEach(suffix => {
+            $("#" + DashboardScrId + type + suffix).removeClass('active');
+        });
+    });
+    if (count.length === 0) {
+        $('#' + DashboardScrId + 'selectedDashTitle').text(title.trim() === "Post disbursement" ? "LUC" : title);
+        $("#" + DashboardScrId + "noRecordRow").removeClass('sno');
+        $("#" + DashboardScrId + "tabDataRow").addClass('sno');
+    } else {
+        $('#' + DashboardScrId + 'selectedDashTitle').text(title.trim() === "Post disbursement" ? "LUC" : title);
+        $("#" + DashboardScrId + "noRecordRow").addClass('sno');
+        $("#" + DashboardScrId + "tabDataRow").removeClass('sno');
+    }
+    let sourcingRow = $("#" + DashboardScrId + "SOURCING_TAB");
+    let bmApprovalRow = $("#" + DashboardScrId + "BM_APPROVAL_TAB");
+    let rpcVerfRow = $("#" + DashboardScrId + "RPC_VERIFICATION_TAB");
+    let sanctionRow = $("#" + DashboardScrId + "SANCTION_TAB");
+    let deviationRow = $("#" + DashboardScrId + "DEVIATION_RA_TAB");
+    let disProgRow = $("#" + DashboardScrId + "DISBURSEMENT_INPROGRESS_TAB");
+    let disburdedRow = $("#" + DashboardScrId + "DISBURSED_TAB");
+    let creditRow = $("#" + DashboardScrId + "CREDIT_ASSESSMENT_TAB");
+    let postDisRow = $("#" + DashboardScrId + "POSTDISBRUSEMENT_TAB");
+    let overallRow = $("#" + DashboardScrId + "OVERALLEADS_TAB");
+    let rejectedRow = $("#" + DashboardScrId + "REJECTED_TAB");
+    sourcingRow.addClass('sno');
+    bmApprovalRow.addClass('sno');
+    rpcVerfRow.addClass('sno');
+    sanctionRow.addClass('sno');
+    deviationRow.addClass('sno');
+    disProgRow.addClass('sno');
+    disburdedRow.addClass('sno');
+    creditRow.addClass('sno');
+    postDisRow.addClass('sno');
+    overallRow.addClass('sno');
+    rejectedRow.addClass('sno');
+    if (key === 'Sourcing stage' || key === 'SOURCING') {
+        switch (status) {
+            case 'PENDING':
+            case 'PUSHBACK':
+            case 'REJECTED':
+            case 'SUBMITTED':
+            case 'CAPUSHBACK':
+                $("#" + DashboardScrId + status + '_SO_TAB').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_SO_TAB").addClass('active');
+        }
+        sourcingRow.removeClass('sno');
+    } else if (key === 'BM sourcing approval' || key === 'BM_APPROVAL') {
+        switch (status) {
+            case 'PENDING':
+            case 'PUSHBACK':
+            case 'REJECTED':
+            case 'APPROVED':
+                $("#" + DashboardScrId + status + '_BM_TAB').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_BM_TAB").addClass('active');
+        }
+        bmApprovalRow.removeClass('sno');
+    } else if (key === 'RPC verification' || key === 'RPC_VERIFICATION') {
+        switch (status) {
+            case 'PENDING':
+                $("#" + DashboardScrId + status + '_RPC_TAB').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_RPC_TAB").addClass('active');
+        }
+        rpcVerfRow.removeClass('sno');
+    } else if (key === 'Credit assessment' || key === 'CREDIT_ASSESSMENT') {
+        switch (status) {
+            case 'PENDING':
+            case 'APPROVED':
+            case 'CAPUSHBACK':
+            case 'PUSHBACK':
+            case 'REJECTED':
+                $("#" + DashboardScrId + status + '_CA_TAB').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_CA_TAB").addClass('active');
+        }
+        creditRow.removeClass('sno');
+    } else if (key === 'Deviation/re-assesment' || key === 'DEVIATION_RA') {
+        switch (status) {
+            case 'CA_DEVIATION':
+            case 'REASSESSMENT':
+            case 'APPROVED':
+            case 'PUSHBACK':
+            case 'REJECTED':
+                $("#" + DashboardScrId + status + '_DA_TAB').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "CA_DEVIATION_DA_TAB").addClass('active');
+        }
+        deviationRow.removeClass('sno');
+    } else if (key === 'Sanction' || key === 'SANCTION') {
+        const validStatuses = ['PENDING', 'RESANCTION', 'PUSHBACK', 'REJECTED', 'PRESANCTION', 'ADDITIONALPRODUCTPENDING'];
+        const highlightStatus = validStatuses.includes(status) ? status : 'PENDING';
+        $(`#${DashboardScrId}${highlightStatus}_SA_TAB`).addClass('active');
+        sanctionRow.removeClass('sno');
+    } else if (key === 'Disbursement inprogress' || key === 'DISBURSEMENT_INPROGRESS') {
+        switch (status) {
+            case 'PENDING':
+            case 'DBPUSHBACK':
+            case 'DBKITVERIFIED':
+                $("#" + DashboardScrId + status + '_DIP_TAB').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_DIP_TAB").addClass('active');
+        }
+        disProgRow.removeClass('sno');
+    } else if (key === 'Disbursed' || key === 'DISBURSED') {
+        switch (status) {
+            case 'PENDING':
+            case 'APPROVED':
+                $("#" + DashboardScrId + status + '_DIS_TAB').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_DIS_TAB").addClass('active');
+        }
+        disburdedRow.removeClass('sno');
+    } else if (key === 'Rejected' || key === 'REJECTED') {
+        switch (status) {
+            case 'PENDING':
+                $("#" + DashboardScrId + status + '_REJ_TAB').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_REJ_TAB").addClass('active');
+        }
+        rejectedRow.removeClass('sno');
+    } else if (key === 'Post disbursement ' || key === 'POSTDISBRUSEMENT') {
+        switch (status) {
+            case 'LUC':
+            case 'PENDINGLUCVERIFICATION':
+            case 'LUCVERIFIED':
+                $("#" + DashboardScrId + status + '_POST_TAB').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_POST_TAB").addClass('active');
+        }
+        postDisRow.removeClass('sno');
+    } else if (key === 'Overall leads' || key === 'OVERALLEADS') {
+        switch (status) {
+            case 'PENDING':
+                $("#" + DashboardScrId + status + '_ALL_TAB').addClass('active');
+                break;
+            default:
+                $("#" + DashboardScrId + "PENDING_ALL_TAB").addClass('active');
+        }
+        overallRow.removeClass('sno');
+    }
+};
+apz.app.Dashboard.handleActiveCard = function (pthis) {
+    apz.stopLoader();
+    if (pthis === undefined) {
+        if (selectedTitleArray.length === 1) {
+            //do nothing future will be needed
+        } else {
+            var selectedTab = selectedTitleArray.slice(selectedTitleArray.length - 2)[0];
+            if (selectedTab) {
+                $("[id^='Dashbo__dashboard__dashboardCountItem_']").removeClass('active');
+                $('#' + selectedTab.id).addClass('active');
+                selectedTitleArray = [];
+                selectedTitleArray.push(selectedTab);
+            }
+        }
+    } else {
+        var obj = {
+            "id": "",
+            "title": window.selectedTitle,
+            "subtype": window.SELECTED_SUB_STATUS
+        }
+        obj.id = pthis.id;
+        window.selectedTitleArray.push(obj);
+        $("[id^='Dashbo__dashboard__dashboardCountItem_']").removeClass('active');
+        $('#' + pthis.id).addClass('active');
+        StoreNavData = selectedTitleArray;
+    }
+};
+apz.app.Dashboard.handleNorecord = function (name) {
+    $("#" + DashboardScrId + "dashBoardDataRow").removeClass('sno');
+    $('#' + DashboardScrId + 'selectedDashTitle').text(name);
+    $("#" + DashboardScrId + "noRecordRow").removeClass('sno');
+    if (apz.deviceType === "WEB") {
+        $("#" + DashboardScrId + "mainDataRowWeb").addClass('sno');
+    } else {
+        $("#" + DashboardScrId + "mainDataRowTab").addClass('sno');
+    }
+}
+apz.app.Dashboard.listOnClick = async function(ev) {
+    if(window.AdditionalProducts?.includes(gApzCOB.productCode) && window.subFilterType === 'ADDITIONALPRODUCTPENDING') {
+        window.growNo = $(ev).attr('rowno');
+        gApzCOB.userDetails.applicationId = newDashboardStoreData[growNo].applicationId;
+        gApzCOB.userDetails.customerId = newDashboardStoreData[growNo].memberId;
+        gApzCOB.userDetails.versionNum = 1;
+        ApzCOB.launchSubScreen("AdditionalLoanPreview","APZCBO__BaseScreens__BaseDIV","");   
+        return;
+    }
+    window.recordClicked = true;
+    logoClicked = true;
+    let selectedStatus = dashBoardKey;
+    if (loginResponse?.addInfo1 !== 'KM' && (["Rejected"].includes(selectedStatus) || ["Sourcing stage"].includes(selectedStatus) && ["PENDING"].includes(SELECTED_SUB_STATUS))) {
+        return;
+    }
+    if (loginResponse?.addInfo1 == 'KM' && SELECTED_SUB_STATUS === "SUBMITTED" && selectedStatus == "Sourcing stage") {
+        return; //blocking case picking for KM for now.
+    }
+    if (loginResponse?.addInfo1 == 'BM' && apz.deviceType !== "WEB" && selectedStatus?.toUpperCase() === "SANCTION") {
+       ApzCOB.fnDisplayMsg("Please use WEB login!", "E");
+       return;
+    }
+    if ((['bm sourcing approval'].includes(selectedStatus?.toLowerCase()) && apz.deviceType === "WEB") && !window.ISREQ) {
+        ApzCOB.fnDisplayMsg("Please use TAB login!", "E");
+        return;
+    }
+    if (['BCM'].includes(loginResponse?.addInfo1) && ['DEVIATION/RE-ASSESMENT', 'Deviation/re-assesment', 'DEVIATION_RA'].includes(selectedStatus)) {
+        if (SELECTED_SUB_STATUS === 'REASSESSMENT' && apz.deviceType === "WEB") {
+            ApzCOB.fnDisplayMsg("Please use TAB login!", "E");
+            return;
+        } else if (SELECTED_SUB_STATUS === 'CA_DEVIATION' && apz.deviceType !== "WEB") {
+            ApzCOB.fnDisplayMsg("Please use WEB login!", "E");
+            return;
+        }
+    }
+
+    if (selectedStatus.toLowerCase() === "rejected" && ApplicationType === 'OpenMarket') {
+        window.growNo = $(ev).attr('rowno');
+        gApzCOB.userDetails.applicationId = newDashboardStoreData[growNo].applicationId;
+        apz.app.Dashboard.launchPreviewScreen(gApzCOB.userDetails.applicationId);
+        return;
+    }
+    if (ACTIONABLES.includes(selectedStatus)) {
+        if (['Disbursement inprogress', 'Disbursed', 'DISBURSEMENT_INPROGRESS', 'DISBURSED'].includes(selectedStatus) && apz.deviceType !== "WEB") {
+            ApzCOB.fnDisplayMsg("Please use WEB login!", "E");
+            return;
+        }
+        if (selectedStatus === 'SANCTION' && SELECTED_SUB_STATUS === 'PRESANCTION' && !["ACM", "AM"].includes(loginResponse?.addInfo1)) {
+            window.growNo = $(ev).attr('rowno');
+            gApzCOB.userDetails.applicationId = newDashboardStoreData[growNo].applicationId;
+            apz.app.Dashboard.launchPreviewScreen(gApzCOB.userDetails.applicationId);
+            return;
+        }
+        window.clickList = true;
+        window.growNo = $(ev).attr('rowno');
+        gApzCOB.userDetails.applicationId = newDashboardStoreData[growNo].applicationId;
+        gApzCOB.userDetails.customerId = newDashboardStoreData[growNo].memberId;
+        gApzCOB.userDetails.versionNum = 1;
+        IS_DASHBOARD_VIEW_DATA = true;
+        if (!apz.isNull(gApzCOB.userDetails.applicationId)) {
+            gApzCOB.ExistingCustomer = false;
+            gApzCOB.mainProductGroupCode = gApzCOB.product;
+            let clickedStatus = selectedStatus;
+            if (gApzCOB.mainProductGroupCode === 'LOAN') {
+                if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+                    if (['Deviation/re-assesment', 'Sanction', 'Disbursement inprogress', 'Disbursed', 'DISBURSEMENT_INPROGRESS', 'SANCTION', 'DEVIATION_RA', 'DISBURSED',].includes(clickedStatus)) {
+                        gApzCOB.userDetails.versionNum = 1;
+                        let callBackFn = '';
+                        if (clickedStatus === 'Disbursement inprogress' || clickedStatus === 'DISBURSEMENT_INPROGRESS' || clickedStatus === 'DISBURSED' || clickedStatus === 'Disbursed') {
+                            callBackFn = apz.app.Dashboard.fetchDisbursementApplicationCB;
+                        } else {
+                            callBackFn = apz.app.Dashboard.fetchSanctionApplicationCB;
+                        }
+                        ApzCOB.FetchApplication("", callBackFn);
+                    } else {
+                        if (newDashboardStoreData[growNo].applicationStatus === "PUSHBACK") {
+                            ApzCOB.PushBackFetchApplication(growNo);
+                        } else {
+                            // ApplicationType === 'RENEWAL' ? ApzCOB.FetchApplication(growNo, ApzCOB.FetchApplicationRenewalCB) : ApzCOB.FetchApplication(growNo);
+                            ApzCOB.FetchApplication(growNo);
+                        }
+                    }
+                } else {
+                    if (gApzCOB.ExistingCustomer) {
+                        ApzCOB.LoanFetchApplication(growNo);
+                    }
+                }
+            } else {
+                if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+                    ApzCOB.FetchCustomerDetails(growNo);
+                } else {
+                    ApzCOB.FetchApplication(growNo);
+                }
+            }
+        } else {
+            ApzCOB.startNewApplication();
+        }
+    } else {
+        if (selectedStatus === 'Post disbursement ' && (loginResponse?.addInfo1 === 'BM' && SELECTED_SUB_STATUS === "LUC" || loginResponse?.addInfo1 === 'BCM' && SELECTED_SUB_STATUS === "PENDINGLUCVERIFICATION")) {
+            window.growNo = $(ev).attr('rowno');
+            gApzCOB.userDetails.applicationId = newDashboardStoreData[growNo].applicationId;
+            apz.app.Dashboard.launchLUC(gApzCOB.userDetails.applicationId);
+            return;
+        }
+        window.growNo = $(ev).attr('rowno');
+        gApzCOB.userDetails.applicationId = newDashboardStoreData[growNo].applicationId;
+        apz.app.Dashboard.launchPreviewScreen(gApzCOB.userDetails.applicationId);
+    }
+};
+apz.app.Dashboard.launchLUC = function (applnId) {
+    if (apz.deviceType == "WEB") {
+        window.ISREQ = false;
+    }
+    if (window.ISREQ || apz.deviceType !== "WEB") {
+        var req = {
+            apiRequest: {
+                interfaceName: "",
+                appId: gAppId,
+                requestObj: {
+                    applicationId: applnId,
+                    userId: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                    appId: gApzCOB.userDetails.appId,
+                    versionNum: 1,
+                },
+            },
+        };
+        apz.startLoader();
+        setTimeout(() => {
+            ApzCOB.serverBuildParam(gAppId, "FetchApplication", "N", "N", req, false, apz.app.Dashboard.launchLUCCB);
+        }, 1000);
+    } else {
+        ApzCOB.fnDisplayMsg("Please use the TAB version.", "E");
+    }
+};
+apz.app.Dashboard.launchLUCCB = function (params) {
+    let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchApplication_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+            .APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            ApzCOB.fetchSubProduct();
+            ApzCOB.launchMicroApp('Luc', 'LUCBase', 'APZCBO__BaseScreens__BaseDIV', '');
+        } else {
+            apz.stopLoader();
+            responseMsg = params?.res?.APZCBO__FetchApplication_Res?.apiResponse?.ResponseBody?.responseObj || "";
+            ApzCOB.fnDisplayMsg(responseMsg, "E");
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        ApzCOB.showNewCommonErrorModal(errMsg);
+        apz.stopLoader();
+    }
+};
+apz.app.Dashboard.fetchDisbursementApplicationCB = function (params) {
+    apz.stopLoader();
+    let errMsg = "Fetch Application Data Service Failed";
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            ApzCOB.updateInsessionData(params);
+            window.DBKitEsign = {};
+            window.DBKitEsign = inSessionStore;
+            ApzCOB.launchMicroApp('DBkitG', 'DBbase', `${gAppId}__BaseScreens__BaseDIV`, ' ');
+        } else {
+            let responseMsg = params?.res?.APZCBO__FetchApplication_Res?.apiResponse?.ResponseBody?.responseObj || "";
+            if (responseMsg.includes('GK')) {
+                // ApzCOB.showNewCommonErrorModal(responseMsg);
+                ApzCOB.fnDisplayMsg(responseMsg, "E");
+                return;
+            } else {
+                ApzCOB.showNewCommonErrorModal(responseMsg);
+            }
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        ApzCOB.showNewCommonErrorModal(errMsg);
+    }
+}
+apz.app.Dashboard.fetchSanctionApplicationCB = function (params) {
+    apz.stopLoader();
+    let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchApplication_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+            .APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            const { CoApplicantCustomerId } = gApzCOB.userDetails;
+            const coAppCBInfo = inSessionStore.cibilDetailsWrapperList.find(cb => Number(cb.cibilDetails.custDtlId) === Number(CoApplicantCustomerId)) || {};
+            if (window.AdditionalProducts?.includes(inSessionStore?.applicationMaster?.productCode)) {
+                const cibilList = inSessionStore?.cibilDetailsWrapperList || [];
+                
+                if (window.AdditionalProductsOptionalCoApp?.includes(inSessionStore?.applicationMaster?.productCode)) {
+                    const applicantCB = cibilList.find(cb => Number(cb.cibilDetails.custDtlId) === Number(gApzCOB.userDetails.custDtlId));
+                    if (  applicantCB && applicantCB?.cibilDetails?.request) {
+                        ApzCOB.launchMicroApp('Sanct','DeviationSanctBase',`${gAppId}__BaseScreens__BaseDIV`,window.dashTaskData);
+                    }else {
+                        ApzCOB.BRECbService();
+                    }
+                }
+                else {
+                    const coApplicantCB = cibilList.find(  cb => Number(cb.cibilDetails.custDtlId) === Number(CoApplicantCustomerId) );
+                     if (coApplicantCB?.cibilDetails?.request) {
+                        ApzCOB.launchMicroApp('Sanct','DeviationSanctBase',`${gAppId}__BaseScreens__BaseDIV`,window.dashTaskData);
+                     }  else {
+                        if(coApplicantCB == undefined){
+                            ApzCOB.fnDisplayMsg("Co-Applicant details not found.!",   "E",   "", );
+                            return;
+                        }else {
+                            ApzCOB.BRECbService();
+                        }                    
+                    }
+                }
+            } else {
+                if (!apz.isObjectEmpty(coAppCBInfo)) {
+                    ApzCOB.launchMicroApp('Sanct', 'DeviationSanctBase', `${gAppId}__BaseScreens__BaseDIV`, window.dashTaskData);
+                } else {
+                    ApzCOB.fnDisplayMsg("Co-Applicant CB details not found.!", "E");
+                }
+            }
+        } else {
+            let responseMsg = params?.res?.APZCBO__FetchApplication_Res?.apiResponse?.ResponseBody?.responseObj || "";
+            if (responseMsg.includes('GK')) {
+                ApzCOB.fnDisplayMsg(responseMsg, "E");
+                return;
+                // ApzCOB.showNewCommonErrorModal(responseMsg);
+            } else {
+                ApzCOB.showNewCommonErrorModal(responseMsg);
+            }
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showNewCommonErrorModal(errMsg);
+    }
+}
+
+apz.app.Dashboard.BreAdditionalLoanCB = function (params) {
+    let responseObj = JSON.parse(params.res.APZCBO__BRECBCheck_Res.apiResponse.ResponseBody.responseObj);
+    let cbresObj = responseObj.responseObj;    
+    console.log("BRE Response:", cbresObj);
+
+    if (cbresObj?.payloadColumn ) {
+    const payload = JSON.parse(cbresObj.payloadColumn);
+    cbresObj.payload = JSON.stringify(payload);
+    cbresObj.eligibleAmt = Number(payload.eligibleAmt) || 0;
+     // delete cbresObj.payloadColumn;
+    }
+
+    inSessionStore.cibilDetailsWrapperList =  inSessionStore.cibilDetailsWrapperList || [];
+    const newCBObj = { cibilDetails: cbresObj };
+    if (window.AdditionalProductsOptionalCoApp?.includes(inSessionStore.applicationMaster?.productCode)) {
+        if (cbresObj?.request) {
+            if (inSessionStore.cibilDetailsWrapperList.length === 1) {
+                inSessionStore.cibilDetailsWrapperList[0].cibilDetails = cbresObj;
+            } else if (inSessionStore.cibilDetailsWrapperList.length >= 2) {
+                const applicantIndex = inSessionStore.cibilDetailsWrapperList.findIndex(
+                    item =>Number(item.cibilDetails.custDtlId) === Number(gApzCOB.userDetails.custDtlId));
+                if (applicantIndex !== -1) {
+                    inSessionStore.cibilDetailsWrapperList[applicantIndex].cibilDetails = cbresObj;
+                }else {
+                    inSessionStore.cibilDetailsWrapperList[0].cibilDetails = cbresObj;
+                    console.log("Applicant not found in cibilDetailsWrapperList");
+                }
+            }
+            ApzCOB.launchMicroApp('Sanct','DeviationSanctBase',`${gAppId}__BaseScreens__BaseDIV`,window.dashTaskData);
+        } else {
+             ApzCOB.fnDisplayMsg("Applicant CB details not found.!", "E");//
+            console.log("BRE response does not contain request.");
+        }    
+    } else if (['1004', '1005'].includes(inSessionStore?.applicationMaster?.productCode)) {
+        if (cbresObj?.request) {
+            if (inSessionStore.cibilDetailsWrapperList.length === 1) {
+                inSessionStore.cibilDetailsWrapperList.push(newCBObj);
+            } else if (inSessionStore.cibilDetailsWrapperList.length >= 2) {
+                inSessionStore.cibilDetailsWrapperList.forEach((custType, index) => {
+                if (custType.cibilDetails.custDtlId !== gApzCOB.userDetails.custDtlId) {
+                    inSessionStore.cibilDetailsWrapperList[index] = newCBObj;
+                }});
+            }
+            ApzCOB.launchMicroApp('Sanct','DeviationSanctBase',`${gAppId}__BaseScreens__BaseDIV`,window.dashTaskData);
+        } else {
+            ApzCOB.fnDisplayMsg("Co-Applicant CB details not found.!", "E");//
+            console.log("BRE response does not contain request.");
+        }
+    }
+}
+
+apz.app.Dashboard.updatePaginationControls = function (dashboardName, status) {
+    totalRecords = window.storeTypeCount;
+    let totalPages = Math.ceil(totalRecords / pageSize);
+    if (apz.deviceType === "WEB") {
+        $("#" + DashboardScrId + "webPageInputbox").val(currentPage);
+        $("#" + DashboardScrId + "webPageInputbox").prop('disabled', true);
+        $("#" + DashboardScrId + "webPrevBtn").prop('disabled', currentPage === 1);
+        $("#" + DashboardScrId + "webNextBtn").prop('disabled', currentPage >= totalPages);
+        $("#" + DashboardScrId + "webPage").text("Page " + currentPage + " of " + totalPages);
+        //document.getElementById(DashboardScrId + 'ct_lst_4').scrollTop = 0; // chinna commented for km to rpc null
+        // chinna km to rpc start
+        var webList = document.getElementById(DashboardScrId + 'ct_lst_4');
+        if (webList) {
+            webList.scrollTop = 0;
+        }
+        // chinna km to rpc end
+    } else {
+        $("#" + DashboardScrId + "tabPageInputbox").val(currentPage);
+        $("#" + DashboardScrId + "tabPageInputbox").prop('disabled', true);
+        $("#" + DashboardScrId + "tabPrevBtn").prop('disabled', currentPage === 1);
+        $("#" + DashboardScrId + "tabNextBtn").prop('disabled', currentPage >= totalPages);
+        $("#" + DashboardScrId + "tabPage").text("Page " + currentPage + " of " + totalPages);
+        //document.getElementById(DashboardScrId + 'ct_lst_11').scrollTop = 0; // chinn acommetnted for km to rpc
+        // chinna start km to rpc
+        var tabList = document.getElementById(DashboardScrId + 'ct_lst_11');
+        if (tabList) {
+            tabList.scrollTop = 0;
+        }
+        // chinna end km to rpc
+    }
+}
+apz.app.Dashboard.goToNextPage = function (dashboardName, type) {
+    let totalPages = Math.ceil(window.storeTypeCount / pageSize);
+    if (currentPage < totalPages) {
+        currentPage++;
+        apz.app.BaseScreens.fetchRoleData(dashboardName, type, this, window.currentPage, "next");
+    }
+}
+apz.app.Dashboard.goToPreviousPage = function (dashboardName, type) {
+    if (currentPage > 1) {
+        currentPage--;
+        apz.app.BaseScreens.fetchRoleData(dashboardName, type, this, window.currentPage, "prev");
+    }
+}
+apz.app.Dashboard.creditAssFetchAppDetails = function (pthis) {
+    window.recordClicked = true;
+    if (window.ISREQ || apz.deviceType !== "WEB") {
+        let selectedStatus = dashBoardKey;
+        if (ACTIONABLES.includes(selectedStatus)) {
+            var rowno = $(pthis).attr('rowno');
+            window.data = newDashboardStoreData[rowno];
+            let applnId = data.applicationId;
+            var req = {
+                "apiRequest": {
+                    "interfaceName": "",
+                    "appId": gAppId,
+                    "requestObj": {
+                        "applicationId": applnId,
+                        "userId": gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                        "appId": gApzCOB.userDetails.appId,
+                        "versionNum": 1
+                    }
+                }
+            }
+            apz.startLoader();
+            setTimeout(() => {
+                ApzCOB.serverBuildParam(gAppId, "FetchApplication", "N", "N", req, false, apz.app.Dashboard
+                    .creditAssessFetchapplicationCB);
+            }, 1000);
+        } else {
+            var rowno = $(pthis).attr('rowno');
+            gApzCOB.userDetails.applicationId = newDashboardStoreData[rowno].applicationId;
+            apz.app.Dashboard.launchPreviewScreen(gApzCOB.userDetails.applicationId);
+        }
+    } else {
+        ApzCOB.fnDisplayMsg("Please use the TAB version.", "E");
+    }
+};
+apz.app.Dashboard.creditAssessFetchapplicationCB = function (params) {
+    let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchApplication_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+            .APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            window.botEnabledBranch = inSessionStore?.bipData?.[0]?.BotEnabled || "N";
+            ApzCOB.launchMicroApp('CrdAss', 'Cabase', 'APZCBO__BaseScreens__BaseDIV', '');
+        } else {
+            apz.stopLoader();
+            let responseMsg = params?.res?.APZCBO__FetchApplication_Res?.apiResponse?.ResponseBody?.responseObj || "";
+            if (responseMsg.includes('GK')) {
+                ApzCOB.fnDisplayMsg(responseMsg, "E");
+                return;
+            } else {
+                $(`#${DashboardScrId}locktxt_txtcnt`).text(errMsg);
+                ApzCOB.toggleModal(DashboardScrId + 'lockModal');
+            }
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.toggleModal(DashboardScrId + 'lockModal');
+        $(`#${DashboardScrId}locktxt_txtcnt`).html(technicalErrMsg);
+    }
+};
+apz.app.Dashboard.closeLockModal = function () {
+    if ($("#" + DashboardScrId + 'lockModal').is(":visible")) {
+        $('#' + DashboardScrId + 'lockModal_close').trigger('click');
+    }
+};
+apz.app.Dashboard.loadUnttendedData = function (pthis, key) {
+    window.DASHBOARD_WIDGET_SELECTED_DATA = {};
+    let currentCount = [];
+    let dashBoardKey = key;
+    let obj = {};
+    if (!apz.isNull(dashBoardKey)) {
+        if (!ApzCOB.isObjEmpty(NEW_DASHBOARD_DATA)) {
+            currentCount = NEW_DASHBOARD_DATA?.map?.fliteredLeadDtls?.myArrayList ?? [];
+            if (currentCount.length > 0) {
+                obj.data = structuredClone(currentCount);
+                obj.title = dashBoardKey;
+                window.DASHBOARD_WIDGET_SELECTED_DATA = obj;
+                ApzCOB.launchMicroApp("Dashbo", "DashboardViewAllApplication", "APZCBO__BaseScreens__BaseDIV", "");
+            } else {
+                apz.app.Dashboard.handleNorecord('Not Actioned Leads');
+                apz.app.Dashboard.handleActiveCard(pthis);
+            }
+        }
+    }
+};
+apz.app.Dashboard.masterSearchInpData = function () {
+    if (isViewAccessEnabled) {
+        $(".viewDetailsBtn").removeClass('sno')
+    } else {
+        $(".viewDetailsBtn").addClass('sno')
+    }
+    let searchVal = $("#" + DashboardScrId + "masterSearch").val().trim();
+    if (gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 === "HOM") {
+        searchVal = $("#" + DashboardScrId + "searchHOM").val().trim();
+    }
+    var req = {
+        "apiRequest": {
+            "requestObj": {
+                "searchValue": searchVal
+            },
+            "interfaceName": "MasterSearchApi",
+            "appId": "APZCBO"
+        }
+    }
+    apz.startLoader();
+    ApzCOB.serverBuildParam(gAppId, "MasterSearchApi", "N", "N", req, false, apz.app.Dashboard.masterSearchInpDataCB);
+}
+apz.app.Dashboard.masterSearchInpDataCB = function (params) {
+    apz.stopLoader();
+    ApzCOB.toggleModal("APZCBO__BaseScreens__finalSearch");
+    if (ApzCOB.handleServiceCallBacks(params)) {
+        apz.stopLoader();
+        let masterSearchData = JSON.parse(params.res.APZCBO__MasterSearchApi_Res.apiResponse.ResponseBody.responseObj);
+        if (masterSearchData.length > 0) {
+            $("#APZCBO__BaseScreens__no_data_row").addClass("sno");
+            $("#APZCBO__BaseScreens__search_data_row").removeClass("sno");
+            apz.data.scrdata.APZCBO__MasterSearchDetails_Res = {}
+            let ProductData = apz?.data?.scrdata?.Select__IpaintProductDetails_Res?.data;
+            const modifiedData = masterSearchData.map(item => {
+                let loanTypeName = item.loanType;
+                if (ProductData.length > 0 && item.loanType) {
+                    const prodInfo = ProductData.find(prod => prod.productCode === item.loanType);
+                    if (prodInfo) {
+                        loanTypeName = prodInfo.productName;
+                        if(prodInfo.productCode == '1003') {
+                            loanTypeName = 'Unnati Lite';
+                        }
+                    }
+                }
+                return {
+                    ...item,
+                    loanType: loanTypeName,
+                    customerName: `${item.customerName}/${item.customerId}`,
+                    branchId: `${item.branchName}/${item.branchId}`,
+                    kendraId: `${item.kendraName}/${item.kendraId}`,
+                    loanAmount: item.loanAmount ? item.loanAmount : "-"
+                };
+            });
+            apz.data.scrdata.APZCBO__MasterSearchDetails_Res.data = modifiedData;
+            apz.data.loadData("MasterSearchDetails", "APZCBO");
+            // const isInprogresCase = apz.data.scrdata.APZCBO__MasterSearchDetails_Res?.data?.[0]?.currentStatus === 'INPROGRESS';
+            // if(isInprogresCase){
+            //     $('.viewDetailsBtn').addClass('sno');
+            // } else {
+            //   $('.viewDetailsBtn').removeClass('sno');
+            // }
+        } else {
+            $("#APZCBO__BaseScreens__search_data_row").addClass("sno");
+            $("#APZCBO__BaseScreens__no_data_row").removeClass("sno");
+        }
+    }
+};
+$("#Dashbo__dashboard__checkbox_options").addClass("sno");
+$("#Dashbo__dashboard__radio_options").removeClass("sno");
+$("#Dashbo__dashboard__radio_options").addClass("sno");
+$("#Dashbo__dashboard__checkbox_options").removeClass("sno");
+apz.app.Dashboard.OnClickFilter = function () {
+    apz.data.scrdata.Dashbo__IPaintListofSubFilters_Res = {};
+    apz.data.scrdata.Dashbo__IPaintListofFilters_Res = {};
+    apz.data.scrdata.Dashbo__IPaintListofSubFilters_Res.data = apz.data.scrdata.Select__IpaintProductDetails_Res.data.map(item => ({
+        FilterLables: item.productName == 'Vishesh' ? 'Unnati Lite' : item.productName,
+        FilterLableValue: item.productType.toUpperCase(),
+        FilterCheck: "N",
+        ProductCode: item.productCode
+    }));
+    apz.data.scrdata.Dashbo__IPaintListofFilters_Res.data = [{
+        FilterLables: "Product",
+        FilterLableValue: "Product",
+        FilterCheck: "N"
+    },];
+    apz.data.loadData("IPaintListofSubFilters", "Dashbo");
+    apz.data.loadData("IPaintListofFilters", "Dashbo");
+    $('#Dashbo__dashboard__applyFilterBtn').prop('disabled', true);
+    listofSubFilter = apz.data.scrdata.Dashbo__IPaintListofSubFilters_Res.data;
+    apz.data.scrdata.Dashbo__IPaintListofSubFilters_Res.data.forEach((_, i) => $('#Dashbo__IPaintListofSubFilters__o__data__FilterCheck_' + i).prop('checked', false));
+    ApzCOB.toggleModal("Dashbo__dashboard__fltr_mdl");
+    $("#Dashbo__dashboard__searchFilterInput").val("");
+    $('body').addClass('unati');
+    $("#Dashbo__IPaintListofFilters__o__data__FilterLables_0").click()
+    $("#Dashbo__dashboard__checkbox_options").addClass("rdo-input")
+    $.each(apz.data.scrdata.Dashbo__IPaintListofSubFilters_Res.data, function (i, item) {
+        var isMatch = item.FilterLables === (ProductData[0].productName === 'Vishesh' ? 'Unnati Lite' : ProductData[0].productName);
+        $('#Dashbo__IPaintListofSubFilters__o__data__FilterCheck_' + i).prop('checked', isMatch);
+    });
+}
+$('#Dashbo__dashboard__fltr_mdl_close').on('click', function () {
+    $('body').removeClass('unati');
+});
+apz.app.Dashboard.OnApplyFilters = function () {
+    $('body').removeClass('unati');
+    // Apply the selected filters
+    const selectedSubFilters = selectedSubFilterOptions.filter(item => item.FilterCheck === "Y");
+    const selectedMainFilter = apz.data.scrdata.Dashbo__IPaintListofFilters_Res.data.find(item => item.FilterCheck === "Y");
+    gApzCOB.mainProductGroupCode = 'LOAN';
+    gApzCOB.product = 'LOAN';
+    gApzCOB.productCode = selectedSubFilters[0].ProductCode;
+    ApzCOB.toggleModal("Dashbo__dashboard__fltr_mdl");
+    window.ApplicationType = selectedSubFilters.map(item => item.FilterLableValue).join(',');
+    if (gApzCOB.productCode === '1001') {
+        ApplicationType = "OpenMarket";
+    }
+    if (gApzCOB.productCode === '1003') {
+        ApplicationType = "Vishesh";
+    }
+    if (gApzCOB.productCode === '1006') {
+        ApplicationType = "UnnatiEmergency";
+    }
+    if (gApzCOB.productCode === '1005') {
+        ApplicationType = "UnnatiSuppli";
+    }
+    if (gApzCOB.productCode === '1007') {
+        ApplicationType = "UnnatiFamily";
+    }
+    if (gApzCOB.productCode === '1004') {
+        ApplicationType = "UnnatiRestart";
+    }
+    gApzCOB.SelectedProductName = productCodeBasedName[gApzCOB.productCode];
+    ApzCOB.fetchSubProduct();
+    apz.app.BaseScreens.getCommomCodeBasedOnProduct();
+    if (selectedSubFilters.length != 0) {
+        window.isFilterApplied = true;
+        if (IS_DASHBOARD_COUNT_ENABLED.indexOf(ApplicationType) < 0) {
+            IS_DASHBOARD_COUNT_ENABLED.push(ApplicationType);
+        }
+        apz.app.BaseScreens.fetchRole();
+    }
+}
+apz.app.Dashboard.OnCancelFilters = function () {
+    $('body').removeClass('unati');
+    ApzCOB.toggleModal("Dashbo__dashboard__fltr_mdl");
+}
+apz.app.Dashboard.OnClickMainFilter = function (pthis) {
+    $(pthis).closest('li').addClass('active').siblings().removeClass('active');
+    const id = $(pthis).attr('id');
+    const index = parseInt(id.split('_').pop());
+    $.each(apz.data.scrdata.Dashbo__IPaintListofFilters_Res.data, function (i, item) {
+        if (i === index) {
+            item.FilterCheck = "Y";
+        } else {
+            item.FilterCheck = "N";
+        }
+    });
+}
+apz.app.Dashboard.OnClickSubFilter = function (pthis) { }
+apz.app.Dashboard.OnClickCheckboxFilter = function (pthis) {
+    const id = $(pthis).attr('id');
+    const dataList = apz.data.scrdata.Dashbo__IPaintListofSubFilters_Res.data;
+    const index = parseInt(id.split('_').pop());
+    if (dataList[index].FilterLables != ProductData[0].productName) {
+        $('#Dashbo__dashboard__applyFilterBtn').prop('disabled', false);
+    }
+    $.each(apz.data.scrdata.Dashbo__IPaintListofSubFilters_Res.data, function (i, item) {
+        if (i === index) {
+            item.FilterCheck = "Y";
+            $('#Dashbo__IPaintListofSubFilters__o__data__FilterCheck_' + i).prop('checked', true);
+        } else {
+            item.FilterCheck = "N";
+            $('#Dashbo__IPaintListofSubFilters__o__data__FilterCheck_' + i).prop('checked', false);
+        }
+    });
+    selectedSubFilterOptions = dataList.map(obj => ({
+        ...obj
+    }));
+    const selectedValue = dataList[index].FilterLables;
+    $.each(listofSubFilter, function (i, item) {
+        item.FilterCheck = (item.FilterLables === selectedValue) ? "Y" : "N";
+    });
+};
+apz.app.Dashboard.onProductSelection = function (pthis) { }
+apz.app.Dashboard.searchSubFilters = function () {
+    const val = $('#' + DashboardScrId + 'searchFilterInput').val().toLowerCase();
+    const allData = listofSubFilter;
+    const filtered = allData.filter(item => item.FilterLables.toLowerCase().includes(val));
+    apz.data.scrdata.Dashbo__IPaintListofSubFilters_Res.data = filtered;
+    apz.data.loadData("IPaintListofSubFilters", "Dashbo");
+}
+
+apz.app.Dashboard.launchPreviewScreen = function (applnId) {
+    var req = {
+        apiRequest: {
+            interfaceName: "",
+            appId: gAppId,
+            requestObj: {
+                applicationId: applnId,
+                userId: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                appId: gApzCOB.userDetails.appId,
+                versionNum: 1,
+                isPreview: 'Y'
+            },
+        },
+    };
+    if (window.deepLink) {
+         req.apiRequest.requestObj.cdhFlag = "Y";
+         req.apiRequest.requestObj.customerId = window.deepLinkres.CustomerId;
+         req.apiRequest.requestObj.ProductId = gApzCOB.productCode; 
+    }
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "FetchApplication", "N", "N", req, false, apz.app.Dashboard.launchPreviewScreenCB);
+    }, 1000);
+}
+apz.app.Dashboard.launchPreviewScreenCB = function (params) {
+    let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchApplication_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+            .APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            ApzCOB.fetchSubProduct();
+            ApzCOB.launchMicroApp('cmnPre', 'commonPreview', 'APZCBO__BaseScreens__BaseDIV', '');
+        } else {
+            apz.stopLoader();
+            ApzCOB.fnDisplayMsg(errMsg, "E");
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.fnDisplayMsg(errMsg, "E");
+    }
+};

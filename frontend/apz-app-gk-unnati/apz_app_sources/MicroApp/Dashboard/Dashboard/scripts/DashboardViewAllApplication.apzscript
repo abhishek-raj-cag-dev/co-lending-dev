@@ -1,0 +1,586 @@
+var DashboardViewAllAppScrId = 'Dashbo__DashboardViewAllApplication__';
+var DashboardViewList = [];
+var gAllowedFileTypes = {};
+dashBoardtitle = window.DASHBOARD_WIDGET_SELECTED_DATA.title.replaceAll('_', ' ')
+window.ACTIONABLES = [];
+var role = gApzCOB.LoggedInUserDetails.loginResponse.addInfo1;
+var UniqueKendras = [];
+var kendraIDTag = "Dashbo__DashboardViewAllApplication__kendraID";
+var meetingDayTag = "Dashbo__DashboardViewAllApplication__meetingDay";
+var PleaseSelect = ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT");
+var meetVal = PleaseSelect
+  , kendraVal = PleaseSelect;
+var leadsList = [], UniqueKendras = [], FilteredKendra = [], FilteredMeetDay = [];
+var roleActionablesMap = {
+    KM: ['UNATTENDED_LEADS', 'SOURCING_STAGE', 'CB_PASS_IN_KM_STAGE'],
+    BM: ['BM_RECOMMENDATION_PENDING', 'SANCTION_APPROVAL_PENDING', 'DISBURSEMENT_PENDING', 'DB_KIT_GENERATION_PENDING', 'RESANCTION', 'DISBURSED'],
+    AM: ['SANCTION_APPROVAL_PENDING', 'RESANCTION', 'CA_DEVIATION', 'REASSESSMENT'],
+    DM_RM:['SANCTION_APPROVAL_PENDING', 'RESANCTION'],
+    BCM_ACM: ['CA_DEVIATION', 'REASSESSMENT']
+};
+if (role === 'KM') {
+    ACTIONABLES = roleActionablesMap.KM;
+} else if (role === 'BM') {
+    ACTIONABLES = roleActionablesMap.BM;
+}  else if (['AM'].includes(role)) {
+    ACTIONABLES = roleActionablesMap.AM;
+} else if (['DM', 'RM'].includes(role)) {
+    ACTIONABLES = roleActionablesMap.DM_RM;
+} else if (['BCM', 'ACM'].includes(role)) {
+    ACTIONABLES = roleActionablesMap.BCM_ACM;
+}
+apz.app.onLoad_DashboardViewAllApplication = function() {
+    $("#" + BaseScrId + "landingRowHeader").removeClass('sno');
+    $("#APZCBO__BaseScreens__sidebarController").removeClass('sno');
+    $(BaseScroll).removeClass(SecondaryProduct);
+    $('#APZCBO__BaseScreens__backIcon').removeClass('sno');
+    $('#APZCBO__BaseScreens__headerText').removeClass('sno');
+    $('#APZCBO__BaseScreens__homeicon').addClass('sno');
+    $('#sidebar').addClass('sno');
+    $('.stageDiv').addClass('sno');
+    $('#' + BaseScrId + 'custIDandName').addClass('sno');
+    $('#APZCBO__BaseScreens__BaseDIV_apz_2').removeClass('sno');
+    $('#APZCBO__BaseScreens__BaseDIV_apz_2').removeClass('ssp');
+    window.UNATTENDED_DATA = false;
+    $('#APZCBO__BaseScreens__BaseDIV').removeClass('verify_approve');
+};
+apz.app.onShown_DashboardViewAllApplication = function(params) {
+    $('#' + gAppId + '__BaseScreens__headerText').text(dashBoardtitle);
+    $('body').removeClass("LoginBase");
+    $("#" + BaseScrId + "searchByNumCol").addClass('sno');
+    $("#" + BaseScrId + "applnStatus").addClass('sno');
+    $("#" + BaseScrId + "footerbtnRow").addClass('sno');
+    apz.app.DashboardViewAllApplication.LoadAllApplication();
+     ApzCOB.fetchSubProduct();
+};
+apz.app.DashboardViewAllApplication.listOnClick = async function(ev) {
+    let selectedStatus = dashBoardtitle.replaceAll(' ', '_');
+    if (['DB_KIT_GENERATION_PENDING', 'DISBURSEMENT_PENDING','DISBURSED'].includes(selectedStatus) && apz.deviceType !== "WEB") {
+        ApzCOB.fnDisplayMsg("Please use WEB login!", "E");
+        return;
+    }
+    if (ACTIONABLES.includes(dashBoardtitle.replaceAll(' ', '_'))) {
+        window.clickList = true;
+        // IS_DASHBOARD_VIEW_DATA  = true;
+        var growNo = $(ev).attr('rowno');
+        gApzCOB.product = "LOAN";
+        gApzCOB.userDetails.createdBy = apz.data.scrdata.Dashbo__DashboardViewAllApplication_Res[growNo].kmID;
+        gApzCOB.userDetails.applicationId = apz.data.scrdata.Dashbo__DashboardViewAllApplication_Res[growNo].applicationId;
+        gApzCOB.userDetails.customerId = apz.data.scrdata.Dashbo__DashboardViewAllApplication_Res[growNo].memberId;
+        gApzCOB.userDetails.versionNum = 1;
+        UNATTENDED_SCREEN = false;
+        UNATTENDED_DATA = true;
+        if (!apz.isNull(gApzCOB.userDetails.applicationId) && ProductData[0].productCode !== "1001") {
+            // $('#' + BaseScrId + 'headerText').text(gApzCOB.userDetails.createdBy + " (" + gApzCOB.userDetails.memberId + ")");
+            gApzCOB.ExistingCustomer = false;
+            gApzCOB.mainProductGroupCode = gApzCOB.product;
+            let clickedStatus = dashBoardtitle.replaceAll(' ', '_');
+            if (gApzCOB.mainProductGroupCode === 'LOAN') {
+                if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+                    if (['CA_DEVIATION', 'REASSESSMENT', 'SANCTION_APPROVAL_PENDING', 'DISBURSEMENT_PENDING', 'DB_KIT_GENERATION_PENDING','RESANCTION','DISBURSED'].includes(clickedStatus)) {
+                        gApzCOB.userDetails.versionNum = 1;
+                        let callBackFn = '';
+                        if (['DISBURSEMENT_PENDING','DB_KIT_GENERATION_PENDING','DISBURSED'].includes(clickedStatus)) {
+                            callBackFn = apz.app.DashboardViewAllApplication.fetchDisbursementApplicationCB;
+                        } else {
+                            callBackFn = apz.app.DashboardViewAllApplication.fetchSanctionApplicationCB;
+                        }
+                        ApzCOB.FetchApplication("", callBackFn);
+                    } else {
+                        ApzCOB.FetchApplication(growNo);
+                    }
+                } else {
+                    if (gApzCOB.ExistingCustomer) {
+                        ApzCOB.LoanFetchApplication(growNo);
+                    }
+                }
+            } else {
+                if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+                    ApzCOB.FetchCustomerDetails(growNo);
+                } else {
+                    ApzCOB.FetchApplication(growNo);
+                }
+            }
+        } else {
+            ApzCOB.startNewApplication();
+        }
+        /*var screenType = apz.app.Dashboard.setScreenType();
+        ApzCOB.launchMicroApp('Dashbo', 'ReviewConfirm', gAppId + '__BaseScreens__BaseDIV', {
+            "rowNum": rowNum,
+            "screenType": screenType
+        });*/
+    }
+};
+apz.app.DashboardViewAllApplication.LoadAllApplication = function() {
+    apz.stopLoader();
+    UNATTENDED_SCREEN = true;
+    window.DASHBOARD_WIDGET_SELECTED_DATA.data.forEach(item => {
+        item.map.firstName = item.map.firstName || item.map.fullName;
+    });
+    let dashboardData = window.DASHBOARD_WIDGET_SELECTED_DATA.data;
+    if (dashboardData.length === 0) {
+        $('#' + DashboardViewAllAppScrId + 'searchRow').addClass('sno');
+        $('#' + DashboardViewAllAppScrId + 'viewListHeader').addClass('sno');
+        $('#' + DashboardViewAllAppScrId + 'viewList').addClass('sno');
+        $('#' + DashboardViewAllAppScrId + 'noRecodsForm').removeClass('sno');
+    } else {
+        UniqueKendras = FilteredLeads.getUniqueKendra();
+        UniqueKendras.unshift(ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT"));
+        apz.populateDropdown(document.getElementById(DashboardViewAllAppScrId + "kendraID"), ApzCOB.formatDropDownforArray(UniqueKendras));
+        apz.populateDropdown(document.getElementById(DashboardViewAllAppScrId + "meetingDay"), ApzCOB.formatDropDownforArray(KendraMeetingDays));
+        apz.app.DashboardViewAllApplication.formatViewAllObj(dashboardData);
+        apz.data.scrdata.Dashbo__DashboardViewAllApplication_Res = DashboardViewList;
+        apz.data.loadData('DashboardViewAllApplication', 'Dashbo');
+        if (dashBoardtitle === 'UNATTENDED LEADS') {
+            apz.app.viewallapplication.addPriorityClass(DashboardViewList);
+        }
+        $('#' + DashboardViewAllAppScrId + 'searchRow').removeClass('sno');
+        $('#' + DashboardViewAllAppScrId + 'viewListHeader').removeClass('sno');
+        $('#' + DashboardViewAllAppScrId + 'viewList').removeClass('sno');
+        $('#' + DashboardViewAllAppScrId + 'noRecodsForm').addClass('sno');
+    }
+};
+apz.app.DashboardViewAllApplication.formatViewAllObj = function(dashboardData) {
+    dashboardData.map(item => {
+        let lresp = item.map;
+        let memberId = apz.isNull(lresp.memberId) ? "" : lresp.memberId;
+        if (apz.isNull(memberId)) {
+            memberId = apz.isNull(lresp.customerId) ? "" : lresp.customerId;
+        }
+        let memberName = apz.isNull(lresp.firstName) ? "" : lresp.firstName;
+        if (apz.isNull(memberName)) {
+            memberName = apz.isNull(lresp.customerName) ? "" : lresp.customerName;
+        }
+        let currentStatus = apz.isNull(lresp.currentStatus) ? "" : lresp.currentStatus;
+        if (!apz.isNull(lresp.currentStageNo)) {
+            if (KM_STAGES.length > 0) {
+                const currentStage = KM_STAGES.find(stage => parseInt(stage.key) === lresp.currentStageNo);
+                if (currentStage) {
+                    currentStatus = currentStage.value;
+                } else {
+                    currentStatus = dashBoardtitle;
+                }
+            } else {
+                currentStatus = dashBoardtitle;
+            }
+        } else {
+            currentStatus = dashBoardtitle;
+        }
+        let priority = apz.isNull(lresp.priority) ? "" : lresp.priority;
+        if (apz.isNull(priority)) {
+            $('#Dashbo__DashboardViewAllApplication__viewListHeader ul li span.pri.priorityVal').addClass('sno');
+            $('#Dashbo__DashboardViewAllApplication__viewList ul li.pri span.dataPaintCol.priorityVal').addClass('sno');
+            $('#Dashbo__DashboardViewAllApplication__viewListHeader ul li span.pri.memberName,#Dashbo__DashboardViewAllApplication__viewList ul li.pri span.dataPaintCol.memberName')
+                .addClass('autoFit');
+            $('#Dashbo__DashboardViewAllApplication__viewListHeader ul li span.pri.kendraName,#Dashbo__DashboardViewAllApplication__viewList ul li.pri span.dataPaintCol.kendraName')
+                .addClass('autoFit');
+        } else {
+            $('#Dashbo__DashboardViewAllApplication__viewListHeader ul li span.pri.priorityVal').removeClass('sno');
+            $('#Dashbo__DashboardViewAllApplication__viewList ul li.pri span.dataPaintCol.priorityVal').removeClass('sno');
+            $('#Dashbo__DashboardViewAllApplication__viewListHeader ul li span.pri.memberName,#Dashbo__DashboardViewAllApplication__viewList ul li.pri span.dataPaintCol.memberName')
+                .removeClass('autoFit');
+            $('#Dashbo__DashboardViewAllApplication__viewListHeader ul li span.pri.kendraName,#Dashbo__DashboardViewAllApplication__viewList ul li.pri span.dataPaintCol.kendraName')
+                .removeClass('autoFit');
+        }
+        let obj = {};
+        obj.memberId = (!apz.isNull(memberId)) ? memberId : "";
+        obj.memberName = (!apz.isNull(memberName)) ? memberName : "";;
+        obj.kendraName = (!apz.isNull(lresp.kendraName)) ? lresp.kendraName : "";;
+        obj.kendraId = (!apz.isNull(lresp.kendraId)) ? lresp.kendraId : "";;
+        obj.vintage = (!apz.isNull(lresp.kendraVintageYrs)) ? ApzCOB.fn_unFormatAmount(lresp.kendraVintageYrs) : "";;
+        obj.meetingDay = (!apz.isNull(lresp.kendraMeetingDay)) ? lresp.kendraMeetingDay : "";;
+        obj.outstandingAmount = (!apz.isNull(lresp.caglOs)) ? ApzCOB.CustomizedAmountFormatting(Number(lresp.caglOs)) : "";;
+        obj.kmID = (!apz.isNull(lresp.createdBy)) ? lresp.createdBy : "";;
+        obj.priority = (!apz.isNull(priority)) ? priority : "";;
+        obj.currentStatus = (!apz.isNull(currentStatus)) ? currentStatus : dashBoardtitle;
+        obj.applicationId = (!apz.isNull(lresp.applicationId)) ? lresp.applicationId : "";;
+        DashboardViewList.push(obj);
+    })
+    if (dashBoardtitle === 'UNATTENDED LEADS') {
+        DashboardViewList = apz.app.BaseScreens.sortLeads(DashboardViewList);
+    }
+    return DashboardViewList;
+}
+apz.app.DashboardViewAllApplication.searchIB = function(ev) {
+    var value = $('#' + ev.id).val();
+    var array = DashboardViewList;
+    window.searchLength = [];
+    if (!apz.isNull(value)) {
+        window.searchLength = ApzCOB.arraySearch(value, array, ["createdBy", "kendraId", "memberId", "kendraName", "meetingDay", "memberName",
+            "outstandingAmount", "vintage", "currentStatus"
+        ], "Dashbo__DashboardViewAllApplication_Res");
+    } else {
+        window.searchLength = DashboardViewList;
+        apz.data.scrdata.Dashbo__DashboardViewAllApplication_Res = [...DashboardViewList];
+    }
+    if (window.searchLength.length === 0) {
+        $("#" + DashboardViewAllAppScrId + 'viewList').addClass('sno');
+        $("#" + DashboardViewAllAppScrId + "noRecodsForm").removeClass("sno");
+    } else {
+        $("#" + DashboardViewAllAppScrId + 'viewList').removeClass('sno');
+        $("#" + DashboardViewAllAppScrId + "noRecodsForm").addClass("sno");
+        apz.data.loadData('DashboardViewAllApplication', 'Dashbo');
+        if (dashBoardtitle === 'UNATTENDED LEADS') {
+            apz.app.viewallapplication.addPriorityClass(searchLength);
+        }
+        $(`#${DashboardViewAllAppScrId}viewList`).scrollTop(0, 0);
+    }
+    $('#Dashbo__DashboardViewAllApplication__viewList').css('max-height', 'max-content')
+};
+apz.app.viewallapplication.loadViewAllData = function() {
+    var productfilterdArr = [];
+    var indexVal = 0;
+    if (window.currentApplication === 'InProgress') {
+        apz.data.scrdata.Widget__IPaintWidgetInProgress_Res.WidgetData = ViewList;
+        viewAllApplicationList = apz.data.scrdata.Dashbo__ViewAllApplication_Res = apz.data.scrdata.Widget__IPaintWidgetInProgress_Res.WidgetData;
+        /*viewAllApplicationList.forEach(function(i, e) {
+            i.subDate = new Date(i.subDate).toString("dd MMM yyyy");
+        })*/
+        viewAllApplicationList.forEach(function(widgetData, index) {
+            if (slectedProductsArr.length > 0) {
+                indexVal = slectedProductsArr.findIndex(function(e) {
+                    return widgetData.productGroupCode === e;
+                })
+            }
+            if (apz.isNull(indexVal) || indexVal >= 0) {
+                if (!productfilter) {
+                    widgetData.applicationDate = ApzCOB.dateformatter(widgetData.applicationDate.year + "/" + widgetData.applicationDate
+                        .month + "/" + widgetData.applicationDate.day, "d M Y");
+                }
+                widgetData.Status = widgetData.queueStatus;
+                widgetData.productIcon = apz.app.BaseScreens.getProductIcon(widgetData.productGroupCode);
+                if (apz.isNull(widgetData.createdBy)) {
+                    widgetData.createdBy = "Customer";
+                    widgetData.mbcreatedBy = "Customer";
+                } else {
+                    widgetData.mbcreatedBy = widgetData.createdBy;
+                }
+                productfilterdArr.push(widgetData);
+            }
+            //$('#Dashbo__viewallapplication__nameIconText_' + index).addClass('sno');
+            if (apz.deviceType === "WEB") {
+                $('#' + dashboCreatedById + index).addClass('sno');
+            }
+        });
+    } else if (window.currentApplication === 'Rejected') {
+        apz.data.scrdata.Widget__IPaintWidgetReject_Res.WidgetDateReject = ViewList;
+        viewAllApplicationList = apz.data.scrdata.Dashbo__ViewAllApplication_Res = apz.data.scrdata.Widget__IPaintWidgetReject_Res
+            .WidgetDateReject;
+        viewAllApplicationList.forEach(function(widgetData, index) {
+            if (slectedProductsArr.length > 0) {
+                indexVal = slectedProductsArr.findIndex(function(e) {
+                    return widgetData.productGroupCode === e;
+                })
+            }
+            if (apz.isNull(indexVal) || indexVal >= 0) {
+                if (!productfilter) {
+                    widgetData.applicationDate = ApzCOB.dateformatter(widgetData.applicationDate.year + "/" + widgetData.applicationDate
+                        .month + "/" + widgetData.applicationDate.day, "d M Y");
+                }
+                widgetData.productIcon = apz.app.BaseScreens.getProductIcon(widgetData.productGroupCode);
+                widgetData.Status = widgetData.queueStatus;
+                if (apz.isNull(widgetData.createdBy)) {
+                    widgetData.createdBy = "Customer";
+                    widgetData.mbcreatedBy = "Customer";
+                } else {
+                    widgetData.mbcreatedBy = widgetData.createdBy;
+                }
+                productfilterdArr.push(widgetData);
+            }
+            //$('#Dashbo__viewallapplication__nameIconText_' + index).addClass('sno');
+            if (apz.deviceType === "WEB") {
+                $('#' + dashboCreatedById + index).addClass('sno');
+            }
+        });
+    } else if (window.currentApplication === 'AssignLead') {
+        apz.data.scrdata.Widget__IPaintWidgetAssignLead_Res.WidgetDateAssignLead = ViewList;
+        viewAllApplicationList = apz.data.scrdata.Dashbo__ViewAllApplication_Res = apz.data.scrdata.Widget__IPaintWidgetAssignLead_Res
+            .WidgetDateAssignLead;
+        viewAllApplicationList.forEach(function(widgetData, index) {
+            if (slectedProductsArr.length > 0) {
+                indexVal = slectedProductsArr.findIndex(function(e) {
+                    return widgetData.productGroupCode === e;
+                })
+            }
+            if (apz.isNull(indexVal) || indexVal >= 0) {
+                if (!productfilter) {
+                    widgetData.applicationDate = ApzCOB.dateformatter(widgetData.applicationDate.year + "/" + widgetData.applicationDate
+                        .month + "/" + widgetData.applicationDate.day, "d M Y");
+                }
+                widgetData.productIcon = apz.app.BaseScreens.getProductIcon(widgetData.productGroupCode);
+                widgetData.Status = widgetData.queueStatus;
+                if (apz.isNull(widgetData.createdBy)) {
+                    widgetData.createdBy = "Customer";
+                    widgetData.mbcreatedBy = "Customer";
+                } else {
+                    widgetData.mbcreatedBy = widgetData.createdBy;
+                }
+                productfilterdArr.push(widgetData);
+            }
+            //$('#Dashbo__viewallapplication__nameIconText_' + index).addClass('sno');
+            if (apz.deviceType === "WEB") {
+                $('#' + dashboCreatedById + index).addClass('sno');
+            }
+        });
+    } else if (window.currentApplication === 'Approvals') {
+        apz.data.scrdata.Widget__IPaintWidgetApproval_Res.WidgetDateApproval = ViewList;
+        viewAllApplicationList = apz.data.scrdata.Dashbo__ViewAllApplication_Res = apz.data.scrdata.Widget__IPaintWidgetApproval_Res
+            .WidgetDateApproval;
+        viewAllApplicationList.forEach(function(widgetData, index) {
+            if (slectedProductsArr.length > 0) {
+                indexVal = slectedProductsArr.findIndex(function(e) {
+                    return widgetData.productGroupCode === e;
+                })
+            }
+            if (apz.isNull(indexVal) || indexVal >= 0) {
+                if (!productfilter) {
+                    widgetData.applicationDate = ApzCOB.dateformatter(widgetData.applicationDate.year + "/" + widgetData.applicationDate
+                        .month + "/" + widgetData.applicationDate.day, "d M Y");
+                }
+                widgetData.productIcon = apz.app.BaseScreens.getProductIcon(widgetData.productGroupCode);
+                widgetData.Status = widgetData.queueStatus;
+                if (apz.isNull(widgetData.createdBy)) {
+                    widgetData.createdBy = "Customer";
+                    widgetData.mbcreatedBy = "Customer";
+                } else {
+                    widgetData.mbcreatedBy = widgetData.createdBy;
+                }
+                productfilterdArr.push(widgetData);
+            }
+            //$('#Dashbo__viewallapplication__nameIconText_' + index).addClass('sno');
+            if (apz.deviceType === "WEB") {
+                $('#' + dashboCreatedById + index).addClass('sno');
+            }
+        });
+    } else if (window.currentApplication === 'Completed') {
+        apz.data.scrdata.Widget__IPaintWidgetComplete_Res.WidgetDateComplete = ViewList;
+        viewAllApplicationList = apz.data.scrdata.Dashbo__ViewAllApplication_Res = apz.data.scrdata.Widget__IPaintWidgetComplete_Res
+            .WidgetDateComplete;
+        viewAllApplicationList.forEach(function(widgetData, index) {
+            if (slectedProductsArr.length > 0) {
+                indexVal = slectedProductsArr.findIndex(function(e) {
+                    return widgetData.productGroupCode === e;
+                })
+            }
+            if (apz.isNull(indexVal) || indexVal >= 0) {
+                if (!productfilter) {
+                    widgetData.applicationDate = ApzCOB.dateformatter(widgetData.applicationDate.year + "/" + widgetData.applicationDate
+                        .month + "/" + widgetData.applicationDate.day, "d M Y");
+                }
+                widgetData.productIcon = apz.app.BaseScreens.getProductIcon(widgetData.productGroupCode);
+                widgetData.Status = widgetData.queueStatus;
+                if (apz.isNull(widgetData.createdBy)) {
+                    widgetData.createdBy = "Customer";
+                    widgetData.mbcreatedBy = "Customer";
+                } else {
+                    widgetData.mbcreatedBy = widgetData.createdBy;
+                }
+                productfilterdArr.push(widgetData);
+            }
+            //$('#Dashbo__viewallapplication__nameIconText_' + index).addClass('sno');
+            if (apz.deviceType === "WEB") {
+                $('#' + dashboCreatedById + index).addClass('sno');
+            }
+        });
+    } else if (window.currentApplication === 'Pushback') {
+        apz.data.scrdata.Widget__IPaintWidgetPushBack_Res.WidgetData = ViewList;
+        viewAllApplicationList = apz.data.scrdata.Dashbo__ViewAllApplication_Res = apz.data.scrdata.Widget__IPaintWidgetPushBack_Res.WidgetData;
+        viewAllApplicationList.forEach(function(widgetData, index) {
+            if (slectedProductsArr.length > 0) {
+                indexVal = slectedProductsArr.findIndex(function(e) {
+                    return widgetData.productGroupCode === e;
+                })
+            }
+            if (apz.isNull(indexVal) || indexVal >= 0) {
+                if (!productfilter) {
+                    widgetData.applicationDate = ApzCOB.dateformatter(widgetData.applicationDate.year + "/" + widgetData.applicationDate
+                        .month + "/" + widgetData.applicationDate.day, "d M Y");
+                }
+                widgetData.productIcon = apz.app.BaseScreens.getProductIcon(widgetData.productGroupCode);
+                widgetData.Status = widgetData.queueStatus;
+                if (apz.isNull(widgetData.createdBy)) {
+                    widgetData.createdBy = "Customer";
+                    widgetData.mbcreatedBy = "Customer";
+                } else {
+                    widgetData.mbcreatedBy = widgetData.createdBy;
+                }
+                productfilterdArr.push(widgetData);
+            }
+            //$('#Dashbo__viewallapplication__nameIconText_' + index).addClass('sno');
+            if (apz.deviceType === "WEB") {
+                $('#' + dashboCreatedById + index).addClass('sno');
+            }
+        });
+    }
+    for (var i = 0; i < $('#' + ViewAllAppScrId + 'viewList ul').find('li').length; i++) {
+        if (i > productfilterdArr.length - 1) {
+            $('#' + ViewAllAppScrId + 'viewList_row_' + i).removeClass('sno');
+            $('#' + ViewAllAppScrId + 'viewList_row_' + i).removeClass('ssp');
+            apz.data.deleteRow(ViewAllAppScrId + 'viewList', i);
+        }
+    }
+    apz.data.scrdata.Dashbo__ViewAllApplication_Res = productfilterdArr
+    //   if (!apz.isNull(viewAllApplicationList) && viewAllApplicationList.length > 0) {
+    if (productfilterdArr.length > 0) {
+        apz.data.loadData('ViewAllApplication', 'Dashbo');
+        $("#" + ViewAllAppScrId + "noRecodsForm").addClass("sno");
+        $("#" + ViewAllAppScrId + "viewList").removeClass("sno");
+        $("#" + ViewAllAppScrId + "viewListHeader").removeClass("sno");
+    } else {
+        $("#" + ViewAllAppScrId + "viewList").addClass("sno");
+        $("#" + ViewAllAppScrId + "viewListHeader").addClass("sno");
+        $("#" + ViewAllAppScrId + "noRecodsForm").removeClass("sno");
+    }
+    $("#" + BaseScrId + "applnStatus").text(window.applnStatus);
+    //  apz.app.viewallapplication.paintPayeeImageText();
+};
+apz.app.viewallapplication.addPriorityClass = function(lArray) {
+    let priorId = 'Dashbo__DashboardViewAllApplication__o__Dashbo__DashboardViewAllApplication_Res__priority_';
+    for (var i = 0; i < lArray.length; i++) {
+        if (!apz.isNull(lArray[i].priority)) {
+            $(`#${priorId + i}_txtcnt .priority`).remove();
+            $(`#${priorId + i}_txtcnt`).attr('class', `priority ${lArray[i].priority.split(' l')[0].toLocaleLowerCase()}`);
+        }
+    }
+}
+apz.app.DashboardViewAllApplication.fetchSanctionApplicationCB = function(params){
+    apz.stopLoader();
+     let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchApplication_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }  
+    try {
+     if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            const { CoApplicantCustomerId } = gApzCOB.userDetails;
+             const coAppCBInfo = inSessionStore.cibilDetailsWrapperList.find(cb => Number(cb.cibilDetails.custDtlId) === Number(CoApplicantCustomerId)) || {};
+            if(!apz.isObjectEmpty(coAppCBInfo)){
+                ApzCOB.launchMicroApp('Sanct', 'DeviationSanctBase', `${gAppId}__BaseScreens__BaseDIV`, window.dashTaskData);
+            } else {
+                ApzCOB.fnDisplayMsg("Co-Applicant CB details not found.!", "E");
+            }
+     }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+    }
+}
+ apz.app.DashboardViewAllApplication.fetchDisbursementApplicationCB = function(params){
+    apz.stopLoader();
+    let errMsg = "Fetch Application Data Service Failed";
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            ApzCOB.updateInsessionData(params);
+            ApzCOB.launchMicroApp('DBkitG', 'DBbase', `${gAppId}__BaseScreens__BaseDIV`, ' ');
+        } else {
+            ApzCOB.showNewCommonErrorModal(errMsg);}
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        ApzCOB.showNewCommonErrorModal(errMsg);
+    }
+}
+Array.prototype.getUniqueKendra = function() {
+    var obj = {}, arr= [], i, ele;
+    for(i = 0; ele = this[i]; i++) {
+        obj[ele.map.kendraId] = 1;
+    }
+    for(ele in obj) {
+        arr.push(ele);
+    }
+    return arr;
+};
+apz.app.DashboardViewAllApplication.filterLeads = function(pthis) {
+    if (pthis.id === kendraIDTag) {
+        if (!(pthis.value === PleaseSelect)) {
+            kendraVal = pthis.value;
+            FilteredKendra = FilteredLeads.filter(function(el) {
+                return parseInt(el.map.kendraId) === parseInt(kendraVal);
+            })
+            apz.app.DashboardViewAllApplication.fetchApplications(FilteredKendra);
+        } else {
+            FilteredKendra = [];
+            kendraVal = PleaseSelect;
+            apz.app.DashboardViewAllApplication.fetchApplications(FilteredMeetDay);
+        }
+    } else if (pthis.id === meetingDayTag) {
+        if (!(pthis.value === PleaseSelect)) {
+            meetVal = pthis.value.slice(0, 3).toUpperCase()
+            FilteredMeetDay = FilteredLeads.filter(function(el) {
+                return el.map.kendraMeetingDay === meetVal;
+            })
+            apz.app.DashboardViewAllApplication.fetchApplications(FilteredMeetDay);
+        } else {
+            FilteredMeetDay = [];
+            meetVal = PleaseSelect;
+            apz.app.DashboardViewAllApplication.fetchApplications(FilteredKendra);
+        }
+    }
+    if (FilteredKendra.length > 0 || FilteredMeetDay.length > 0) {
+        apz.app.DashboardViewAllApplication.filterBasedSearch(FilteredKendra, kendraVal, FilteredMeetDay, meetVal);
+    } else if(kendraVal === PleaseSelect && meetVal === PleaseSelect) {
+        apz.app.DashboardViewAllApplication.fetchApplications(FilteredLeads);
+    }
+}
+apz.app.DashboardViewAllApplication.fetchApplications = function(FilteredLeads) {
+    leadsList = [];
+    for (var i = 0; i < FilteredLeads.length; i++) {
+        let leadRow = FilteredLeads[i].map;
+        var elem = {};
+        elem.memberId = leadRow.customerId ?? '';
+        elem.memberName = leadRow.fullName ?? '';
+        elem.kendraName = leadRow.kendraName ?? '';
+        elem.kendraId = leadRow.kendraId ?? '';
+        elem.vintage = leadRow.noOfYrsRel ?? '';
+        elem.meetingDay = leadRow.kendraMeetingDay ?? '';
+        elem.priority = leadRow.priority ?? '';
+        elem.currentStatus = leadRow.currentStatus ?? 'UNATTENDED LEADS';
+        leadsList.push(elem);
+    }
+    if (leadsList.length > 0) {
+        apz.data.scrdata.Dashbo__DashboardViewAllApplication_Res = {};
+        apz.data.scrdata.Dashbo__DashboardViewAllApplication_Res = leadsList;
+        apz.data.loadData('DashboardViewAllApplication', 'Dashbo');
+        apz.app.DashboardViewAllApplication.appendPriority(leadsList);
+        ['viewList', 'viewListHeader'].show();
+        ['noRecodsForm'].hide();
+        $(`#${DashboardViewAllAppScrId}viewList .wrapped.undefined.ssp`).remove();
+    } else {
+        $(`#${DashboardViewAllAppScrId}viewListHeader`).addClass('sno');
+        $(`#${DashboardViewAllAppScrId}viewList`).addClass('sno');
+        $(`#${DashboardViewAllAppScrId}noRecodsForm`).removeClass('sno');
+    }
+};
+apz.app.DashboardViewAllApplication.filterBasedSearch = function(kArr, kVal, mArr, mVal) {
+    if (kArr.length > 0 && mArr.length > 0) {
+        PaintArr = FilteredLeads.filter(function(el) {
+            return parseInt(el.map.kendraId) === kVal && el.map.kendraMeetingDay === mVal
+        });
+        apz.app.DashboardViewAllApplication.fetchApplications(PaintArr)
+    }
+};
+apz.app.DashboardViewAllApplication.appendPriority = function(leadArray) {
+    let baseId = 'Dashbo__DashboardViewAllApplication__o__Dashbo__DashboardViewAllApplication_Res__priority_';
+    for (var i = 0; i < leadArray.length; i++) {
+        if (!apz.isNull(leadArray[i].priority)) {
+            let priorityText = leadArray[i].priority.trim();
+            let spanId = `${baseId + i}_txtcnt`;
+            if (/^normal.*$/g.test(priorityText.toLowerCase())) {
+                $(`#${spanId}`).removeClass("warm").removeClass("hot").addClass("normal");
+            } else if (/^warm.*$/g.test(priorityText.toLowerCase())) {
+                $(`#${spanId}`).removeClass("normal").removeClass("hot").addClass("warm");
+            } else if (/^hot.*$/g.test(priorityText.toLowerCase())) {
+                $(`#${spanId}`).removeClass("normal").removeClass("warm").addClass("hot");
+            }
+            $(`#${spanId}`).text(priorityText);
+        }
+    }
+};

@@ -1,0 +1,64 @@
+.insurbadge span.scb-col100 {
+    background: #CFD8DC;
+    border-radius: 48px;
+    padding: 4px 16px;
+    width: auto; 
+}
+
+.insurbadge .srb.eoc {
+    width: auto;
+    display: inline-flex; 
+}
+
+.crt-form.ver.pri .insurbadge .scb-col100  ul:first-child {margin-right: 4px !important;}
+.crt-form.ver.pri .insurbadge .scb-col100  ul:last-child {margin-left: 4px !important;}
+.crt-form.ver.pri .insurbadge .scb-col100  ul .ett-labl{color:#231f20;opacity: 1;}
+.crt-form.ver.pri .insurbadge .scb-col100  ul .ett-para{color:231f20;font-weight:600;opacity:1;}
+.insurdtl .ett-rdio {display: grid;gap: 16px;grid-template-columns: repeat(3, 1fr);}
+.insurance-amt{display:flex;flex-direction:row;gap:16px 24px}
+
+.crt-form.ver.pri .lbl-clr .flb {font-weight: 600;font-size: 14px !important;line-height: 20px;letter-spacing: 0.4px;opacity:1;
+color:#004886}
+.insurdtl .ett-rdio.hor.pri input[type=radio] + label {
+    color: #231f20;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.4px;
+    line-height: 20px;
+}
+
+.insrhdr .srb.wrapped, .insrhdr .srb.eoc.wrapped {
+    width: auto;
+    line-height: 12px;
+}
+.insrhdr .srb.wrapped.sbld.edt { 
+    float: right;
+    cursor:pointer;
+}
+.srb.wrapped > span.insurance-amt {
+    display: flex;
+    flex-direction: row;
+}
+.crt-form.ver.pri .canote.elblhd .flb { 
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.2px;
+    color:#231f20;
+}
+.crdas .error-block .err-msg {
+    text-align: right;
+}
+.crdas .ecn > .cir.ett-date.select-disabled .ett-bttn {
+    display: none;
+}
+.crt-form.ver.pri .insurance-fields .elblhd.nothd .flb {
+    font-size: 12px !important;
+}
+.insrhdr .sbld.edt .ett-para.icr svg {
+    margin-top: 0;
+}
+
+.crt-form.ver.pri .insurance-fields .elblhd .flb {
+    color: #737373;
+}

@@ -1,0 +1,48 @@
+apz.app.onLoad_RPC_Query = function() {
+    if($('.queryRowList').length > 0){
+       $('.queryRowList').remove() 
+    }
+    if(stageQueries.length > 0){
+        apz.data.scrdata.RPC__IPaintQueries_Res = [];
+        apz.data.scrdata.RPC__IPaintQueries_Res = stageQueries;
+        apz.data.loadData("IPaintQueries", "RPC");
+        $("#RPC__RPC_Query__queryText_txtcnt").text("Queries");
+         let subMenuId = custType === 'Applicant' ? 1 : 2;
+                let verifiedDate = rpcStepperStatus.find(ver => ver.stageID === RPC_CURRENT_STAGE_NO && ver.subMenu === subMenuId)?.verifiedDate;
+                if(!apz.isNull(verifiedDate)){
+                $("#RPC__RPC_Query__queryText_txtcnt").text("Queries " + "(" + verifiedDate + ")");
+                } else {
+                  $("#RPC__RPC_Query__queryText_txtcnt").text("Queries");   
+                }
+        // apz.app.RPCFooter.updateQueriesWithLatestDateTime();
+    }
+    if(pushbackQuery.length > 0){
+        if($('.addedQuery').length > 0){
+          $('.addedQuery').remove()
+        }
+        const timelineDetails = inSessionStore?.applicationTimelineDtl;
+        let selectElementID = `RPC__RPC_Query__rpcCheckerQuery_0_row_-1`;
+        let parentDiv = $(`#RPC__RPC_Query__rpcCheckerQuery_0_row_-1`).parent(); 
+        pushbackQuery.map((queryObj, index) => {
+            let currentIndex = index + 1;
+            let newId = ApzCOB.cloneDashboardDivs(selectElementID, parentDiv, currentIndex);
+            $(`#${newId} span p span`).text(queryObj.query);
+            $(`#${newId}`).addClass('queryRowList');
+        })
+        $('#RPC__RPC_Query__RpcCheckerQuery,.checkerQueries').removeClass('sno');
+        $('.CheckerQryLabel span').text(`RPC checker pushback query (${ApzCOB.formattedTime(timelineDetails[timelineDetails.length - 1].timeStamp)})`);
+        if (!apz.isNull(lastWf) && !apz.isNull(lastSecondWf) && lastWf?.stage === 'KM Sourcing' && lastSecondWf?.stage?.includes('RPC') && lastSecondWf?.actionTaken?.includes('Sent')) {
+            $('.CheckerQryLabel span').text(`${lastSecondWf?.stage} pushback query (${ApzCOB.formattedTime(lastSecondWf.timeStamp)})`);
+            if (!apz.isNull(KMRESPONSE)) {
+                $('.kmresp').removeClass('sno');
+                $('#RPC__RPC_Query__responseValue_txtcnt').text('• ' + KMRESPONSE);
+                $('#RPC__RPC_Query__responseHeader_txtcnt').text(`KM Sourcing Response (${ApzCOB.formattedTime(lastWf.timeStamp)})`);
+            } else {
+                $('#RPC__RPC_Query__RpcCheckerQuery,.checkerQueries').addClass('sno');
+            }
+        }
+    } else {
+        $('#RPC__RPC_Query__RpcCheckerQuery,.checkerQueries').addClass('sno');
+    } 
+}
+apz.app.onShown_RPC_Query = function() {};

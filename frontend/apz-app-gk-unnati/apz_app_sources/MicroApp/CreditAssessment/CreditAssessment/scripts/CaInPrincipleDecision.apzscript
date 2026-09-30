@@ -1,0 +1,1926 @@
+window.CA_CURRENT_STAGE = "InPrincipleDecision";
+window.CURRENTSCREEN = "CaInPrincipleDecision"
+window.AppcustomerId = "";
+window.CoAppcustomerId = "";
+inPrincipleStageClicked = true;
+var incomeDtls = "",
+    custTypeInPrinciple = "",
+    AppCustCibilData,
+    CoAppCustCibilData,
+    CaInPrincipleDecisionScrId = "CrdAss__CaInPrincipleDecision__",
+    ShowLoanAmtErrorModal = false;
+var container = ["eligibleLoanNav1", "eligibleLoanForm1", "eligibleLoanNav2", "eligibleLoanForm2", "decisionNav1", "decisionForm1", "decisionNav2",
+    "decisionForm2",];
+var eligibleLoans = ["eligibleLoanNav1", "eligibleLoanForm1", "eligibleLoanNav2", "eligibleLoanForm2",]; /* to be used for deviation metric */
+var newEligibleLoans = ["eligibleLoanNav1", "eligibleLoanForm1"];
+var decisionDtls = ["decisionNav1", "decisionForm1", "decisionNav2", "decisionForm2",];
+apz.app.onLoad_CaInPrincipleDecision = function() {};
+apz.app.onShown_CaInPrincipleDecision = function() {
+    apz.childScr = "CaInPrincipleDecision";
+    container.hide();
+    newEligibleLoans.show();
+    apz.app.CaInPrincipleDecision.paintData();
+    $(`#${CaInPrincipleDecisionScrId}eligibleBtn`).addClass("active");
+    apz.app.Cabase.hideShowBtnBasedOnScreen();
+    window.CA_CURRENT_STAGE_NO = CA_ALL_STAGE_FIELDS.find(stage => stage.stageName === CA_CURRENT_STAGE)?.id;
+    if (CoAppCustCibilData[0]?.cibilDetails?.payload?.finalDecision?.indexOf("Approved") !== -1) {
+        $("#CrdAss__CaInPrincipleDecision__el_txt_1, #CrdAss__CaInPrincipleDecision__approvedPr").removeClass("sno");
+        $("#CrdAss__CaInPrincipleDecision__el_txt_127_ul, #CrdAss__CaInPrincipleDecision__rejectedPr_ul").addClass("sno");
+        $("#CrdAss__Cabase__submitBtn").removeClass("sno");
+    } else {
+        $("#CrdAss__CaInPrincipleDecision__el_txt_127_ul, #CrdAss__CaInPrincipleDecision__rejectedPr_ul").removeClass("sno");
+        $("#CrdAss__CaInPrincipleDecision__el_txt_1, #CrdAss__CaInPrincipleDecision__approvedPr").addClass("sno");
+        $("#CrdAss__Cabase__submitBtn").addClass("sno");
+    }
+    ['InitialEligibleAmtRow', 'InitialEligibleAmtRowPr'].hide();
+    let tempAppcustomerId = ApzCOB.getCustDetailID("Applicant");
+    let tempCoAppcustomerId = ApzCOB.getCustDetailID("Co-App");
+    let tempAppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+        (item) => item.cibilDetails?.custDtlId == tempAppcustomerId);
+    let tempCoAppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+        (item) => item.cibilDetails?.custDtlId == tempCoAppcustomerId);
+    // let initialPayload = tempCoAppCustCibilData?.[0]?.cibilDetails?.payload || tempAppCustCibilData?.[0]?.cibilDetails?.payload;
+    let initialPayload = ApzCOB.getPayloadDatafromWrapper('initialBrePayload', 'Applicant', 'loanDetails');
+    if (!apz.isNull(initialPayload) && !apz.isNull(initialPayload?.eligibleAmt)) {
+        ['InitialEligibleAmtRow', 'InitialEligibleAmtRowPr'].show();
+        $(`#${CaInPrincipleDecisionScrId}InitialEligibleAmt_txtcnt, #${CaInPrincipleDecisionScrId}InitialEligibleAmtPr_txtcnt`).text(`₹ `+ApzCOB.formatamountVal(initialPayload.eligibleAmt));
+    }
+    ['Dairy', 'Kirana', 'Tailoring', 'Other'].forEach(function (btype) {
+
+    // Initial state: expanded
+    $(`#CrdAss__CaInPrincipleDecision__${btype}_Up`).removeClass('sno');   // Show Up
+    $(`#CrdAss__CaInPrincipleDecision__${btype}_Down`).addClass('sno');    // Hide Down
+
+    $(`#CrdAss__CaInPrincipleDecision__${btype}_Up`)
+        .attr('onclick', `apz.app.CaInPrincipleDecision.toggleBusiness('${btype}','collapse')`);
+
+    $(`#CrdAss__CaInPrincipleDecision__${btype}_Down`)
+        .attr('onclick', `apz.app.CaInPrincipleDecision.toggleBusiness('${btype}','expand')`);
+    });
+    
+    apz.app.CaInPrincipleDecision.toggleBusiness = function (btype, action) {
+    const rowSelector = `#${CaInPrincipleDecisionScrId}${btype}ExpandRow`;
+    const arrowSelector = `#${CaInPrincipleDecisionScrId}collapseArrow_ul`;
+
+    const upBtn = `#CrdAss__CaInPrincipleDecision__${btype}_Up`;
+    const downBtn = `#CrdAss__CaInPrincipleDecision__${btype}_Down`;
+
+    if (action === 'expand') {
+        $(rowSelector).removeClass('sno');
+        $(arrowSelector).removeClass('sno');
+
+        $(downBtn).addClass('sno');
+        $(upBtn).removeClass('sno');
+    } else {
+        $(rowSelector).addClass('sno');
+        $(arrowSelector).addClass('sno');
+
+        $(upBtn).addClass('sno');
+        $(downBtn).removeClass('sno');
+    }
+};
+};
+
+
+apz.app.CaInPrincipleDecision.hideAndShowTabs = function(lparam) {
+    container.hide();
+    if (lparam === "Eligible") {
+        newEligibleLoans.show();
+        $(`#${CaInPrincipleDecisionScrId}eligibleBtn`).addClass("active");
+        $(`#${CaInPrincipleDecisionScrId}decisionBtn`).removeClass("active");
+    } else {
+        decisionDtls.show();
+        $(`#${CaInPrincipleDecisionScrId}decisionBtn`).addClass("active");
+        $(`#${CaInPrincipleDecisionScrId}eligibleBtn`).removeClass("active");
+    }
+};
+
+apz.app.CaInPrincipleDecision.calculateInsurancePremium = function(isInitial) {
+    let insOpt = inSessionStore.insuranceDetailsWrapperList?.find(
+        item => item.insuranceDetails?.insuredCustType === 'Applicant' || 
+                item.insuranceDetails?.payload?.insuredName === 'Applicant'
+    )?.insuranceDetails?.payload?.insuranceOption;
+    
+    if (!insOpt) {
+        let AppcustomerId = ApzCOB.getCustDetailID("Applicant");
+        let CoAppcustomerId = ApzCOB.getCustDetailID("Co-App");
+        let AppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+            (item) => item.cibilDetails?.custDtlId == AppcustomerId);
+        let CoAppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+            (item) => item.cibilDetails?.custDtlId == CoAppcustomerId);
+        let initialPayload = CoAppCustCibilData?.[0]?.cibilDetails?.payload || AppCustCibilData?.[0]?.cibilDetails?.payload;
+        insOpt = initialPayload?.insuranceOption || inSessionStore?.loanDetails?.payload?.insuranceOption || '';
+    }
+
+    const hasNoInsType = inSessionStore.insuranceDetailsWrapperList?.some(
+        item => item.insuranceDetails?.insuranceType === 'noInsurance' ||
+                item.insuranceDetails?.payload?.insuredName === 'No Insurance'
+    );
+    if (hasNoInsType || insOpt === 'No insurance' || insOpt === 'Noinsurance' || String(insOpt).toLowerCase() === 'noinsurance' || String(insOpt).toLowerCase() === 'no insurance') {
+        return 0;
+    }
+
+    let memberPrem = 0;
+    let spousePrem = 0;
+
+    try {
+        let coAppCibil = inSessionStore?.cibilDetailsWrapperList?.filter(item => {
+            let payload = item.cibilDetails?.payload;
+            return payload && 
+                   (payload.individualIndebtness !== undefined) && 
+                   String(payload.individualIndebtness).toLowerCase().includes("co-applicant");
+        })?.[0];
+        if (!coAppCibil) {
+            let coAppId = gApzCOB?.userDetails?.CoApplicantCustomerId || ApzCOB.getCustDetailID("Co-App");
+            coAppCibil = inSessionStore?.cibilDetailsWrapperList?.filter(item => {
+                return item.cibilDetails?.custDtlId == coAppId;
+            })?.[0];
+        }
+        if (!coAppCibil) {
+            coAppCibil = inSessionStore?.cibilDetailsWrapperList?.[1];
+        }
+        if (!coAppCibil) {
+            let appId = ApzCOB.getCustDetailID("Applicant");
+            coAppCibil = inSessionStore?.cibilDetailsWrapperList?.filter(item => {
+                return item.cibilDetails?.custDtlId == appId;
+            })?.[0] || inSessionStore?.cibilDetailsWrapperList?.[0];
+        }
+        
+        let payload = coAppCibil?.cibilDetails?.payload;
+        memberPrem = parseFloat(String(payload?.insuranceChargeMember || "").replace(/,/g, '')) || 0;
+        spousePrem = parseFloat(String(payload?.insuranceChargeSpouse || "").replace(/,/g, '')) || 0;
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        console.error("Error fetching premium from cibil in CaInPrincipleDecision:", e);
+    }
+    
+    if (!memberPrem) {
+        let applicantInsuranceDetails = inSessionStore.insuranceDetailsWrapperList?.find(
+            item => item.insuranceDetails?.insuredCustType === 'Applicant' || 
+                    item.insuranceDetails?.payload?.insuredName === 'Applicant'
+        )?.insuranceDetails;
+        memberPrem = parseFloat(String(applicantInsuranceDetails?.payload?.insurancePremium || "").replace(/,/g, '')) || 0;
+    }
+    if (!spousePrem) {
+        let coAppInsuranceDetails = inSessionStore.insuranceDetailsWrapperList?.find(
+            item => item.insuranceDetails?.insuredCustType === 'Co-App' || 
+                    item.insuranceDetails?.payload?.insuredName === 'Co-App' ||
+                    item.insuranceDetails?.payload?.insuredName === 'CO-APP'
+        )?.insuranceDetails;
+        spousePrem = parseFloat(String(coAppInsuranceDetails?.payload?.insurancePremium || "").replace(/,/g, '')) || 0;
+    }
+
+    if (insOpt === 'Both' || insOpt === 'Joint') {
+        return memberPrem + spousePrem;
+    } else if (insOpt === 'Applicant') {
+        return memberPrem;
+    } else if (insOpt === 'Co-App') {
+        return spousePrem;
+    }
+    return 0;
+};
+
+apz.app.CaInPrincipleDecision.paintData = function() {
+    window.AppcustomerId = ApzCOB.getCustDetailID("Applicant");
+    window.CoAppcustomerId = ApzCOB.getCustDetailID("Co-App");
+    if (Array.isArray(inSessionStore?.cibilDetailsWrapperList)) {
+        AppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+            (item) => item.cibilDetails?.custDtlId == AppcustomerId);
+        CoAppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+            (item) => item.cibilDetails?.custDtlId == CoAppcustomerId);
+    }
+    let leadNode = inSessionStore.leadDetails || inSessionStore.cdhLeadDetails;
+    let totalInsuranceCharge = apz.app.CaInPrincipleDecision.calculateInsurancePremium(false);
+    $(`#${CaInPrincipleDecisionScrId}currOutVal, #${CaInPrincipleDecisionScrId}currOutValPr`).text(`₹ ${Number(leadNode?.caglOs).toLocaleString('en-IN')}`);
+    $(`#${CaInPrincipleDecisionScrId}currOutValCmn, #${CaInPrincipleDecisionScrId}currOutValCmnPr`).text(`₹ ${Number(leadNode?.caglOs).toLocaleString('en-IN')}`);
+    $(`#${CaInPrincipleDecisionScrId}cbTriggerDate, #${CaInPrincipleDecisionScrId}cbTriggerDatePr`).text(`Current CAGL outstanding (As of ${ApzCOB.getCBTriggerDate() || ''})`);
+    $(`#${CaInPrincipleDecisionScrId}cbTriggerDateCmn, #${CaInPrincipleDecisionScrId}cbTriggerDateCmnPr`).text(`Current CAGL outstanding (As of ${ApzCOB.getCBTriggerDate() || ''})`);
+    let initialPayload = ApzCOB.getPayloadDatafromWrapper('initialBrePayload', 'Applicant', 'loanDetails');
+    eligibleLoanData = !apz.isNull(initialPayload) ? initialPayload : CoAppCustCibilData?.[0]?.cibilDetails?.payload;
+    let initTotalInsuranceCharge = Number(eligibleLoanData?.insuranceChargeJoint) + Number(eligibleLoanData?.insuranceChargeMember) + Number(eligibleLoanData?.insuranceChargeSpouse);
+    let netOffAmt = Number(eligibleLoanData?.processingFees || 0) + Number(initTotalInsuranceCharge || 0) + Number(
+        eligibleLoanData?.stampDutyCharge || 0) + Number(leadNode?.caglOs || 0);
+    netOffAmt = netOffAmt.toFixed(2)
+    let totalPostNetOff = Number(eligibleLoanData?.eligibleAmt || 0) - netOffAmt;
+    totalPostNetOff = totalPostNetOff.toFixed(2)
+    // Eligible Loan amount details
+    $(`#${CaInPrincipleDecisionScrId}processingFeeVal, #${CaInPrincipleDecisionScrId}processingFeeValPr`).text(eligibleLoanData?.processingFees ?
+        `₹ ${Number(eligibleLoanData?.processingFees).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}insPremVal, #${CaInPrincipleDecisionScrId}insPremValPr`).text(initTotalInsuranceCharge ? `₹ ${Number(initTotalInsuranceCharge).toLocaleString('en-IN')}` : "₹ 0");
+    $(`#${CaInPrincipleDecisionScrId}stmpDutyVal, #${CaInPrincipleDecisionScrId}stmpDutyValPr`).text(eligibleLoanData?.stampDutyCharge ?
+        `₹ ${Number(eligibleLoanData?.stampDutyCharge).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}netOffAmtVal, #${CaInPrincipleDecisionScrId}netOffAmtValPr`).text(netOffAmt ? `₹ ${Number(netOffAmt).toLocaleString('en-IN')}` : "₹ 0");
+    $(`#${CaInPrincipleDecisionScrId}TotalAmtPostVal, #${CaInPrincipleDecisionScrId}TotalAmtPostValPr`).text(totalPostNetOff ? `₹ ${Number(totalPostNetOff).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}lnAmtVal, #${CaInPrincipleDecisionScrId}lnAmtValPr`).text(eligibleLoanData?.eligibleAmt ?
+        `₹ ${Number(eligibleLoanData?.eligibleAmt).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}roiVal, #${CaInPrincipleDecisionScrId}roiValPr`).text(eligibleLoanData?.roi ?
+        `${eligibleLoanData?.roi}%` : "");
+    $(`#${CaInPrincipleDecisionScrId}freqVal, #${CaInPrincipleDecisionScrId}freqValPr`).text(eligibleLoanData?.approvedLoanEMI && inSessionStore?.loanDetails
+        ?.payload?.frequencyOfRepayment ?
+        `₹ ${Number(eligibleLoanData?.approvedLoanEMI).toLocaleString('en-IN')} / ${inSessionStore?.loanDetails?.payload?.frequencyOfRepayment}` :
+        "");
+    // Common Field
+    netOffAmt = Number(CoAppCustCibilData[0]?.cibilDetails?.payload?.processingFees || 0) + Number(totalInsuranceCharge || 0) + Number(
+        CoAppCustCibilData[0]?.cibilDetails?.payload?.stampDutyCharge || 0) + Number(leadNode?.caglOs || 0);
+    netOffAmt = netOffAmt.toFixed(2)
+    totalPostNetOff = Number(CoAppCustCibilData[0]?.cibilDetails?.payload?.eligibleAmt || 0) - netOffAmt;
+    totalPostNetOff = totalPostNetOff.toFixed(2)
+    $(`#${CaInPrincipleDecisionScrId}cbScoreApp, #${CaInPrincipleDecisionScrId}cbScoreAppPr`).text(AppCustCibilData[0]?.cibilDetails?.payload?.cbScore || "");
+    $(`#${CaInPrincipleDecisionScrId}cbScoreCoApp, #${CaInPrincipleDecisionScrId}cbScoreCoAppPr`).text(CoAppCustCibilData[0]?.cibilDetails?.payload?.cbScore || "");
+    $(`#${CaInPrincipleDecisionScrId}foirVal, #${CaInPrincipleDecisionScrId}foirValPr`).text(CoAppCustCibilData[0]?.cibilDetails?.payload?.foirPercentage ?
+        `${CoAppCustCibilData[0].cibilDetails.payload.foirPercentage}%` : "");
+    $(`#${CaInPrincipleDecisionScrId}lnAmtValCmn, #${CaInPrincipleDecisionScrId}lnAmtValCmnPr`).text(CoAppCustCibilData[0]?.cibilDetails?.payload?.eligibleAmt ?
+        `₹ ${Number(CoAppCustCibilData[0].cibilDetails.payload.eligibleAmt).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}roiValCmn, #${CaInPrincipleDecisionScrId}roiValCmnPr`).text(CoAppCustCibilData[0]?.cibilDetails?.payload?.roi ?
+        `${CoAppCustCibilData[0].cibilDetails.payload.roi}%` : "");
+    $(`#${CaInPrincipleDecisionScrId}netIncVal, #${CaInPrincipleDecisionScrId}netIncValPr`).text(JSON.parse(inSessionStore?.bcmpiIncomeDetails?.payload)?.fieldAssessedIncome ?
+        `₹ ${Number(JSON.parse(inSessionStore?.bcmpiIncomeDetails?.payload)?.fieldAssessedIncome).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}processingFeeValCmn, #${CaInPrincipleDecisionScrId}processingFeeValCmnPr`).text(CoAppCustCibilData[0]?.cibilDetails?.payload?.processingFees ?
+        `₹ ${Number(CoAppCustCibilData[0].cibilDetails.payload.processingFees).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}insPremValCmn, #${CaInPrincipleDecisionScrId}insPremValCmnPr`).text(totalInsuranceCharge ? `₹ ${Number(totalInsuranceCharge).toLocaleString('en-IN')}` :
+    "₹ 0");
+    $(`#${CaInPrincipleDecisionScrId}stmpDutyValCmn, #${CaInPrincipleDecisionScrId}stmpDutyValCmnPr`).text(CoAppCustCibilData[0]?.cibilDetails?.payload?.stampDutyCharge ?
+        `₹ ${Number(CoAppCustCibilData[0].cibilDetails.payload.stampDutyCharge).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}netOffAmtValCmn, #${CaInPrincipleDecisionScrId}netOffAmtValCmnPr`).text(netOffAmt ? `₹ ${Number(netOffAmt).toLocaleString('en-IN')}` : "₹ 0");
+    $(`#${CaInPrincipleDecisionScrId}TotalAmtPostValCmn, #${CaInPrincipleDecisionScrId}TotalAmtPostValCmnPr`).text(totalPostNetOff ? `₹ ${Number(totalPostNetOff).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}freqValCmn, #${CaInPrincipleDecisionScrId}freqValCmnPr`).text(CoAppCustCibilData[0]?.cibilDetails?.payload?.approvedLoanEMI && inSessionStore
+        ?.loanDetails?.payload?.frequencyOfRepayment ?
+        `₹ ${Number(CoAppCustCibilData[0].cibilDetails.payload.approvedLoanEMI).toLocaleString('en-IN')} / ${inSessionStore.loanDetails.payload.frequencyOfRepayment}` :
+        "");
+    $(`#${CaInPrincipleDecisionScrId}recLnAmtVal`).val(CoAppCustCibilData[0]?.cibilDetails?.payload?.eligibleAmt ? `₹ ${Number(CoAppCustCibilData[0]
+        .cibilDetails.payload.eligibleAmt).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}overDueAmtValApp`).text(AppCustCibilData?.[0]?.cibilDetails?.payload?.overdueAmt?.includes(":") &&
+        AppCustCibilData[0].cibilDetails.payload.overdueAmt.includes("|") ?
+        `₹ ${Number(AppCustCibilData[0].cibilDetails.payload.overdueAmt.split(":")[1].split("|")[0].trim()).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}overDueAmtValCoApp`).text(CoAppCustCibilData?.[0]?.cibilDetails?.payload?.overdueAmt?.includes(":") &&
+        CoAppCustCibilData[0].cibilDetails.payload.overdueAmt.includes("|") ?
+        `₹ ${Number(CoAppCustCibilData[0].cibilDetails.payload.overdueAmt.split(":")[1].split("|")[0].trim()).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}writtOffAmtApp`).text(AppCustCibilData?.[0]?.cibilDetails?.payload?.writeOffAmt?.includes(":") &&
+        AppCustCibilData[0].cibilDetails.payload.writeOffAmt.includes("|") ?
+        `₹ ${Number(AppCustCibilData[0].cibilDetails.payload.writeOffAmt.split(":")[1].split("|")[0].trim()).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}writtOffAmtCoApp`).text(CoAppCustCibilData?.[0]?.cibilDetails?.payload?.writeOffAmt?.includes(":") &&
+        CoAppCustCibilData[0].cibilDetails.payload.writeOffAmt.includes("|") ?
+        `₹ ${Number(CoAppCustCibilData[0].cibilDetails.payload.writeOffAmt.split(":")[1].split("|")[0].trim()).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}unsecIndebtVal`).text(CoAppCustCibilData?.[0]?.cibilDetails?.payload?.totIndebtness?.includes(":") &&
+        CoAppCustCibilData[0].cibilDetails.payload.totIndebtness.includes("|") ?
+        `₹ ${Number(CoAppCustCibilData[0].cibilDetails.payload.totIndebtness.split(":")[1].split("|")[0].trim()).toLocaleString('en-IN')}` :
+        "");
+    apz.app.Cabase.paintSendbackreasons();
+};
+apz.app.CaInPrincipleDecision.downloadCBReport = function(lparams) {
+    window.CB_LOAN_ID = '';
+    let custDetailID = '';
+    if (lparams === 'CamSheetReport' || lparams === 'LoanApplicationReport') {
+        CB_LOAN_ID = `${lparams}_${gApzCOB.userDetails.applicationId}`
+        req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": "APZCBO",
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "reportType": lparams,
+                    "generateReport": true
+                },
+                "interfaceName": "GenerateAndDownloadReport"
+            }
+        }
+        apz.startLoader();
+        ApzCOB.serverBuildParam(gAppId, "GenerateAndDownloadReport", "N", "N", req, false, ApzCOB.downloadBRECbReportCB);
+    } else {
+        if (lparams === 'cbReport_A') {
+            custDetailID = AppcustomerId;
+        } else {
+            custDetailID = CoAppcustomerId;
+        }
+        CB_LOAN_ID = inSessionStore.cibilDetailsWrapperList.filter(el => el.cibilDetails.custDtlId === custDetailID)[0].cibilDetails.payload
+            .cbLoanId;
+        ApzCOB.downloadBRECbReport(custDetailID);
+    }
+};
+apz.app.CaInPrincipleDecision.updateLoanAmount = function() {
+    const inputEl = document.getElementById("CrdAss__CaInPrincipleDecision__recLnAmtVal");
+    if (!inputEl) return;
+    const lnAmtVal = inputEl.value || '';
+    let updatedLnAmt = lnAmtVal.replace(/[^\d]/g, '');
+    const numericAmt = Number(updatedLnAmt);
+    let eligibleAmt = CoAppCustCibilData[0]?.cibilDetails?.payload?.eligibleAmt || 0;
+    let tempAppcustomerId = ApzCOB.getCustDetailID("Applicant");
+    let tempCoAppcustomerId = ApzCOB.getCustDetailID("Co-App");
+    let tempAppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+        (item) => item.cibilDetails?.custDtlId == tempAppcustomerId);
+    let tempCoAppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+        (item) => item.cibilDetails?.custDtlId == tempCoAppcustomerId);
+    // let initialPayload = tempCoAppCustCibilData?.[0]?.cibilDetails?.payload || tempAppCustCibilData?.[0]?.cibilDetails?.payload;
+    let initialPayload = ApzCOB.getPayloadDatafromWrapper('initialBrePayload', 'Applicant', 'loanDetails');
+    if (!apz.isNull(initialPayload) && !apz.isNull(initialPayload?.eligibleAmt)) {
+        eligibleAmt = initialPayload?.eligibleAmt;
+    }
+    const numEligibleAmt = Number(eligibleAmt);
+    const numAppliedAmt = inSessionStore.loanDetails.loanAmount;
+    // const formattedAmt = numAppliedAmt.toLocaleString('en-IN');
+    const formattedAmt = numEligibleAmt.toLocaleString('en-IN');
+    if (!updatedLnAmt || numericAmt === 0 || numericAmt < fdAmountMin || numericAmt > fdAmountMax || numericAmt > numAppliedAmt || numericAmt > numEligibleAmt) {
+        let MinValue = Math.ceil( Number(JSON.parse(ProductData[0].productFeatures)["Min Loan Amount~Y"].replace(/,/g, "")));
+       let formatedMinVal = Number(MinValue).toLocaleString('en-IN');
+        ApzCOB.showCaModals({
+            text: "BM recommended loan amount should be in the range of "+ formatedMinVal +" to " + formattedAmt,
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+        inputEl.value = `₹ ${CoAppCustCibilData[0]?.cibilDetails?.payload?.eligibleAmt}`;
+        return;
+    }
+    let currentStage = `${inSessionStore?.applicationMaster?.applicationStatus} | ${CA_CURRENT_STAGE}`;
+    let caglOs = gApzCOB?.selLeadDtls?.caglOs || inSessionStore?.leadDetails?.caglOs || inSessionStore?.cdhLeadDetails?.caglOs || 0;
+    const req = {
+        "apiRequest": {
+            "requestObj": {
+                "appId": gAppId,
+                "applicationId": gApzCOB.userDetails.applicationId,
+                "versionNum": 1,
+                "stageId": CA_CURRENT_STAGE_NO,
+                "requestType": "Edit",
+                "customerType": "Co-App",
+                "updatedLoanAmount": updatedLnAmt,
+                "customerDtlsId": CoAppcustomerId,
+                "editedFields": [],
+                "currentStage" : currentStage,
+                "caglOs" : caglOs,
+                "insuranceDetailsWrapperList": inSessionStore.insuranceDetailsWrapperList
+            },
+            "userId": LoggedInUserDetails.loginResponse.userDet.id,
+            "appId": gAppId,
+            "interfaceName": "UploadCALoanData"
+        }
+    };
+    apz.startLoader();
+    ApzCOB.addDisableToInput('CrdAss__Cabase__submitBtn');
+    ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.CaInPrincipleDecision.updateLoanAmountCB);
+};
+apz.app.CaInPrincipleDecision.updateLoanAmountCB = function(params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            let resp = params?.res?.APZCBO__UploadCALoanData_Res?.apiResponse?.ResponseBody ?? '';
+            if (!apz.isNull(resp)) {
+                let msg = resp?.responseObj ?? "";
+                if (!apz.isNull(msg)) {
+                    if (msg === 'BRE check service failed') {
+                        ApzCOB.showCaModals({
+                            text: 'BRE Service Failed.!',
+                            Btn1: {
+                                text: "OK",
+                                onClick: "apz.app.Cabase.closeCaErrMdl()"
+                            }
+                        }, "Error");
+                        apz.app.CaInPrincipleDecision.updtDatawithBMRecAmt();
+                    } else {
+                        apz.stopLoader();
+                        ApzCOB.updateInsessionData(params);
+                        if (Array.isArray(inSessionStore?.cibilDetailsWrapperList)) {
+                            AppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+                                (item) => item.cibilDetails?.custDtlId == AppcustomerId);
+                            CoAppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+                                (item) => item.cibilDetails?.custDtlId == CoAppcustomerId);
+                        }
+                        if (CoAppCustCibilData[0]?.cibilDetails?.cbStatus !== 'PASS') {
+                            $("#CrdAss__CaInPrincipleDecision__el_txt_127_ul").removeClass("sno");
+                            $("#CrdAss__CaInPrincipleDecision__el_txt_1").addClass("sno");
+                            $("#CrdAss__Cabase__submitBtn").addClass("sno");
+                            apz.startLoader();
+                            window.rejectRsn = CoAppCustCibilData[0]?.cibilDetails?.payload?.rejectionReason ?? "";
+                            window.retry_Attempts = CoAppCustCibilData[0]?.cibilDetails?.payload?.retryAttempts ?? "";
+                            let IrisMsg = CoAppCustCibilData[0]?.cibilDetails?.payload?.irisMessage;
+                            if (!retry_Attempts || retry_Attempts === 0) {
+                                let errMsgBRE = `CB Retrigger limit has been exceeded. Reject the application.<br/> Reject reason: ${window.rejectRsn}`;
+                                if (IrisMsg?.includes('success')) {
+                                    errMsgBRE = `BRE CB failed!. Reject the application.<br/> Reject reason: ${window.rejectRsn}`;
+                                }
+                                let popUpObj = {
+                                    text: errMsgBRE,
+                                    Btn: {
+                                        text: "Reject",
+                                        onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`); apz.app.Cabase.approveReject(this, 'REJECTED', true);"
+                                    }
+                                };
+                                ApzCOB.showNewCommonErrorModal(popUpObj);
+                                apz.stopLoader();
+                                return;
+                            } else {
+                                let errMsgBRE = `BRE failed due to ${rejectRsn}.<br/>Remaining retry attempts: ${retry_Attempts}.<br/>Do you want to rehit BRE?`
+                                if (IrisMsg.includes('bureauError') && !IrisMsg.includes('roll')) {
+                                    errMsgBRE = `BRE failed due to ${rejectRsn}.<br/>Do you want to rehit BRE?`
+                                }
+                                popUpObj = {
+                                    text: errMsgBRE,
+                                    Btn1: {
+                                        text: "Yes",
+                                        onClick: "apz.app.Cabase.closeCaConfirmarionMdl(); $(`#CrdAss__CaInPrincipleDecision__recLnAmtVal`).blur();"
+                                    },
+                                    Btn2: {
+                                        text: "No",
+                                        onClick: "apz.app.Cabase.closeCaConfirmarionMdl()"
+                                    }
+                                }
+                            }
+                            apz.stopLoader();
+                            ApzCOB.showCaModals(popUpObj, "confirmation");
+                            apz.stopLoader();
+                            apz.app.CaInPrincipleDecision.updtDatawithBMRecAmt();
+                            return;
+                        }
+                        if(CoAppCustCibilData[0]?.cibilDetails?.cbStatus === 'PASS' ||AppCustCibilData[0]?.cibilDetails?.cbStatus === 'PASS'){
+                            ApzCOB.removeDisableToInput('CrdAss__Cabase__submitBtn');
+                        }
+                        apz.app.CaInPrincipleDecision.updtDatawithBMRecAmt();
+                    }
+                }
+            }
+        } else {
+            apz.stopLoader();
+            ApzCOB.showCaModals({
+                text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.Cabase.closeCaErrMdl()"
+                }
+            }, "Error");
+            // ApzCOB.revertRecommendedLoanAmount();
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showCaModals({
+            text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+        // ApzCOB.revertRecommendedLoanAmount();
+    }
+}
+apz.app.CaInPrincipleDecision.updtDatawithBMRecAmt = function() {
+    let totalInsuranceCharge = apz.app.CaInPrincipleDecision.calculateInsurancePremium(false);
+    let leadNode = inSessionStore.leadDetails || inSessionStore.cdhLeadDetails;
+    $(`#${CaInPrincipleDecisionScrId}currOutValCmn, #${CaInPrincipleDecisionScrId}currOutValCmnPr`).text(leadNode?.caglOs ?
+            `₹ ${Number(leadNode.caglOs).toLocaleString('en-IN')}` : "");
+    let netOffAmt = Number(CoAppCustCibilData[0]?.cibilDetails?.payload?.processingFees || 0) + Number(totalInsuranceCharge) + Number(
+        CoAppCustCibilData[0]?.cibilDetails?.payload?.stampDutyCharge || 0) + Number(leadNode?.caglOs || 0);
+    if (!CoAppCustCibilData[0].cibilDetails.eligibleAmt) {
+        apz.fnDisplayMsg("Error", "BM recommended loan amount is not available. Please check the details and try again.");
+        return
+    }
+    let totalPostNetOff = Number(CoAppCustCibilData[0].cibilDetails.eligibleAmt || 0) - netOffAmt;
+    /*$(`#${CaInPrincipleDecisionScrId}lnAmtValCmn`).text(inSessionStore?.loanDetails?.bmRecommendedLoanAmount ?
+        `₹ ${Number(inSessionStore.loanDetails.bmRecommendedLoanAmount).toLocaleString('en-IN')}` : "");*/
+    let elgbleAmt = CoAppCustCibilData[0]?.cibilDetails?.payload?.eligibleAmt ? `₹ ${Number(CoAppCustCibilData[0].cibilDetails.payload.eligibleAmt).toLocaleString('en-IN')}` : "";
+    $(`#${CaInPrincipleDecisionScrId}lnAmtValCmn, #${CaInPrincipleDecisionScrId}lnAmtValCmnPr`).text(elgbleAmt);
+    $(`#${CaInPrincipleDecisionScrId}recLnAmtVal, #${CaInPrincipleDecisionScrId}recLnAmtValPr`).val(elgbleAmt);
+    $(`#${CaInPrincipleDecisionScrId}roiValCmn, #${CaInPrincipleDecisionScrId}roiValCmnPr`).text(CoAppCustCibilData[0]?.cibilDetails?.payload?.roi ?
+        `${CoAppCustCibilData[0].cibilDetails.payload.roi}%` : "");
+    $(`#${CaInPrincipleDecisionScrId}netIncVal, #${CaInPrincipleDecisionScrId}netIncValPr`).text(JSON.parse(inSessionStore?.bcmpiIncomeDetails?.payload)?.fieldAssessedIncome ?
+        `₹ ${Number(JSON.parse(inSessionStore?.bcmpiIncomeDetails?.payload)?.fieldAssessedIncome).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}processingFeeValCmn, #${CaInPrincipleDecisionScrId}processingFeeValCmnPr`).text(CoAppCustCibilData[0]?.cibilDetails?.payload?.processingFees ?
+        `₹ ${Number(CoAppCustCibilData[0].cibilDetails.payload.processingFees).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}insPremValCmn, #${CaInPrincipleDecisionScrId}insPremValCmnPr`).text(totalInsuranceCharge ? `₹ ${Number(totalInsuranceCharge).toLocaleString('en-IN')}` :
+    "₹ 0");
+    $(`#${CaInPrincipleDecisionScrId}stmpDutyValCmn, #${CaInPrincipleDecisionScrId}stmpDutyValCmnPr`).text(CoAppCustCibilData[0]?.cibilDetails?.payload?.stampDutyCharge ?
+        `₹ ${Number(CoAppCustCibilData[0].cibilDetails.payload.stampDutyCharge).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}netOffAmtValCmn, #${CaInPrincipleDecisionScrId}netOffAmtValCmnPr`).text(netOffAmt ? `₹ ${Number(netOffAmt).toLocaleString('en-IN')}` : "₹ 0");
+    $(`#${CaInPrincipleDecisionScrId}TotalAmtPostValCmn, #${CaInPrincipleDecisionScrId}TotalAmtPostValCmnPr`).text(totalPostNetOff ? `₹ ${Number(totalPostNetOff).toLocaleString('en-IN')}` : "");
+    $(`#${CaInPrincipleDecisionScrId}freqValCmn, #${CaInPrincipleDecisionScrId}freqValCmnPr`).text(CoAppCustCibilData[0]?.cibilDetails?.payload?.approvedLoanEMI && inSessionStore
+        ?.loanDetails?.payload?.frequencyOfRepayment ?
+        `₹ ${Number(CoAppCustCibilData[0].cibilDetails.payload.approvedLoanEMI).toLocaleString('en-IN')} / ${inSessionStore.loanDetails.payload.frequencyOfRepayment}` :
+        "");
+    if (CoAppCustCibilData[0]?.cibilDetails?.payload?.finalDecision?.indexOf("Approved") !== -1) {
+        $("#CrdAss__CaInPrincipleDecision__el_txt_1").removeClass("sno");
+        $("#CrdAss__CaInPrincipleDecision__el_txt_127_ul").addClass("sno");
+        $("#CrdAss__Cabase__submitBtn").removeClass("sno");
+    } else {
+        $("#CrdAss__CaInPrincipleDecision__el_txt_127_ul").removeClass("sno");
+        $("#CrdAss__CaInPrincipleDecision__el_txt_1").addClass("sno");
+        $("#CrdAss__Cabase__submitBtn").addClass("sno");
+    }
+    ['InitialEligibleAmtRow', 'InitialEligibleAmtRowPr'].hide();
+    let tempAppcustomerId = ApzCOB.getCustDetailID("Applicant");
+    let tempCoAppcustomerId = ApzCOB.getCustDetailID("Co-App");
+    let tempAppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+        (item) => item.cibilDetails?.custDtlId == tempAppcustomerId);
+    let tempCoAppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+        (item) => item.cibilDetails?.custDtlId == tempCoAppcustomerId);
+    let initialPayload = ApzCOB.getPayloadDatafromWrapper('initialBrePayload', 'Applicant', 'loanDetails');
+    if (!apz.isNull(initialPayload) && !apz.isNull(initialPayload?.eligibleAmt)) {
+        ['InitialEligibleAmtRow', 'InitialEligibleAmtRowPr'].show();
+        $(`#${CaInPrincipleDecisionScrId}InitialEligibleAmt_txtcnt, #${CaInPrincipleDecisionScrId}InitialEligibleAmtPr_txtcnt`).text(`₹ `+ApzCOB.formatamountVal(initialPayload.eligibleAmt));
+    }
+}
+apz.app.CaInPrincipleDecision.ValidateOnClickOfSubmit = function() {
+    window.sendBackResponse = $(`#CrdAss__CaInPrincipleDecision__sendBackResponse`).val() || '';
+    if (apz.isNull(sendBackResponse.trim()) && inSessionStore.applicationTimelineDtl[inSessionStore.applicationTimelineDtl.length -1].actionTaken.includes('Sent')) {
+        ApzCOB.showNewCommonErrorModal('Please enter the response.');
+        return;
+    }
+    const eligibleAmt = parseInt(CoAppCustCibilData[0]?.cibilDetails?.payload?.eligibleAmt) || 0;
+    let lnAmtVal = document.getElementById("CrdAss__CaInPrincipleDecision__recLnAmtVal").value;
+    let updatedLnAmt = lnAmtVal.replace(/[^\d]/g, '');
+    const bmRecAmt = parseInt(updatedLnAmt) || 0;
+    let caglOsFromScreen = $("#CrdAss__CaInPrincipleDecision__currOutValCmn").text();
+    let caglOsToBeCompared = caglOsFromScreen.replace(/[^\d]/g, '');
+    let caglOs = parseInt(caglOsToBeCompared) || 0;
+    let totalAmountPost = $("#CrdAss__CaInPrincipleDecision__TotalAmtPostValCmn").text();
+    let numerictotalAmountPost = parseFloat(totalAmountPost.replace(/[^0-9.-]+/g, ''));
+    if (!bmRecAmt || !eligibleAmt || bmRecAmt > eligibleAmt) {
+        ApzCOB.showCaModals({
+            text: "The entered loan amount should be equal to or lesser than the eligible loan amount",
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    } else if (isNaN(numerictotalAmountPost) || numerictotalAmountPost < 0) {
+        ApzCOB.showCaModals({
+            text: "Total amount post net off must be a valid non-negative number.",
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    } else {
+        apz.app.CaInPrincipleDecision.verifyStage();
+    }
+};
+apz.app.CaInPrincipleDecision.verifyStage = function() {
+    let allStagesPresent = [...Array(8).keys()].map(i => i + 1).every(stage => inSessionStore?.bcmpiVerifiedStage?.some(item => item.startsWith(
+        `${stage}_`)));
+    const eligibleAmt = parseInt(CoAppCustCibilData[0]?.cibilDetails?.payload?.eligibleAmt) || 0;
+    let lnAmtVal = document.getElementById("CrdAss__CaInPrincipleDecision__recLnAmtVal").value;
+    let updatedLnAmt = lnAmtVal.replace(/[^\d]/g, '');
+    const bmRecAmt = parseInt(updatedLnAmt) || 0;
+    if (allStagesPresent) {
+        let req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": gAppId,
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "versionNum": 1,
+                    "stageId": CA_CURRENT_STAGE_NO,
+                    "requestType": "Verify",
+                    "customerType": "Applicant",
+                    "updatedLoanAmount": bmRecAmt,
+                    "editedFields": []
+                },
+                "userId": LoggedInUserDetails.loginResponse.userDet.id,
+                "appId": gAppId,
+                "interfaceName": "UploadCALoanData"
+            }
+        }
+        apz.startLoader();
+        ApzCOB.addDisableToInput('CrdAss__Cabase__submitBtn');
+        setTimeout(() => {
+            ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.CaInPrincipleDecision.verifyStageCB);
+        }, 1000)
+    } else {
+        ApzCOB.showCaModals({
+            text: "Verify All the Previous Stages first",
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.CaInPrincipleDecision.verifyStageCB = function(params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.removeDisableToInput('CrdAss__Cabase__submitBtn');
+            ApzCOB.updateInsessionData(params);
+            apz.app.Cabase.SidebarSelect.moveToNextStep();
+            apz.app.Cabase.approveReject(this, 'SUBMIT');
+        } else {
+            apz.stopLoader();
+            ApzCOB.showCaModals({
+                text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.Cabase.closeCaErrMdl()"
+                }
+            }, "Error");
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showCaModals({
+            text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.CaInPrincipleDecision.launchPreviewScreen = function() {
+    $("#CrdAss__CaInPrincipleDecision__inprinciple_row").addClass('sno');
+    $("#CrdAss__CaInPrincipleDecision__inprinciplePreview_row").removeClass('sno');
+    $("#CrdAss__Cabase__reject_btn").addClass('sno');
+    $("#CrdAss__Cabase__submitBtn").addClass('sno');
+    apz.app.CaInPrincipleDecision.Previewloandetails(); // Loan Details
+    apz.app.CaInPrincipleDecision.previewPhotoKyc(); // Photo Kyc
+    apz.app.CaInPrincipleDecision.previewAddressContact(); // Address Contact
+    apz.app.CaInPrincipleDecision.previewInsuranceDetails();
+    apz.app.CaInPrincipleDecision.previewIncomeDetails(); // Income Details
+    apz.app.CaInPrincipleDecision.previewInformalLoanObligation(); // Informal Loan Obligation
+    apz.app.CaInPrincipleDecision.previewOtherDetails(); // Other Details
+    apz.app.CaInPrincipleDecision.paintNetIncome();
+}
+apz.app.CaInPrincipleDecision.Previewloandetails = function() {
+    let sourcingDate = window.applicationMaster?.createTs?.date?.day + '/' + String(window.applicationMaster?.createTs?.date?.month).padStart(2, '0') +'/' + window.applicationMaster?.createTs?.date?.year;
+    $("#CrdAss__CaInPrincipleDecision__Appliedamount_txtcnt").text(window.CAloandetails?.loanAmount);
+    $("#CrdAss__CaInPrincipleDecision__Repaymentfrequency_txtcnt").text(window.CAloandetails?.payload?.frequencyOfRepayment);
+    $("#CrdAss__CaInPrincipleDecision__Loantenure_txtcnt").text(window.CAloandetails?.tenure);
+    $(`#${CaInPrincipleDecisionScrId}Sourcingdate`).text(sourcingDate);
+    if (inSessionStore.hasOwnProperty('leadDetails')) {
+        $("#CrdAss__CaInPrincipleDecision__Kendrameetingfrequency").text(window.CAleadetails.kendraMeetingFreq);
+        $("#CrdAss__CaInPrincipleDecision__Kendrameetingday_txtcnt").text(KendraMeetingDays.filter(el => el?.slice(0, 3)?.toUpperCase() === window
+            .CAleadetails?.kendraMeetingDay?.toUpperCase())?.[0]);
+        $("#CrdAss__CaInPrincipleDecision__KendramanagerID_txtcnt").text(window.applicationMaster.createdBy);
+    } else if (inSessionStore.hasOwnProperty('cdhLeadDetails')) {
+        $("#CrdAss__CaInPrincipleDecision__Kendrameetingfrequency").text(window.CAcdhLeadDetails.kendraMeetingFreq);
+        $("#CrdAss__CaInPrincipleDecision__Kendrameetingday_txtcnt").text(KendraMeetingDays.filter(el => el?.slice(0, 3)?.toUpperCase() === window
+            .CAcdhLeadDetails?.kendraMeetingDay?.toUpperCase())?.[0]);
+        $("#CrdAss__CaInPrincipleDecision__KendramanagerID_txtcnt").text(window.applicationMaster.createdBy);
+    } else if (inSessionStore.hasOwnProperty('cdhLeadDetails')) {
+        $("#CrdAss__CaInPrincipleDecision__Kendrameetingfrequency").text(window.CAcdhLeadDetails.kendraMeetingFreq);
+        $("#CrdAss__CaInPrincipleDecision__Kendrameetingday_txtcnt").text(KendraMeetingDays.filter(el => el?.slice(0, 3)?.toUpperCase() === window
+            .CAcdhLeadDetails?.kendraMeetingDay?.toUpperCase())?.[0]);
+        $("#CrdAss__CaInPrincipleDecision__KendramanagerID_txtcnt").text(window.applicationMaster.createdBy);
+    }
+    if (!apz.isNull(CAloandetails.payload.loanPurpose)) {
+        $("#CrdAss__CaInPrincipleDecision__Purposeofloan_txtcnt").text(window.CAloandetails?.payload?.loanPurpose);
+        $("#CrdAss__CaInPrincipleDecision__Subpurpose_txtcnt").text(window.CAloandetails?.payload?.subCategory);
+    }
+};
+apz.app.CaInPrincipleDecision.previewPhotoKyc = function() {
+    apz.app.commonca.fetchImageIds();
+}
+apz.app.CaInPrincipleDecision.previewAddressContact = function() {
+    let addressDetails;
+    let permanentDetails;
+    if (inSessionStore.addressDetailsWrapperList[0].addressDetailsList.length > 0 && inSessionStore.customerDetailsList.length > 0) {
+        inSessionStore.addressDetailsWrapperList[0].addressDetailsList.forEach(type => {
+            if (type.addressType === "Personal" && type.custDtlId === gApzCOB.userDetails.custDtlId) {
+                type.payload.addressList.forEach(address => {
+                    if (address.addressType === "Present") {
+                        addressDetails = address;
+                        $(`#${CaInPrincipleDecisionScrId}A_present_address`).text(
+                            `${addressDetails.addressLine1}, ${addressDetails.area}, ${addressDetails.city} - ${addressDetails.pinCode}, ${addressDetails.country}`
+                            );
+                    } else if (address.addressType === "Permanent") {
+                        permanentDetails = address;
+                        $(`#${CaInPrincipleDecisionScrId}A_permanent_address`).text(
+                            `${permanentDetails.addressLine1}, ${permanentDetails.area}, ${permanentDetails.city} - ${permanentDetails.pinCode}, ${permanentDetails.country}`
+                            );
+                    }
+                });
+            }
+        });
+        $(`#${CaInPrincipleDecisionScrId}A_mobilenumber`).text(inSessionStore.customerDetailsList[0].mobileNumber);
+        $(`#${CaInPrincipleDecisionScrId}A_residence_ownership_txtcnt`).text(addressDetails.residenceOwnership);
+        $(`#${CaInPrincipleDecisionScrId}A_residence_stability_txtcnt`).text(addressDetails.residenceAddressSince);
+        $(`#${CaInPrincipleDecisionScrId}A_residence_stabilit_present_city_txtcnt`).text(addressDetails.residenceCitySince);
+    }
+}
+apz.app.CaInPrincipleDecision.previewInsuranceDetails = function() {
+    let getLoanAmt = function(insDetails) {
+        if (typeof NEW_KM_SOURING_APP !== 'undefined' && NEW_KM_SOURING_APP === true) {
+            return Number(String(insDetails?.payload?.loanAmount || inSessionStore?.loanDetails?.loanAmount || "").replace(/,/g, ''));
+        } else {
+            return Number(String(inSessionStore?.loanDetails?.loanAmount || "").replace(/,/g, ''));
+        }
+    };
+    let applicantInsuranceDetails = [];
+    let coAppInsuranceDetails = [];
+    let jointInsuranceDetails = [];
+    if (Array.isArray(inSessionStore?.insuranceDetailsWrapperList) && inSessionStore.insuranceDetailsWrapperList.length > 1) {
+        let appEntries = inSessionStore.insuranceDetailsWrapperList.filter(item => 
+            item.insuranceDetails?.insuredCustType === 'Applicant' || 
+            item.insuranceDetails?.payload?.insuredName === 'Applicant'
+        );
+        if (appEntries.length > 1) {
+            let chosenEntry = appEntries.find(item => item.insuranceDetails?.insuranceType === 'applicant' || item.insuranceDetails?.payload?.insuranceOption === 'Applicant') || appEntries[0];
+            inSessionStore.insuranceDetailsWrapperList = inSessionStore.insuranceDetailsWrapperList.filter(item => 
+                !(item.insuranceDetails?.insuredCustType === 'Applicant' || item.insuranceDetails?.payload?.insuredName === 'Applicant') ||
+                item === chosenEntry
+            );
+        }
+    }
+    if (Array.isArray(inSessionStore?.insuranceDetailsWrapperList) && inSessionStore.insuranceDetailsWrapperList.length > 0) {
+        inSessionStore.insuranceDetailsWrapperList.forEach((item) => {
+            const insuredCustType = item.insuranceDetails?.insuredCustType;
+            const insuredName = item.insuranceDetails?.payload?.insuredName;
+            if (insuredCustType === "Applicant" || insuredName == "Applicant" || insuredName == "No Insurance" || item.insuranceDetails?.insuranceType === "noInsurance") {
+                applicantInsuranceDetails = item.insuranceDetails;
+            } else if (insuredCustType === "Co-App" || insuredName === "Co-App" || insuredName === "CO-APP") {
+                coAppInsuranceDetails = item.insuranceDetails;
+            } else if (insuredCustType === "Cust-Nominee" || insuredName === "Joint" || insuredName === "JOINT" || insuredName === "Both" || insuredName === "BOTH") {
+                jointInsuranceDetails = item.insuranceDetails;
+            }
+        });
+    }
+    let coAppCibil = inSessionStore?.cibilDetailsWrapperList?.filter(item => {
+        let payload = item.cibilDetails?.payload;
+        return payload && 
+               (payload.individualIndebtness !== undefined) && 
+               String(payload.individualIndebtness).toLowerCase().includes("co-applicant");
+    })?.[0];
+    if (!coAppCibil) {
+        let coAppId = gApzCOB?.userDetails?.CoApplicantCustomerId || ApzCOB.getCustDetailID("Co-App");
+        coAppCibil = inSessionStore?.cibilDetailsWrapperList?.filter(item => {
+            return item.cibilDetails?.custDtlId == coAppId;
+        })?.[0];
+    }
+    if (!coAppCibil) {
+        coAppCibil = inSessionStore?.cibilDetailsWrapperList?.[1];
+    }
+    if (!coAppCibil) {
+        let appId = ApzCOB.getCustDetailID("Applicant");
+        coAppCibil = inSessionStore?.cibilDetailsWrapperList?.filter(item => {
+            return item.cibilDetails?.custDtlId == appId;
+        })?.[0] || inSessionStore?.cibilDetailsWrapperList?.[0];
+    }
+    
+    let payload = coAppCibil?.cibilDetails?.payload;
+    window.cibilMember = parseFloat(String(payload?.insuranceChargeMember || "").replace(/,/g, '')) || 0;
+    window.cibilSpouse = parseFloat(String(payload?.insuranceChargeSpouse || "").replace(/,/g, '')) || 0;
+    
+    if (!cibilMember && applicantInsuranceDetails?.payload) {
+        cibilMember = parseFloat(String(applicantInsuranceDetails.payload.insurancePremium || "").replace(/,/g, '')) || 0;
+    }
+    if (!cibilSpouse && coAppInsuranceDetails?.payload) {
+        cibilSpouse = parseFloat(String(coAppInsuranceDetails.payload.insurancePremium || "").replace(/,/g, '')) || 0;
+    }
+    
+    let cibilJoint = cibilMember + cibilSpouse;
+    
+    if (applicantInsuranceDetails?.payload) {
+        applicantInsuranceDetails.payload.insurancePremium = ApzCOB.formatamountVal(cibilMember);
+    }
+    if (coAppInsuranceDetails?.payload) {
+        coAppInsuranceDetails.payload.insurancePremium = ApzCOB.formatamountVal(cibilSpouse);
+    }
+    if (jointInsuranceDetails?.payload) {
+        jointInsuranceDetails.payload.insurancePremium = ApzCOB.formatamountVal(cibilJoint);
+    }
+    if (applicantInsuranceDetails?.payload?.insuranceOption === "Applicant") {
+        $(`#${CaInPrincipleDecisionScrId}insType`).text("Applicant")
+        $(`#${CaInPrincipleDecisionScrId}totalInsPremium`).text(applicantInsuranceDetails?.payload?.insurancePremium);
+        
+        let aLoanAmt = getLoanAmt(applicantInsuranceDetails);
+        if (aLoanAmt > 200000) {
+            aLoanAmt = 200000;
+        }
+        $(`#${CaInPrincipleDecisionScrId}A_sumAssuredInput`).text(ApzCOB.formatamountVal(aLoanAmt));
+        
+        $(`#${CaInPrincipleDecisionScrId}A_nameOfInsurerInput`).text(applicantInsuranceDetails?.payload?.insurerName)
+        $(`#${CaInPrincipleDecisionScrId}A_insurancePremiumInput`).text(applicantInsuranceDetails?.payload?.insurancePremium)
+        $(`#${CaInPrincipleDecisionScrId}A_nomineeInsurenceInput`).text(applicantInsuranceDetails?.payload?.nomineeName)
+        $(`#${CaInPrincipleDecisionScrId}A_dobInput`).text(applicantInsuranceDetails?.payload?.nomineeDob)
+        $(`#${CaInPrincipleDecisionScrId}A_ageOfNomineeInput`).text(applicantInsuranceDetails?.payload?.age)
+        $(`#${CaInPrincipleDecisionScrId}A_nomineeRelationshipInput`).text(applicantInsuranceDetails?.payload?.nomineeRelation)
+        $(`#${CaInPrincipleDecisionScrId}A_genderInput`).text(!apz.isNull(applicantInsuranceDetails.payload.gender) ? applicantInsuranceDetails
+            .payload.gender : "");
+    } else if (applicantInsuranceDetails?.payload?.insuranceOption === "Both" || applicantInsuranceDetails?.payload?.insuranceOption === "Joint") {
+        $(`#${CaInPrincipleDecisionScrId}App_Row`).addClass("sno");
+        $(`#${CaInPrincipleDecisionScrId}insType`).text("Both")
+        let totalPremium = jointInsuranceDetails?.payload?.insurancePremium || 
+                           (coAppInsuranceDetails?.payload?.insurancePremium && applicantInsuranceDetails?.payload?.insurancePremium ? 
+                            ApzCOB.formatamountVal((parseFloat(String(applicantInsuranceDetails.payload.insurancePremium).replace(/,/g, '')) || 0) + 
+                                                   (parseFloat(String(coAppInsuranceDetails.payload.insurancePremium).replace(/,/g, '')) || 0)) : 
+                            (coAppInsuranceDetails?.payload?.insurancePremium || applicantInsuranceDetails?.payload?.insurancePremium));
+        $(`#${CaInPrincipleDecisionScrId}totalInsPremium`).text(totalPremium);
+        let nomineeAdded = applicantInsuranceDetails?.payload?.nomineeAdded || jointInsuranceDetails?.payload?.nomineeAdded;
+        if (nomineeAdded === "No" || nomineeAdded === "N" || !nomineeAdded) {
+            $(`#${CaInPrincipleDecisionScrId}Both_Row`).removeClass("sno");
+            
+            let caLoanAmt = getLoanAmt(applicantInsuranceDetails);
+            if (caLoanAmt > 200000) {
+                caLoanAmt = 200000;
+            }
+            $(`#${CaInPrincipleDecisionScrId}CA_sumAssuredInput`).text(ApzCOB.formatamountVal(caLoanAmt));
+            
+            $(`#${CaInPrincipleDecisionScrId}CA_nameOfInsurerInput`).text(applicantInsuranceDetails?.payload?.insurerName)
+            $(`#${CaInPrincipleDecisionScrId}CA_insurancePremiumInput`).text(applicantInsuranceDetails?.payload?.insurancePremium)
+            $(`#${CaInPrincipleDecisionScrId}CA_nomineeInsurenceInput`).text(applicantInsuranceDetails?.payload?.nomineeName)
+            $(`#${CaInPrincipleDecisionScrId}CA_dobInput`).text(applicantInsuranceDetails?.payload?.nomineeDob)
+            $(`#${CaInPrincipleDecisionScrId}CA_ageOfNomineeInput`).text(applicantInsuranceDetails?.payload?.age)
+            $(`#${CaInPrincipleDecisionScrId}CA_nomineeRelationshipInput`).text(applicantInsuranceDetails?.payload?.nomineeRelation)
+            $(`#${CaInPrincipleDecisionScrId}CA_genderInput`).text(!apz.isNull(applicantInsuranceDetails?.payload?.gender) ?
+                applicantInsuranceDetails.payload.gender : "");
+                
+            let ccLoanAmt = getLoanAmt(coAppInsuranceDetails);
+            if (ccLoanAmt > 200000) {
+                ccLoanAmt = 200000;
+            }
+            $(`#${CaInPrincipleDecisionScrId}CC_sumAssuredInput`).text(ApzCOB.formatamountVal(ccLoanAmt));
+            
+            $(`#${CaInPrincipleDecisionScrId}CC_nameOfInsurerInput`).text(coAppInsuranceDetails?.payload?.insurerName)
+            $(`#${CaInPrincipleDecisionScrId}CC_insurancePremiumInput`).text(coAppInsuranceDetails?.payload?.insurancePremium)
+            $(`#${CaInPrincipleDecisionScrId}CC_nomineeInsurenceInput`).text(coAppInsuranceDetails?.payload?.nomineeName)
+            $(`#${CaInPrincipleDecisionScrId}CC_dobInput`).text(coAppInsuranceDetails?.payload?.nomineeDob)
+            $(`#${CaInPrincipleDecisionScrId}CC_ageOfNomineeInput`).text(coAppInsuranceDetails?.payload?.age)
+            $(`#${CaInPrincipleDecisionScrId}CC_nomineeRelationshipInput`).text(coAppInsuranceDetails?.payload?.nomineeRelation)
+            $(`#${CaInPrincipleDecisionScrId}CC_genderInput`).text(!apz.isNull(coAppInsuranceDetails?.payload?.gender) ? coAppInsuranceDetails
+                .payload.gender : "");
+        } else {
+            $(`#${CaInPrincipleDecisionScrId}Joint_Row`).removeClass("sno");
+            
+            let baLoanAmt = getLoanAmt(jointInsuranceDetails);
+            if (baLoanAmt > 200000) {
+                baLoanAmt = 200000;
+            }
+            $(`#${CaInPrincipleDecisionScrId}BA_sumAssuredInput`).text(ApzCOB.formatamountVal(baLoanAmt));
+            
+            $(`#${CaInPrincipleDecisionScrId}BA_nameOfInsurerInput`).text(jointInsuranceDetails?.payload?.insurerName)
+            $(`#${CaInPrincipleDecisionScrId}BA_insurancePremiumInput`).text(jointInsuranceDetails?.payload?.insurancePremium)
+            $(`#${CaInPrincipleDecisionScrId}BA_nomineeInsurenceInput`).text(jointInsuranceDetails?.payload?.nomineeName)
+            $(`#${CaInPrincipleDecisionScrId}BA_dobInput`).text(jointInsuranceDetails?.payload?.nomineeDob)
+            $(`#${CaInPrincipleDecisionScrId}BA_ageOfNomineeInput`).text(jointInsuranceDetails?.payload?.age)
+            $(`#${CaInPrincipleDecisionScrId}BA_nomineeRelatiaonshipInput`).text(jointInsuranceDetails?.payload?.nomineeRelation)
+            $(`#${CaInPrincipleDecisionScrId}BA_genderInput`).text(!apz.isNull(jointInsuranceDetails?.payload?.gender) ? jointInsuranceDetails
+                ?.payload?.gender : "");
+        }
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}App_Row`).addClass("sno");
+        $(`#${CaInPrincipleDecisionScrId}Both_Row`).addClass("sno");
+        $(`#${CaInPrincipleDecisionScrId}Joint_Row`).addClass("sno");
+        $(`#${CaInPrincipleDecisionScrId}insType`).text("No Insurance")
+        $(`#${CaInPrincipleDecisionScrId}totalInsPremium`).text("0");
+    }
+}
+apz.app.CaInPrincipleDecision.previewIncomeDetails = function() {
+    incomeDtls = JSON.parse(inSessionStore?.bcmpiIncomeDetails?.payload);
+    apz.app.CaInPrincipleDecision.paintAgricultureData();
+    apz.app.CaInPrincipleDecision.paintSalaryData();
+    apz.app.CaInPrincipleDecision.paintPensionData();
+    apz.app.CaInPrincipleDecision.paintrentalIncomeData();
+    apz.app.CaInPrincipleDecision.paintWageData();
+    apz.app.CaInPrincipleDecision.paintBusinessData();
+    let incomeSourcesToPaint = apz.app.CaInPrincipleDecision.getPresentIncomeSources();
+    let formattedIncomeSources = incomeSourcesToPaint.join(', ');
+    $(`#${CaInPrincipleDecisionScrId}availSourcesIncome_txtcnt`).text(formattedIncomeSources);
+    apz.app.CaInPrincipleDecision.paintIncomeOwnershipDetails();
+    if (incomeDtls.hasOwnProperty('homeMaker')) {
+        $(`#${CaInPrincipleDecisionScrId}InprinciplehomeMaker`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}inpriHomemaker_txtcnt`).text(incomeDtls?.homeMaker);
+    }
+    const BusinessDetails = inSessionStore.bcmpiIncomeDetails?.bcmpiIncomeDetailsWrapper?.business;
+ 
+    const businessConfigs = [
+    { key: 'dairy', dataKey: 'dairy', typeField: 'DairyType', incomeField: 'netMonthlyIncome' },
+    { key: 'tailoring', dataKey: 'Tailoring', typeField: 'tailoringType', incomeField: 'netMonthlyIncome' },
+    { key: 'kirana', dataKey: 'Kirana', typeField: 'kiranaType', incomeField: 'netMonthlyIncome' },
+    { key: 'other', dataKey: 'Other', typeField: 'otherType', incomeField: 'netBusinessIncome' }];
+
+businessConfigs.forEach(({ key, dataKey, typeField, incomeField }) => {
+    const records = BusinessDetails?.[dataKey] || [];
+
+    // Show/Hide business section
+    $(`#CrdAss__CaInPrincipleDecision__${key}_business`)
+        .toggleClass('sno', records.length === 0);
+
+    // Populate rows
+    for (let i = 1; i <= 3; i++) {
+        const record = records[i - 1];
+
+        $(`#${CaInPrincipleDecisionScrId}${key}${i}_row`)
+            .toggleClass('sno', !record);
+
+        if (record) {
+            $(`#${CaInPrincipleDecisionScrId}${key}${i}_ownedBy`)
+                .text(record[typeField] || 'None');
+
+            $(`#${CaInPrincipleDecisionScrId}${key}${i}_income`)
+                .text(
+                    ApzCOB.formatIndianRupees(record[incomeField])
+                );
+        }
+    }
+});
+}
+apz.app.CaInPrincipleDecision.paintAgricultureData = function() {
+    if (incomeDtls.hasOwnProperty('agriculture') || apz.isObjectEmpty(incomeDtls.agriculture)) {
+        $(`#${CaInPrincipleDecisionScrId}agricultureDetailRow`).addClass('sno');
+    }
+    if (!apz.isObjectEmpty(incomeDtls.agriculture) && incomeDtls.agriculture.hasOwnProperty('applicant')) {
+        $(`#${CaInPrincipleDecisionScrId}agricultureDetailRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}agriBothchecked`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}Apptitle`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}agriApplicantRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}agriCoapplicantRow`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}agrOwnedby_txtcnt`).text("Applicant");
+        $(`#${CaInPrincipleDecisionScrId}agrlandType_txtcnt`).text(incomeDtls?.agriculture?.applicant?.typeOfAgriculture);
+        $(`#${CaInPrincipleDecisionScrId}agrcropType_txtcnt`).text(incomeDtls?.agriculture?.applicant?.cropType);
+        $(`#${CaInPrincipleDecisionScrId}agriCrop_txtcnt`).text(incomeDtls?.agriculture?.applicant?.crop);
+        $(`#${CaInPrincipleDecisionScrId}agriclutureLandRange_txtcnt`).text(incomeDtls?.agriculture?.applicant?.land);
+        $(`#${CaInPrincipleDecisionScrId}agriclutureLand_txtcnt`).text(incomeDtls?.agriculture?.applicant?.landInAcres);
+        $(`#${CaInPrincipleDecisionScrId}maxPeracre_txtcnt`).text(incomeDtls?.agriculture?.applicant?.maxYeildPerAcre);
+        $(`#${CaInPrincipleDecisionScrId}agrIncMntly_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.agriculture?.applicant?.monthlyIncome));
+        $(`#${CaInPrincipleDecisionScrId}agrConIncMntly_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.agriculture?.applicant?.consideredIncome));
+        $(`#${CaInPrincipleDecisionScrId}agrDeclIncMntly_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.agriculture?.applicant?.declaredIncome));
+        custTypeInPrinciple = "Applicant";
+        apz.app.CaInPrincipleDecision.paintDocumentName("CrdAss__CaInPrincipleDecision__AggrAppCloneRow_0",
+            "CrdAss__CaInPrincipleDecision__AggrAppParentRow", "Agriculture Doc");
+    }
+    if (!apz.isObjectEmpty(incomeDtls.agriculture) && incomeDtls.agriculture.hasOwnProperty('coApplicant')) {
+        $(`#${CaInPrincipleDecisionScrId}agricultureDetailRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}agriBothchecked`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}CoApptitle`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}agriApplicantRow`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}agriCoapplicantRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}agrCoownedby_txtcnt`).text("CoApplicant");
+        $(`#${CaInPrincipleDecisionScrId}agrColandType_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.typeOfAgriculture);
+        $(`#${CaInPrincipleDecisionScrId}agrCocropType_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.cropType);
+        $(`#${CaInPrincipleDecisionScrId}agrCocrop_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.crop);
+        $(`#${CaInPrincipleDecisionScrId}CoagriclutureLandRange_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.land);
+        $(`#${CaInPrincipleDecisionScrId}CoagriclutureLand_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.landInAcres);
+        $(`#${CaInPrincipleDecisionScrId}ComaxPeracre_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.maxYeildPerAcre);
+        $(`#${CaInPrincipleDecisionScrId}CoagrIncMntly_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.agriculture?.coApplicant?.monthlyIncome));
+        $(`#${CaInPrincipleDecisionScrId}CoagrConIncMntly_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.agriculture?.coApplicant?.consideredIncome));
+        $(`#${CaInPrincipleDecisionScrId}CoagrDeclIncMntly_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.agriculture?.coApplicant?.declaredIncome));
+        custTypeInPrinciple = "Co-Applicant";
+        apz.app.CaInPrincipleDecision.paintDocumentName("CrdAss__CaInPrincipleDecision__AggrCoAppCloneRow_0",
+            "CrdAss__CaInPrincipleDecision__AggrCoAppParentRow", "Agriculture Doc");
+    }
+    if (!apz.isObjectEmpty(incomeDtls.agriculture) && incomeDtls.agriculture.hasOwnProperty('applicant') && incomeDtls.agriculture.hasOwnProperty(
+            'coApplicant')) {
+        $(`#${CaInPrincipleDecisionScrId}agriBothchecked`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}agriApplicantRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}agriCoapplicantRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}Apptitle`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}CoApptitle`).removeClass('sno');
+    }
+}
+apz.app.CaInPrincipleDecision.paintSalaryData = function() {
+    if (incomeDtls.hasOwnProperty('salary') || apz.isObjectEmpty(incomeDtls.salary)) {
+        $(`#${CaInPrincipleDecisionScrId}salaryDetailRow`).addClass('sno');
+    }
+    if (!apz.isObjectEmpty(incomeDtls.salary) && incomeDtls.salary.hasOwnProperty('applicant')) {
+        $(`#${CaInPrincipleDecisionScrId}salaryDetailRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}salaryCheckedBoth`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}salAppTitle`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}salaryApplicatntRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}SalaryCoapprow`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}appEarnedby_txtcnt`).text("Applicant");
+        $(`#${CaInPrincipleDecisionScrId}appWork_txtcnt`).text(incomeDtls.salary?.applicant?.workPlace);
+        $(`#${CaInPrincipleDecisionScrId}appTenureEmp_txtcnt`).text(incomeDtls?.salary?.applicant?.yearTenure + ' years' + ' ' + incomeDtls
+            ?.salary?.applicant?.monthTenure + '' + ' months');
+        $(`#${CaInPrincipleDecisionScrId}appEmployment_txtcnt`).text(incomeDtls?.salary?.applicant?.natureOfEmployment);
+        $(`#${CaInPrincipleDecisionScrId}salaryAppgross_txtcnt`).text(incomeDtls?.salary?.applicant?.grossSalary);
+        $(`#${CaInPrincipleDecisionScrId}appsalaryNet_txtcnt`).text(incomeDtls?.salary?.applicant?.netSalary);
+        $(`#${CaInPrincipleDecisionScrId}appmodeOfSalary_txtcnt`).text(incomeDtls?.salary?.applicant?.modeOfSalary);
+        custTypeInPrinciple = "Applicant";
+        apz.app.CaInPrincipleDecision.paintDocumentName("CrdAss__CaInPrincipleDecision__SalaryAppCloneRow_0",
+            "CrdAss__CaInPrincipleDecision__SalaryAppParentRow", "Salary Doc");
+    }
+    if (!apz.isObjectEmpty(incomeDtls.salary) && incomeDtls.salary.hasOwnProperty('coApplicant')) {
+        $(`#${CaInPrincipleDecisionScrId}salaryDetailRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}salaryCheckedBoth`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}salCoApptitle`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}salaryApplicatntRow`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}SalaryCoapprow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}CoEarnedby_txtcnt`).text("CoApplicant");
+        $(`#${CaInPrincipleDecisionScrId}CoappWork_txtcnt`).text(incomeDtls?.salary?.coApplicant?.workPlace);
+        $(`#${CaInPrincipleDecisionScrId}CotenureEmp_txtcnt`).text(incomeDtls?.salary?.coApplicant?.yearTenure + ' years' + ' ' + incomeDtls
+            ?.salary?.coApplicant?.monthTenure + ' ' + ' months');
+        $(`#${CaInPrincipleDecisionScrId}CoEmpNature_txtcnt`).text(incomeDtls?.salary?.coApplicant?.natureOfEmployment);
+        $(`#${CaInPrincipleDecisionScrId}CogrossSalary_txtcnt`).text(incomeDtls?.salary?.coApplicant?.grossSalary);
+        $(`#${CaInPrincipleDecisionScrId}CoNetSalary_txtcnt`).text(incomeDtls?.salary?.coApplicant?.netSalary);
+        $(`#${CaInPrincipleDecisionScrId}CosalaryMode_txtcnt`).text(incomeDtls?.salary?.coApplicant?.modeOfSalary);
+        custTypeInPrinciple = "Co-Applicant";
+        apz.app.CaInPrincipleDecision.paintDocumentName("CrdAss__CaInPrincipleDecision__SalaryCoAppCloneRow_0",
+            "CrdAss__CaInPrincipleDecision__SalaryCoAppParentRow", "Salary Doc");
+    }
+    if (!apz.isObjectEmpty(incomeDtls.salary) && incomeDtls.salary.hasOwnProperty('Applicant') && incomeDtls.salary.hasOwnProperty(
+        'coApplicant')) {
+        $(`#${CaInPrincipleDecisionScrId}salaryCheckedBoth`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}salaryApplicatntRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}SalaryCoapprow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}salAppTitle`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}salCoApptitle`).removeClass('sno');
+    }
+}
+apz.app.CaInPrincipleDecision.paintPensionData = function() {
+    if (incomeDtls.hasOwnProperty('pension') || apz.isObjectEmpty(incomeDtls.pension)) {
+        $(`#${CaInPrincipleDecisionScrId}PensionRow`).addClass('sno');
+    }
+    if (!apz.isObjectEmpty(incomeDtls.pension) && incomeDtls.pension.hasOwnProperty('applicant')) {
+        $(`#${CaInPrincipleDecisionScrId}PensionRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}pensionCheckedBoth`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}pensionAppRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}pensionCoApprow`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}pensionAppIncome_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.pension?.applicant?.applicantPensionIncome));
+        custTypeInPrinciple = "Applicant";
+        apz.app.CaInPrincipleDecision.paintDocumentName("CrdAss__CaInPrincipleDecision__PensionAppCloneRow_0",
+            "CrdAss__CaInPrincipleDecision__PensionAppParentRow", "Pension Doc");
+    }
+    if (!apz.isObjectEmpty(incomeDtls.pension) && incomeDtls.pension.hasOwnProperty('coApplicant')) {
+        $(`#${CaInPrincipleDecisionScrId}PensionRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}pensionCheckedBoth`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}pensionAppRow`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}pensionCoApprow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}pensionCoAPpInc_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.pension?.coApplicant?.coApplicantPensionIncome));
+        custTypeInPrinciple = "Co-Applicant";
+        apz.app.CaInPrincipleDecision.paintDocumentName("CrdAss__CaInPrincipleDecision__PensionCoAppCLoneRow_0",
+            "CrdAss__CaInPrincipleDecision__PensionCoAppParentRow", "Pension Doc");
+    }
+    if (!apz.isObjectEmpty(incomeDtls.pension) && incomeDtls.pension.hasOwnProperty('applicant') && incomeDtls.pension.hasOwnProperty(
+            'coApplicant')) {
+        $(`#${CaInPrincipleDecisionScrId}pensionCheckedBoth`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}pensionAppRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}pensionCoApprow`).removeClass('sno');
+    }
+}
+apz.app.CaInPrincipleDecision.paintWageData = function() {
+    if (incomeDtls.hasOwnProperty('wage') || apz.isObjectEmpty(incomeDtls.wage)) {
+        $(`#${CaInPrincipleDecisionScrId}WagedtlsRow`).addClass('sno');
+    }
+    if (!apz.isObjectEmpty(incomeDtls.wage) && incomeDtls.wage.hasOwnProperty('applicant')) {
+        $(`#${CaInPrincipleDecisionScrId}WagedtlsRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}wagecheckedBoth`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}wageApprow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}wageCoapprow`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}wageEarnedBy_txtcnt`).text('Applicant');
+        if (incomeDtls.wage.applicant.hasOwnProperty('farmWorker')) {
+            $(`#${CaInPrincipleDecisionScrId}FarmWorkerRow`).removeClass('sno');
+            $(`#${CaInPrincipleDecisionScrId}farmwageTActivity_txtcnt`).text('Farm Worker');
+            $(`#${CaInPrincipleDecisionScrId}farmEarnedPerDay_txtcnt`).text(incomeDtls?.wage?.applicant?.farmWorker?.wageEarnedPerDay);
+            $(`#${CaInPrincipleDecisionScrId}farmNoOfDayInMonth_txtcnt`).text(incomeDtls?.wage?.applicant?.farmWorker?.noOfDaysInMonth);
+            $(`#${CaInPrincipleDecisionScrId}farmTotalPerMonth_txtcnt`).text(incomeDtls?.wage?.applicant?.farmWorker?.totalWagePerMonth);
+            $(`#${CaInPrincipleDecisionScrId}farmselfDeclaredWagePerMonth_txtcnt`).text(incomeDtls?.wage?.applicant?.farmWorker?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.applicant.hasOwnProperty('constructions')) {
+            $(`#${CaInPrincipleDecisionScrId}ConstructionsRow`).removeClass('sno');
+            $(`#${CaInPrincipleDecisionScrId}consTAction_txtcnt`).text('Constructions');
+            $(`#${CaInPrincipleDecisionScrId}consWEarnedperday_txtcnt`).text(incomeDtls?.wage?.applicant?.constructions?.wageEarnedPerDay);
+            $(`#${CaInPrincipleDecisionScrId}consNoofdaysmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.constructions?.noOfDaysInMonth);
+            $(`#${CaInPrincipleDecisionScrId}consTWpermnth_txtcnt`).text(incomeDtls?.wage?.applicant?.constructions?.totalWagePerMonth);
+            $(`#${CaInPrincipleDecisionScrId}consSDWpermnth_txtcnt`).text(incomeDtls?.wage?.applicant?.constructions?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.applicant.hasOwnProperty('contractLabour')) {
+            $(`#${CaInPrincipleDecisionScrId}contractLabourRow`).removeClass('sno');
+            $(`#${CaInPrincipleDecisionScrId}contractTAction_txtcnt`).text('Contract labour');
+            $(`#${CaInPrincipleDecisionScrId}contractWEarned_txtcnt`).text(incomeDtls?.wage?.applicant?.contractLabour?.wageEarnedPerDay);
+            $(`#${CaInPrincipleDecisionScrId}contractNdays_txtcnt`).text(incomeDtls?.wage?.applicant?.contractLabour?.noOfDaysInMonth);
+            $(`#${CaInPrincipleDecisionScrId}contractTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.contractLabour?.totalWagePerMonth);
+            $(`#${CaInPrincipleDecisionScrId}contractSDTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.contractLabour?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.applicant.hasOwnProperty('maid')) {
+            $(`#${CaInPrincipleDecisionScrId}maidRow`).removeClass('sno');
+            $(`#${CaInPrincipleDecisionScrId}maidTAction_txtcnt`).text('Maid');
+            $(`#${CaInPrincipleDecisionScrId}maidWEarned_txtcnt`).text(incomeDtls?.wage?.applicant?.maid?.wageEarnedPerDay);
+            $(`#${CaInPrincipleDecisionScrId}maidNdays_txtcnt`).text(incomeDtls?.wage?.applicant?.maid?.noOfDaysInMonth);
+            $(`#${CaInPrincipleDecisionScrId}maidTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.maid?.totalWagePerMonth);
+            $(`#${CaInPrincipleDecisionScrId}maidSDTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.maid?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.applicant.hasOwnProperty('hotelWorker')) {
+            $(`#${CaInPrincipleDecisionScrId}hotelWorkerRow`).removeClass('sno');
+            $(`#${CaInPrincipleDecisionScrId}HwTAction_txtcnt`).text('Hotel Worker');
+            $(`#${CaInPrincipleDecisionScrId}HwwageEarned_txtcnt`).text(incomeDtls?.wage?.applicant?.hotelWorker?.wageEarnedPerDay);
+            $(`#${CaInPrincipleDecisionScrId}HwNdays_txtcnt`).text(incomeDtls?.wage?.applicant?.hotelWorker?.noOfDaysInMonth);
+            $(`#${CaInPrincipleDecisionScrId}HwTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.hotelWorker?.totalWagePerMonth);
+            $(`#${CaInPrincipleDecisionScrId}HwSDTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.hotelWorker?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.applicant.hasOwnProperty('other')) {
+            $(`#${CaInPrincipleDecisionScrId}wageOthersrow`).removeClass('sno');
+            $(`#${CaInPrincipleDecisionScrId}WothTAction_txtcnt`).text('Other');
+            $(`#${CaInPrincipleDecisionScrId}WothOActivity_txtcnt`).text(incomeDtls?.wage?.applicant?.other?.otherAct);
+            $(`#${CaInPrincipleDecisionScrId}WothWEarned_txtcnt`).text(incomeDtls?.wage?.applicant?.other?.wageEarnedPerDay);
+            $(`#${CaInPrincipleDecisionScrId}WothNdays_txtcnt`).text(incomeDtls?.wage?.applicant?.other?.noOfDaysInMonth);
+            $(`#${CaInPrincipleDecisionScrId}WothTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.other?.totalWagePerMonth);
+            $(`#${CaInPrincipleDecisionScrId}WothSDTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.other?.selfDeclaredWage);
+        }
+    }
+    if (!apz.isObjectEmpty(incomeDtls.wage) && incomeDtls.wage.hasOwnProperty('coApplicant')) {
+        $(`#${CaInPrincipleDecisionScrId}WagedtlsRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}wagecheckedBoth`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}wageApprow`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}wageCoapprow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}wageEarnedBy_txtcnt`).text('CoApplicant');
+        if (incomeDtls.wage.coApplicant.hasOwnProperty('farmWorker')) {
+            $(`#${CaInPrincipleDecisionScrId}coFarmWorkerRow`).removeClass('sno');
+            $(`#${CaInPrincipleDecisionScrId}CofarmwageTActivity_txtcnt`).text('Farm Worker');
+            $(`#${CaInPrincipleDecisionScrId}CofarmEarnedPerDay_txtcnt`).text(incomeDtls?.wage?.coApplicant?.farmWorker?.wageEarnedPerDay);
+            $(`#${CaInPrincipleDecisionScrId}CofarmNoOfDayInMonth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.farmWorker?.noOfDaysInMonth);
+            $(`#${CaInPrincipleDecisionScrId}CofarmTotalPerMonth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.farmWorker?.totalWagePerMonth);
+            $(`#${CaInPrincipleDecisionScrId}CofarmSDTotalPerMonth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.farmWorker?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.coApplicant.hasOwnProperty('constructions')) {
+            $(`#${CaInPrincipleDecisionScrId}coConstructionsRow`).removeClass('sno');
+            $(`#${CaInPrincipleDecisionScrId}COconsTAction_txtcnt`).text('Constructions');
+            $(`#${CaInPrincipleDecisionScrId}COconsWEarnedperday_txtcnt`).text(incomeDtls?.wage?.coApplicant?.constructions?.wageEarnedPerDay);
+            $(`#${CaInPrincipleDecisionScrId}COconsNoofdaysmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.constructions?.noOfDaysInMonth);
+            $(`#${CaInPrincipleDecisionScrId}COconsTWpermnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.constructions?.totalWagePerMonth);
+            $(`#${CaInPrincipleDecisionScrId}COconsSDTWpermnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.constructions?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.coApplicant.hasOwnProperty('contractLabour')) {
+            $(`#${CaInPrincipleDecisionScrId}COcontractLabourRow`).removeClass('sno');
+            $(`#${CaInPrincipleDecisionScrId}COcontractTAction_txtcnt`).text('Contract Labour');
+            $(`#${CaInPrincipleDecisionScrId}COcontractWEarned_txtcnt`).text(incomeDtls?.wage?.coApplicant?.contractLabour?.wageEarnedPerDay);
+            $(`#${CaInPrincipleDecisionScrId}COcontractNdays_txtcnt`).text(incomeDtls?.wage?.coApplicant?.contractLabour?.noOfDaysInMonth);
+            $(`#${CaInPrincipleDecisionScrId}COcontractTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.contractLabour?.totalWagePerMonth);
+            $(`#${CaInPrincipleDecisionScrId}COcontractSDTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.contractLabour?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.coApplicant.hasOwnProperty('maid')) {
+            $(`#${CaInPrincipleDecisionScrId}COmaidRow`).removeClass('sno');
+            $(`#${CaInPrincipleDecisionScrId}ComaidTAction_txtcnt`).text('Maid');
+            $(`#${CaInPrincipleDecisionScrId}ComaidWEarned_txtcnt`).text(incomeDtls?.wage?.coApplicant?.maid?.wageEarnedPerDay);
+            $(`#${CaInPrincipleDecisionScrId}ComaidNdays_txtcnt`).text(incomeDtls?.wage?.coApplicant?.maid?.noOfDaysInMonth);
+            $(`#${CaInPrincipleDecisionScrId}ComaidTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.maid?.totalWagePerMonth);
+            $(`#${CaInPrincipleDecisionScrId}ComaidSDTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.maid?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.coApplicant.hasOwnProperty('hotelWorker')) {
+            $(`#${CaInPrincipleDecisionScrId}CohotelWorkerRow`).removeClass('sno');
+            $(`#${CaInPrincipleDecisionScrId}CoHwTAction_txtcnt`).text('Hotel Worker');
+            $(`#${CaInPrincipleDecisionScrId}CoHwwageEarned_txtcnt`).text(incomeDtls?.wage?.coApplicant?.hotelWorker?.wageEarnedPerDay);
+            $(`#${CaInPrincipleDecisionScrId}CoHwNdays_txtcnt`).text(incomeDtls?.wage?.coApplicant?.hotelWorker?.noOfDaysInMonth);
+            $(`#${CaInPrincipleDecisionScrId}CoHwTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.hotelWorker?.totalWagePerMonth);
+            $(`#${CaInPrincipleDecisionScrId}CoHwSDTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.hotelWorker?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.coApplicant.hasOwnProperty('other')) {
+            $(`#${CaInPrincipleDecisionScrId}wageCoOthersrow`).removeClass('sno');
+            $(`#${CaInPrincipleDecisionScrId}WothCoTAction_txtcnt`).text('Other');
+            $(`#${CaInPrincipleDecisionScrId}WothCoOActivity_txtcnt`).text(incomeDtls?.wage?.coApplicant?.other?.otherAct);
+            $(`#${CaInPrincipleDecisionScrId}WothCoWEarned_txtcnt`).text(incomeDtls?.wage?.coApplicant?.other?.wageEarnedPerDay);
+            $(`#${CaInPrincipleDecisionScrId}WothCoNdays_txtcnt`).text(incomeDtls?.wage?.coApplicant?.other?.noOfDaysInMonth);
+            $(`#${CaInPrincipleDecisionScrId}WothCoTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.other?.totalWagePerMonth);
+            $(`#${CaInPrincipleDecisionScrId}WothCoSDTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.other?.selfDeclaredWage);
+        }
+    }
+    if (!apz.isObjectEmpty(incomeDtls.wage) && incomeDtls.wage.hasOwnProperty('applicant') && incomeDtls.wage.hasOwnProperty('coApplicant')) {
+        $(`#${CaInPrincipleDecisionScrId}wageEarnedBy_txtcnt`).text('Both');
+        $(`#${CaInPrincipleDecisionScrId}wagecheckedBoth`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}wageApprow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}wageCoapprow`).removeClass('sno');
+    }
+}
+apz.app.CaInPrincipleDecision.paintrentalIncomeData = function() {
+    if (incomeDtls.hasOwnProperty('rentalIncome') || apz.isObjectEmpty(incomeDtls.rentalIncome)) {
+        $(`#${CaInPrincipleDecisionScrId}rentalIncomeRow`).addClass('sno');
+    }
+    if (!apz.isObjectEmpty(incomeDtls.rentalIncome) && incomeDtls.rentalIncome.hasOwnProperty('applicant')) {
+        $(`#${CaInPrincipleDecisionScrId}rentalIncomeRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}rentalcheckboth`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}rentalApprow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}rentalCoapprow`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}rentalAppInomeMonth_txtcnt`).text(incomeDtls?.rentalIncome?.applicant?.monthlyRentalIncome);
+        $(`#${CaInPrincipleDecisionScrId}appBuildingtype_txtcnt`).text(incomeDtls?.rentalIncome?.applicant?.buildingType);
+        $(`#${CaInPrincipleDecisionScrId}rentalAppConInomeMonth_txtcnt`).text(incomeDtls?.rentalIncome?.applicant?.consideredMonthlyIncome);
+        custTypeInPrinciple = "Applicant";
+        apz.app.CaInPrincipleDecision.paintDocumentName("CrdAss__CaInPrincipleDecision__RentalIncomeAppCloneRow_0",
+            "CrdAss__CaInPrincipleDecision__RentalIncomeAppParentRow", "Rentalincome_Agg Doc");
+    }
+    if (!apz.isObjectEmpty(incomeDtls.rentalIncome) && incomeDtls.rentalIncome.hasOwnProperty('coApplicant')) {
+        $(`#${CaInPrincipleDecisionScrId}rentalIncomeRow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}rentalcheckboth`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}rentalApprow`).addClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}rentalCoapprow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}rentCoAppIncomeMonth_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.rentalIncome?.coApplicant?.monthlyRentalIncome));
+        $(`#${CaInPrincipleDecisionScrId}coBuildingtype_txtcnt`).text(incomeDtls?.rentalIncome?.applicant?.buildingType);
+        $(`#${CaInPrincipleDecisionScrId}rentalCoAppConInomeMonth_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.rentalIncome?.coApplicant?.consideredMonthlyIncome));
+        custTypeInPrinciple = "Co-Applicant";
+        apz.app.CaInPrincipleDecision.paintDocumentName("CrdAss__CaInPrincipleDecision__RentalIncomeCoAppCloneRow_0",
+            "CrdAss__CaInPrincipleDecision__RentalIncomeCoAppParentRow", "Rentalincome_Agg Doc");
+    }
+    if (!apz.isObjectEmpty(incomeDtls.rentalIncome) && incomeDtls.rentalIncome.hasOwnProperty('applicant') && incomeDtls.rentalIncome
+        .hasOwnProperty('coApplicant')) {
+        $(`#${CaInPrincipleDecisionScrId}rentalcheckboth`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}rentalApprow`).removeClass('sno');
+        $(`#${CaInPrincipleDecisionScrId}rentalCoapprow`).removeClass('sno');
+    }
+}
+apz.app.CaInPrincipleDecision.paintBusinessData = function() {
+    let businessDtls = incomeDtls?.business;
+    let dairyData = incomeDtls?.business?.dairy;
+    let kiranaData = incomeDtls?.business?.Kirana;
+    let tailoringData = incomeDtls?.business?.Tailoring;
+    let otherData = incomeDtls?.business?.Other;
+    let businessKeys = Object.keys(businessDtls).toString();
+    let businessKeysArray = businessKeys.split(",");
+    businessCounter = 1;
+    if (businessDtls.hasOwnProperty('dairy') && dairyData.length !== 0) {
+        $(`#${CaInPrincipleDecisionScrId}businessdairyRow`).removeClass('sno');
+        dairyData.forEach(function(item, index) {
+            if (index > 0) {
+                ApzCOB.cloneDashboardDivs('CrdAss__CaInPrincipleDecision__businessSub_0', $(
+                    '#CrdAss__CaInPrincipleDecision__businessdairyCol'), index.toString());
+            }
+            let dairyKey = businessKeysArray.find(key => key === "dairy");
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairyHeading_txtcnt`).text(
+                `Business ${businessCounter}`);
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairybuisnessType1_txtcnt`).text(
+                dairyKey);
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairyownedBy1_txtcnt`).text(item
+                ?.DairyType);
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairytotalNumberOfProducts1_txtcnt`)
+                .text(item?.totalCowsAndBuffalos);
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairynetBuisnessAmt1_txtcnt`).text(ApzCOB.formatamountVal(Math.min(item.IncomeAssessmentChecknetBusinessIncome,item.netMonthlyIncome)));
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairytitle_txtcnt`).text(ApzCOB
+                .getDescfromLitCode("LIT_dairyBusApp") + ' - ' + item?.DairyType);
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairyappbusinessLocation_txtcnt`)
+                .text(item?.dairyLocation);
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairyappbusinessTenure_txtcnt`).text(
+                item?.dairyTenure);
+            const cowBreeds = [item?.cowBreed1, item?.cowBreed2, item?.cowBreed3].filter(breed => breed?.trim()).join(', ');
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairycowBreedVal_txtcnt`).text(
+                cowBreeds || "--");
+            const buffaloBreeds = [item?.buffaloBreed1, item?.buffaloBreed2, item?.buffaloBreed3].filter(b => b?.trim()).join(', ');
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairybuffaloBreed_txtcnt`).text(
+                buffaloBreeds || "--");
+            const buffaloCounts = [item?.noOfBuffaloBreed1, item?.noOfBuffaloBreed2, item?.noOfBuffaloBreed3].filter(c => c?.toString()
+                .trim()).join(', ');
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairybuffaloCount_txtcnt`).text(
+                buffaloCounts);
+            const cowCounts = [item?.noOfCowBreed1, item?.noOfCowBreed2, item?.noOfCowBreed3].filter(c => c?.toString().trim()).join(
+            ', ');
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairynoOfCows_txtcnt`).text(
+            cowCounts);
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairymntlyIncome_txtcnt`).text(ApzCOB.formatamountVal(Math.min(item?.netMonthlyIncome,item?.IncomeAssessmentChecknetBusinessIncome)));
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairyappBusiPermisesValue_txtcnt`)
+                .text(item.businessAddressSameAsResidance);
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairybusinessTypeValue_txtcnt`).text(
+                item?.dairyBusinessType);
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairyorganisationValue_txtcnt`).text(
+                item?.organizationName);
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairycowrevenueVal_txtcnt`).text(ApzCOB.formatamountVal(item?.avgDailyRevenuePerCow));
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairybuffalorevenueVal_txtcnt`).text(
+                ApzCOB.formatamountVal(item?.avgDailyRevenuePerBuffalo));
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairycowMntlyInc_txtcnt`).text(ApzCOB.formatamountVal(item?.avgMonthlyRevenuePerCow));
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairybuffaloMntlyInc_txtcnt`).text(
+                ApzCOB.formatamountVal(item?.avgMonthlyRevenuePerBuffalo));
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__dairynetBusinessCal_txtcnt`).text(ApzCOB.formatamountVal(Math.min(item?.IncomeAssessmentChecknetBusinessIncome,item?.netMonthlyIncome)));
+            custTypeInPrinciple = item?.DairyType;
+            apz.app.CaInPrincipleDecision.paintDocumentName(
+                `CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__DairyUploadedImage_0`,
+                `CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__Dairy_ParentBusRow`, "Dairy Doc", index);
+            businessCounter++;
+        })
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}businessdairyRow`).addClass('sno');
+    }
+    if (businessDtls.hasOwnProperty('Kirana') && kiranaData.length !== 0) {
+        $(`#${CaInPrincipleDecisionScrId}businesskiranaRow`).removeClass('sno');
+        kiranaData.forEach(function(item, index) {
+            if (index > 0) {
+                ApzCOB.cloneDashboardDivs('CrdAss__CaInPrincipleDecision__kiranaSubrow_0', $(
+                    '#CrdAss__CaInPrincipleDecision__businesskiranaCol'), index.toString());
+            }
+            let kiranaKey = businessKeysArray.find(key => key === "Kirana");
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaHeading_txtcnt`).text(
+                `Business ${businessCounter}`);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaType1_txtcnt`).text('Kirana/Utility store');
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaOwnedBy1_txtcnt`).text(item
+                ?.kiranaType);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranatypeOfShop_txtcnt`).text(item
+                ?.kiranaShopType);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranafinalBusinessInc_txtcnt`).text(ApzCOB.formatamountVal(item?.finalNetIncome));
+            $(`#CrdAss__CaInPrincipleDecision__businessSub_${index} #CrdAss__CaInPrincipleDecision__titleKirana_txtcnt`).text(ApzCOB
+                .getDescfromLitCode("LIT_kiranaBusiness_coApp") + ' - ' + item?.kiranaType);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__KiranabusinessLocation_txtcnt`).text(
+                item?.kiranaBusinessLocation);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaTenureValue_txtcnt`).text(item
+                ?.kiranaTenure);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaTypeShopValue_txtcnt`).text(
+                item?.kiranaShopType);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaMarketValue_txtcnt`).text(item
+                ?.kiranaMarketClassification);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaShopArea_txtcnt`).text(item
+                ?.areaofshop);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaUnitArea_txtcnt`).text(item
+                ?.kiranaUnit);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaGodownArea_txtcnt`).text(item
+                ?.areaOfGodown);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaUnitAreaValue_txtcnt`).text(
+                item?.kiranaGodownUnit);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaOccLevelShopValue_txtcnt`)
+                .text(item?.kiranaOccupancyLevel);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaNetMonthIncomeVal_txtcnt`)
+                .text(ApzCOB.formatamountVal(item?.netMonthlyIncome));
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaPermsesResiValue_txtcnt`).text(
+                item?.businessAddressSameAsResidance);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaTypeBusinessVal_txtcnt`).text(
+                item?.kiranaBusinessType);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaNameOrganisationVal_txtcnt`)
+                .text(item?.nameOfOrganization);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaAreaInSqFtCal_txtcnt`).text(
+                item?.areaOfTheShopInSqft);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaAreaGodownInsqFtCal_txtcnt`)
+                .text(item?.areaOfTheGodownInSqft);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaTotalAreaInSqFtVal_txtcnt`)
+                .text(item?.totalArea);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaInentArea_txtcnt`).text(item
+                ?.inventoryArea);
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaInventValue_txtcnt`).text(ApzCOB.formatamountVal(item?.inventoryValue));
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaMonthlySalesVal_txtcnt`).text(ApzCOB.formatamountVal(item?.monthlySales));
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaNetIncVal_txtcnt`).text(ApzCOB.formatamountVal(item?.calculatedNetIncome));
+            $(`#CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__kiranaFinalNetIncVal_txtcnt`).text(
+                ApzCOB.formatamountVal(item?.finalNetIncome));
+            custTypeInPrinciple = item?.kiranaType;
+            apz.app.CaInPrincipleDecision.paintDocumentName(
+                `CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__KiranaUploadedImage_0`,
+                `CrdAss__CaInPrincipleDecision__kiranaSubrow_${index} #CrdAss__CaInPrincipleDecision__Kirana_ParentBusRow`,
+                "Kirana Doc", index);
+            businessCounter++;
+        })
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}businesskiranaRow`).addClass('sno');
+    }
+    if (businessDtls.hasOwnProperty('Tailoring') && tailoringData.length !== 0) {
+        $(`#${CaInPrincipleDecisionScrId}businesstailoringRow`).removeClass('sno');
+        tailoringData.forEach(function(item, index) {
+            if (index > 0) {
+                ApzCOB.cloneDashboardDivs('CrdAss__CaInPrincipleDecision__tailoringSub_0', $(
+                    '#CrdAss__CaInPrincipleDecision__businesstailoringCol'), index.toString());
+            }
+            let tailoringKey = businessKeysArray.find(key => key === "Tailoring");
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailoringHeading_txtcnt`).text(
+                `Business ${businessCounter}`);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tariloringTypebuss_txtcnt`).text(
+                tailoringKey);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorOwnedby_txtcnt`).text(item
+                ?.tailoringType);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailoringrevenuePerMonth_txtcnt`)
+                .text(ApzCOB.formatamountVal(item?.revenuePerMonth));
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailoringNetIncVal_txtcnt`).text(ApzCOB.formatamountVal(item?.netBusinessIncome));
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailoringtitle_txtcnt`).text(ApzCOB
+                .getDescfromLitCode("LIT_tailorBusiness") + ' - ' + item?.tailoringType);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorisApplTailor_txtcnt`).text(item
+                ?.isApplicantATailor === 'Y' ? 'Yes' : 'No');
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorisCoAppPart_txtcnt`).text(item
+                ?.isCoApplicantPartOfTailorBusiness === 'Y' ? 'Yes' : 'No');
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorbusLocation_txtcnt`).text(item
+                ?.tailoringBusinessLocation);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorBusTenureVal_txtcnt`).text(item
+                ?.tailoringTenure);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorBusPermiseVal_txtcnt`).text(
+                item?.tailoringPremise);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorpowerMachines_txtcnt`).text(
+                item?.numOfPowerTailoringMachine);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailormanualMachines_txtcnt`).text(item?.numOfManualTailoringMachine);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailornoSalariedTailor_txtcnt`).text(
+                item?.numOfSalariedTailors);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorWorkingTime_txtcnt`).text(item
+                ?.tailoringWorkType);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorstitchingFor_txtcnt`).text(item
+                ?.stitchingFor);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorNetMonthlyInc_txtcnt`).text(
+                ApzCOB.formatamountVal(item?.netMonthlyIncome));
+            /*$(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorTypeOfStich_txtcnt`).text((item?.tailorShopItems).toString());*/
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorPremiseVal_txtcnt`).text(item
+                ?.tailoringPremise);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorBusinessType_txtcnt`).text(item
+                ?.tailoringBusinessType);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorNameOrganisation_txtcnt`).text(
+                item?.organizationName);
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorRevenueCal_txtcnt`).text(ApzCOB.formatamountVal(item?.revenuePerDay));
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorRevenuePerMonthcal_txtcnt`)
+                .text(ApzCOB.formatamountVal(item?.revenuePerMonth));
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__totalmtlyRevenueCal_txtcnt`).text(
+                ApzCOB.formatamountVal(item?.totalMonthlyIncome));
+            $(`#CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__tailorNetBusiness_txtcnt`).text(ApzCOB.formatamountVal(item?.netBusinessIncome));
+            custTypeInPrinciple = item?.tailoringType;
+            apz.app.CaInPrincipleDecision.paintDocumentName(
+                `CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__TailoringUploadedImage_0`,
+                `CrdAss__CaInPrincipleDecision__tailoringSub_${index} #CrdAss__CaInPrincipleDecision__Tailoring_ParentBusRow`,
+                "Tailoring Doc", index);
+            businessCounter++;
+        })
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}businesstailoringRow`).addClass('sno');
+    }
+    if (businessDtls.hasOwnProperty('Other') && otherData.length !== 0) {
+        $(`#${CaInPrincipleDecisionScrId}businessotherRow`).removeClass('sno');
+        otherData.forEach(function(item, index) {
+            if (index > 0) {
+                ApzCOB.cloneDashboardDivs('CrdAss__CaInPrincipleDecision__otherSubrow_0', $(
+                    '#CrdAss__CaInPrincipleDecision__businessotherCol'), index.toString());
+            }
+            let otherKey = businessKeysArray.find(key => key === "Other");
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__otherHeading_txtcnt`).text(
+                `Business ${businessCounter}`);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__otherTypeVal_txtcnt`).text(otherKey);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__otherOwnedVal_txtcnt`).text(item
+                ?.otherType);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__otherLineBus_txtcnt`).text(item
+                ?.lineOfOtherBusiness);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__otherNetBusInc_txtcnt`).text(ApzCOB.formatamountVal(item?.netBusinessIncome));
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__otherTitle_txtcnt`).text(ApzCOB
+                .getDescfromLitCode("LIT_otherBusiness_coApp") + ' - ' + item?.otherType);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__OtherLineBusiness_txtcnt`).text(item
+                ?.lineOfOtherBusiness);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__otherTenure_txtcnt`).text(item
+                ?.otherBusinessTenure);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__otherPremise_txtcnt`).text(item
+                ?.businessAddressSameAsResidance);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__typeBusOther_txtcnt`).text(item
+                ?.otherBusinessType);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__otherOrganisation_txtcnt`).text(item
+                ?.nameOfOrganization);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__otherSalesPerDay_txtcnt`).text(item
+                ?.salesPerDay);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__othernoOfDaysMonth_txtcnt`).text(item
+                ?.numberOfOperatingDays);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__othermonthSales_txtcnt`).text(ApzCOB.formatamountVal(item?.monthlySales));
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__otherOperExp_txtcnt`).text(ApzCOB.formatamountVal(item?.operatingExpense));
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__othergrossInc_txtcnt`).text(ApzCOB.formatamountVal(item?.grossIncome));
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__otherrentLease_txtcnt`).text(item
+                ?.rentOrLease);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__salaryWageNoEmplyee_txtcnt`).text(item
+                ?.numberOfEmployees);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__salaryPaidPerMonth_txtcnt`).text(item
+                ?.salaryPaidPerMonth);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__totalSalary_txtcnt`).text(ApzCOB.formatamountVal(item?.totalSalary));
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__utilitiesTransCom_txtcnt`).text(item
+                ?.transportAndCommunication);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__utilitiesWaterBill_txtcnt`).text(item
+                ?.waterBill);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__utilitiesElectricityBill_txtcnt`)
+                .text(item?.electricityBill);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__utilitiesPipedBill_txtcnt`).text(item
+                ?.gasBill);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__utilitiesTeleBill_txtcnt`).text(item
+                ?.telephoneBill);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__utilitiesOthers_txtcnt`).text(item
+                ?.otherBills);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__totalutilities_txtcnt`).text(item
+                ?.totalUtilities);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__obligationsOtherExp_txtcnt`).text(item?.otherBusinessExpense);
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__obligationsTotalExp_txtcnt`).text(ApzCOB.formatamountVal(item?.totalBusinessExpenses));
+            $(`#CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__obligationsNetBusiness_txtcnt`).text(
+                ApzCOB.formatamountVal(item?.netBusinessIncome));
+            custTypeInPrinciple = item?.otherType;
+            apz.app.CaInPrincipleDecision.paintDocumentName(
+                `CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__OtherUploadedImage_0`,
+                `CrdAss__CaInPrincipleDecision__otherSubrow_${index} #CrdAss__CaInPrincipleDecision__Other_ParentBusRow`, "Other Doc", index);
+            businessCounter++;
+        })
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}businessotherRow`).addClass('sno');
+    }
+}
+apz.app.CaInPrincipleDecision.previewInformalLoanObligation = function() {
+    let loanObgdata = JSON.parse(inSessionStore?.bcmpiLoanObligations?.payload);
+    let removeTloanObgkey = delete loanObgdata.totalLoanObligations;
+    let loanObgkeys = Object.keys(loanObgdata).toString();
+    $(`#${CaInPrincipleDecisionScrId}SrcInfrmlObg_txtcnt`).text(loanObgkeys);
+    if (apz.isNull(loanObgkeys)) {
+        $(`#${CaInPrincipleDecisionScrId}previewSrcInfrmlObg_txtcnt`).text("Nill");
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}previewSrcInfrmlObg_txtcnt`).text(loanObgkeys);
+    }
+    let nilflag = true;
+    if (loanObgdata.hasOwnProperty('chitFunds')) {
+        nilflag = false;
+        $(`#${CaInPrincipleDecisionScrId}RechitFund`).removeClass('sno')
+        $(`#${CaInPrincipleDecisionScrId}othrLoanObgchit_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.chitFunds?.otherLoanObligation))
+        $(`#${CaInPrincipleDecisionScrId}chitmntlyEMI_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.chitFunds?.monthlyEMI))
+        $(`#${CaInPrincipleDecisionScrId}chitremainTenure_txtcnt`).text(loanObgdata?.chitFunds?.tenure)
+        $(`#${CaInPrincipleDecisionScrId}chitsrcOfloanVal`).text("chitFunds");
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}RechitFund`).addClass('sno')
+    }
+    if (loanObgdata.hasOwnProperty('moneyLender')) {
+        nilflag = false;
+        $(`#${CaInPrincipleDecisionScrId}RemoneyLender`).removeClass('sno')
+        $(`#${CaInPrincipleDecisionScrId}mnylndrLoanval_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.moneyLender?.otherLoanObligation))
+        $(`#${CaInPrincipleDecisionScrId}mnyLndrEMI_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.moneyLender?.monthlyEMI))
+        $(`#${CaInPrincipleDecisionScrId}mnyLndrTenure_txtcnt`).text(loanObgdata?.moneyLender?.tenure)
+        $(`#${CaInPrincipleDecisionScrId}mnyLndrsrc`).text("Money lender");
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}RemoneyLender`).addClass('sno')
+    }
+    if (loanObgdata.hasOwnProperty('Friends')) {
+        nilflag = false;
+        $(`#${CaInPrincipleDecisionScrId}Refriends`).removeClass('sno')
+        $(`#${CaInPrincipleDecisionScrId}frndothrObg_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Friends?.otherLoanObligation))
+        $(`#${CaInPrincipleDecisionScrId}frndEMImtly_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Friends?.monthlyEMI))
+        $(`#${CaInPrincipleDecisionScrId}frndremainTnur_txtcnt`).text(loanObgdata?.Friends?.tenure)
+        $(`#${CaInPrincipleDecisionScrId}frndSrcloan`).text("Friends");
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}Refriends`).addClass('sno')
+    }
+    if (loanObgdata.hasOwnProperty('Relatives')) {
+        nilflag = false;
+        $(`#${CaInPrincipleDecisionScrId}Rerelatives`).removeClass('sno')
+        $(`#${CaInPrincipleDecisionScrId}rltvothrObg_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Relatives?.otherLoanObligation))
+        $(`#${CaInPrincipleDecisionScrId}rltvEMImntly_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Relatives?.monthlyEMI))
+        $(`#${CaInPrincipleDecisionScrId}rltvremainTnur_txtcnt`).text(loanObgdata?.Relatives?.tenure)
+        $(`#${CaInPrincipleDecisionScrId}rltvSrcloan`).text("Relatives");
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}Rerelatives`).addClass('sno')
+    }
+    if (loanObgdata?.hasOwnProperty('Coopsociety')) {
+        $(`#${CaInPrincipleDecisionScrId}RecoopSociety`).removeClass('sno')
+        $(`#${CaInPrincipleDecisionScrId}sctyothrObg_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Coopsociety?.otherLoanObligation))
+        $(`#${CaInPrincipleDecisionScrId}sctyEMImntly_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Coopsociety?.monthlyEMI))
+        $(`#${CaInPrincipleDecisionScrId}sctyremaintnur_txtcnt`).text(loanObgdata?.Coopsociety?.tenure)
+        $(`#${CaInPrincipleDecisionScrId}sctySrcloan`).text("Co-op society");
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}RecoopSociety`).addClass('sno')
+    }
+    if (loanObgdata.hasOwnProperty('Localfinance')) {
+        nilflag = false;
+        $(`#${CaInPrincipleDecisionScrId}RelocalFinance`).removeClass('sno')
+        $(`#${CaInPrincipleDecisionScrId}lfinothrObg_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Localfinance?.otherLoanObligation))
+        $(`#${CaInPrincipleDecisionScrId}lfinEMImntly_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Localfinance?.monthlyEMI))
+        $(`#${CaInPrincipleDecisionScrId}lfinremainTnur_txtcnt`).text(loanObgdata?.Localfinance?.tenure)
+        $(`#${CaInPrincipleDecisionScrId}lfinSrcloan`).text("Local finance");
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}RelocalFinance`).addClass('sno')
+    }
+    if (loanObgdata.hasOwnProperty('Other')) {
+        nilflag = false;
+        $(`#${CaInPrincipleDecisionScrId}ReOthers`).removeClass('sno')
+        $(`#${CaInPrincipleDecisionScrId}othrObg_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Other?.otherLoanObligation))
+        $(`#${CaInPrincipleDecisionScrId}othrEMImntly_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Other?.monthlyEMI))
+        $(`#${CaInPrincipleDecisionScrId}othrremainTnur_txtcnt`).text(loanObgdata?.Other?.tenure)
+        $(`#${CaInPrincipleDecisionScrId}othrLoanSrc`).text("Other");
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}ReOthers`).addClass('sno')
+    }
+    if (nilflag) {
+        $(`#${CaInPrincipleDecisionScrId}ReNill`).removeClass('sno')
+        $(`#${CaInPrincipleDecisionScrId}nilSrcLoan`).text("Nil other loan obligations");
+    } else {
+        $(`#${CaInPrincipleDecisionScrId}ReNill`).addClass('sno')
+    }
+}
+apz.app.CaInPrincipleDecision.previewOtherDetails = function() {
+    let othDtls = JSON.parse(inSessionStore?.bcmpiOtherDetails?.payload);
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsOwnership_txtcnt`).text(othDtls?.houseOwnership)
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsTypeOfHouse_txtcnt`).text(othDtls?.typeOfHouse)
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsTypeOfRoof_txtcnt`).text(othDtls?.typeOfRoof)
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsNoOfRoomsAvalable_txtcnt`).text(othDtls?.noOfRoomsInHouse)
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsNooffamMem_txtcnt`).text(othDtls?.noOfFamilyMembers);
+    $(`#${CaInPrincipleDecisionScrId}otherdetailEarningMem_txtcnt`).text(othDtls?.noOfOtherEarningMembers);
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsBasicAmenitie_txtcnt`).text(othDtls.basicAmenities);
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsAssets_txtcnt`).text(othDtls.otherAssets);
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsNoOf2Wheeler_txtcnt`).text(othDtls?.noOfTwoWheelerOwned)
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsIfSmartphone_txtcnt`).text(othDtls?.smartphoneRadio)
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsNoOfSmartPhones_txtcnt`).text(othDtls?.smartphonesOwned)
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsAnyAlmirah_txtcnt`).text(othDtls?.almirah)
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsAnyFurniture_txtcnt`).text(othDtls?.chair)
+    $(`#${CaInPrincipleDecisionScrId}otherDetailsSavingModes_txtcnt`).text(othDtls?.modeOfSavings)
+    $(`#${CaInPrincipleDecisionScrId}otherExpensesFood_txtcnt`).text(othDtls?.foodExpense)
+    $(`#${CaInPrincipleDecisionScrId}otherExpensesEducation_txtcnt`).text(othDtls?.educationExpense)
+    $(`#${CaInPrincipleDecisionScrId}otherExpensesCloth_txtcnt`).text(othDtls?.expenseOnClothing)
+    $(`#${CaInPrincipleDecisionScrId}otherExpensesMedical_txtcnt`).text(othDtls?.medicalExpense);
+    $(`#${CaInPrincipleDecisionScrId}otherExpensesHosueHolds_txtcnt`).text(othDtls?.householdExpenses)
+    $(`#${CaInPrincipleDecisionScrId}LandDetailsAgri_txtcnt`).text(othDtls?.agriland)
+    $(`#${CaInPrincipleDecisionScrId}LandDetailsHoldBy_txtcnt`).text(othDtls?.landOwnerName)
+    $(`#${CaInPrincipleDecisionScrId}LandDetailsRelationship_txtcnt`).text(othDtls?.relationshipWithApplicant);
+    if (othDtls?.houseOwnership !== 'Owned') {
+        $("#CrdAss__CaInPrincipleDecision__RelProofDoc").removeClass("sno");
+        apz.app.CaInPrincipleDecision.paintDocumentName("CrdAss__CaInPrincipleDecision__proofCloneRow_0",
+            "CrdAss__CaInPrincipleDecision__proofParentRow", "proof with owner doc");
+    }
+    apz.app.CaInPrincipleDecision.paintDocumentName("CrdAss__CaInPrincipleDecision__cloneRow_0", "CrdAss__CaInPrincipleDecision__parentRow",
+        "SupportDocs");
+}
+apz.app.CaInPrincipleDecision.formatRupeeOnBlur = function(input) {
+    let rawValue = input.value.replace(/[^\d]/g, '');
+    if (rawValue) {
+        let numericValue = parseInt(rawValue, 10);
+        if (!isNaN(numericValue)) {
+            let rounded = Math.round(numericValue / 1000) * 1000;
+            const formatted = rounded.toLocaleString('en-IN');
+            input.value = `₹ ${formatted}`;
+        } else {
+            input.value = '₹';
+        }
+    } else {
+        input.value = '₹';
+    }
+};
+apz.app.CaInPrincipleDecision.paintDocumentName = function(clonebleDiv, parentdiv, documentType, bssDocIndex) {
+    if (apz.isObjectEmpty(inSessionStore) || !inSessionStore.hasOwnProperty('applicationDocumentsWrapperList')) return;
+    let i = 1;
+    let documentResp = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList
+    if (documentResp.length > 0) {
+        if (documentType !== "proof with owner doc" && documentType !== 'SupportDocs') {
+            let docNo = !apz.isNull(bssDocIndex) ? bssDocIndex + 1 : businessCounter;
+            window.SupportDocs = documentResp.filter(doc => doc.payload.documentType === documentType && doc.payload.docNo == docNo);
+        } else {
+            window.SupportDocs = documentResp.filter(doc => doc.payload.documentType === documentType && parseInt(doc.custDtlId) === parseInt(gApzCOB
+                .userDetails.custDtlId));
+        }
+        if (SupportDocs.length > 0) {
+            let cloneDiv = clonebleDiv;
+            let parentDiv = $("#" + parentdiv);
+            parentDiv.html('');
+            SupportDocs.forEach((doc, index) => {
+                let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
+                if (doc.payload.documentType !== "proof with owner doc" && doc.payload.documentType !== 'SupportDocs') {
+                    $(`#${parentdiv} #${newId} a.ett-hypl span`).text(`${doc.payload.documentType.split(" Doc")[0]}_${index + 1}.jpg`);
+                } else {
+                    let baseName = doc.payload.documentFileName.match(/^[^\d]+/)[0];
+                    $(`#${parentdiv} #${newId} a.ett-hypl span`).text(`${baseName}_${i}.jpg`);
+                    i++;
+                }
+                $(`#${parentdiv} #${newId}`).attr('data-id', doc.appDocId);
+                $(`#${parentdiv} #${newId} .updel .scb-col15 .ett-para span`).text(`${Math.floor(doc.payload.docSize / 1024)} KB`);
+                $(`#${parentdiv} #${newId}`).removeClass('sno');
+            })
+        }
+    }
+}
+apz.app.CaInPrincipleDecision.viewDocument = function(pthis) {
+    let documentId = $(pthis).parents('.shwdtl').attr('data-id');
+    if (!documentId) {
+        documentId = $(pthis).parents('.uploadimg').attr('data-id');
+    }
+    let docDetails = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.find(doc => parseInt(doc.appDocId) === parseInt(
+        documentId));
+    if (!apz.isObjectEmpty(docDetails)) {
+        let fileName = docDetails?.payload?.documentFileName;
+        let callBackFn = apz.app.CaInPrincipleDecision.viewDocumentCB;
+        window.ImageLocationDetails = {
+            latitude: docDetails?.payload?.latitude || "",
+            longitude: docDetails?.payload?.longitude || "",
+            uploadedTs: docDetails?.payload?.uploadedTs || "",
+            documentFileName: docDetails?.payload?.documentFileName || ""
+        };
+        ApzCOB.downloadFileFromServer(fileName, callBackFn);
+    }
+}
+apz.app.CaInPrincipleDecision.viewDocumentCB = function(params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.base64)) {
+        $(`#${CaInPrincipleDecisionScrId}imgView`).attr('src', 'data:image/png;base64,' + params.base64);
+        if (Object.keys(window.ImageLocationDetails).length > 0) {
+            apz.app.BaseScreens.paintImageLocationDetails(`#${CaInPrincipleDecisionScrId}imgView`, window.ImageLocationDetails);
+        }
+        ApzCOB.toggleModal(`${CaInPrincipleDecisionScrId}docViewModal`);
+    } else {
+        ApzCOB.fnDisplayMsg("Document is not available")
+    }
+}
+apz.app.CaInPrincipleDecision.paintNetIncome = function() {
+    const safeGet = (obj, path) => path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj);
+    const sumFields = (objA, keyA, objB, keyB) => {
+        const a = Number(safeGet(objA, keyA)) || 0;
+        const b = Number(safeGet(objB, keyB)) || 0;
+        return a + b;
+    };
+    const textOrBlank = val => val > 0 ? `₹ ${val}` : "";
+    const agriIncome1 = sumFields(incomeDtls.agriculture?.applicant, "consideredIncome", incomeDtls.agriculture?.coApplicant, "consideredIncome");
+    const agriIncome2 = sumFields(incomeDtls.agriculture?.applicant, "declaredIncome", incomeDtls.agriculture?.coApplicant, "declaredIncome");
+    const agriIncome=Math.min(agriIncome1,agriIncome2);
+    $("#CrdAss__CaInPrincipleDecision__OtherInc1_income").text(ApzCOB.formatIndianRupees(agriIncome));
+    const salaryIncome = sumFields(incomeDtls.salary?.applicant, "netSalary", incomeDtls.salary?.coApplicant, "netSalary");
+    $("#CrdAss__CaInPrincipleDecision__OtherInc2_income").text(ApzCOB.formatamountVal(textOrBlank(salaryIncome)));
+    const pensionIncome = sumFields(incomeDtls.pension?.applicant, "applicantPensionIncome", incomeDtls.pension?.coApplicant,
+        "coApplicantPensionIncome");
+    $("#CrdAss__CaInPrincipleDecision__OtherInc4_income").text(ApzCOB.formatIndianRupees(pensionIncome));
+    const sumWageIncome = (wageData = {}) => {
+        const categories = ["farmWorker", "contractLabour", "constructions", "maid", "hotelWorker", "other"];
+        return categories.reduce((sum, cat) => {
+            const val = Number(safeGet(wageData, `${cat}.totalWagePerMonth`)) || 0;
+            return sum + val;
+        }, 0);
+    };
+    const sumWageIncomeSelf = (wageData = {}) => {
+        const categories = ["farmWorker", "contractLabour", "constructions", "maid", "hotelWorker", "other"];
+        return categories.reduce((sum, cat) => {
+            const val = Number(safeGet(wageData, `${cat}.selfDeclaredWage`)) || 0;
+            return sum + val;
+        }, 0);
+    };
+    const wageIncome1 = sumWageIncome(incomeDtls.wage?.applicant) + sumWageIncome(incomeDtls.wage?.coApplicant);
+    const wageIncome2=sumWageIncomeSelf(incomeDtls.wage?.applicant) + sumWageIncomeSelf(incomeDtls.wage?.coApplicant);
+    const wageIncome=Math.min(wageIncome1,wageIncome2);
+    $("#CrdAss__CaInPrincipleDecision__OtherInc3_income").text(ApzCOB.formatIndianRupees(wageIncome));
+    const rentIncome = sumFields(incomeDtls.rentalIncome?.applicant, "consideredMonthlyIncome", incomeDtls.rentalIncome?.coApplicant,
+        "consideredMonthlyIncome");
+    $("#CrdAss__CaInPrincipleDecision__OtherInc5_income").text(ApzCOB.formatIndianRupees(rentIncome));
+    const businessData = incomeDtls.business || {};
+    const getBusinessIncomeSumByType = (arrayKey, typeKey, incomeField = "netBusinessIncome") => {
+        const list = businessData[arrayKey] || [];
+        return list.reduce((sum, item) => {
+            const type = item?.[typeKey];
+            const income = Number(item?.[incomeField]) || 0;
+            if (type === "Applicant" || type === "Co-Applicant" || type === "Both") {
+                return sum + income;
+            }
+            return sum;
+        }, 0);
+    };
+    const tailoringIncome1 = getBusinessIncomeSumByType("Tailoring", "tailoringType", "netBusinessIncome");
+    const tailoringIncome2 = getBusinessIncomeSumByType("Tailoring", "tailoringType", "netMonthlyIncome");
+    const tailoringIncome=Math.min(tailoringIncome1,tailoringIncome2);
+    $("#CrdAss__CaInPrincipleDecision__business3_income").text(ApzCOB.formatIndianRupees(tailoringIncome));
+    const kiranaIncome1 = getBusinessIncomeSumByType("Kirana", "kiranaType", "finalNetIncome");
+    const kiranaIncome2 = getBusinessIncomeSumByType("Kirana", "kiranaType", "netMonthlyIncome");
+    const kiranaIncome=Math.min(kiranaIncome1,kiranaIncome2);
+    $("#CrdAss__CaInPrincipleDecision__business2_income").text(ApzCOB.formatIndianRupees(kiranaIncome));
+    const otherIncome = getBusinessIncomeSumByType("Other", "otherType", "netBusinessIncome");
+    $("#CrdAss__CaInPrincipleDecision__business4_income").text(ApzCOB.formatIndianRupees(otherIncome));
+    const dairyIncome1 = getBusinessIncomeSumByType("dairy", "DairyType", "IncomeAssessmentChecknetBusinessIncome");
+    const dairyIncome2 = getBusinessIncomeSumByType("dairy", "DairyType", "netMonthlyIncome");
+    const dairyIncome=Math.min(dairyIncome1,dairyIncome2);
+    $("#CrdAss__CaInPrincipleDecision__business1_income").text(ApzCOB.formatIndianRupees(dairyIncome));
+    $("#CrdAss__CaInPrincipleDecision__OtherInc10_income").text("₹ 0");
+    const totalIncome = agriIncome + salaryIncome + pensionIncome + wageIncome + rentIncome + tailoringIncome + kiranaIncome + otherIncome +
+        dairyIncome;
+    $("#CrdAss__CaInPrincipleDecision__totalHousehldIncValue").text(`₹ ${ApzCOB.formatamountVal(totalIncome)}`);
+    $("#CrdAss__CaInPrincipleDecision__totalDeclaredIncValue").text(`₹ ${ApzCOB.formatamountVal(parseInt(JSON.parse(inSessionStore?.bcmpiIncomeDetails?.payload || "{}")?.totalDeclaredIncome) || 0)}`);
+    $("#CrdAss__CaInPrincipleDecision__tot_income_app").text(`₹ ${ApzCOB.formatamountVal(incomeDtls.applicantTotalIncome)}`);
+    $("#CrdAss__CaInPrincipleDecision__tot_income_coapp").text(`₹ ` + incomeDtls.coApplicantTotalIncome);
+    $("#CrdAss__CaInPrincipleDecision__tot_income_appCoapp").text(`₹ ` + (incomeDtls.otherIncome));
+    $("#CrdAss__CaInPrincipleDecision__tot_income_family").text(`₹ ` + incomeDtls.otherFamilyIncome);
+    $("#CrdAss__CaInPrincipleDecision__tot_income_assessment").text(`₹ ` + incomeDtls.fieldAssessedIncome);
+    const dateObj = incomeDtls.fieldAssessedIncomeDate?.date;
+    const formattedDate = dateObj ? `${String(dateObj.day).padStart(2, '0')}-${String(dateObj.month).padStart(2, '0')}-${dateObj.year}` : '';
+    $("#CrdAss__CaInPrincipleDecision__income_ass_date").text(formattedDate);
+};
+apz.app.CaInPrincipleDecision.getPresentIncomeSources = function() {
+    incomeDtls = JSON.parse(inSessionStore?.bcmpiIncomeDetails?.payload);
+    const incomeDtlsKeys = Object.keys(incomeDtls || {});
+    const ignoreKeys = ["applicantTotalIncome", "coApplicantTotalIncome", "otherFamilyIncome", "fieldAssessedIncome", "fieldAssessedIncomeDate",
+        "homeMaker"
+    ];
+    const incomeSources = [];
+    incomeDtlsKeys.forEach(key => {
+        if (ignoreKeys.includes(key)) return;
+        const value = incomeDtls[key];
+        const isObjectWithData = typeof value === "object" && value !== null && (
+            (Array.isArray(value) && value.length > 0) || Object.values(value).some(v => v && (typeof v === "object" ? Object.keys(v)
+                .length > 0 : true)));
+        if (isObjectWithData) {
+            const readableName = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+            incomeSources.push(readableName);
+        }
+    });
+    return incomeSources;
+};
+apz.app.CaInPrincipleDecision.getIncomeSourceOwnership = function() {
+    const result = {};
+    const checkPresence = (app, coApp) => {
+        const hasApplicant = !!app && Object.keys(app).length > 0;
+        const hasCoApplicant = !!coApp && Object.keys(coApp).length > 0;
+        if (hasApplicant && hasCoApplicant) return "Both";
+        if (hasApplicant) return "Applicant";
+        if (hasCoApplicant) return "Co-Applicant";
+        return "None";
+    };
+    result.agriculture = checkPresence(incomeDtls.agriculture?.applicant, incomeDtls.agriculture?.coApplicant);
+    result.salary = checkPresence(incomeDtls.salary?.applicant, incomeDtls.salary?.coApplicant);
+    result.pension = checkPresence(incomeDtls.pension?.applicant, incomeDtls.pension?.coApplicant);
+    result.rentalIncome = checkPresence(incomeDtls.rentalIncome?.applicant, incomeDtls.rentalIncome?.coApplicant);
+    result.wage = checkPresence(incomeDtls.wage?.applicant, incomeDtls.wage?.coApplicant);
+    result.tailoring = (incomeDtls.business?.Tailoring || []).map(item => item.tailoringType);
+    result.kirana = (incomeDtls.business?.Kirana || []).map(item => item.kiranaType);
+    result.otherBusiness = (incomeDtls.business?.Other || []).map(item => item.otherType);
+    result.dairy = (incomeDtls.business?.dairy || []).map(item => item.DairyType);
+    const homeMaker = incomeDtls.homeMaker;
+    result.homeMaker = homeMaker === "Applicant" || homeMaker === "Co-Applicant" ? homeMaker : "None";
+    return result;
+}
+apz.app.CaInPrincipleDecision.ImagePrevNext = function(docLev, imgid) {
+    ApzCOB.imageAction('fit', imgid);
+    let docLevel = $('#' + imgid).attr("doclevel");
+    let custDetailID = '';
+    if (docLev == docLevel) return;
+    docLevel = docLev;
+    let custType = imgid.split("__")[2];
+    let docType = imgid.split("__")[3];
+    if (custType === 'A') {
+        custDetailID = gApzCOB.userDetails.custDtlId;
+    } else {
+        custDetailID = gApzCOB.userDetails.CoApplicantCustomerId;
+    }
+    if (docType == "ADDRESS_PROOF") {
+        try {
+            let personalAddress = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList?.filter(
+                (custAdd) => custAdd.addressType === "Personal" && custAdd.custDtlId == custDetailID
+            )?.[0];
+            if (personalAddress?.payload?.addressList) {
+                let addressList = personalAddress.payload.addressList;
+                let currentAddressProof = addressList.filter(item => item.addressType == "Present")?.[0]?.currentAddressProof?.toLowerCase() ?? "";
+                if (currentAddressProof.includes("voter") || currentAddressProof.includes("kyc")) {
+                    docType = "PRIMARY_KYC";
+                }
+            }
+        } catch (err) {
+            ApzCOB.traceFrontEndError(err,"");
+            console.error("Error in CaInPrincipleDecision.ImagePrevNext checking ADDRESS_PROOF: ", err);
+        }
+    }
+    applicationData = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList?.filter(cust => cust.custDtlId ===
+        custDetailID) || [];
+    applicationData = applicationData.map(doc => {
+        if (doc.payload.docLevel == docLevel && doc.payload.documentType === docType) {
+            lobj = {};
+            lobj.custType = custType;
+            lobj.docType = docType;
+            lobj.documentName = doc.payload.documentName;
+            lobj.docLevel = doc.payload.docLevel;
+            lobj.actualdocType = imgid.split("__")[3];
+            lobj.documentFileName = doc.payload.documentFileName;
+            window.ImageLocationDetails = {
+                latitude: doc.payload.latitude || "",
+                longitude: doc.payload.longitude || "",
+                uploadedTs: doc.payload.uploadedTs || "",
+                documentFileName: doc.payload.documentFileName || ""
+            };
+        }
+    })
+    ApzCOB.downloadFileFromServer(lobj.documentFileName, apz.app.CaInPrincipleDecision.ImagePrevNextCB);
+}
+apz.app.CaInPrincipleDecision.ImagePrevNextCB = function(params) {
+    let imgPaintId;
+    if (CURRENTSCREEN === "CaInPrincipleDecision") {
+        imgPaintId = "CrdAss__CaInPrincipleDecision__";
+    }
+    if (!apz.isNull(params.base64)) {
+        if (lobj.docLevel == '2') {
+            $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}_Next`).prop('disabled', true)
+            $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}_Prev`).prop('disabled', false)
+        } else {
+            $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}_Prev`).prop('disabled', true)
+            $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}_Next`).prop('disabled', false)
+        }
+        $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}`).attr('src', 'data:image/png;base64,' + params.base64);
+        if (Object.keys(window.ImageLocationDetails).length > 0) {
+            apz.app.BaseScreens.paintImageLocationDetails(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}`, window.ImageLocationDetails);
+        }
+        $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}`).attr("documentName", `${lobj.documentName}`);
+        $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}`).attr("docLevel", `${lobj.docLevel}`);
+        apz.app.paintDocumentNameLabel(imgPaintId); // Chinna Added 12/06/2026
+    } else {
+        ApzCOB.fnDisplayMsg("File not found", "E");
+    }
+    apz.stopLoader();
+}
+apz.app.CaInPrincipleDecision.paintIncomeOwnershipDetails = function() {
+    const ownership = apz.app.CaInPrincipleDecision.getIncomeSourceOwnership();
+    const formatOwnership = (value) => {
+        if (Array.isArray(value)) return value.join(', ');
+        return value || "None";
+    };
+    $(`#${CaInPrincipleDecisionScrId}OtherInc1_ownedBy`).text(ownership.agriculture);
+    $(`#${CaInPrincipleDecisionScrId}OtherInc2_ownedBy`).text(ownership.salary);
+    $(`#${CaInPrincipleDecisionScrId}OtherInc4_ownedBy`).text(ownership.pension);
+    $(`#${CaInPrincipleDecisionScrId}OtherInc5_ownedBy`).text(ownership.rentalIncome);
+    $(`#${CaInPrincipleDecisionScrId}OtherInc3_ownedBy`).text(ownership.wage);
+    $(`#${CaInPrincipleDecisionScrId}business3_ownedBy`).text(formatOwnership(ownership.tailoring) || 'None');
+    $(`#${CaInPrincipleDecisionScrId}business2_ownedBy`).text(formatOwnership(ownership.kirana) || 'None');
+    $(`#${CaInPrincipleDecisionScrId}business4_ownedBy`).text(formatOwnership(ownership.otherBusiness) || 'None');
+    $(`#${CaInPrincipleDecisionScrId}business1_ownedBy`).text(formatOwnership(ownership.dairy)?.replace(/^,\s*/, '')  || 'None');
+
+    ['agriculture','salary','pension','rentalIncome','wage'].forEach(field => {
+    if (ownership[field] === 'None') {
+        $(`#${CaInPrincipleDecisionScrId}${field}_row`).addClass('sno');
+    }
+});
+const values = [
+        ownership.rentalIncome,
+        ownership.wage,
+        ownership.pension,
+        ownership.agriculture,
+        ownership.salary
+        ];
+
+    const allEmptyOrZero = values.every(
+    value => value === 0 || value === '' || value === null || value === undefined
+    );
+    if (allEmptyOrZero) {
+        $("#CrdAss__CaInPrincipleDecision__otherIncome_form").addClass('sno')
+        $("#CrdAss__CaInPrincipleDecision__otherIncome_title").addClass('sno')
+
+    }
+};

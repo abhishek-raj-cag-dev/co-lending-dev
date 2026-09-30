@@ -1,0 +1,484 @@
+window.cmnPreviewscrId = 'cmnPre__commonPreview__';
+window.Preview_STAGES = '';
+window.isAdditionalProduct = window.AdditionalProducts.includes(inSessionStore?.applicationMaster?.productCode) || false;
+apz.app.onLoad_commonPreview = function() {
+    $('body').addClass(' unati crdas dbkit ');
+    $('.mainsubsec').css('width', '100%');
+
+    apz.app.commonPreview.updateHeaderDetails();
+    window.applicationStatus =  inSessionStore?.applicationMaster?.applicationStatus 
+}
+apz.app.onShown_commonPreview = function() {
+    ApzCOB.addApplicationTag();
+    if(window.AdditionalProducts?.includes(inSessionStore?.applicationMaster?.productCode)) {
+        $(`#${cmnPreviewscrId}PreviewSanDtls`).addClass('active');
+    } else {
+        $(`#${cmnPreviewscrId}PreviewApplicantDtls`).addClass('active');
+    }
+    apz.app.commonPreview.paintHeaderData();
+    if(window.AdditionalProducts?.includes(inSessionStore?.applicationMaster?.productCode)) {
+       ApzCOB.launchSubScreen("PreviewSanction", `${cmnPreviewscrId}preViewScrndiv`);
+    } else {
+       ApzCOB.launchSubScreen("PreviewApplicantDetails", `${cmnPreviewscrId}preViewScrndiv`);
+    }
+    apz.app.commonPreview.handleMenu();
+    $("#cmnPre__commonPreview__sidebar_col").removeClass("sno");
+    if ($(window).width() >= 600 && $(window).width() <= 1024) {
+        $("#cmnPre__commonPreview__sidebar_col").addClass("sno");
+        $("#cmnPre__commonPreview__sidebar_col").addClass("sideon");
+        $('#cmnPre__commonPreview__previewMenu_btn, #cmnPre__commonPreview__closeSidebar').show();
+    } else {
+        $('#cmnPre__commonPreview__previewMenu_btn, #cmnPre__commonPreview__closeSidebar').hide();
+        $("#cmnPre__commonPreview__sidebar_col").removeClass("sno");
+        $("#cmnPre__commonPreview__sidebar_col").removeClass("sideon");
+    }
+    $('#cmnPre__PreviewCA__docViewModal_close').on('click', function() {
+    ApzCOB.toggleModal(`${PreviewCAscrId}docViewModal`);
+        $('#APZCBO__BaseScreens__preview_modal').addClass('in');
+    });
+    if(window.AdditionalProducts?.includes(inSessionStore?.applicationMaster?.productCode)) {
+      $("#cmnPre__commonPreview__creditAssementMenu").css("display", "none");
+      $("#cmnPre__commonPreview__appDetailsMenu").css("display", "none");
+      if(window.isAdditionalProdOptionalCoApp) {
+        $(`#${cmnPreviewscrId}ApplicantCBreport_row`).addClass("sno");
+        $(`#${cmnPreviewscrId}CoApplicantCBreport_row`).addClass("sno");
+        $(`#${cmnPreviewscrId}CBreport_row`).removeClass("sno");
+      }
+    }
+    if(gApzCOB.productCode === '1003') {
+     $("#cmnPre__commonPreview__loanProduct_txtcnt").text("Unnati Lite");
+    }
+}
+apz.app.commonPreview.updateHeaderDetails = function() {
+    let loginResponse = LoggedInUserDetails.loginResponse;
+    let loginName = loginResponse?.userDet?.name;
+    let loginUserId = loginResponse?.userDet?.id;
+    $(`#${cmnPreviewscrId}caloggedInUserName_txtcnt`).text(`${loginName} (${loginUserId})`);
+    $(`#${cmnPreviewscrId}caloggedInRole_txtcnt`).text(`Role:${loginResponse?.addInfo1}`);
+}
+apz.app.commonPreview.paintHeaderData = function(lscrId) {
+    lscrId = lscrId || cmnPreviewscrId;
+    const {
+        applicationMaster: {
+            memberId = "",
+            applicationId = "",
+            applicationStatus = "",
+            branchId = "",
+            branchName = "",
+            productCode = "",
+            kendraId = "",
+            kendraName = ""
+        } = {}
+    } = inSessionStore;
+    const productName = subProductResponse?.filter(el => el.productCode === productCode)?.[0]?.productName;
+    const custName = ApzCOB.getPayloadDatafromWrapper('customerName', 'Applicant', 'customerDetailsList');
+    const setText = (id, value) => $(`#${lscrId + id}`).text(value);
+    setText("custNameID_txtcnt", `${custName} / ${memberId}`);
+    setText("applicationId_txtcnt", applicationId);
+    setText("branchInfo_txtcnt", `${branchId} / ${branchName}`);
+    setText("kendraIDName_txtcnt", `${kendraId} / ${kendraName}`);
+    setText("loanProduct_txtcnt", productName);
+    setText("applicationStatus_txtcnt", applicationStatus);
+    setText("loanID_txtcnt", ApzCOB.getPayloadDatafromWrapper('t24LoanId', 'Applicant', 'loanDetails') ?? '');
+    if(productCode == "1003") {
+     $("#cmnPre__commonPreview__loanProduct_txtcnt").text("Unnati Lite");
+    }
+};
+apz.app.commonPreview.NavigateSidebar = function(dbsideID, pthis) {
+    window.stageDocuments = [];
+    let scrName = Object.keys(window.Preview_STAGES).find(key => window.Preview_STAGES[key].id === parseInt(dbsideID));
+    $(`#${cmnPreviewscrId}sidebarForm a`).removeClass('active');
+    $(pthis).addClass('active');
+    ApzCOB.launchSubScreen(scrName, `${cmnPreviewscrId}preViewScrndiv`);
+    window.PREVIEW_CURRENT_STAGE_NO = parseInt(dbsideID);
+    /* let notVerified = false;
+     for (let i = 1; i <= 4; i++) {
+         if ($("#RPCDBV__RPCDBVerify__stage_" + i).find("svg").hasClass("inprg")) {
+             notVerified = true;
+         }
+     }
+     if (dbsideID == "5" && notVerified) {
+         ApzCOB.fnDisplayMsg("Please verify all the stages", "E");
+     } else {*/
+    // }
+};
+
+// apz.app.commonPreview.handleMenu = function () {
+//     $("#cmnPre__commonPreview__appDetailsMenu, #cmnPre__commonPreview__creditAssementMenu, #cmnPre__commonPreview__sanctionMenu, #cmnPre__commonPreview__DBverificationMenu").hide();
+//     if (hasStageAction("Submitted By", "RPC Checker")) {
+//         $("#cmnPre__commonPreview__appDetailsMenu").show();
+
+//         if (hasStageAction("Credit Assessed By", "Credit Assessment")) {
+//             $("#cmnPre__commonPreview__creditAssementMenu").show();
+
+//             if (hasStageAction("Sanctioned By", "Sanction")) {
+//                 $("#cmnPre__commonPreview__sanctionMenu").show();
+
+//                 if (hasStageAction("DB Kit Verified By", "Disbursement Kit Verification")) {
+//                     $("#cmnPre__commonPreview__DBverificationMenu").show();
+//                 }
+//             }
+//         }
+//     }
+
+
+// }
+
+// function hasStageAction(action, stage) {
+//     let timeline = inSessionStore.applicationTimelineDtl || [];
+//     return timeline.some(item => item.actionTaken === action && item.stage === stage);
+// }
+
+
+
+apz.app.commonPreview.handleMenu = function() {
+    const status = inSessionStore.applicationMaster.applicationStatus;
+
+    // Hide all menus first
+    $("#cmnPre__commonPreview__appDetailsMenu, #cmnPre__commonPreview__creditAssementMenu, #cmnPre__commonPreview__sanctionMenu, #cmnPre__commonPreview__DBverificationMenu").hide();
+
+    // Show menus based on status
+    if (["REJECTED","INPROGRESS","PUSHBACK","IPUSHBACK","CAPUSHBACK","PENDING","APPROVED","RPCPUSHBACK","PENDINGFORRPCVERIFICATION","RPCVERIFIED",
+         "PENDINGDEVIATION","PENDINGREASSESSMENT","PENDINGPRESANCTION","CACOMPLETED","RESANCTION",
+         "SANCTIONED","DBPUSHBACK","DBKITGENERATED","DBKITVERIFIED","DISBURSED","PENDINGSERVICECALL","LUC","PENDINGLUCVERIFICATION","LUCVERIFIED"].includes(status)) {
+        $("#cmnPre__commonPreview__appDetailsMenu").show();
+    }
+
+    if (["PENDINGDEVIATION","PENDINGREASSESSMENT","PENDINGPRESANCTION","CACOMPLETED","RESANCTION",
+         "SANCTIONED","DBPUSHBACK","DBKITGENERATED","DBKITVERIFIED","DISBURSED","PENDINGSERVICECALL","LUC","PENDINGLUCVERIFICATION","LUCVERIFIED"].includes(status)) {
+        $("#cmnPre__commonPreview__creditAssementMenu").show();
+        $(".downloadRow").removeClass('sno');
+        if(!window.isAdditionalProduct){
+        $(".CamDoc").removeClass('sno');
+        }
+    }
+
+    if (["SANCTIONED","DBPUSHBACK","DBKITGENERATED","DBKITVERIFIED","DISBURSED","PENDINGSERVICECALL","LUC","PENDINGLUCVERIFICATION","LUCVERIFIED"].includes(status)) {
+        $("#cmnPre__commonPreview__sanctionMenu").show();
+        $(".KfsDOC").removeClass('sno')
+    }
+
+    if (["DBKITGENERATED", "DBKITVERIFIED", "DISBURSED", "PENDINGSERVICECALL", "LUC", "PENDINGLUCVERIFICATION", "LUCVERIFIED"].includes(status)) {
+        $(".extDocument").removeClass('sno')
+        $("#cmnPre__commonPreview__DBverificationMenu").show();
+    }
+    if (["DISBURSED", "PENDINGSERVICECALL", "LUC", "PENDINGLUCVERIFICATION", "LUCVERIFIED"].includes(status)) {
+        $(".welcomeKit").removeClass('sno');
+    }
+// Execute only when current action is Rejected
+if (status.trim().toUpperCase() === "REJECTED") {
+    const timeline = inSessionStore.applicationTimelineDtl;
+    let startIdx = 0;
+    for (let i = timeline.length - 2; i >= 0; i--) {
+        if (timeline[i].actionTaken === "Rejected By") {
+            startIdx = i + 1;
+            break;
+    }
+    }
+    const cycle = timeline.slice(startIdx, timeline.length - 1);
+
+    const hasDisbursement = cycle.some(el =>
+        (el.stage === "Disbursement" && el.actionTaken === "Disbursed By") ||
+        (el.stage === "Disbursement Kit" && el.actionTaken === "Submitted") ||
+         (el.stage === "Disbursement Kit Verification" && el.actionTaken === "DB Kit Verified By"));
+    const hasSanction = cycle.some(el =>
+        (el.stage === "Sanction" && el.actionTaken === "Sanctioned By") ||
+         (el.stage === "Resanction" && el.actionTaken === "Resanctioned By"));
+    const hasCreditAssessment = cycle.some(el =>
+        el.stage === "Credit Assessment" &&
+        (el.actionTaken === "Credit Assessed By" || el.actionTaken === "Submitted By"));
+  
+    const showCreditAssessment = () => {
+        $("#cmnPre__commonPreview__creditAssementMenu").show();
+        $(".downloadRow").removeClass('sno');
+        $(".CamDoc").removeClass('sno');
+    };
+    const showSanction = () => {
+        $("#cmnPre__commonPreview__sanctionMenu").show();
+        $(".KfsDOC").removeClass('sno');
+    };
+    const showDisbursement = () => {
+        $("#cmnPre__commonPreview__DBverificationMenu").show();
+       $(".extDocument").removeClass('sno');
+    };
+    if (hasDisbursement) {
+        showCreditAssessment();
+        showSanction();
+        showDisbursement();
+    } else if (hasSanction) {
+        showCreditAssessment();
+        showSanction();
+    } else if (hasCreditAssessment) {
+        showCreditAssessment();
+    }
+    }
+};
+apz.app.commonPreview.toggleSidebar = function () {
+    $("#cmnPre__commonPreview__sidebar_col").toggleClass('sno');
+};
+
+apz.app.commonPreview.onclickmenu = function (event, pthis) {
+    $(`#${cmnPreviewscrId}sidebarForm a`).removeClass('active');
+    $(pthis).addClass('active');
+}
+apz.app.commonPreview.downloadFiles = function(pdoctype, pcusttype) {
+    window.docSelectedType = pdoctype;
+    window.CB_LOAN_ID = '';
+    apz.startLoader();
+    if (pdoctype === 'CB') {
+        let custType = (pcusttype === "1") ? 'Applicant' : 'Co-App';
+        let custDetailID = ApzCOB.getCustDetailID(custType);
+        CB_LOAN_ID = ApzCOB.getPayloadDatafromWrapper('cbLoanId', custType, 'cibilDetailsWrapperList');
+         if (apz.isNull(CB_LOAN_ID) && window.isAdditionalProduct ) {
+              CB_LOAN_ID = window.isAdditionalProdOptionalCoApp ? "A01" + gApzCOB.userDetails.applicationId : ( ( window.isAdditionalProduct && custType == "Applicant")? "A01" + gApzCOB.userDetails.applicationId : "C01" + gApzCOB.userDetails.applicationId  );
+       }
+        ApzCOB.downloadBRECbReport(custDetailID);
+    } else if (pdoctype === 'EXECUTED') {
+        let currLanguage = ApzCOB.getPayloadDatafromWrapper('language', 'Applicant', 'loanDetails');
+        CB_LOAN_ID = `${pdoctype}_${gApzCOB.userDetails.applicationId}`
+        ApzCOB.DBDocGenerateAndDownload('', 'FETCH_MANUAL', 'LOAN_APPLICATION', currLanguage, 'Y', apz.app.commonPreview.downloadFilesCB, '');
+    } else if (pdoctype === 'REGENERATE') {
+        let currLanguage = '';
+        if (!apz.isNull(inSessionStore.documentRecordDetails) && inSessionStore.documentRecordDetails.length > 0) {
+            currLanguage = inSessionStore?.documentRecordDetails?.[0]?.language;
+        }
+	if (apz.isNull(currLanguage)){
+            currLanguage = ApzCOB.getPayloadDatafromWrapper('language', 'Applicant', 'loanDetails');
+        }
+        CB_LOAN_ID = `${pdoctype}_${gApzCOB.userDetails.applicationId}`;
+        ApzCOB.DBDocGenerateAndDownload('', 'REGENERATE', 'LOAN_APPLICATION', currLanguage, 'Y', apz.app.commonPreview.downloadFilesCB, '');
+    } else {
+        CB_LOAN_ID = `${pdoctype}_${gApzCOB.userDetails.applicationId}`
+        req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": "APZCBO",
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "reportType": pdoctype,
+                    "generateReport": false
+                },
+                "interfaceName": "GenerateAndDownloadReport"
+            }
+        }
+        apz.startLoader();
+        ApzCOB.serverBuildParam(gAppId, "GenerateAndDownloadReport", "N", "N", req, false, apz.app.commonPreview.downloadFilesCB);
+    }
+};
+apz.app.commonPreview.downloadFilesCB = function(params) {
+    let b64Data = "",
+        errMsg = "File download failed.!";
+    let interface = ApzCOB.GetInterfaceResMap(params);
+    const apiResponse = params?.res?.[interface]?.apiResponse;
+    if (apz.isObjectEmpty(apiResponse)) return;
+    errMsg = apiResponse?.ResponseHeader?.ResponseMessage ?? errMsg;
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            const responseStr = apiResponse?.ResponseBody?.responseObj;
+            const response = responseStr ? JSON.parse(responseStr) : {};
+            let State = inSessionStore.leadDetails?.glBranchState || inSessionStore.cdhLeadDetails?.glBranchState || '';
+            let match = language.find(item => item.key.toLowerCase().includes(State.toLowerCase()));
+            window.leadLanguage = match ? match.value : '';
+            function proceedAfterPDFReady() {
+                if (['CB'].includes(docSelectedType)) {
+                    apz.app.commonPreview.viewDocumentCB(response, 'pdf');
+                } else if (docSelectedType === 'WelcomeLetter' && IS_WELCOMEKIT_VIEW) {
+                    apz.app.commonPreview.viewWelcomeKitDoc(response.base64);
+                } else {
+                    ApzCOB.convertBase64ToPDF(b64Data, CB_LOAN_ID);
+                }
+            }
+            if (response?.base64) {
+                if (HTMLDOCARRAY.includes(leadLanguage) && !['CamSheetReport', 'CB', 'EXECUTED'].includes(docSelectedType)) {
+                    let convertedBase64 = response.base64;
+                    convertedBase64 = convertedBase64.replace(/\n/g, "");
+                    convertedBase64 = convertedBase64.replace(/\r/g, "");
+                    let decodedHtml = convertedBase64;
+                    let dialog = `<div id="pdfDialog" style="position:absolute; left:-9999px; visibility:visible;"></div>`;
+                    $("div[id=pdfDialog]").remove();
+                    $(document.body).append(dialog);
+                    $("#pdfDialog").html(decodedHtml);
+                    (async () => {
+                        apz.startLoader();
+                        const pages = document.querySelectorAll(".jrPage");
+                        if (pages.length === 0) {
+                            CBBASE64 = b64Data = response.base64;
+                            console.log("No '.jrPage' elements found");
+                            apz.stopLoader();
+                            return;
+                        }
+                        const opt = {
+                            margin: [5, 5, 5, 5],
+                            filename: "download.pdf",
+                            image: {
+                                type: "jpeg",
+                                quality: 1.0
+                            },
+                            html2canvas: {
+                                scale: 1.5,
+                                useCORS: true,
+                                logging: false,
+                            },
+                            jsPDF: {
+                                unit: "mm",
+                                format: "a4",
+                                orientation: "portrait",
+                                compress: true,
+                            },
+                        };
+                        const {
+                            jsPDF
+                        } = window.jspdf;
+                        const pdf = new jsPDF(opt.jsPDF);
+                        for (let i = 0; i < pages.length; i++) {
+                            if (i !== 0) pdf.addPage();
+                            const canvas = await html2canvas(pages[i], opt.html2canvas);
+                            const imgData = canvas.toDataURL("image/jpeg", 1.0);
+                            const pageWidth = pdf.internal.pageSize.getWidth();
+                            const pageHeight = pdf.internal.pageSize.getHeight();
+                            pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, pageHeight);
+                        }
+                        const pdfBase64 = pdf.output("datauristring");
+                        CBBASE64 = b64Data = pdfBase64.split(",")[1];
+                        proceedAfterPDFReady();
+                        apz.stopLoader();
+                    })();
+                } else {
+                    CBBASE64 = b64Data = response.base64;
+                    proceedAfterPDFReady();
+                }
+            } else if (response.mergedBase64) {
+                if (HTMLDOCARRAY.includes(leadLanguage) && !['CamSheetReport', 'CB', 'EXECUTED'].includes(docSelectedType)) {
+                    apz.startLoader();
+                    mergedBase64 = response.mergedBase64;
+                    let trimmed = mergedBase64.trim();
+                    if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html") || trimmed.startsWith("<body")) {
+                        mergedBase64 = mergedBase64.replace(/\n/g, "");
+                        mergedBase64 = mergedBase64.replace(/\r/g, "");
+                        mergedBase64 = mergedBase64.replace(/<hr\b[^>]*>/gi, '');
+                        mergedBase64 = mergedBase64.replace(/<hr\s*\/>/gi, '');
+                        mergedBase64 = mergedBase64.replace(/\swidth\s*=\s*["']50%["']/gi, '');
+                        mergedBase64 = mergedBase64.replace(/(<td[^>]*style=["'][^"']*)width\s*:\s*50%[;]?([^"']*["'][^>]*>)/gi,
+                            (_, before, after) => before + after);
+                        let customStyle = `<style>
+                                                                    .jrPage {
+                                                                                page-break-after: always !important;
+                                                                                width: 100% !important;
+                                                                            }
+                                                                    .jrPage tbody tr td > img {
+                                                                                width: 100% !important;
+                                                                            }
+                                                            </style>`;
+                        if (mergedBase64.includes("</head>")) {
+                            mergedBase64 = mergedBase64.replace("</head>", `${customStyle}</head>`);
+                        } else if (mergedBase64.includes("</body>")) {
+                            mergedBase64 = mergedBase64.replace("</body>", `${customStyle}</body>`);
+                        } else {
+                            mergedBase64 = customStyle + mergedBase64;
+                        }
+                        const blob = new Blob([mergedBase64], {
+                            type: "text/html"
+                        });
+                        const url = URL.createObjectURL(blob);
+                        let btn = document.getElementById('openInTabBtn');
+                        if (!btn) {
+                            btn = document.createElement('button');
+                            btn.id = 'openInTabBtn';
+                        }
+                        btn.onclick = () => window.open(url, '_blank');
+                        apz.stopLoader();
+                        btn.click();
+                    }
+                } else {
+                    apz.stopLoader();
+                    ApzCOB.convertBase64ToPDF(response.mergedBase64, CB_LOAN_ID);
+                }
+            } else {
+                apz.stopLoader();
+                ApzCOB.showNewCommonErrorModal("File Not Found.!");
+            }
+        } else {
+            apz.stopLoader();
+            ApzCOB.showNewCommonErrorModal(errMsg);
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showNewCommonErrorModal(errMsg);
+    }
+};
+
+// apz.app.commonPreview.downloadWelcomeKit();
+
+apz.app.commonPreview.downloadWelcomeKit = function() {
+    window.IS_WELCOMEKIT_VIEW = false;
+    ApzCOB.DBDocGenerateAndDownload("", 'WelcomeKit', "", 'English', 'Y', ApzCOB.welcomeKitGenrateCB, "");
+}
+
+
+apz.app.commonPreview.viewDocumentCB = function(params, pdocType) {
+    apz.stopLoader();
+    if (!apz.isNull(params.base64)) {
+        if (pdocType === 'pdf') {
+            apz.app.commonPreview.viewPDFDocument(params.base64);
+        } else {
+            $(`#${cmnPreviewscrId}imgView_ul`).removeClass('sno');
+            $(`#${cmnPreviewscrId}imgView`).attr('src', 'data:image/png;base64,' + params.base64);
+             let id = `#${cmnPreviewscrId}imgView`;
+            if (Object.keys(window.ImageLocationDetails).length > 0) {
+                apz.app.BaseScreens.paintImageLocationDetails(id, window.ImageLocationDetails);
+            }
+            $(`#${cmnPreviewscrId}docViewModal .tool-hdr`).removeClass('sno');
+            $('iframe').remove();
+            $(`#${cmnPreviewscrId}imgView_li`).removeClass('sno');
+            ApzCOB.toggleModal(`${cmnPreviewscrId}docViewModal`);
+        }
+    } else {
+        ApzCOB.showNewCommonErrorModal("Failed to fetch Document.");
+    }
+};
+
+apz.app.commonPreview.viewPDFDocument = function(base64) {
+    $('iframe').remove();
+    const iframe = document.createElement('iframe');
+    Object.assign(iframe, { src: (ApplicationPDFbase64 + base64), width: "700", height: "400"});
+    document.getElementById(`${cmnPreviewscrId}imgView_ul`).appendChild(iframe);
+    $(`#${cmnPreviewscrId}docViewModal .tool-hdr`).addClass('sno');
+    ApzCOB.toggleModal(`${cmnPreviewscrId}docViewModal`);
+    $(`#${cmnPreviewscrId}imgView_li`).addClass('sno');
+};
+
+apz.app.commonPreview.downloadWelcomeKit = function() {
+    window.IS_WELCOMEKIT_VIEW = false;
+    ApzCOB.DBDocGenerateAndDownload("", 'WelcomeKit', "", 'English', 'Y', ApzCOB.welcomeKitGenrateCB, "");
+}
+
+apz.app.WelcomeKit.viewWelcomeKitDoc = function(base64) {
+    if(IS_WELCOMEKIT_VIEW){
+    CBBASE64 = base64;
+    $(`${scrId}welcomeKit_ul iframe`).remove();
+    const iframe = document.createElement('iframe');
+    iframe.width = "700";
+    iframe.height = "600";
+    iframe.src = "data:application/pdf;base64," + base64;
+    document.getElementById(`${scrId}welcomeKit_ul`).appendChild(iframe);
+    $(`#${scrId}welcomeKit_li`).addClass('sno');
+    if(HTMLDOCARRAY.includes(leadLanguage)) {
+        bytes = atob(base64);
+        arr = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) {
+            arr[i] = bytes.charCodeAt(i);
+        }
+        blob = new Blob([arr], {
+            type: 'application/pdf'
+        });
+        url = URL.createObjectURL(blob);
+        document.querySelector('iframe').src = url;
+        specificLang = true;
+        ApzCOB.DBDocGenerateAndDownload(base64, 'SINGLE_DOC', 'WELCOMEKIT', 'English', 'Y', '', '');
+    }
+    } else {
+         ApzCOB.convertBase64ToPDF(base64,`WelcomeKit_${gApzCOB.userDetails.applicationId}`);
+    }
+    apz.stopLoader();
+}

@@ -1,0 +1,1450 @@
+window.CA_CURRENT_STAGE = "OtherDetails";
+var scrId = "CrdAss__CaotherDetails__",
+    mandFieldsDd = [scrId + "houseOwnership", scrId + "typeOfHouse", scrId + "typeOfRoof", scrId + "noOfRoomsInHouse", scrId + "modeOfSavings",
+    scrId + "noOfTwoWheelerOwned", scrId + "smartphonesOwned", scrId + "agriland", scrId + "relationshipWithApplicant", scrId +
+    "householdExpenses", scrId + "educationExpense", scrId + "medicalExpense", scrId + "foodExpense", scrId + "expenseOnClothing", scrId +
+    "landOwnerName", scrId + "noOfFamilyMembers", scrId + "noOfOtherEarningMembers"
+    ],
+    saveAsDraft = false,
+    backFromRC = false,
+    imageList = [],
+    documentType,
+    docDeleteType,
+    UploadedImgFiles = [],
+    basicAmenities = [],
+    otherAssets = [],
+    $FUparentid = $("#CrdAss__CaotherDetails__parentRow"),
+    newdocUploadCustype,
+    discheckedValues = [],
+    coappdischeckedValues = [],
+    $FUparentrowid = $("#CrdAss__CaotherDetails__proofParentRow");
+apz.app.onLoad_CaotherDetails = function () { };
+apz.app.onShown_CaotherDetails = function () {
+    try {
+        apz.populateDropdown(document.getElementById(scrId + 'houseOwnership'), ApzCOB.formatDropDownforArray(houseOwnership));
+        apz.populateDropdown(document.getElementById(scrId + 'typeOfHouse'), ApzCOB.formatDropDownforArray(typeOfHouse));
+        apz.populateDropdown(document.getElementById(scrId + 'typeOfRoof'), ApzCOB.formatDropDownforArray(typeOfRoof));
+        apz.populateDropdown(document.getElementById(scrId + 'noOfRoomsInHouse'), noOfRoomsInHouse);
+        apz.populateDropdown(document.getElementById(scrId + 'modeOfSavings'), ApzCOB.formatDropDownforArray(modeOfSavings));
+        apz.populateDropdown(document.getElementById(scrId + 'noOfTwoWheelerOwned'), noOfTwowheelerOwned);
+        apz.populateDropdown(document.getElementById(scrId + 'smartphonesOwned'), noOfSmartphones);
+        apz.populateDropdown(document.getElementById(scrId + 'agriland'), agriLandHolding);
+        apz.populateDropdown(document.getElementById(scrId + 'relationshipWithApplicant'), ApzCOB.formatDropDownforArray(relations));
+        apz.populateDropdown(document.getElementById(scrId + 'noOfFamilyMembers'), noOfFamilyMembers);
+        apz.populateDropdown(document.getElementById(scrId + 'noOfOtherEarningMembers'), noOfOtherEarningMembers);
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        ApzCOB.fnDisplayMsg("Details not available. Kindly retry again.", "I");
+    }
+    ['apptypImpairDiv', 'UDID_ID_PROOF'].hide();
+    ['coapptypImpairDiv', 'COAPP_UDID_ID_PROOF'].hide();
+    if (!apz.isNull(inSessionStore) && (!apz.isNull(inSessionStore.bcmpiOtherDetails)) && (!apz.isNull(inSessionStore.bcmpiOtherDetails
+        .payload))) {
+        window.CAothreDetails = JSON.parse(inSessionStore.bcmpiOtherDetails.payload)
+    }
+    apz.app.CaotherDetails.paintData();
+    apz.app.Cabase.hideShowBtnBasedOnScreen();
+    window.CA_CURRENT_STAGE_NO = CA_ALL_STAGE_FIELDS.find(stage => stage.stageName === CA_CURRENT_STAGE)?.id;
+    if (document.getElementById("CrdAss__CaotherDetails__houseOwnership").value !== 'Owned') {
+        $("#CrdAss__CaotherDetails__relationship_proof").removeClass('sno');
+    }
+    if (!otherAssets.includes("twoWheeler")) {
+        $('#CrdAss__CaotherDetails__noOfTwoWheelerOwned_ul').addClass('sno');
+        $('#CrdAss__CaotherDetails__noOfTwoWheelerOwnedErrorDiv').addClass('sno');
+        $('#CrdAss__CaotherDetails__noOfTwoWheelerOwned').val('0').change();
+    }
+    apz.app.CaotherDetails.setMinMaxLength();
+    apz.app.CaotherDetails.checkMandFieldsAgri();
+    $('#CrdAss__CaotherDetails__sc_row_120').addClass('disabled-form');
+    $('#CrdAss__CaotherDetails__apptypImpairDiv').addClass('disabled-form');
+    $('#CrdAss__CaotherDetails__sc_row_126').addClass('disabled-form');
+    $('#CrdAss__CaotherDetails__coapptypImpairDiv').addClass('disabled-form');
+    $('#CrdAss__CaotherDetails__app_UDID_ID').attr('maxlength', '18');
+    $('#CrdAss__CaotherDetails__co_UDID_ID').attr('maxlength', '18');
+    if (
+        $('#CrdAss__CaotherDetails__el_rdo_4_option_Y').is(':checked') ||
+        $('#CrdAss__CaotherDetails__el_rdo_4_option_N').is(':checked') ||
+        $('#CrdAss__CaotherDetails__el_rdo_3_option_Y').is(':checked') ||
+        $('#CrdAss__CaotherDetails__el_rdo_3_option_N').is(':checked')
+    ) {
+        $('#CrdAss__CaotherDetails__disbbtnDiv').addClass('sno');
+    } else {
+        $('#CrdAss__CaotherDetails__disbbtnDiv').removeClass('sno');
+    }
+};
+apz.app.CaotherDetails.relnshipProofDocHideNShow = function (pthis) {
+    if (ApplicationType === "OpenMarket" && !['owned', 'self owned', 'please select'].includes(pthis.value?.toLowerCase())) {
+        ApzCOB.fnDisplayMsg("Own house is mandatory for UNNATI OPEN MARKET loan.", "E");
+        $(`#${scrId}houseOwnership`).val(PleaseSelect);
+        ApzCOB.dropDownOnChange(document.getElementById(`${scrId}houseOwnership`));
+    }
+    if (pthis.value !== 'Rented') {
+        $("#CrdAss__CaotherDetails__land_proof").removeClass("sno");
+        $("#CrdAss__CaotherDetails__relationship_proof").addClass("sno");
+    } else {
+        $("#CrdAss__CaotherDetails__relationship_proof").removeClass("sno");
+        $("#CrdAss__CaotherDetails__land_proof").removeClass("sno");
+        apz.app.CaotherDetails.paintDocumentName('proof with owner doc');
+    }
+};
+apz.app.CaotherDetails.setMinMaxLength = function () {
+    const fieldMap = {
+        landOwnerName: "owner"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: scrId + fieldId
+    })));
+};
+apz.app.CaotherDetails.paintData = function () {
+    const basicAmenitiesFields = ["waterPipeline", "electricity", "LPG", "sewage", "toilet", "electricFan", 'none'];
+    const otherAssetsFields = ['livestock', 'TV', 'smartPhone', 'fridge', 'washingMachine', 'airCooler', 'airConditioner', 'twoWheeler', 'car',
+        'none2'
+    ]
+    const radioBtn = ['smartphoneRadio', 'almirah', 'chair', 'applicantExService', 'coApplicantExService', 'applicantDivyang',
+        'coApplicantDivyang', 'applicantHealthCondition', 'coApplicantHealthCondition', 'applicantHealthInsurance',
+        'coApplicantHealthInsurance'
+    ];
+    /*Disability Status Update*/
+    const dislist = inSessionStore.customerDetailsList;
+    let disapplicantIndex = -1;
+    let discoApplicantIndex = -1;
+    for (let i = 0; i < dislist.length; i++) {
+        if (dislist[i].customerType === "Applicant") {
+            disapplicantIndex = i;
+        } else if (dislist[i].customerType === "Co-App") {
+            discoApplicantIndex = i;
+        }
+    }
+    if (disapplicantIndex === 1) {
+        discoApplicantIndex = 0;
+    } else if (disapplicantIndex === 0) {
+        discoApplicantIndex = 1;
+    }
+    let apppayloaddata = inSessionStore.customerDetailsList[disapplicantIndex].payload;
+    let coapppayloaddata = inSessionStore.customerDetailsList[discoApplicantIndex].payload;
+    let disSts = inSessionStore.customerDetailsList[disapplicantIndex].payload.isDisabled;
+    let coappdisSts = inSessionStore.customerDetailsList[discoApplicantIndex].payload.isDisabled; // CAGL Disablity Fixes 25022025
+    let impairOthersinpt = inSessionStore.customerDetailsList[disapplicantIndex].payload.disabliltyOtherValue;
+    if (apppayloaddata.UDID) {
+        if (disSts == 'Y') {
+            ['apptypImpairDiv', 'UDID_ID_PROOF'].show();
+            $('#CrdAss__CaotherDetails__el_rdo_4_option_Y').prop('checked', true);
+            $('#CrdAss__CaotherDetails__el_rdo_5_option_Y').prop('checked', true);
+            $('#CrdAss__CaotherDetails__appDisConfirm').removeClass('sno');
+            let typImpair = inSessionStore.customerDetailsList[disapplicantIndex].payload.disabilityList;
+            /* $('#CrdAss__CaotherDetails__appDisaDiv input[type="checkbox"]').each(function () {
+                if (typImpair.includes($(this).val())) {
+                    $(this).prop('checked', true);
+                } else {
+                    $(this).prop('checked', false);
+                }
+            });*/
+            typImpair.forEach(val => {
+                switch (val) {
+                    case "Locomotor Disability":
+                        document.getElementById("CrdAss__CaotherDetails__app__Locomotor_Disability").checked = true;
+                        break;
+                    case "Visual Impairment":
+                        document.getElementById("CrdAss__CaotherDetails__app__Visual_Impairment").checked = true;
+                        break;
+                    case "Hearing Impairment":
+                        document.getElementById("CrdAss__CaotherDetails__app__Hearing_Impairment").checked = true;
+                        break;
+                    case "Intellectual Disability":
+                        document.getElementById("CrdAss__CaotherDetails__app__Intellectual_Disability").checked = true;
+                        break;
+                    case "Mental Illness":
+                        document.getElementById("CrdAss__CaotherDetails__app__Mental_Illness").checked = true;
+                        break;
+                    case "Multiple Disabilities":
+                        document.getElementById("CrdAss__CaotherDetails__app__Multiple_Disabilities").checked = true;
+                        break;
+                    case "Others":
+                        document.getElementById("CrdAss__CaotherDetails__app__Others").checked = true;
+                        $('#CrdAss__CaotherDetails__impair_others_input_div').removeClass("sno");
+                        break;
+                    default:
+                        // No action for unmatched checkboxes
+                        break;
+                }
+            });
+            $(`#CrdAss__CaotherDetails__app_UDID_ID`).val(inSessionStore.customerDetailsList[disapplicantIndex].payload.UDID);
+            $(`#CrdAss__CaotherDetails__app_Percentrage_of_disability`).val(inSessionStore.customerDetailsList[disapplicantIndex].payload.disabilityPercentage);
+            $(`#CrdAss__CaotherDetails__impair_others_input`).val(inSessionStore.customerDetailsList[disapplicantIndex].payload.disabliltyOtherValue);
+            apz.app.CaotherDetails.paintDocumentName('UDID_ID', 'Applicant');
+        } else if (disSts == 'N') {
+            ['apptypImpairDiv', 'UDID_ID_PROOF'].hide();
+            $('#CrdAss__CaotherDetails__el_rdo_4_option_N').prop('checked', true);
+        }
+    } else if (disSts == 'N') {
+        ['apptypImpairDiv', 'UDID_ID_PROOF'].hide();
+        $('#CrdAss__CaotherDetails__appDisConfirm').addClass('sno');
+        $('#CrdAss__CaotherDetails__el_rdo_4_option_N').prop('checked', true);
+    } else {
+        ['apptypImpairDiv', 'UDID_ID_PROOF'].hide();
+    }
+    if (coapppayloaddata.UDID) {
+        if (coappdisSts == 'Y') {
+            ['coapptypImpairDiv', 'COAPP_UDID_ID_PROOF'].show();
+            $('#CrdAss__CaotherDetails__el_rdo_3_option_Y').prop('checked', true);
+            $('#CrdAss__CaotherDetails__el_rdo_6_option_Y').prop('checked', true);
+            $('#CrdAss__CaotherDetails__co-appDisConfirm').removeClass('sno');
+            let cotypImpair = inSessionStore.customerDetailsList[discoApplicantIndex].payload.disabilityList;
+            cotypImpair.forEach(val => {
+                switch (val) {
+                    case "Locomotor Disability":
+                        document.getElementById("CrdAss__CaotherDetails__co_Locomotor_Disability").checked = true;
+                        break;
+                    case "Visual Impairment":
+                        document.getElementById("CrdAss__CaotherDetails__co_Visual_Impairment").checked = true;
+                        break;
+                    case "Hearing Impairment":
+                        document.getElementById("CrdAss__CaotherDetails__co_Hearing_Impairment").checked = true;
+                        break;
+                    case "Intellectual Disability":
+                        document.getElementById("CrdAss__CaotherDetails__co_Intellectual_Disability").checked = true;
+                        break;
+                    case "Mental Illness":
+                        document.getElementById("CrdAss__CaotherDetails__co_Mental_Illness").checked = true;
+                        break;
+                    case "Multiple Disabilities":
+                        document.getElementById("CrdAss__CaotherDetails__co_Multiple_Disabilities").checked = true;
+                        break;
+                    case "Others":
+                        document.getElementById("CrdAss__CaotherDetails__co_Others").checked = true;
+                        $('#CrdAss__CaotherDetails__coappimpair_others_input_div').removeClass("sno");
+                        break;
+                    default:
+                        // No action for unmatched checkboxes
+                        break;
+                }
+            });
+            $(`#CrdAss__CaotherDetails__co_UDID_ID`).val(inSessionStore.customerDetailsList[discoApplicantIndex].payload.UDID);
+            $(`#CrdAss__CaotherDetails__co_Percentrage_of_disability`).val(inSessionStore.customerDetailsList[discoApplicantIndex].payload.disabilityPercentage);
+            $(`#CrdAss__CaotherDetails__coappimpair_others_input`).val(inSessionStore.customerDetailsList[discoApplicantIndex].payload.disabliltyOtherValue);
+            apz.app.CaotherDetails.paintDocumentName('UDID_ID', 'Co-App');
+        } else if (coappdisSts == 'N') {
+            ['coapptypImpairDiv', 'COAPP_UDID_ID_PROOF'].hide();
+            $('#CrdAss__CaotherDetails__el_rdo_3_option_N').prop('checked', true);
+        }
+    } else if (coappdisSts == 'N') {
+        ['coapptypImpairDiv', 'COAPP_UDID_ID_PROOF'].hide();
+        $('#CrdAss__CaotherDetails__el_rdo_3_option_N').prop('checked', true);
+    } else {
+        ['coapptypImpairDiv', 'COAPP_UDID_ID_PROOF'].hide();
+    }
+    if (!apz.isNull(window.CAothreDetails)) {
+        $(`#${scrId}houseOwnership`).val(window.CAothreDetails.houseOwnership ?? '');
+        ApzCOB.dropDownOnChange(document.getElementById(`${scrId}houseOwnership`));
+        $(`#${scrId}typeOfHouse`).val(window.CAothreDetails.typeOfHouse ?? '');
+        ApzCOB.dropDownOnChange(document.getElementById(`${scrId}typeOfHouse`));
+        $(`#${scrId}typeOfRoof`).val(window.CAothreDetails.typeOfRoof ?? '');
+        ApzCOB.dropDownOnChange(document.getElementById(`${scrId}typeOfRoof`));
+        $(`#${scrId}noOfRoomsInHouse`).val(window.CAothreDetails.noOfRoomsInHouse ? (noOfRoomsInHouse.find(item => item.val === window
+            .CAothreDetails.noOfRoomsInHouse)?.desc) : '');
+        ApzCOB.dropDownOnChange(document.getElementById(`${scrId}noOfRoomsInHouse`));
+        $(`#${scrId}modeOfSavings`).val(window.CAothreDetails.modeOfSavings ?? '');
+        ApzCOB.dropDownOnChange(document.getElementById(`${scrId}modeOfSavings`));
+        $(`#${scrId}noOfTwoWheelerOwned`).val(window.CAothreDetails.noOfTwoWheelerOwned ? (noOfTwowheelerOwned.find(item => item.val === window
+            .CAothreDetails.noOfTwoWheelerOwned)?.desc) : '');
+        ApzCOB.dropDownOnChange(document.getElementById(`${scrId}noOfTwoWheelerOwned`));
+        $(`#${scrId}smartphonesOwned`).val(window.CAothreDetails.smartphonesOwned ?? '');
+        ApzCOB.dropDownOnChange(document.getElementById(`${scrId}smartphonesOwned`));
+        $(`#${scrId}agriland`).val(window.CAothreDetails.agriland ? (agriLandHolding.find(item => item.val === window.CAothreDetails.agriland)
+            ?.desc) : '');
+        ApzCOB.dropDownOnChange(document.getElementById(`${scrId}agriland`));
+        $(`#${scrId}relationshipWithApplicant`).val(window.CAothreDetails.relationshipWithApplicant ?? '');
+        ApzCOB.dropDownOnChange(document.getElementById(`${scrId}relationshipWithApplicant`));
+        $(`#${scrId}noOfFamilyMembers`).val(window.CAothreDetails.noOfFamilyMembers ? (noOfFamilyMembers.find(item => item.val === window
+            .CAothreDetails.noOfFamilyMembers)?.desc) : '');
+        ApzCOB.dropDownOnChange(document.getElementById(`${scrId}noOfFamilyMembers`));
+        $(`#${scrId}noOfOtherEarningMembers`).val(window.CAothreDetails.noOfOtherEarningMembers ? (noOfOtherEarningMembers.find(item => item
+            .val === window.CAothreDetails.noOfOtherEarningMembers)?.desc) : '');
+        ApzCOB.dropDownOnChange(document.getElementById(`${scrId}noOfOtherEarningMembers`));
+        apz.setElmValue(scrId + "householdExpenses", Number(window.CAothreDetails.householdExpenses ?? 0).toLocaleString('en-IN'));
+        apz.setElmValue(scrId + "educationExpense", Number(window.CAothreDetails.educationExpense ?? 0).toLocaleString('en-IN'));
+        apz.setElmValue(scrId + "medicalExpense", Number(window.CAothreDetails.medicalExpense ?? 0).toLocaleString('en-IN'));
+        apz.setElmValue(scrId + "foodExpense", Number(window.CAothreDetails.foodExpense ?? 0).toLocaleString('en-IN'));
+        apz.setElmValue(scrId + "expenseOnClothing", Number(window.CAothreDetails.expenseOnClothing ?? 0).toLocaleString('en-IN'));
+        apz.setElmValue(scrId + "landOwnerName", window.CAothreDetails.landOwnerName ?? '');
+        if (window.CAothreDetails.basicAmenities.length > 0) {
+            window.CAothreDetails.basicAmenities.forEach(field => {
+                $(`#CrdAss__CaotherDetails__${field}`).prop('checked', true);
+                basicAmenities.push(field);
+            });
+        }
+        if (window.CAothreDetails.otherAssets.length > 0) {
+            window.CAothreDetails.otherAssets.forEach(field => {
+                $(`#CrdAss__CaotherDetails__${field}`).prop('checked', true);
+                otherAssets.push(field);
+            });
+        }
+        radioBtn.forEach(key => {
+            const value = window.CAothreDetails[key];
+            if (
+                key === 'applicantHealthCondition' ||
+                key === 'coApplicantHealthCondition'
+            ) {
+                if (value === 'Good' || value === 'Y') {
+                    $(`#CrdAss__CaotherDetails__${key}_option_One`).prop('checked', true);
+                } else if (value === 'Minor') {
+                    $(`#CrdAss__CaotherDetails__${key}_option_Two`).prop('checked', true);
+                } else if (value === 'High' || value === 'N') {
+                    $(`#CrdAss__CaotherDetails__${key}_option_Three`).prop('checked', true);
+                }
+            } else {
+                if (value === 'Y') {
+                    $(`#CrdAss__CaotherDetails__${key}_option_One`).prop('checked', true);
+                } else if (value === 'N') {
+                    $(`#CrdAss__CaotherDetails__${key}_option_Two`).prop('checked', true);
+                }
+            }
+        });
+    }
+    const houseOwnership = document.getElementById("CrdAss__CaotherDetails__houseOwnership").value;
+    if (houseOwnership !== 'Owned') {
+        apz.app.CaotherDetails.paintDocumentName('proof with owner doc');
+    }
+    apz.app.CaotherDetails.paintDocumentName('SupportDocs');
+    apz.app.CaotherDetails.paintDocumentName('residenceProof');
+    apz.app.CaotherDetails.paintDocumentName('residencePhoto');
+}
+apz.app.CaotherDetails.validateLoandetails = function () {
+    const skipValidationFields = [
+        scrId + "householdExpenses",
+        scrId + "educationExpense",
+        scrId + "medicalExpense",
+        scrId + "foodExpense",
+        scrId + "expenseOnClothing"
+    ];
+    const agrilandVal = apz.getElmValue(scrId + "agriland");
+    if (agrilandVal !== 'Please Select') {
+        skipValidationFields.push(scrId + "relationshipWithApplicant");
+        skipValidationFields.push(scrId + "landOwnerName");
+    }
+    let valid = true,
+        validBA = true,
+        validOA = true,
+        amenities, assets;
+    mandFieldsDd.forEach(function (k) {
+        // Skip these fields from validation, to be used only in prayaas cases
+        if (skipValidationFields.includes(k)) return;
+        if ($('#' + k).val() === "" || $('#' + k).val() === "Please Select") {
+            valid = false;
+            $(`#${k}ErrorDiv`).removeClass('sno');
+        }
+    });
+    amenities = ['waterPipeline', 'electricity', 'LPG', 'sewage', 'toilet', 'electricFan', 'none']
+    amenities.some(key => {
+        if (apz.getElmValue(scrId + key) === 'y') {
+            validBA = true;
+            $('#CrdAss__CaotherDetails__basicAmenititesErrorDiv').addClass('sno');
+            return true; // Stops execution
+        } else {
+            validBA = false;
+            $('#CrdAss__CaotherDetails__basicAmenititesErrorDiv').removeClass('sno');
+        }
+    })
+    assets = ['livestock', 'TV', 'smartPhone', 'fridge', 'washingMachine', 'airCooler', 'airConditioner', 'twoWheeler', 'car', 'none2']
+    assets.some(key => {
+        if (apz.getElmValue(scrId + key) === 'y') {
+            validOA = true;
+            $('#CrdAss__CaotherDetails__otherAssetsErrorDiv').addClass('sno');
+            return true;
+        } else {
+            validOA = false;
+            $('#CrdAss__CaotherDetails__otherAssetsErrorDiv').removeClass('sno');
+        }
+    })
+    if (valid) {
+        if (validBA && validOA) {
+            valid = true;
+        } else {
+            valid = false;
+        }
+    }
+    return valid;
+};
+apz.app.CaotherDetails.onClickBasicAmenities = function (pthis, type) {
+    let checkbox = $("#" + pthis.id);
+    let value = type;
+    if (value === "none") {
+        if (checkbox.prop("checked")) {
+            const otherValues = ["waterPipeline", "electricity", "LPG", "sewage", "toilet", "electricFan"];
+            otherValues.forEach(val => {
+                $(`#CrdAss__CaotherDetails__${val}`).prop("checked", false);
+            });
+            basicAmenities = ["none"];
+        } else {
+            basicAmenities = basicAmenities.filter(item => item !== "none");
+        }
+    } else {
+        if ($("#CrdAss__CaotherDetails__none").prop("checked")) {
+            $("#CrdAss__CaotherDetails__none").prop("checked", false);
+            basicAmenities = basicAmenities.filter(item => item !== "none");
+        }
+        if (checkbox.prop("checked")) {
+            if (!basicAmenities.includes(value)) {
+                basicAmenities.push(value);
+            }
+        } else {
+            basicAmenities = basicAmenities.filter(item => item !== value);
+        }
+    }
+    $('#CrdAss__CaotherDetails__basicAmenititesErrorDiv').addClass('sno');
+};
+apz.app.CaotherDetails.editDisabilityDetails = function () {
+    $('#CrdAss__CaotherDetails__disbbtnDiv').removeClass('sno');
+}
+// apz.app.CaotherDetails.updateDisabilityDetails = function () {
+//     if (!apz.app.CaotherDetails.validateDisabilityDetails()) {
+//         return;
+//     }
+//     let cnfrmBox = $(`#CrdAss__CaotherDetails__confirmChkbox`).is(':checked');
+//     if (cnfrmBox) {
+//         const disadata = inSessionStore.customerDetailsList;
+//         discheckedValues = [];
+//         coappdischeckedValues = [];
+//         for (let i = 1; i <= 7; i++) {
+//             let id = 'CrdAss__CaotherDetails__el_cbx_' + i;
+//             let cb = document.getElementById(id);
+//             if (cb) {
+//                 if (cb.checked) {
+//                     discheckedValues.push(cb.getAttribute('checkedval'));
+//                 }
+//             }
+//         }
+//         if (discheckedValues.includes('Others') && $('#CrdAss__CaotherDetails__impair_others_input').val().length === 0) {
+//             ApzCOB.fnDisplayMsg("Kindly enter Type of Impairment Others value");
+//             return false;
+//         }
+//         for (let i = 8; i <= 14; i++) {
+//             let id = 'CrdAss__CaotherDetails__el_cbx_' + i;
+//             let cb = document.getElementById(id);
+//             if (cb) {
+//                 if (cb.checked) {
+//                     coappdischeckedValues.push(cb.getAttribute('checkedval'));
+//                 }
+//             }
+//         }
+//         if (coappdischeckedValues.includes('Others') && $('#CrdAss__CaotherDetails__coappimpair_others_input').val().length === 0) {
+//             ApzCOB.fnDisplayMsg("Kindly enter Type of Impairment Others value");
+//             return false;
+//         }
+//         if ($(`#CrdAss__CaotherDetails__el_rdo_4_option_Y`).is(':checked')) {
+//             if (discheckedValues.length <= 0) {
+//                 ApzCOB.fnDisplayMsg("Kindly select atleast one Type of Impairment");
+//                 return false;
+//             }
+//         }
+//         if ($(`#CrdAss__CaotherDetails__el_rdo_4_option_Y`).is(':checked')) {
+//             if (discheckedValues.length <= 0) {
+//                 ApzCOB.fnDisplayMsg("Kindly select atleast one Type of Impairment for Applicant");
+//                 return false;
+//             }
+//             if (($('#CrdAss__CaotherDetails__el_inp_1').val()).length != 18) {
+//                 ApzCOB.fnDisplayMsg("Kindly enter valid UDID for Applicant");
+//                 return false;
+//             }
+//         }
+//         if ($(`#CrdAss__CaotherDetails__el_rdo_3_option_Y`).is(':checked')) {
+//             if (coappdischeckedValues.length <= 0) {
+//                 ApzCOB.fnDisplayMsg("Kindly select atleast one Type of Impairment for Co-applicant");
+//                 return false;
+//             }
+//             if (($('#CrdAss__CaotherDetails__el_inp_2').val()).length != 18) {
+//                 ApzCOB.fnDisplayMsg("Kindly enter valid UDID for Co-applicant");
+//                 return false;
+//             }
+//         }
+//         disadata.forEach(item => {
+//             if (item.customerType === "Applicant") {
+//                 if ($('#CrdAss__CaotherDetails__el_rdo_4_option_Y').is(':checked')) {
+//                     item.payload.UDID = $('#CrdAss__CaotherDetails__el_inp_1').val();
+//                     item.payload.disabilityPercentage = $('#CrdAss__CaotherDetails__el_inp_3').val();
+//                     item.payload.isDisabled = 'Y';
+//                     item.payload.disabilityList = discheckedValues;
+//                     item.payload.disabliltyOtherValue = $('#CrdAss__CaotherDetails__impair_others_input').val();
+//                 } else {
+//                     item.payload.UDID = "";
+//                     item.payload.disabilityPercentage = "";
+//                     item.payload.isDisabled = 'N';
+//                     item.payload.disabilityList = [];
+//                     item.payload.disabliltyOtherValue = "";
+//                 }
+//             }
+//             if (item.customerType === "Co-App") {
+//                 if ($('#CrdAss__CaotherDetails__el_rdo_3_option_Y').is(':checked')) {
+//                     item.payload.UDID = $('#CrdAss__CaotherDetails__el_inp_2').val();
+//                     item.payload.disabilityPercentage = $('#CrdAss__CaotherDetails__el_inp_4').val();
+//                     item.payload.isDisabled = 'Y';
+//                     item.payload.disabilityList = coappdischeckedValues;
+//                     item.payload.disabliltyOtherValue = $(`#CrdAss__CaotherDetails__coappimpair_others_input`).val();
+//                 } else {
+//                     item.payload.UDID = "";
+//                     item.payload.disabilityPercentage = "";
+//                     item.payload.isDisabled = 'N';
+//                     item.payload.disabilityList = [];
+//                     item.payload.disabliltyOtherValue = "";
+//                 }
+//             }
+//         });
+//         apz.app.CaotherDetails.otherDetailsService(disadata);
+//     } else {
+//         ApzCOB.fnDisplayMsg("Kindly give confirmation.");
+//     }
+// }
+apz.app.CaotherDetails.updateDisabilityDetails = function () {
+    if (!apz.app.CaotherDetails.validateDisabilityDetails()) {
+        return;
+    }
+    let cnfrmBox = $(`#CrdAss__CaotherDetails__confirmChkbox`).is(':checked');
+
+    if (cnfrmBox) {
+        const disadata = inSessionStore.customerDetailsList;
+        discheckedValues = [];
+        coappdischeckedValues = [];
+
+        // Applicant checkboxes - use actual IDs
+        const appCheckboxIds = [
+            'app__Locomotor_Disability', 'app__Visual_Impairment', 'app__Hearing_Impairment',
+            'app__Intellectual_Disability', 'app__Mental_Illness', 'app__Multiple_Disabilities', 'app__Others'
+        ];
+        appCheckboxIds.forEach(id => {
+            const cb = document.getElementById(`CrdAss__CaotherDetails__${id}`);
+            if (cb && cb.checked) {
+                discheckedValues.push(cb.getAttribute('checkedval'));
+            }
+        });
+
+        // Co-App checkboxes - use actual IDs
+        const coAppCheckboxIds = [
+            'co_Locomotor_Disability', 'co_Visual_Impairment', 'co_Hearing_Impairment',
+            'co_Intellectual_Disability', 'co_Mental_Illness', 'co_Multiple_Disabilities', 'co_Others'
+        ];
+        coAppCheckboxIds.forEach(id => {
+            const cb = document.getElementById(`CrdAss__CaotherDetails__${id}`);
+            if (cb && cb.checked) {
+                coappdischeckedValues.push(cb.getAttribute('checkedval'));
+            }
+        });
+
+        disadata.forEach(item => {
+            if (item.customerType === "Applicant") {
+                const appDisabled =
+                    $('#CrdAss__CaotherDetails__el_rdo_4_option_Y').is(':checked') &&
+                    $('#CrdAss__CaotherDetails__el_rdo_5_option_Y').is(':checked');
+                if (appDisabled) {
+                    item.payload.UDID = $('#CrdAss__CaotherDetails__app_UDID_ID').val();
+                    item.payload.disabilityPercentage = $('#CrdAss__CaotherDetails__app_Percentrage_of_disability').val();
+                    item.payload.isDisabled = 'Y';
+                    item.payload.disabilityList = discheckedValues;
+                    item.payload.disabliltyOtherValue = $('#CrdAss__CaotherDetails__impair_others_input').val();
+                } else {
+                    item.payload.UDID = "";
+                    item.payload.disabilityPercentage = "";
+                    item.payload.isDisabled = 'N';
+                    item.payload.disabilityList = [];
+                    item.payload.disabliltyOtherValue = "";
+                }
+            }
+            if (item.customerType === "Co-App") {
+                const coDisabled =
+                    $('#CrdAss__CaotherDetails__el_rdo_3_option_Y').is(':checked') &&
+                    $('#CrdAss__CaotherDetails__el_rdo_6_option_Y').is(':checked');
+                if (coDisabled) {
+                    item.payload.UDID = $('#CrdAss__CaotherDetails__co_UDID_ID').val();
+                    item.payload.disabilityPercentage = $('#CrdAss__CaotherDetails__co_Percentrage_of_disability').val();
+                    item.payload.isDisabled = 'Y';
+                    item.payload.disabilityList = coappdischeckedValues;
+                    item.payload.disabliltyOtherValue = $('#CrdAss__CaotherDetails__coappimpair_others_input').val();
+                } else {
+                    item.payload.UDID = "";
+                    item.payload.disabilityPercentage = "";
+                    item.payload.isDisabled = 'N';
+                    item.payload.disabilityList = [];
+                    item.payload.disabliltyOtherValue = "";
+                }
+            }
+        });
+        apz.app.CaotherDetails.otherDetailsService(disadata);
+    } else {
+        ApzCOB.fnDisplayMsg("Kindly give confirmation.");
+    }
+}
+apz.app.CaotherDetails.validateDisabilityDetails = function () {
+    let valid = true;
+
+    $('#CrdAss__CaotherDetails__appStatusErr').addClass('sno');
+    $('#CrdAss__CaotherDetails__appTypeImpErr').addClass('sno');
+    $('#CrdAss__CaotherDetails__appOthImpErr').addClass('sno');
+    $('#CrdAss__CaotherDetails__appUdidErr').addClass('sno');
+    $('#CrdAss__CaotherDetails__appPerErr').addClass('sno');
+    $('#CrdAss__CaotherDetails__appStatusConfErr').addClass('sno');
+
+    $('#CrdAss__CaotherDetails__co-appStatusErr').addClass('sno');
+    $('#CrdAss__CaotherDetails__co-appTypeImpErr').addClass('sno');
+    $('#CrdAss__CaotherDetails__co-appOthImpErr').addClass('sno');
+    $('#CrdAss__CaotherDetails__co-appUdidErr').addClass('sno');
+    $('#CrdAss__CaotherDetails__co-appPerErr').addClass('sno');
+    $('#CrdAss__CaotherDetails__co-appStatusConfErr').addClass('sno');
+
+    const appYes = $('#CrdAss__CaotherDetails__el_rdo_4_option_Y').is(':checked');
+    const appNo = $('#CrdAss__CaotherDetails__el_rdo_4_option_N').is(':checked');
+    const appConfirmed =
+        appYes &&
+        $('#CrdAss__CaotherDetails__el_rdo_5_option_Y').is(':checked');
+    if (!appYes && !appNo) {
+        $('#CrdAss__CaotherDetails__appStatusErr').removeClass('sno');
+        valid = false;
+    }
+    if (appConfirmed) {
+
+        const appYes1 = $('#CrdAss__CaotherDetails__el_rdo_5_option_Y').is(':checked');
+        const appNo1 = $('#CrdAss__CaotherDetails__el_rdo_5_option_N').is(':checked');
+
+        if (!appYes1 && !appNo1) {
+            $('#CrdAss__CaotherDetails__appStatusConfErr').removeClass('sno');
+            valid = false;
+        }
+
+
+        const appImpairSelected = [
+            'app__Locomotor_Disability', 'app__Visual_Impairment', 'app__Hearing_Impairment',
+            'app__Intellectual_Disability', 'app__Mental_Illness', 'app__Multiple_Disabilities', 'app__Others'
+        ].some(id => document.getElementById(`CrdAss__CaotherDetails__${id}`)?.checked);
+
+        if (!appImpairSelected) {
+            $('#CrdAss__CaotherDetails__appTypeImpErr').removeClass('sno');
+            valid = false;
+        }
+
+        if (document.getElementById('CrdAss__CaotherDetails__app__Others')?.checked) {
+            if (!$('#CrdAss__CaotherDetails__impair_others_input').val().trim()) {
+                $('#CrdAss__CaotherDetails__appOthImpErr').removeClass('sno');
+                valid = false;
+            }
+        }
+
+        if (!$('#CrdAss__CaotherDetails__app_UDID_ID').val().trim()) {
+            $('#CrdAss__CaotherDetails__appUdidErr').removeClass('sno');
+            valid = false;
+        }
+
+        if (!$('#CrdAss__CaotherDetails__app_Percentrage_of_disability').val().trim()) {
+            $('#CrdAss__CaotherDetails__appPerErr').removeClass('sno');
+            valid = false;
+        }
+
+        const appUdid = $('#CrdAss__CaotherDetails__app_UDID_ID').val()?.trim() || '';
+        if (appUdid.length < 18) {
+            $('#CrdAss__CaotherDetails__appUdidErr').removeClass('sno');
+            return;
+        }
+    }
+
+    const coAppYes = $('#CrdAss__CaotherDetails__el_rdo_3_option_Y').is(':checked');
+    const coAppNo = $('#CrdAss__CaotherDetails__el_rdo_3_option_N').is(':checked');
+    const coAppConfirmed =
+        coAppYes &&
+        $('#CrdAss__CaotherDetails__el_rdo_6_option_Y').is(':checked');
+    if (!coAppYes && !coAppNo) {
+        $('#CrdAss__CaotherDetails__co-appStatusErr').removeClass('sno');
+        valid = false;
+    }
+
+    if (coAppConfirmed) {
+
+        const coAppYes1 = $('#CrdAss__CaotherDetails__el_rdo_6_option_Y').is(':checked');
+        const coAppNo1 = $('#CrdAss__CaotherDetails__el_rdo_6_option_N').is(':checked');
+
+        if (!coAppYes1 && !coAppNo1) {
+            $('#CrdAss__CaotherDetails__co-appStatusConfErr').removeClass('sno');
+            valid = false;
+        }
+
+        const coAppImpairSelected = [
+            'co_Locomotor_Disability', 'co_Visual_Impairment', 'co_Hearing_Impairment',
+            'co_Intellectual_Disability', 'co_Mental_Illness', 'co_Multiple_Disabilities', 'co_Others'
+        ].some(id => document.getElementById(`CrdAss__CaotherDetails__${id}`)?.checked);
+
+        if (!coAppImpairSelected) {
+            $('#CrdAss__CaotherDetails__co-appTypeImpErr').removeClass('sno');
+            valid = false;
+        }
+
+        if (document.getElementById('CrdAss__CaotherDetails__co_Others')?.checked) {
+            if (!$('#CrdAss__CaotherDetails__coappimpair_others_input').val().trim()) {
+                $('#CrdAss__CaotherDetails__co-appOthImpErr').removeClass('sno');
+                valid = false;
+            }
+        }
+
+        if (!$('#CrdAss__CaotherDetails__co_UDID_ID').val().trim()) {
+            $('#CrdAss__CaotherDetails__co-appUdidErr').removeClass('sno');
+            valid = false;
+        }
+
+        if (!$('#CrdAss__CaotherDetails__co_Percentrage_of_disability').val().trim()) {
+            $('#CrdAss__CaotherDetails__co-appPerErr').removeClass('sno');
+            valid = false;
+        }
+        const coUdid = $('#CrdAss__CaotherDetails__co_UDID_ID').val()?.trim() || '';
+        if (coUdid.length < 18) {
+            $('#CrdAss__CaotherDetails__co-appUdidErr').removeClass('sno');
+            return;
+        }
+    }
+    return valid;
+};
+apz.app.CaotherDetails.TypImapairPercenValidation = function (cusType) {
+    $('#CrdAss__CaotherDetails__disbbtnDiv').removeClass('sno');
+}
+apz.app.CaotherDetails.onChangeUdid = function (cusType) {
+    $('#CrdAss__CaotherDetails__disbbtnDiv').removeClass('sno');
+}
+apz.app.CaotherDetails.onChangeSpecifyOther = function (cusType) {
+    $('#CrdAss__CaotherDetails__disbbtnDiv').removeClass('sno');
+}
+apz.app.CaotherDetails.addORremoveDisabilitySts = function (pthis, cusType) {
+    $('#CrdAss__CaotherDetails__disbbtnDiv').removeClass('sno');
+    if (cusType === "Applicant") {
+        $('#CrdAss__CaotherDetails__appTypeImpErr').addClass('sno');
+        if (pthis.checked) {
+            $('#CrdAss__CaotherDetails__impair_others_input_div').removeClass('sno');
+        } else {
+            $('#CrdAss__CaotherDetails__impair_others_input_div').addClass('sno');
+            $('#CrdAss__CaotherDetails__impair_others_input').val('');
+            $('#CrdAss__CaotherDetails__appOthImpErr').addClass('sno');
+        }
+    } else if (cusType === "CoApplicant") {
+        $('#CrdAss__CaotherDetails__co-appTypeImpErr').addClass('sno');
+        if (pthis.checked) {
+            $('#CrdAss__CaotherDetails__coappimpair_others_input_div').removeClass('sno');
+        } else {
+            $('#CrdAss__CaotherDetails__coappimpair_others_input_div').addClass('sno');
+            $('#CrdAss__CaotherDetails__coappimpair_others_input').val('');
+            $('#CrdAss__CaotherDetails__co-appOthImpErr').addClass('sno');
+        }
+    }
+};
+apz.app.CaotherDetails.onchangeAppliDisabilityStatus = function (cusType) {
+    $('#CrdAss__CaotherDetails__disbbtnDiv').removeClass('sno');
+    if (cusType === "Applicant") {
+        if ($('#CrdAss__CaotherDetails__el_rdo_4_option_Y').is(':checked')) {
+            $('#CrdAss__CaotherDetails__appDisConfirm').removeClass('sno');
+        } else {
+            $('#CrdAss__CaotherDetails__el_rdo_5_option_Y').prop('checked', false);
+            $('#CrdAss__CaotherDetails__el_rdo_5_option_N').prop('checked', false);
+            $('#CrdAss__CaotherDetails__appDisConfirm').addClass('sno');
+            ['apptypImpairDiv', 'UDID_ID_PROOF'].hide();
+        }
+    } else {
+        if ($('#CrdAss__CaotherDetails__el_rdo_3_option_Y').is(':checked')) {
+            $('#CrdAss__CaotherDetails__co-appDisConfirm').removeClass('sno');
+        } else {
+            $('#CrdAss__CaotherDetails__el_rdo_6_option_Y').prop('checked', false);
+            $('#CrdAss__CaotherDetails__el_rdo_6_option_N').prop('checked', false);
+            $('#CrdAss__CaotherDetails__co-appDisConfirm').addClass('sno');
+            ['coapptypImpairDiv', 'COAPP_UDID_ID_PROOF'].hide();
+        }
+    }
+}
+apz.app.CaotherDetails.onchangeAppliDisability = function (cusType) {
+    $('#CrdAss__CaotherDetails__disbbtnDiv').removeClass('sno');
+    if (cusType === "Applicant") {
+        $('#CrdAss__CaotherDetails__appStatusErr').addClass('sno');
+        if ($('#CrdAss__CaotherDetails__el_rdo_5_option_Y').is(':checked')) {
+            ['apptypImpairDiv', 'UDID_ID_PROOF'].show();
+        } else {
+            ['apptypImpairDiv', 'UDID_ID_PROOF'].hide();
+        }
+    } else {
+        $('#CrdAss__CaotherDetails__co-appStatusErr').addClass('sno');
+        if ($('#CrdAss__CaotherDetails__el_rdo_6_option_Y').is(':checked')) {
+            ['coapptypImpairDiv', 'COAPP_UDID_ID_PROOF'].show();
+        } else {
+            ['coapptypImpairDiv', 'COAPP_UDID_ID_PROOF'].hide();
+        }
+    }
+}
+apz.app.CaotherDetails.DisAblStatus = function (params) {
+    if (params.choice) {
+        ['apptypImpairDiv', 'UDID_ID_PROOF'].show();
+    }
+}
+apz.app.CaotherDetails.CoDisAblStatus = function (params) {
+    if (params.choice) {
+        ['coapptypImpairDiv', 'COAPP_UDID_ID_PROOF'].show();
+    }
+}
+apz.app.CaotherDetails.onClickOtherAssets = function (pthis, type) {
+    $('#CrdAss__CaotherDetails__disbbtnDiv').removeClass('sno');
+    $('#CrdAss__CaotherDetails__co-appTypeImpErr').addClass('sno');
+    $('#CrdAss__CaotherDetails__appTypeImpErr').addClass('sno');
+    const otherValues = ['livestock', 'TV', 'smartPhone', 'fridge', 'washingMachine', 'airCooler', 'airConditioner', 'twoWheeler', 'car'];
+    let checkbox = $("#" + pthis.id);
+    let value = type;
+    if (otherValues.includes(type) || value === "none2") {
+        $('#CrdAss__CaotherDetails__disbbtnDiv').addClass('sno');
+    } else {
+        $('#CrdAss__CaotherDetails__disbbtnDiv').removeClass('sno');
+    }
+    if (value === "none2") {
+        if (checkbox.prop("checked")) {
+            otherValues.forEach(val => {
+                $(`#CrdAss__CaotherDetails__${val}`).prop("checked", false);
+            });
+            otherAssets = ["none2"];
+            $('#CrdAss__CaotherDetails__noOfTwoWheelerOwned_ul').addClass('sno');
+            $('#CrdAss__CaotherDetails__noOfTwoWheelerOwnedErrorDiv').addClass('sno');
+            $('#CrdAss__CaotherDetails__noOfTwoWheelerOwned').val('0').change();
+        } else {
+            otherAssets = otherAssets.filter(item => item !== "none2");
+        }
+    } else {
+        if ($("#CrdAss__CaotherDetails__none2").prop("checked")) {
+            $("#CrdAss__CaotherDetails__none2").prop("checked", false);
+            otherAssets = otherAssets.filter(item => item !== "none2");
+        }
+        if (checkbox.prop("checked")) {
+            if (!otherAssets.includes(value)) {
+                otherAssets.push(value);
+            }
+            if (value === "twoWheeler") {
+                $('#CrdAss__CaotherDetails__noOfTwoWheelerOwned_ul').removeClass('sno');
+                $('#CrdAss__CaotherDetails__noOfTwoWheelerOwned').val('Please Select').change();
+            }
+        } else {
+            otherAssets = otherAssets.filter(item => item !== value);
+            if (value === "twoWheeler") {
+                $('#CrdAss__CaotherDetails__noOfTwoWheelerOwned_ul').addClass('sno');
+                $('#CrdAss__CaotherDetails__noOfTwoWheelerOwnedErrorDiv').addClass('sno');
+                $('#CrdAss__CaotherDetails__noOfTwoWheelerOwned').val('0').change();
+            }
+        }
+    }
+    $('#CrdAss__CaotherDetails__otherAssetsErrorDiv').addClass('sno');
+};
+apz.app.CaotherDetails.onClickNext = function () {
+    saveAsDraft = false;
+    backFromRC = true;
+    if (!$('#CrdAss__CaotherDetails__disbbtnDiv').hasClass('sno')) {
+        ApzCOB.fnDisplayMsg("Please save Disability Details before proceeding", "E");
+        return;
+    }
+    if (apz.app.CaotherDetails.validateLoandetails() && apz.app.CaotherDetails.validateFileUpload()) {
+        apz.app.CaotherDetails.otherDetailsService();
+    }
+}
+apz.app.CaotherDetails.getData = function () {
+    var noOfRooms, noOfTwoWheeler, noFamilyMembers, otherEarningMembers, agriLand;
+    var totalExpense = parseInt($(`#${scrId}householdExpenses`).val() || '0') + parseInt($(`#${scrId}educationExpense`).val() || '0') + parseInt(
+        $(`#${scrId}medicalExpense`).val() || '0') + parseInt($(`#${scrId}foodExpense`).val() || '0') + parseInt($(
+            `#${scrId}expenseOnClothing`).val() || '0');
+    window.CAothreDetails = '';
+    noOfRoomsInHouse.forEach(function (k, i) {
+        if (noOfRoomsInHouse[i].desc === $(`#${scrId}noOfRoomsInHouse`).val()) {
+            noOfRooms = noOfRoomsInHouse[i].val
+        }
+    })
+    noOfTwowheelerOwned.forEach(function (k, i) {
+        if (noOfTwowheelerOwned[i].desc === $(`#${scrId}noOfTwoWheelerOwned`).val()) {
+            noOfTwoWheeler = noOfTwowheelerOwned[i].val
+        }
+    })
+    noOfFamilyMembers.forEach(function (k, i) {
+        if (noOfFamilyMembers[i].desc === $(`#${scrId}noOfFamilyMembers`).val()) {
+            noFamilyMembers = noOfFamilyMembers[i].val
+        }
+    })
+    noOfOtherEarningMembers.forEach(function (k, i) {
+        if (noOfOtherEarningMembers[i].desc === $(`#${scrId}noOfOtherEarningMembers`).val()) {
+            otherEarningMembers = noOfOtherEarningMembers[i].val
+        }
+    })
+    agriLandHolding.forEach(function (k, i) {
+        if (agriLandHolding[i].desc === $(`#${scrId}agriland`).val()) {
+            agriLand = agriLandHolding[i].val
+        }
+    })
+    function getHealthValue(prefix) {
+        if ($(`#${prefix}_option_One`).prop('checked')) {
+            return 'Good';
+        }
+        if ($(`#${prefix}_option_Two`).prop('checked')) {
+            return 'Minor';
+        }
+        return 'High';
+    }
+
+    const appHealthVal = getHealthValue('CrdAss__CaotherDetails__applicantHealthCondition');
+    const coAppHealthVal = getHealthValue('CrdAss__CaotherDetails__coApplicantHealthCondition');
+    let obj = {
+        "saveAsDraft": String(saveAsDraft),
+        "totalExpense": String(totalExpense),
+        "houseOwnership": $(`#${scrId}houseOwnership`).val(),
+        "typeOfHouse": $(`#${scrId}typeOfHouse`).val(),
+        "typeOfRoof": $(`#${scrId}typeOfRoof`).val(),
+        "noOfRoomsInHouse": noOfRooms,
+        "modeOfSavings": $(`#${scrId}modeOfSavings`).val(),
+        "noOfTwoWheelerOwned": noOfTwoWheeler,
+        "smartphonesOwned": $(`#${scrId}smartphonesOwned`).val(),
+        "householdExpenses": $(`#${scrId}householdExpenses`).val() || "0",
+        "educationExpense": $(`#${scrId}educationExpense`).val() || "0",
+        "medicalExpense": $(`#${scrId}medicalExpense`).val() || "0",
+        "foodExpense": $(`#${scrId}foodExpense`).val() || "0",
+        "expenseOnClothing": $(`#${scrId}expenseOnClothing`).val() || "0",
+        "agriland": agriLand,
+        "noOfFamilyMembers": noFamilyMembers,
+        "noOfOtherEarningMembers": otherEarningMembers,
+        "landOwnerName": $(`#${scrId}landOwnerName`).val(),
+        "relationshipWithApplicant": $(`#${scrId}relationshipWithApplicant`).val(),
+        "basicAmenities": basicAmenities,
+        "otherAssets": otherAssets,
+        "smartphoneRadio": ($('#CrdAss__CaotherDetails__smartphoneRadio_option_One').prop('checked') ? 'Y' : 'N'),
+        "almirah": ($('#CrdAss__CaotherDetails__almirah_option_One').prop('checked') ? 'Y' : 'N'),
+        "chair": ($('#CrdAss__CaotherDetails__chair_option_One').prop('checked') ? 'Y' : 'N'),
+        "applicantExService": ($('#CrdAss__CaotherDetails__applicantExService_option_One').prop('checked') ? 'Y' : 'N'),
+        "coApplicantExService": ($('#CrdAss__CaotherDetails__coApplicantExService_option_One').prop('checked') ? 'Y' : 'N'),
+        "applicantDivyang": ($('#CrdAss__CaotherDetails__applicantDivyang_option_One').prop('checked') ? 'Y' : 'N'),
+        "coApplicantDivyang": ($('#CrdAss__CaotherDetails__coApplicantDivyang_option_One').prop('checked') ? 'Y' : 'N'),
+        "applicantHealthCondition": appHealthVal,
+        "coApplicantHealthCondition": coAppHealthVal,
+        "applicantHealthInsurance": ($('#CrdAss__CaotherDetails__applicantHealthInsurance_option_One').prop('checked') ? 'Y' : 'N'),
+        "coApplicantHealthInsurance": ($('#CrdAss__CaotherDetails__coApplicantHealthInsurance_option_One').prop('checked') ? 'Y' : 'N')
+    }
+    if (saveAsDraft) {
+        Object.keys(obj).forEach(key => {
+            let val = obj[key];
+            if (val === undefined || val === null || val === "NaN") {
+                obj[key] = "";
+            }
+        });
+    }
+    window.CAothreDetails = obj;
+    return obj;
+}
+apz.app.CaotherDetails.otherDetailsService = function (updVal) {
+    let otherDetailsData = apz.app.CaotherDetails.getData();
+    let reqType = "VERIFY";
+    let reqCustDetails = "";
+    if (updVal) {
+        reqType = "DISABILITY_DETAILS";
+        reqCustDetails = updVal
+    }
+    let req = {
+        "apiRequest": {
+            "requestObj": {
+                "appId": gAppId,
+                "applicationId": gApzCOB.userDetails.applicationId,
+                "versionNum": 1,
+                "stageId": "7",
+                "requestType": reqType,
+                "customerType": "Applicant",
+                "editedFields": [],
+                "payload": {},
+                "bcmpiOtherDetailsWrapper": otherDetailsData,
+                "customerDetailsList": reqCustDetails
+            },
+            "userId": LoggedInUserDetails.loginResponse.userDet.id,
+            "appId": gAppId,
+            "interfaceName": "UploadCALoanData"
+        }
+    }
+    if (saveAsDraft) {
+        req.apiRequest.requestObj.requestType = "EDIT"
+    }
+    if (!updVal) {
+        delete req.apiRequest.requestObj.customerDetailsList;
+        req.apiRequest.requestObj.customerDetails = reqCustDetails;
+    }
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.CaotherDetails.otherDetailsServiceCB);
+    }, 1000)
+}
+apz.app.CaotherDetails.otherDetailsServiceCB = function (params) {
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+            .APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            if (!saveAsDraft) {
+                if (params?.req?.apiRequest?.requestObj?.requestType !== 'DISABILITY_DETAILS') {
+                    ApzCOB.launchSubScreen('CaReviewConfirm', "CrdAss__Cabase__caLaunchCol", "");
+                    apz.app.Cabase.SidebarSelect.moveToNextStep();
+                } else {
+                    $("#CrdAss__CaotherDetails__disbbtnDiv").addClass('sno');
+                }
+            }
+        } else {
+            apz.stopLoader();
+            ApzCOB.showCaModals({
+                text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.Cabase.closeCaErrMdl()"
+                }
+            }, "Error");
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showCaModals({
+            text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.CaotherDetails.saveAsDraft = function () {
+    saveAsDraft = true;
+    // apz.app.CaotherDetails.getData()
+    apz.app.CaotherDetails.otherDetailsService();
+}
+apz.app.CaotherDetails.captureImage = function (params) {
+    let cameraObj = {
+        "zoomLevel": "20",
+        "targetWidth": "950",
+        "targetHeight": "950",
+        "crop": "Y",
+        "cropBox": "rectangle",
+        "flash": "N",
+        "action": "base64_Save",
+        "fileName": params,
+        "quality": "75",
+        "encodingType": "JPG",
+        "sourceType": "camera"
+    };
+    cameraObj.id = "CAMERA_ID";
+    cameraObj.callBack = apz.app.CaotherDetails.captureImageCB;
+    apz.ns.openCamera(cameraObj);
+    ApzCOB.getGeoCordinatesMobile();
+}
+apz.app.CaotherDetails.captureImageCB = function (params) {
+    let obj = {
+        "ImageName": `Supporting Doc ${imageList.length + 1}`,
+        "Base64": params.encodedImage
+    }
+    let fileName = params.path.split('/').pop();
+    imageList.push(obj);
+    apz.app.CaotherDetails.saveDocument(fileName, obj.Base64, documentType);
+}
+apz.app.CaotherDetails.saveDocument = function (fileName, base64, doc) {
+    let docupdCustId = gApzCOB.userDetails.custDtlId;
+    if (newdocUploadCustype) {
+        docupdCustId = ApzCOB.getCustDetailID(newdocUploadCustype);
+    } else {
+        newdocUploadCustype = "Applicant";
+    }
+    let req = {
+        apiRequest: {
+            "requestObj": {
+                "appId": gApzCOB.userDetails.appId,
+                "applicationId": gApzCOB.userDetails.applicationId,
+                "versionNum": 1,
+                "stageId": "UPLOADDOCS",
+                "requestType": "Edit",
+                "customerType": newdocUploadCustype,
+                "uploadDocumentRequestFields": {
+                    "versionNum": 1,
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "appId": gApzCOB.userDetails.appId,
+                    "srcScreen": "UPLOADDOCS",
+                    "filePath": gApzCOB.userDetails.appId + /LOAN/ + gApzCOB.userDetails.applicationId,
+                    "fileName": fileName,
+                    "base64Value": base64,
+                    "productGroupCode": "LOAN",
+                    "isExistingCustomer": "N"
+                },
+                "applicationDocumentsWrapperList": [{
+                    "applicationDocumentsList": [{
+                        "appDocId": "",
+                        "applicationId": gApzCOB.userDetails.applicationId,
+                        "versionNum": 1,
+                        "appId": gApzCOB.userDetails.appId,
+                        "custDtlId": docupdCustId,
+                        "documentId": "",
+                        "status": "A",
+                        "payload": {
+                            "docLevel": "1",
+                            "documentType": doc,
+                            "documentDesc": "",
+                            "documentLoc": gApzCOB.userDetails.appId + /LOAN/ + gApzCOB.userDetails.applicationId,
+                            "screenId": "UploadDocuments",
+                            "issueDate": "",
+                            "expiryDate": "",
+                            "docStatus": "A",
+                            "docSide": "Front",
+                            "docSize": ApzCOB.getBase64FileSizeInBytes(base64),
+                            "documentFileName": fileName,
+                            "documentFormat": fileName,
+                            "isPushbackUpload": "N",
+                            "isAdiDoc": "N",
+                            "uploadedBy": "BM",
+                            "latitude": window.currentGeoCords?.latitude,
+                            "longitude": window.currentGeoCords?.longitude,
+                            "uploadedTs": new Date().toISOString(),
+                        }
+                    }]
+                }]
+            },
+            "userId": gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+            "appId": gApzCOB.userDetails.appId,
+            "interfaceName": "UploadRPCLoanData"
+        }
+    }
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "UploadRPCLoanData", "N", "N", req, false, apz.app.CaotherDetails.saveDocumentCB);
+    }, 1000)
+}
+apz.app.CaotherDetails.saveDocumentCB = function (params) {
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            apz.app.CaotherDetails.paintDocumentName(documentType, newdocUploadCustype);
+        } else {
+            apz.stopLoader();
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.fnDisplayMsg("failed to save the data")
+    }
+}
+apz.app.CaotherDetails.paintDocumentName = function (docType, cusType) {
+    let cloneDiv;
+    let parentDiv;
+    if (apz.isObjectEmpty(inSessionStore) || !inSessionStore.hasOwnProperty('applicationDocumentsWrapperList')) return;
+    let documentResp = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList
+    if (documentResp.length > 0) {
+        let custDtlId = gApzCOB.userDetails.custDtlId;
+        if (cusType) {
+            custDtlId = ApzCOB.getCustDetailID(cusType);
+        }
+        window.SupportDocs = documentResp.filter(docs => docs.payload.documentType === docType && parseInt(docs.custDtlId) === parseInt(custDtlId));
+        if (SupportDocs.length >= 0) {
+            if (docType === "SupportDocs") {
+                cloneDiv = `${scrId}cloneRow_0`;
+                parentDiv = $(`#${scrId}parentRow`);
+                parentDiv.html('');
+            } else if (docType === "residenceProof") {
+                cloneDiv = `${scrId}recidenceProofCloneRow_0`;
+                parentDiv = $(`#${scrId}recidenceParentRow`);
+                parentDiv.html('');
+            } else if (docType === "residencePhoto") {
+                cloneDiv = `${scrId}recidencePhotoCloneRow_0`;
+                parentDiv = $(`#${scrId}recidencePhotoParentRow`);
+                parentDiv.html('');
+            } else if (docType === "proof with owner doc") {
+                cloneDiv = `${scrId}proofCloneRow_0`;
+                parentDiv = $(`#${scrId}proofParentRow`);
+                parentDiv.html('');
+            } else if (docType === "UDID_ID" && cusType === "Applicant") {
+                cloneDiv = `${scrId}appDisCloneRow_0`;
+                parentDiv = $(`#${scrId}appDisParentRow`);
+                parentDiv.html('');
+            } else if (docType === "UDID_ID" && cusType === "Co-App") {
+                cloneDiv = `${scrId}coappDisCloneRow_0`;
+                parentDiv = $(`#${scrId}coappDisParentRow`);
+                parentDiv.html('');
+            }
+            SupportDocs.forEach((doc, index) => {
+                let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
+                let baseName = doc.payload.documentFileName.match(/^[^\d]+/)[0];
+                $(`#${newId} .docName a.ett-hypl span`).text(`${baseName}_${index + 1}.jpg`);
+                $(`#${newId}`).attr('data-id', doc.appDocId);
+                $(`#${newId}`).attr('data-doc-type', docType);
+                $(`#${newId}`).removeClass('sno');
+            })
+        }
+    }
+}
+apz.app.CaotherDetails.viewDocument = function (pthis) {
+    let documentId = $(pthis).parents('.uploadimg').attr('data-id');
+    let docDetails = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.find(doc => parseInt(doc.appDocId) === parseInt(
+        documentId));
+    if (!apz.isObjectEmpty(docDetails)) {
+        let fileName = docDetails?.payload?.documentFileName;
+        let callBackFn = apz.app.CaotherDetails.viewDocumentCB;
+        window.ImageLocationDetails = {
+            latitude: docDetails?.payload?.latitude || "",
+            longitude: docDetails?.payload?.longitude || "",
+            uploadedTs: docDetails?.payload?.uploadedTs || "",
+            documentFileName: docDetails?.payload?.documentFileName || ""
+        };
+        ApzCOB.downloadFileFromServer(fileName, callBackFn);
+    }
+}
+apz.app.CaotherDetails.viewDocumentCB = function (params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.base64)) {
+        $(`#${scrId}imgView`).attr('src', 'data:image/png;base64,' + params.base64);
+        if (Object.keys(window.ImageLocationDetails).length > 0) {
+            apz.app.BaseScreens.paintImageLocationDetails(`#${scrId}imgView`, window.ImageLocationDetails);
+        };
+        ApzCOB.toggleModal(`${scrId}docViewModal`);
+    } else {
+        ApzCOB.fnDisplayMsg("Document is not available")
+    }
+}
+apz.app.CaotherDetails.deleteDocument = function (pthis) {
+    let documentId = $(pthis).parents('.uploadimg').attr('data-id');
+    docDeleteType = $(pthis).parents('.uploadimg').attr('data-doc-type');
+    if (!apz.isNull(documentId)) {
+        let popUpObj = {};
+        popUpObj.text = "Do you want to delete this document?";
+        popUpObj.Btn1 = {
+            "text": "Yes",
+            "onClick": `apz.app.CaotherDetails.deleteDocumentCnfm(${documentId})`
+        }
+        popUpObj.Btn2 = {
+            "text": "No",
+            "onClick": "apz.app.CaotherDetails.closeDeleteCnfmModal()"
+        }
+        ApzCOB.showRpcModals(popUpObj, "confirmation");
+    }
+}
+apz.app.CaotherDetails.deleteDocumentCnfm = function (docId) {
+    let callBackFn = apz.app.CaotherDetails.deleteDocumentCnfmCB;
+    ApzCOB.deleteDocument('', '', '', docId, callBackFn)
+}
+apz.app.CaotherDetails.deleteDocumentCnfmCB = function (params) {
+    apz.stopLoader();
+    try {
+        const isSuccess = ApzCOB.handleServiceCallBacks(params);
+        const modalOptions = {
+            text: isSuccess ? "Document Deleted.!" : "Document Delete Failed.!",
+            Btn1: {
+                text: "OK",
+                onClick: isSuccess ? "apz.app.CaotherDetails.closeDeleteSuccModal()" : "apz.app.CaotherDetails.closeDeleteErrModal()"
+            }
+        };
+        apz.app.CaotherDetails.closeDeleteCnfmModal();
+        if (isSuccess && params.res.APZCBO__DeleteDocument_Res.apiResponse.ResponseBody.responseObj === 'Success') {
+            let deletedDocId = params?.req?.apiRequest?.requestObj?.appDocId || "";
+            let documentArray = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+            if (!apz.isNull(deletedDocId) && documentArray.length > 0) {
+                let updatedDocs = documentArray.filter(item => Number(item.appDocId) !== Number(deletedDocId));
+                inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = [];
+                inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = structuredClone(updatedDocs);
+            }
+        }
+        apz.app.CaotherDetails.paintDocumentName(docDeleteType);
+        ApzCOB.showRpcModals(modalOptions, isSuccess ? "Success" : "Error");
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        ApzCOB.showRpcModals({
+            text: technicalErrMsg,
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.CaotherDetails.closeDeleteErrModal()"
+            }
+        }, "Error");
+    }
+};
+apz.app.CaotherDetails.closeDeleteCnfmModal = function () {
+    ApzCOB.toggleModal(`${scrId}conFormation_mdl`);
+}
+apz.app.CaotherDetails.closeDeleteSuccModal = function () {
+    ApzCOB.toggleModal(`${scrId}Succ_modal`);
+}
+apz.app.CaotherDetails.closeDeleteErrModal = function () {
+    ApzCOB.toggleModal(`${scrId}CA_Error_modal`);
+}
+apz.app.CaotherDetails.validateFileUpload = function () {
+    if (apz.deviceType !== "WEB") {
+        if ($("#CrdAss__CaotherDetails__agriland").val() == 'Please Select') {
+            let fileCount = $FUparentid.find(".uploadimg").length;
+            if (fileCount === 0) {
+                ApzCOB.fnDisplayMsg("Please upload at least one file");
+                return false;
+            }
+            let fileCountRel = $FUparentrowid.find(".uploadimg").length;
+            if (document.getElementById("CrdAss__CaotherDetails__houseOwnership").value == 'Rented') {
+                if (fileCountRel === 0) {
+                    ApzCOB.fnDisplayMsg("Please upload at least one file");
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+apz.app.CaotherDetails.maxFileUpload = function (docType, cusType) {
+    documentType = docType;
+    let fileCount = $FUparentid.find(".uploadimg").length;
+    let fileCountRel = $FUparentrowid.find(".uploadimg").length;
+    if (documentType === 'SupportDocs') {
+        if (fileCount >= 2) {
+            ApzCOB.fnDisplayMsg("User allowed to upload maximum of 2 documents");
+        } else {
+            apz.app.CaotherDetails.captureImage("Land Proof");
+        }
+    } else if (documentType === 'residencePhoto') {
+
+        apz.app.CaotherDetails.captureImage("Residence Photo");
+
+    } else if (documentType === 'residenceProof') {
+        if (fileCountRel >= 2) {
+            ApzCOB.fnDisplayMsg("User allowed to upload maximum of 2 documents");
+        } else {
+            apz.app.CaotherDetails.captureImage("Reside Proof");
+        }
+    } else if (documentType === 'proof with owner doc') {
+        if (fileCountRel >= 2) {
+            ApzCOB.fnDisplayMsg("User allowed to upload maximum of 2 documents");
+        } else {
+            apz.app.CaotherDetails.captureImage("Rel Proof");
+        }
+    } else if (documentType === 'UDID_ID') {
+        if (fileCountRel >= 2) {
+            ApzCOB.fnDisplayMsg("User allowed to upload maximum of 2 documents");
+        } else {
+            if (cusType === 'Applicant') {
+                newdocUploadCustype = cusType;
+                apz.app.CaotherDetails.captureImage("UDID_ID");
+            } else if (cusType === 'Co-App') {
+                newdocUploadCustype = cusType;
+                apz.app.CaotherDetails.captureImage("UDID_ID");
+            }
+        }
+    }
+    else {
+        apz.app.CaotherDetails.captureImage();
+    }
+}
+apz.app.CaotherDetails.validatemaxlength = function (input) {
+    input.value = input.value.trim();
+    if (input.value.length < 3) {
+        ApzCOB.fnDisplayMsg("Please enter at least 3 characters", "E");
+        return;
+    }
+    if (input.value.length > 100) {
+        ApzCOB.fnDisplayMsg("Maximum 100 characters allowed", "E");
+        input.value = input.value.substring(0, 100);
+    }
+}
+apz.app.CaotherDetails.checkMandFieldsAgri = function () {
+    if ($("#CrdAss__CaotherDetails__agriland").val() !== 'Please Select') {
+        $("#CrdAss__CaotherDetails__landOwnerName_grp_lbl").removeClass('req');
+        $("#CrdAss__CaotherDetails__relationshipWithApplicant_ul").removeClass('req-drp');
+        $("#CrdAss__CaotherDetails__landOwnerName").val("");
+        $("#CrdAss__CaotherDetails__relationshipWithApplicant").val("Please Select").trigger("change");
+    } else {
+        $("#CrdAss__CaotherDetails__landOwnerName_grp_lbl").addClass('req');
+        $("#CrdAss__CaotherDetails__relationshipWithApplicant_ul").addClass('req-drp');
+    }
+}
+// CAGL Disablity Fixes 26022025 start
+$(document).on('input', '#CrdAss__CaotherDetails__app_UDID_ID', function () {
+    let value = $(this).val();
+    // Allow only digits
+    value = value.replace(/[^a-zA-Z0-9]/g, '');
+    // Limit to 20 digits
+    if (value.length > 18) {
+        value = value.substring(0, 18);
+    }
+    $(this).val(value);
+});
+$(document).on('input', '#CrdAss__CaotherDetails__co_UDID_ID', function () {
+    let value = $(this).val();
+    // Allow only digits
+    value = value.replace(/[^a-zA-Z0-9]/g, '');
+    // Limit to 20 digits
+    if (value.length > 18) {
+        value = value.substring(0, 18);
+    }
+    $(this).val(value);
+});
+$(document).on('input', '#CrdAss__CaotherDetails__app_Percentrage_of_disability', function () {
+    let value = $(this).val();
+    // Remove non-numeric characters
+    value = value.replace(/\D/g, '');
+    // Limit range to 0–100
+    if (value !== '') {
+        value = parseInt(value, 10);
+        if (value > 100) {
+            value = 100;
+        }
+    }
+    $(this).val(value);
+});
+$(document).on('input', '#CrdAss__CaotherDetails__co_Percentrage_of_disability', function () {
+    let value = $(this).val();
+    // Remove non-numeric characters
+    value = value.replace(/\D/g, '');
+    // Limit range to 0–100
+    if (value !== '') {
+        value = parseInt(value, 10);
+        if (value > 100) {
+            value = 100;
+        }
+    }
+    $(this).val(value);
+});
+apz.app.CaotherDetails.uuidOnBlurApp = function (pthis) {
+    const value = $(pthis).val().trim();
+
+    if (value.length !== 18) {
+        $('#CrdAss__CaotherDetails__appUdidErr').removeClass('sno');
+    } else {
+        $('#CrdAss__CaotherDetails__appUdidErr').addClass('sno');
+    }
+}
+apz.app.CaotherDetails.uuidOnBlurCoApp = function (pthis) {
+    const value = $(pthis).val().trim();
+
+    if (value.length !== 18) {
+        $('#CrdAss__CaotherDetails__co-appUdidErr').removeClass('sno');
+    } else {
+        $('#CrdAss__CaotherDetails__co-appUdidErr').addClass('sno');
+    }
+}
+apz.app.CaotherDetails.editDisabilityDetails = function () {
+    $('#CrdAss__CaotherDetails__sc_row_120').removeClass('disabled-form');
+    $('#CrdAss__CaotherDetails__apptypImpairDiv').removeClass('disabled-form');
+    $('#CrdAss__CaotherDetails__sc_row_126').removeClass('disabled-form');
+    $('#CrdAss__CaotherDetails__coapptypImpairDiv').removeClass('disabled-form');
+    $('#CrdAss__CaotherDetails__disbbtnDiv').removeClass("sno");
+}
+apz.app.CaotherDetails.saveDisabilityDetails = function () {
+    $('#CrdAss__CaotherDetails__sc_row_120').addClass('disabled-form');
+    $('#CrdAss__CaotherDetails__apptypImpairDiv').addClass('disabled-form');
+    $('#CrdAss__CaotherDetails__sc_row_126').addClass('disabled-form');
+    $('#CrdAss__CaotherDetails__coapptypImpairDiv').addClass('disabled-form');
+    $('#CrdAss__CaotherDetails__disbbtnDiv').addClass("sno");
+}
+apz.app.CaotherDetails.onCoAppChangeDisabilityOther = function () {
+    if (document.getElementById("CrdAss__CaotherDetails__co_Others").checked === true) {
+        $('#CrdAss__CaotherDetails__coappimpair_others_input_div').removeClass("sno");
+    } else {
+        $('#CrdAss__CaotherDetails__coappimpair_others_input_div').addClass("sno");
+        apz.setElmValue("CrdAss__CaotherDetails__coappimpair_others_input", "")
+    }
+}
+apz.app.CaotherDetails.onAppChangeDisabilityOther = function () {
+    if (document.getElementById("CrdAss__CaotherDetails__app__Others").checked === true) {
+        $('#CrdAss__CaotherDetails__impair_others_input_div').removeClass("sno");
+    } else {
+        $('#CrdAss__CaotherDetails__impair_others_input_div').addClass("sno");
+        apz.setElmValue("CrdAss__CaotherDetails__impair_others_input", "")
+    }
+}
+// CAGL Disablity Fixes 26022025 End

@@ -1,0 +1,117 @@
+.caloandtl .crt-form {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.caloandtl .crt-form .srb:first-child {
+    width: 100%;
+}
+.caloandtl .bld .ett-para {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 24px;
+}
+
+.caloandtl .crt-form .srb {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.caloandtl .crt-form.ver.pri .srb.eoc {
+    margin: 0;
+}
+.unati .caloandtl .ett-inpt.pri.disabled {
+    background: #0F215814;
+    border: 0;
+    cursor: not-allowed;
+    pointer-events: none;
+    font-weight:600;
+}
+.crt-form.ver.pri .flb {
+    color: #525252;
+    font-size: 12px;
+    letter-spacing: 0.2px;
+}
+.caloandtl .ecn > .syl > span {
+    top: 0.8rem;
+}
+.unati .caloandtl .ecn > .syl > .ett-inpt.pri{padding-left: 1.8rem;}
+.crdas .btm-seperator > .scb-col50{
+    gap:4px
+}
+body.unati.crdas .lon-hdr .ett-labl.pri{margin:0;line-height: 18px;opacity: 1;letter-spacing: 0.2px;}
+
+.crdas .lon-hdr .ett-para {
+    font-size: 12px;
+    line-height: 18px;
+}
+.unati.crdas .ett-slct.pri .sub-elt {
+    font-weight: 600;
+}
+
+.unati.crdas .ett-slct.pri .sub-elt1 > svg{
+    width:10px;
+    height:8px;
+}
+.crdas .ett-slct.pri {
+    border-radius: 12px;
+}
+.unati.crdas .ett-slct.pri.disabled .sub-elt1 > svg {fill: #231f20; opacity:0.5}
+.unati.crdas .ett-slct.pri.disabled {background-color: #0F215814;border:none}
+.unati.crdas .ett-slct.pri.disabled .ett-inpt.pri{color:#231f20;}
+
+.sbld.edt .ett-para.icr {
+    font-size: 14px;
+    color: #231f20;
+    line-height: 20px; 
+    vertical-align: middle;
+}
+
+.sbld.edt .ett-para.icr svg {
+    margin-left: 8px;
+    width: 20px;
+    height: 20px;
+    cursor:pointer;
+    margin-top:4px;
+}
+
+ .sbld.edt .ett-para.icr span {
+    line-height: 19px;
+    cursor:pointer;
+    font-size: 14px;
+    color: #231f20; 
+    vertical-align: middle;
+}
+.sbld.edt .ett-para.icr {
+    font-size: 14px;
+    color: #231f20;
+    line-height: 20px;
+    vertical-align: middle;
+    font-weight:600;
+}
+.caloandtl .crt-form .srb.hdrsec {
+    flex-direction: row;
+}
+.crdas .ett-slct.pri .sub-ctr{
+    border-radius:12px;
+}
+.crdas .ett-slct.pri .sub-ctr ul li {
+    padding: 10px 16px;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.2px;
+    color: #231F20;
+}
+.crdas .ett-slct.pri .sub-ctr ul li:hover {
+    color: #fff;
+}
+.phone-padding {
+    padding-top: 13px;
+    padding-left: 36px;
+}
+.unati .caloandtl .ecn > .syl > .ett-inpt.pri.etw-100 {
+    padding-left: 34px
+}

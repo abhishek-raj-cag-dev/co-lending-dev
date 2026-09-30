@@ -1,0 +1,216 @@
+{
+	
+"keysForContent":{
+	
+	"applicationName":"CAM Report",
+		"applicationId":"Application ID",
+		"kendraId":"Kendra ID",
+		"customerId":"Customer ID",
+		
+		"loanDetails":"Loan Details:",
+			"loanType":"Loan Type",
+			"reqstdLoanAmount":"Requested Loan Amount",
+			"loanTenure":"Loan Tenure (Months)",
+			"loanPurpose":"Purpose of Loan",
+			"loanSubpurpose":"Sub purpose of loan",
+			"loanIntrest":"Rate of Interest",
+			"loanFrequency":"Repayment Frequency", 
+			
+		
+
+	"basicDemographicsDetails":"Basic Demographics Details -",	
+"fieldName":"Field Name",
+"nameAsPerSystem":"Name as per System",
+"nameAsPerKyc":"Name as per KYC",
+"primaryKyc":"Primary KYC Number",
+"dateOfBirth":"Date Of Birth",
+"mobileNumber":"Mobile Number",
+		"applicant":"Applicant",
+		"coApplicant":"Co-Applicant",
+		
+	
+		"memberMarritalStstus":"Marital Status",
+		"memberOccupation":"Occupation",
+		"memberGender": "Gender",
+		"relationshipToApplicant":"Relationship to Applicant",
+		
+		
+	"residence":"Residence",
+	"fieldValue":"Field Value",
+	"presentAddress":"Present Address",
+	"permanentAddress":"Permanent Address",
+		"residenceOwnership":"Residence Ownership",
+		
+		"presentAddressYears":"Residence Stability in Present Address(years)",
+		"presntCityYears":"Residential Stability in Present City (years)",	
+		
+	"creditBureauDetails":"CB result",
+		"borrowerType":"Borrower Type",
+		"crBorrowerName":"Name",
+		"creditScore":"Credit Score",
+		"overdueAmount":"Overdue Amount",
+		"writtenOffAmount":"Written off amount",
+		"unsecuredDebt":"Unsecured Indebtedness",
+		"foir":"FOIR",
+		"suiteFiled":"Write off suit filed",
+		"netIncome":"Net Income",
+		
+
+	"employment":"Occupation",
+		"employmentTye":"Type of Business / Employer Entity",
+		"empFormat":"Nature of Business / Employer",
+		"empActivity":"Business/Employment Activity",
+		"empstreetVendor":"Street Vendor",
+		"empExprience":"Period in Business / Employment",
+		"empSize":"Business Premise Area",
+		"empOwnership":"Business Premise Ownership",
+			
+	"additionalLoanDetails":"Additional Loan Details:",	
+		"overallGrossIncome":"Overall Gross Income",
+		"overallNetIncome":"Overall Net Income",
+		"totalObligationConsidered":"Total Obligation to be considered",
+		"actualFOIR":"Actual FOIR %",
+		"totalAssetcost":"Total Asset cost",
+		"bmRecommendedAmount":"BM Recommended Amount",
+		"caRecommendedAmount":"CA Recommended Amount",
+		"ltv":"LTV(%)",
+		"processingFees":"Processing Fees %t",
+		"totalGKObligationsConsidered":"Total GK Obligations considered",
+		"totalOtherObligationsConsidered":"Total Other Obligations considered",
+		"currentCAGlExposure":"Current CAGl Exposure",
+		"totalExposure":"Total Exposure",
+		"proposedEMI":"Proposed EMI",
+		"finalLoanAmount":"Final Loan Amount",
+		"diffInSalesTurnoverBMCAReport":"Diff in sales turnover of BM and CA Report",
+		"maximumEligibleLoanAmount":"Maximum eligible loan amount",
+		
+	"financialRatio":"Financial Ratio",
+		"salesGrowth":"Sales Growth",	
+		"profitMargin":"Profit Margin",
+		"currentRatio":"Current Ratio",
+		"debtEquityRatio":"Debt Equity Ratio",
+		"debtServiceCoverage":"Debt Service Coverage",
+		"totalDebtOverTotalAsset":"Total Debt Over Total Asset",
+		"totalDebtOverIncomeDebtRatio":"Total Debt Over Income / Debt to Income Ratio",
+		
+	
+	"bankingDeatails":"Bank Account Details:",
+		"accountHolderName":"Account Holder Name",
+		"accountType":"Type of Account",
+		"nameAsperAccount":"Name as per Bank A/C",
+		"accountNo":"Account Number",
+		"primaryBankAccount":"Primary Bank Account",
+		"bankingSince":"Banking Since",			
+		"ifscCode":"IFSC Code",
+		"bankName":"Bank Name",
+		"bankbranchName":"Branch Name",
+		"bankBranchPincode":"Bank's Branch Pincode",
+		
+	"cbScore":"CB Score",
+		"borrowerName":"Borrower Name",
+		"cbType":"CB Type",
+		"cbResult":"CB Result",
+			
+	"remarks":"Remarks: ",
+		"userName":"User",
+
+	"deviation" :"Deviation: ",
+		"applicantType":"Applicant Type",
+		"deviationLevel":"Deviation Level",
+		"deviationType":"Deviation Type",
+		"deviationDescription":"Deviation Description",
+		"deviationAuthority":"Deviation Authority",
+		
+	"reassessment":"Re-Assessment (Note : Re-Assessment will show based on Applicability) ",
+		
+	"sanctionCondition":"Sanction Authority Name",	
+		"raisedBy":"Authority GK ID",
+		
+	
+		"recommendingOfficerName":"Recommending Officer Name",
+		"decisioningOfficerName":"Decisioning Officer Name",
+		"sanctionDateTime":"Sanction Date & Time",
+		"gkId":"GK ID",
+		"signature":"Signature",
+		"recommendedBy":"Recommended By: ",
+		"splitLines":"--------------------------------------------------------------------------------------------------------------------------------------------------------------",
+		"loanObligations":"Loan Obligations",
+		"chitFunds":"Chit Funds",
+		"Relatives":"Relatives",
+		"Mondaylender": "Money Lender",
+		"Friends":"Friends",
+		"coopSociety":"Co-op Society",
+		"Localfinance": "Local Finance",
+		"Other": "Other",
+		"otherLoanObligations":"Other Loan obligations",
+		"monthlyEmi":"Monthly EMI",
+		"remainingTenure":"Remaining Tenure(in months)",
+		
+		"finalIncome":"Final Income",
+		"incomeSource":"Income Source",
+		"ownedBy":"Owned By",
+		"businessIncome":"Business Income",
+		"businessDairy":"Business 1 - Dairy",
+		"both":"Both",
+		"businessKirana":"Business 2 - Kirana",
+		"businessTailoring":"Business 3 - Tailoring",
+		"businessOther":"Business 4 - Other",
+		"otherIncome":"Other Income",
+		"agriculture":"Agriculture",
+		"salary":"Salary",
+		"wage":"Wage",
+		"pension":"Pension",
+		"rental":"Rental",
+		"totalHouseHoldIncome":"Total Household Income",
+		
+	"otherDetails":"Other Details",	
+  "houseOwnership": "House Ownership",
+  "typeOfHouse": "Type of House",
+  "typeOfRoof": "Type of Roof",
+  "numberOfRooms": "No. of Rooms in the house",
+  "modeOfSavings": "Mode of savings",
+  "basicAmenities": "Basic Amenities",
+  "otherAssets": "Other Assets",
+  "applicantUsesSmartphone": "Does Applicant use a smartphone",
+  "numberOfSmartphones": "Number of smartphones in the family",
+  "hasAlmirahOrDressingTable": "Does family have almirah or Dressing Table?",
+  "hasFurniture": "Does Family have chair, stool, bench and Table?",
+  
+  "prayaasDetails":"Prayaas Details",
+  "prayaasBranches":"Note to be applicable only for Prayaas branches ",
+  "otherExpenses":"Other Expenses",
+  "householdExpenses": "Household Expenses",
+  "educationExpenses": "Education Expenses",
+  "medicalExpenses": "Medical Expenses",
+  "foodExpenses": "Food Expenses",
+  "clothingExpenses": "Expenses on Clothing",
+  
+  "landDetails":"Land Details", 
+  "agriLandHoldings": "Agri Land Holdings by the Family (in acres)",
+  "landOwnerName": "Land owner Name",
+  "relationshipWithApplicant": "Relationship with Applicant",
+  
+  "inPrincipalDecision":"In Principal Decision",
+  "breResponse":"BRE Response",
+  "bmRecommended":"BM Recommended",
+   "loanAmount": "Loan Amount",
+  "rateOfInterest": "Rate of Interest",
+  "processingFee": "Processing Fee (inclusive of GST)",
+  "insurancePremium": "Insurance Premium",
+  "stampDutyCharges": "Stamp duty charges",
+  "currentCAGLOutstanding": "Current CAGL Outstanding ( As of ",
+
+  "netOffAmount": "Net Off Amount",
+  "totalAmountPostNetOff": "Total Amount Post Net Off",
+  "instalmentAmountFrequency": "Instalment Amount/Frequency",
+  "details":"Details",
+  "reassessmentAuthority":"Reassessment Authority",
+  "deviationsNote":"Deviations (Note: Deviation will show based on Applicability)"
+    }
+}	 
+
+
+
+
+
+

@@ -1,0 +1,27 @@
+var docSecScrId = 'RPC__RPCDocumentSection__';
+var occObj = {
+    "Applicant": applicantOccupation,
+    "Co-App": coAppOccupation
+};
+apz.app.onLoad_RPCDocumentSection = function() {
+    //onload
+    // ApzCOB.rpcDocsFetch();
+    // const docTypes = ["Customer Photograph","Secondary KYC","Relationship Proof","Address Proof","Residence Premise Photo","Business Premise Photo","Business Address Proof","Bank Account Proof"];
+};
+apz.app.onShown_RPCDocumentSection = function() {
+    //onshown
+    // $(`#${docSecScrId}documentName`).text(RPC_STAGES[RPC_CURRENT_STAGE].name);
+    let panTypeSts = ApzCOB.getPayloadDatafromWrapper('panNumberStatus', 'Applicant', 'customerDetailsList');
+    let panTypenum = ApzCOB.getPayloadDatafromWrapper('panNumber', 'Applicant', 'customerDetailsList');
+    if (!apz.isNull(panTypenum) && panTypeSts == 'Verified' && custType == 'Applicant' && !window.COMPARE_DOC_TYPES.includes('PAN_NUMBER_PHOTO')) {
+        window.COMPARE_DOC_TYPES.push('PAN_NUMBER_PHOTO');
+    } else if (custType === "Applicant" && panTypeSts == '') {
+        window.COMPARE_DOC_TYPES = window.COMPARE_DOC_TYPES.filter(item => item !== "PAN_NUMBER_PHOTO");
+    }
+    $("#RPC__RPCDocumentSection__Compare_btn").on("click", function() {
+        ApzCOB.loadCompareOptions();
+    });
+    picture = $('#RPC__RPCDocumentSection__RPC_ImageView');
+    ApzCOB.intializeGuillotine(picture);
+    apz.childScr = RPC_CURRENT_STAGE;
+};

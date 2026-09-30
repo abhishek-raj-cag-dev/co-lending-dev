@@ -1,0 +1,593 @@
+var rpcftrScrId = "RPC__RPCFooter__";
+var submit_btn = "submit_btn";
+var reject_btn = "reject_btn";
+var sendBack_btn = "sendBack_btn";
+var queriesIntfId = "APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__";
+var othReasonId = "";
+window.othReasonSelected = false;
+var searchVal = "";
+var sendBackopt1 = "#APZCBO__BaseScreens__el_rdo_3_option_One";
+var sendBackopt2 = "#APZCBO__BaseScreens__el_rdo_3_option_Two";
+var action = "";
+var checkedQueries = [];
+apz.app.onLoad_RPCFooter = function() {
+    //Load Footer
+};
+apz.app.onShown_RPCFooter = function() {
+    //Show Footer
+    //apz.app.RPCFooter.loadQueryModal('Applicant');
+    $("#" + rpcftrScrId + "Previous").prop("disabled", false);
+    $("#" + rpcftrScrId + "Next").prop("disabled", false);
+    if (RPC_CURRENT_STAGE_NO === 1) {
+        $("#" + rpcftrScrId + "Previous").prop("disabled", true);
+    } else if (RPC_CURRENT_STAGE_NO === gApzCOB?.rpcStages?.length) {
+        $("#" + rpcftrScrId + "Next").prop("disabled", true);
+    }
+    apz.childScr = RPC_CURRENT_STAGE;
+    $('#APZCBO__BaseScreens__queryModal_close').click(() => {
+        apz.app.RPCFooter.onClickQueryMdlCancel();
+    });
+};
+apz.app.RPCFooter.onClickQuery = function() {
+    apz.app.RPCFooter.loadQueryModal(custType);
+};
+apz.app.RPCFooter.loadQueryModal = function(curAppl) {
+    ApzCOB.removeErrMessgae(`${BaseScrId}otherQueryReasonInp`, "element");
+    let currentStageQueries = RPC_CURRENT_STAGE_FIELDS.find(field => field.id === RPC_CURRENT_STAGE_NO);
+    let queryArray = [],
+    currApplicantQueries = [];
+    currApplicantQueries = JSON.parse(currentStageQueries?.queries)?.[curAppl];
+    queryArray = [...currApplicantQueries,{
+            id: "oth",
+            value: "Other",
+        }];
+    // arr.push({
+    //         id: "oth",
+    //         value: "Other",
+    //     });
+    if (queryArray.length > 0) {
+        apz.data.scrdata.APZCBO__RPCQueries_Res = [];
+        apz.data.scrdata.APZCBO__RPCQueries_Res = structuredClone(queryArray);
+        window.QueriesPainted = structuredClone(queryArray);
+        apz.data.loadData("RPCQueries", gAppId);
+        $(".crt-list li").attr("onClick", "");
+        $(`#${BaseScrId}otherQueryReasonInp`).val("");
+        // $(`#${BaseScrId}otherQueryReasonInp`).attr('maxlength',250);
+        $('#APZCBO__BaseScreens__queryModal_content').scrollTop(0,0);
+        $(`#${BaseScrId}otherQueryReasonForm`).addClass("sno");
+        $(`#${BaseScrId}queryList`).find("p").filter(function(el, item) {
+            if ($(`#${queriesIntfId}value_${el}_txtcnt`)[0].textContent === "Other") {
+                othReasonId = `#${queriesIntfId}id_${el}`;
+                $(`#${queriesIntfId}id_${el}`).attr("onchange", "apz.app.RPCFooter.onSelectOtherReason();");
+            }
+        });
+        apz.app.RPCFooter.queryChckdByDflt();
+        $(`#${BaseScrId}queryList`).addClass("pb-70");
+        if(currApplicantQueries.length === 0){
+            $(`#${BaseScrId}search_row`).addClass('sno');  
+            $('#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__id_0').prop('checked',true).change()
+          } else {
+            $(`#${BaseScrId}search_row`).removeClass('sno');  
+          }
+          ApzCOB.toggleModal(BaseScrId + "queryModal");
+    }
+};
+apz.app.RPCFooter.onSelectOtherReason = function() {
+    let othVal = $(othReasonId).prop("checked");
+    if (othVal) {
+        $(`#${BaseScrId}queryList`).removeClass("pb-70")
+        othReasonSelected = true;
+        $(`#${BaseScrId}otherQueryReasonForm`).removeClass("sno");
+        // $(`#${BaseScrId}otherQueryReasonInp`).off("input").on("input", function() {
+        //     let inputVal = $(this).val().trim();
+        //     if (inputVal !== "") {
+        //         ApzCOB.removeErrMessgae(`${BaseScrId}otherQueryReasonInp`, "element");
+        //     } else {
+        //         ApzCOB.addErrMessage(`${BaseScrId}otherQueryReasonInp`, "element");
+        //     }
+        // });
+    } else {
+        $(`#${BaseScrId}queryList`).addClass("pb-70")
+        othReasonSelected = false;
+        $(`#${BaseScrId}otherQueryReasonForm`).addClass("sno");
+        $(`#${BaseScrId}otherQueryReasonInp`).val("");
+        ApzCOB.removeErrMessgae(`${BaseScrId}otherQueryReasonInp`, "element");
+    }
+};
+apz.app.RPCFooter.onClickQueryMdlCancel = function() {
+    checkedQueries = [];
+    $(`#${BaseScrId}queryList`).addClass("pb-70");
+     $(othReasonId).prop("checked", false)
+    $(`#${BaseScrId}otherQueryReasonForm`).addClass("sno");
+    $(`#${BaseScrId}otherQueryReasonInp`).val("");
+    ApzCOB.removeErrMessgae(`${BaseScrId}otherQueryReasonInp`, "element");
+    ApzCOB.toggleModal(BaseScrId + "queryModal");
+};
+apz.app.RPCFooter.onClickQueryMdlSave = function() {
+    var checkedLength = -1;
+    if (othReasonSelected) {
+        otherVal = $(`#${BaseScrId}otherQueryReasonInp`).val();
+        if (apz.isNull(otherVal)) {
+            ApzCOB.addErrMessage(`${BaseScrId}otherQueryReasonInp`, "element");
+            document.getElementById('APZCBO__BaseScreens__el_txt_136_txtcnt').scrollIntoView();
+            return;
+        }
+    }
+    QueriesPainted.forEach(function(item, index) {
+        if ($(`#${queriesIntfId}id_${index}`).prop("checked")) {
+            checkedLength++;
+            checkedQueries.push(QueriesPainted[index]?.id);
+            if (othReasonId === `#${queriesIntfId}id_${index}`) {
+                checkedQueries[checkedQueries?.length - 1] = checkedQueries?.[checkedQueries?.length - 1] + "?" + $(
+                    `#${BaseScrId}otherQueryReasonInp`).val();
+            }
+        }
+    });
+    ApzCOB.RpcQuerySave(checkedQueries);
+    checkedQueries = [];
+};
+apz.app.RPCFooter.searchInQueryMdl = function() {
+    var query = $("#APZCBO__BaseScreens__searchQueryInput").val();
+    window.searchresults = QueriesPainted.filter((lead) => Object.values(lead).some((value) => String(value).toLowerCase().includes(query
+        .toLowerCase())));
+    if (searchresults?.length > 0) {
+        apz.data.scrdata.APZCBO__RPCQueries_Res = [];
+        apz.data.scrdata.APZCBO__RPCQueries_Res = searchresults;
+        apz.data.loadData("RPCQueries", gAppId);
+        $(`#${BaseScrId}queryList .wrapped.undefined.ssp`).remove();
+        $(`#${BaseScrId}queryList`).find("p").filter(function(el, item) {
+            if ($(`#${queriesIntfId}value_${el}_txtcnt`)[0].textContent === "Other") {
+                othReasonId = `#${queriesIntfId}id_${el}`;
+                $(`#${queriesIntfId}id_${el}`).attr("onchange", "apz.app.RPCFooter.onSelectOtherReason();");
+            }
+        });
+        // $(`#${BaseScrId}otherQueryReasonForm`).addClass("sno");
+        $(`#${BaseScrId}noResult_row`).addClass("sno");
+        $(`#${BaseScrId}queryList`).removeClass("sno");
+        // $(`#${BaseScrId}otherQueryReasonForm`).removeClass("sno");
+    } else {
+        $(`#${BaseScrId}noResult_row`).removeClass("sno");
+        $(`#${BaseScrId}queryList`).addClass("sno");
+        $(`#${BaseScrId}otherQueryReasonForm`).addClass("sno");
+    }
+};
+apz.app.RPCFooter.approveReject = function(pthis, gaction, rMarks) {
+    apz.startLoader();
+    ApzCOB.userDetailsData();
+    apz.app.BaseScreens.stageBasedOnAction(pthis, gaction);
+    window.approveRejectAction = gaction;
+    if (!apz.isNull(inSessionStore.customerDetailsList)) {
+        if (inSessionStore.customerDetailsList.length > 0) {
+            inSessionStore.customerDetailsList.map((cust) => {
+                if (cust.customerType === "Applicant") {
+                    gApzCOB.userDetails.custDtlId = cust.custDtlId;
+                } else {
+                    gApzCOB.userDetails.CoApplicantCustomerId = cust.custDtlId;
+                }
+            });
+        }
+    }
+    rMarks = rMarks || $('#RPC__ReviewConfirm__rpcComment').val() || '';
+    window.approveRejectAction = "";
+    switch (gaction) {
+        case "SUBMIT":
+            window.approveRejectAction = "PENDINGFORRPCVERIFICATION";
+            break;
+        case "APPROVED":
+            window.approveRejectAction = "RPCVERIFIED";
+            break;
+        case "PUSHBACK":
+            window.approveRejectAction = "IPUSHBACK";
+            break;
+        case "REJECTED":
+            window.approveRejectAction = "REJECTED";
+            break;
+        case "RPCPUSHBACK":
+            window.approveRejectAction = "RPCPUSHBACK";
+            break;
+        default:
+            break;
+    }
+    var req = {
+        apiRequest: {
+            // "interfaceName": approveRejectAction === 'APPROVED' ? "CreateApplication" : "",
+            interfaceName: "",
+            appId: gAppId,
+            requestObj: {
+                appId: gApzCOB.userDetails.appId,
+                status: approveRejectAction,
+                userId: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                applicationId: gApzCOB.userDetails.applicationId,
+                versionNum: gApzCOB.userDetails.versionNum,
+                custDtlId: gApzCOB.userDetails.custDtlId,
+                remarks: rMarks,
+                workflow: {
+                    currentRole: gApzCOB.workflow.currentRole,
+                    action: gApzCOB.workflow.action,
+                    workflowId: gApzCOB.workflow.workflowId,
+                    stage: gApzCOB.workflow.stage,
+                },
+            },
+        },
+    };
+    ApzCOB.serverBuildParam(gAppId, "Stagemoment", "N", "N", req, false, apz.app.RPCFooter.approveRejectCB);
+};
+//Approve Reject Service Callback
+apz.app.RPCFooter.approveRejectCB = function(params) {
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            var ifaceName = ApzCOB.GetInterfaceResMap(params);
+            // var response = JSON.parse(params.res[ifaceName].apiResponse.ResponseBody.responseObj)
+            if (params.res[ifaceName].apiResponse.ResponseHeader.ResponseCode == 0) {
+                if (approveRejectAction === "SUBMIT" || approveRejectAction === "PENDINGFORRPCVERIFICATION" || approveRejectAction ===
+                    "APPROVED" || approveRejectAction === "RPCVERIFIED") {
+                    apz.stopLoader();
+                    submittedTo = 'Next Stage';
+                    if (gApzCOB.selectedRole === "RPC_Checker") submittedTo = 'Credit Assessment';
+                    if (gApzCOB.selectedRole === "RPC_Maker") submittedTo = 'RPC Checker';
+                    apz.app.RPCFooter.showSuccessModal("Application No " + gApzCOB.userDetails.applicationId + ` Submitted Successsfully to ${submittedTo}.`);
+                    return;
+                }
+                if (approveRejectAction === "IPUSHBACK" || approveRejectAction === "RPCPUSHBACK") {
+                    if (gApzCOB.selectedRole === "RPC_Checker") {
+                        if (approveRejectAction === "IPUSHBACK") {
+                            apz.stopLoader();
+                            apz.app.RPCFooter.showSuccessModal("Application No " + gApzCOB.userDetails.applicationId +
+                                " Sent back to KM Sourcing Successfully.");
+                            return;
+                        }
+                        if (approveRejectAction === "RPCPUSHBACK") {
+                            apz.stopLoader();
+                            apz.app.RPCFooter.showSuccessModal("Application No " + gApzCOB.userDetails.applicationId +
+                                " Sent back to RPC Maker Successfully.");
+                            return;
+                        }
+                    }
+                    apz.stopLoader();
+                    apz.app.RPCFooter.showSuccessModal("Application No " + gApzCOB.userDetails.applicationId +
+                        " Sent back to KM Sourcing Successfully.");
+                    return;
+                }
+                if (approveRejectAction === "REJECTED") {
+                    apz.stopLoader();
+                    let errMsg = `Application No ${gApzCOB.userDetails.applicationId} rejected successfully.`;
+                    let IsMaitriCase = ApzCOB.checkIsMaitriCase();
+                    errMsg = `${errMsg} <br/> ${IsMaitriCase ? maitriMovementText : UnnatiMovementText}`;
+                    apz.app.RPCFooter.showSuccessModal(errMsg);
+                    return;
+                }
+            } else {
+                ApzCOB.showRpcModals({
+                    text: "Failed",
+                    Btn1: {
+                        text: "OK",
+                        onClick: "apz.app.RpcStageScreen.closeRPCErrMdl()"
+                    }
+                }, "Error");
+            }
+        } else {
+            apz.stopLoader(); 
+            responseMsg = params?.res?.APZCBO__Stagemoment_Res?.apiResponse?.ResponseBody?.responseObj || "";
+            // to be done after getting the proper response from backend
+            // ApzCOB.fnDisplayMsg(params.res.Dashbo__ApproveRejectApplication_Res.apiResponse.ResponseHeader.ResponseMessage, "E");
+            apz.app.RpcStageScreen.closeRPCConfirmarionMdl();
+            ApzCOB.showRpcModals({
+                text: responseMsg ?? ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.RpcStageScreen.closeRPCErrMdl()"
+                }
+            }, "Error");
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        // ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_TECHNICALDIFF"), "E");
+        ApzCOB.showRpcModals({
+            text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.RpcStageScreen.closeRPCErrMdl()"
+            }
+        }, "Error");
+    }
+    apz.stopLoader();
+};
+apz.app.RPCFooter.hideNshowBtns = function() {
+    $("#" + rpcftrScrId + sendBack_btn + ",#" + rpcftrScrId + submit_btn + ",#" + rpcftrScrId + reject_btn).addClass("sno");
+    if (gApzCOB.selectedRole === "RPC_Maker" || (gApzCOB.selectedRole === "RPC_Checker" && RPC_CURRENT_STAGE === "ReviewConfirm")) {
+        $("#" + rpcftrScrId + "Query").addClass("sno");
+        $("#" + rpcftrScrId + "Acceptnext").addClass("sno");
+        $("#" + rpcftrScrId + "Preview").addClass("sno");
+        $("#" + rpcftrScrId + "reViewfooter_Row").removeClass("sno");
+        $("#" + rpcftrScrId + sendBack_btn).removeClass("sno");
+        $("#" + rpcftrScrId + submit_btn).removeClass("sno");
+        // $("#" + rpcftrScrId + reject_btn).removeClass('sno');
+    }
+};
+apz.app.RPCFooter.triggerSubmit = function() {
+    if (gApzCOB.selectedRole === "RPC_Maker" || gApzCOB.selectedRole === "RPC_Checker") {
+        apz.app.RPCFooter.validatOnSubmit();
+        // $('#RPC__RPCFooter__submit_btn').attr('onClick', "apz.app.RPCFooter.approveReject(this,'SUBMIT');");
+    }
+    // else if (gApzCOB.selectedRole === "RPC_Checker") {
+    //   ApzCOB.toggleModal(BaseScrId + "conFormation_mdl");
+    //   $("#APZCBO__BaseScreens__yes_btn").attr(
+    //     "onClick",
+    //     "apz.app.RPCFooter.approveReject(this,'APPROVED')"
+    //   );
+    // }
+};
+apz.app.RPCFooter.triggerSendback = function() {
+    if (gApzCOB.selectedRole === "RPC_Maker") {
+        apz.app.RPCFooter.validatOnSendBack();
+        // $('#RPC__RPCFooter__sendBack_btn').attr('onClick', "apz.app.RPCFooter.approveReject(this,'PUSHBACK')");
+    } else if (gApzCOB.selectedRole === "RPC_Checker") {
+        apz.app.RPCFooter.validatOnSendBack();
+    }
+};
+apz.app.RPCFooter.radiocheckSendbackmodal = function() {
+    ApzCOB.toggleModal(BaseScrId + "rpcSendback_mdl");
+    if ($(`#${BaseScrId}el_rdo_3_option_One`).is(":checked")) {
+        action = "RPCPUSHBACK";
+    } else if ($(`#${BaseScrId}el_rdo_3_option_Two`).is(":checked")) {
+        action = "PUSHBACK";
+    }
+    setTimeout(function() {
+        // ApzCOB.toggleModal(BaseScrId + "conFormation_mdl");
+        // $("#APZCBO__BaseScreens__sc_row_305").addClass("sno");
+        // $("#APZCBO__BaseScreens__sc_row_306").removeClass("sno");
+        // $("#APZCBO__BaseScreens__yes_btn").attr("onClick", "apz.app.RPCFooter.approveReject(this, action)");
+        let RpcModalId = "RPC__RpcStageScreen__";
+        let popUpObj = {};
+        popUpObj.text = "Would you like to send-back the application?";
+        popUpObj.Btn1 = {
+            text: "Yes",
+            onClick: "apz.app.RPCFooter.approveReject(this, action)",
+        };
+        popUpObj.Btn2 = {
+            text: "No",
+            onClick: "apz.app.RpcStageScreen.closeRPCConfirmarionMdl()",
+        };
+        ApzCOB.showRpcModals(popUpObj, "confirmation");
+        // $("#RPC__RpcStageScreen__confrmBtn2").attr("onClick", "ApzCOB.toggleModal(`RPC__RpcStageScreen__conFormation_mdl`)");
+    }, 500);
+};
+apz.app.RPCFooter.launchPreviousNextfooter = function(laction) {
+    let rpcSideMenuTag = 'RPC__RPCSidebar__menuBarList_row_-1_';
+    if (laction == "Next") {
+        loadStageNo = ++RPC_CURRENT_STAGE_NO;
+    } else {
+        loadStageNo = --RPC_CURRENT_STAGE_NO;
+    }
+    if (loadStageNo <= Object.values(RPC_STAGES).length) {
+        if ($(`#${rpcSideMenuTag}${loadStageNo}`).hasClass('sno')) {
+            apz.app.RPCFooter.launchPreviousNextfooter(laction);
+        } else {
+            apz.app.RPCSidebar.navigateToStage(loadStageNo);
+            loadStageNo = "";
+        }
+    } else {
+        loadStageNo = "";
+        ApzCOB.showRpcModals({
+            text: "Verify all the stages first",
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.RpcStageScreen.closeRPCErrMdl()"
+            }
+        }, "Error");
+    }
+};
+apz.app.RPCFooter.queryChckdByDflt = function() {
+    let applType = "";
+    let chkdQueriesBYDyDflt = [];
+    if (custType === "Applicant") {
+        applType = "A";
+    } else if (custType !== "Applicant") {
+        applType = "C";
+    }
+    if (RPC_CURRENT_STAGE === 'BusinessAddressProofRPC') {
+        applType = (RPC_STAGES['BusinessAddressProofRPC'].subMenu)?.findIndex(el => el === activeTag) + 1;
+    }
+    let queryDtls = inSessionStore?.rpcStatDetails?.filter(
+        (item) => item.stageID === RPC_CURRENT_STAGE_NO && item.custType == applType);
+    if (queryDtls?.length > 0) {
+        chkdQueriesBYDyDflt = queryDtls[0].query;
+        if (Array.isArray(window.QueriesPainted) && window.QueriesPainted.length > 0) {
+            const othEntry = chkdQueriesBYDyDflt.find((item) => item.startsWith("oth?"));
+            if (othEntry) {
+                const [othId, othValue] = othEntry.split("?");
+                const othIndex = window.QueriesPainted.findIndex(
+                    (entry) => entry.id === othId);
+                if (othIndex !== -1) {
+                    $(`#${queriesIntfId}id_${othIndex}`).prop("checked", true);
+                    $(`#${BaseScrId}otherQueryReasonForm`).removeClass("sno");
+                    $(`#${BaseScrId}otherQueryReasonInp`).val(othValue);
+                    othReasonSelected = true;
+                }
+            }
+            window.QueriesPainted.forEach((entry, index) => {
+                if (chkdQueriesBYDyDflt.includes(entry.id)) {
+                    $(`#${queriesIntfId}id_${index}`).prop("checked", true);
+                }
+            });
+        }
+    } else {
+        return;
+    }
+};
+apz.app.RPCFooter.validatOnSubmit = function() {
+    if (rpcStepperStatus.length > 0) {
+        const allVerified = rpcStepperStatus.every(
+            (item) => item.isVerified === true);
+        const allQueriesResolved = rpcStepperStatus.every(
+            (item) => item.isQueryExist === false);
+        if (!allVerified) {
+            ApzCOB.showRpcModals({
+                text: "All stages  are not verified.",
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.RpcStageScreen.closeRPCErrMdl()",
+                },
+            }, "Error");
+            return;
+        }
+        if (!allQueriesResolved) {
+            ApzCOB.showRpcModals({
+                text: "The application has queries. Please send back the application",
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.RpcStageScreen.closeRPCErrMdl()",
+                },
+            }, "Error");
+            return;
+        }
+        let errMsg = '';
+        let appCbStatus = ApzCOB.getPayloadDatafromWrapper('cbStatus', 'Applicant', 'cibilDetailsWrapperList') || '';
+        let coAppCbStatus = ApzCOB.getPayloadDatafromWrapper('cbStatus', 'Co-App', 'cibilDetailsWrapperList') || '';
+        if (appCbStatus !== 'PASS' && coAppCbStatus !== 'PASS') {
+            errMsg = 'Both Applicant and Co-Applicant CB failed!';
+        } else if (appCbStatus !== 'PASS') {
+            errMsg = 'Applicant CB failed!';
+        } else if (coAppCbStatus !== 'PASS') {
+            errMsg = 'Co-Applicant CB failed!';
+        }
+        if (!apz.isNull(errMsg)) {
+            ApzCOB.showRpcModals({
+                text: errMsg,
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.RpcStageScreen.closeRPCErrMdl()",
+                },
+            }, "Error");
+            return;
+        }
+        let rpcRemarks = $('#RPC__ReviewConfirm__rpcComment').val();
+        if (apz.isNull(rpcRemarks)) {
+            ApzCOB.showRpcModals({
+                text: "Please enter the remarks.",
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.RpcStageScreen.closeRPCErrMdl()",
+                },
+            }, "Error");
+            return;
+        }
+        if (allVerified && allQueriesResolved) {
+            let RpcModalId = "RPC__RpcStageScreen__";
+            let popUpObj = {};
+            popUpObj.text = "Would you like to submit the application?";
+            if (gApzCOB.selectedRole === "RPC_Maker") {
+                popUpObj.Btn1 = {
+                    text: "Yes",
+                    onClick: "apz.app.RPCFooter.approveReject(this,'SUBMIT')",
+                };
+            } else if (gApzCOB.selectedRole === "RPC_Checker") {
+                popUpObj.Btn1 = {
+                    text: "Yes",
+                    onClick: "apz.app.RPCFooter.approveReject(this,'APPROVED')",
+                };
+            }
+            popUpObj.Btn2 = {
+                text: "No",
+                onClick: "apz.app.RpcStageScreen.closeRPCConfirmarionMdl()",
+            };
+            ApzCOB.showRpcModals(popUpObj, "confirmation");
+            // $("#RPC__RpcStageScreen__confrmBtn2").attr("onClick", "ApzCOB.toggleModal(`RPC__RpcStageScreen__conFormation_mdl`)");
+        }
+    } else return;
+};
+apz.app.RPCFooter.validatOnSendBack = function() {
+    if (rpcStepperStatus.length > 0) {
+        const allVerified = rpcStepperStatus.every(
+            (item) => item.isVerified === true);
+        const allQueriesResolved = rpcStepperStatus.every(
+            (item) => item.isQueryExist === false);
+        if (gApzCOB.selectedRole === "RPC_Maker") {
+            if (allVerified && !allQueriesResolved) {
+                let RpcModalId = "RPC__RpcStageScreen__";
+                let popUpObj = {};
+                popUpObj.text = "Would you like to send-back the application?";
+                popUpObj.Btn1 = {
+                    text: "Yes",
+                    onClick: "apz.app.RPCFooter.approveReject(this, 'PUSHBACK')",
+                };
+                popUpObj.Btn2 = {
+                    text: "No",
+                    onClick: "apz.app.RpcStageScreen.closeRPCConfirmarionMdl()",
+                };
+                ApzCOB.showRpcModals(popUpObj, "confirmation");
+                // $("#RPC__RpcStageScreen__confrmBtn2").attr("onClick", "ApzCOB.toggleModal(`RPC__RpcStageScreen__conFormation_mdl`)");
+            } else if (allVerified) {
+                //("All the stages have been verified successfully. Please submit the application");
+                ApzCOB.showRpcModals({
+                    text: "All the stages have been verified successfully. Please submit the application",
+                    Btn1: {
+                        text: "OK",
+                        onClick: "apz.app.RpcStageScreen.closeRPCErrMdl()",
+                    },
+                }, "Error");
+                return;
+            }
+        }
+        if (gApzCOB.selectedRole === "RPC_Checker") {
+            if (allVerified && !allQueriesResolved) {
+                ApzCOB.toggleModal(BaseScrId + "rpcSendback_mdl");
+                $("#APZCBO__BaseScreens__okay_btn").attr("onClick", "apz.app.RPCFooter.radiocheckSendbackmodal()");
+            } else if (allVerified) {
+                ApzCOB.showRpcModals({
+                    text: "All the stages have been verified successfully. Please submit the application",
+                    Btn1: {
+                        text: "OK",
+                        onClick: "apz.app.RpcStageScreen.closeRPCErrMdl()",
+                    },
+                }, "Error");
+                return;
+            }
+        }
+    } else return;
+};
+apz.app.RPCFooter.showSuccessModal = function(message) {
+    let popUpObj = {
+        text: message,
+        Btn: {
+            text: "Ok",
+            onClick: "apz.app.RpcStageScreen.closeSuccessModalAndProceed()",
+        }
+    };
+    ApzCOB.showRpcModals(popUpObj, "Success");
+};
+apz.app.RPCFooter.validateInput = function() {
+    let inputField = $("#APZCBO__BaseScreens__otherQueryReasonInp");
+    // ApzCOB.fnValidateIfsc(inputField[0]);
+    let value = inputField.val().trim();
+    if (value !== "") {
+        ApzCOB.removeErrMessgae(`${BaseScrId}otherQueryReasonInp`, "element");
+    }
+}
+apz.app.RPCFooter.updateQueriesWithLatestDateTime = function() {
+    if (
+        (window.custType === 'Applicant' || window.custType === 'Co-App') && stageQueries && stageQueries.length > 0 && inSessionStore
+        .verifiedStage && inSessionStore.verifiedStage.length > 0 && typeof RPC_CURRENT_STAGE_NO !== 'undefined') {
+        var currentStage = parseInt(RPC_CURRENT_STAGE_NO, 10);
+        var custLetter = (window.custType === 'Applicant') ? 'A' : 'C';
+        var expectedSubMenu = (custLetter === 'A') ? 1 : 2;
+        let formattedDateTime = "";
+        rpcStepperStatus.forEach(status => {
+            if (status.stageID === currentStage && status.isQueryExist && status.subMenu === expectedSubMenu) {
+                let matchingEntry = inSessionStore.verifiedStage.find(entry => {
+                    let parts = entry.split("_");
+                    return parts.length >= 3 && parseInt(parts[0], 10) === currentStage && parts[1] === custLetter;
+                });
+                if (matchingEntry) {
+                    let parts = matchingEntry.split("_");
+                    let dateTimeStr = parts[2];
+                    if (dateTimeStr.includes("T")) {
+                        formattedDateTime = ApzCOB.dateformatter(dateTimeStr, "date", "d/m/Y").split('.')[0] ?? dateTimeStr;
+                    }
+                }
+            }
+        });
+        $("#RPC__RPC_Query__queryText_txtcnt").text("Queries " + "(" + formattedDateTime + ")");
+    }
+}

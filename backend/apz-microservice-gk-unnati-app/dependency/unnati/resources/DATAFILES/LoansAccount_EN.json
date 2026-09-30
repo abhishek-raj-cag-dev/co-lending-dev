@@ -1,0 +1,28 @@
+{
+    "Select__LoansAccount_Res": {
+        "Personal Loan": [
+            {
+                "Feature": "Use Personal loan funds for handling any type of personal emergency situation that require finacial assiastance",
+                "Benefits": "Use Personal loan funds for handling any type of personal emergency situation that require finacial assiastance",
+                "points": [
+                    "Over 23 year old and a resident of India",
+                    "Salaried individual, having a regular monthly income of Rs 30,000 and above",
+                    "Having a good bureau score",
+                    "Having a Savings Account with any of the banks of India"
+                ]
+            }
+        ],
+        "Home Loan": [
+            {
+                "Feature": "Home Loan is your one stop solution for owning your dream home. Whether you want to purchase a house or construct a new one, We offer a wide range of products to meet your housing loan requirement",
+                "Benefits": "Home Loan is your one stop solution for owning your dream home. Whether you want to purchase a house or construct a new one, We offer a wide range of products to meet your housing loan requirement",
+                "points": [
+                    "Over 23 year old and a resident of India",
+                    "Salaried individual, having a regular monthly income of Rs 30,000 and above",
+                    "Having a good bureau score",
+                    "Having a Savings Account with any of the banks of India"
+                ]
+            }
+        ]
+    }
+}

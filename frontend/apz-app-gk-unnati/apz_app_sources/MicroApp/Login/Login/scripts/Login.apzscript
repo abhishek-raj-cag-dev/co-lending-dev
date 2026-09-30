@@ -1,0 +1,107 @@
+var LoginScrId = 'Login__Login__';
+var xlinkhrefext = 'xlink:href';
+var pswdText = "password";
+var inputText = "text";
+// ApzCOB.getAppVersion();
+apz.app.onLoad_Login = function() {
+    // Nothing
+    if (window.deepLink) {
+       let containerId = document.getElementById("scr__Login__Login__main");
+       if (containerId) {
+          containerId.style.visibility = "hidden";
+        }
+        setTimeout(function () {
+          $("#" + LoginScrId + "loginBtn").click();
+        }, 0);
+        return;
+    }
+};
+apz.app.onShown_Login = function() {
+    // $(".icon-eye").attr("onclick", "apz.app.Login.HideShowPassword();");
+    
+    $('#Login__Login__appVersion span').text(window.ENVCode+window.APP_VERSION);
+    $('#' + LoginScrId + 'version').text(window.LversionNum);
+    $(".icon-Eye-Open").css("cursor", "pointer");
+    $(".icon-Eye-Close").css("cursor", "pointer");
+    $('body').addClass("LoginBase");
+    $("input").attr("autocomplete", "off");
+    $("#header").addClass("sno");
+    ApzCOB.disableCutCopyPaste();
+};
+$("#" + LoginScrId + "userName, #" + LoginScrId + "password").keypress(function(e) {
+    if (e.which === 13 && apz.deviceType === "WEB") {
+        apz.app.Login.OnClickLogin();
+    }
+});
+apz.app.Login.OnClickLogin = function() {
+    if(apz.deviceType === "ANDROID"){
+       ApzCOB.fetchAppVersion();   
+    } else{
+        var customerID = $('#' + LoginScrId + 'userName').val().toLocaleUpperCase();
+        var password = $('#' + LoginScrId + 'password').val();
+        var loginform = $("#" + LoginScrId + "webloginform").find("input"),
+        loginform_validator_check = {
+        Login__Login__userName: {
+        verify: nullcheck,
+        message: "LIT_USERNAME_ERR"
+        },
+        Login__Login__password: {
+        verify: nullcheck,
+        message: "LIT_USERPASS_ERR"
+        }
+        };
+        if (ApzCOB.validateInputFields(loginform, loginform_validator_check)) {
+        ApzCOB.login(customerID, password);
+        } 
+    }
+
+};
+apz.app.Login.OnClickMakerChecker = function(pthis) {
+    const selectedRole = $(pthis).text();
+    const roleMap = {
+        "Maker & Checker": "B",
+        "Maker": "I",
+        "Checker": "A"
+    };
+    if (roleMap[selectedRole]) {
+        window.subRole = roleMap[selectedRole];
+    }
+    $(`#${LoginScrId}MakerCheckDIV, #${LoginScrId}LoginBody`).addClass("sno");
+    if (["KM","BM","BCM","ACM","AM","DM","RM","HOM","CCM"].includes(gApzCOB.LoggedInUserDetails?.loginResponse?.addInfo1)) {
+        ApzCOB.launchMicroApp('Dashbo', 'dashboard', `${gAppId}__BaseScreens__BaseDIV`, '');
+        $(rpcLoginDetails).addClass('sno');
+        $(kmbmLoginDetails).removeClass('sno');
+        isNotLoginCB = false;
+    } else {
+        $('body').addClass('unati');
+        $('#header').removeClass('sno');
+        ApzCOB.launchMicroApp('Dashbo', 'NewDashBoard', `${gAppId}__BaseScreens__BaseDIV`, window.dashTaskData);
+        $(`${kmbmLoginDetails},${rpcDashboardIcon}`).addClass('sno');
+        $(`${rpcLoginDetails},${rpcLogoutIcon}`).removeClass('sno');
+    }
+};
+apz.app.Login.HideShowPassword = function() {
+    // var passwordtype = document.getElementById(LoginScrId + "password").type;
+    if ($("#" + LoginScrId + 'eyeClose').hasClass('sno')) {
+        $("#" + LoginScrId + "password").addClass("mask");
+        document.getElementById(LoginScrId + "password").type = pswdText;
+        $("#" + LoginScrId + 'eyeClose').removeClass('sno')
+        $("#" + LoginScrId + 'eyeOpen').addClass('sno')
+    } else {
+        $("#" + LoginScrId + "password").removeClass("mask");
+        document.getElementById(LoginScrId + "password").type = inputText;
+        $("#" + LoginScrId + 'eyeClose').addClass('sno')
+        $("#" + LoginScrId + 'eyeOpen').removeClass('sno')
+    }
+};
+apz.app.Login.Setpassword = function() {
+    $("#" + LoginScrId + "MakerCheckDIV").addClass("sno");
+    $("#" + LoginScrId + "LoginBody").addClass("sno");
+    ApzCOB.launchMicroApp('ChgPas', 'SetPassword', gAppId + '__BaseScreens__BaseDIV', $('#' + LoginScrId + 'userName').val().toUpperCase());
+};
+apz.app.Login.Forgotpassword = function() {
+    $("#" + LoginScrId + "MakerCheckDIV").addClass("sno");
+    $("#" + LoginScrId + "LoginBody").addClass("sno");
+    ApzCOB.launchMicroApp('ChgPas', 'ForgotPassword', gAppId + '__BaseScreens__BaseDIV', $('#' + LoginScrId + 'userName').val().toUpperCase());
+    // ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_LOGIN_FORGOT_PASSWORD_TEXT"), "I");
+};

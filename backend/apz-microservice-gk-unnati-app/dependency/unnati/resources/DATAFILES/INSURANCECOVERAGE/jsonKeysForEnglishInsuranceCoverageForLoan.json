@@ -1,0 +1,46 @@
+{
+  "keysForContent": {
+ 
+    "applicationName": "\nDeclaration on Insurance Coverage for the Loan\n",
+	"date": "Date : ",	
+    "to": "To,",
+	"toAddress1": "The Branch Manager/Assistant Branch Manager",
+    "toAddress2": "CreditAccess Grameen Limited",
+		
+    "from": "From,",	
+    "subject": "Subject: Declaration on Group Life Insurance Coverage for the Loan.",
+   	"line1": "\nDear Sir,",
+	
+	"line2": "I/We, <applicantName> <font face='Arial Unicode MS'>&</font> <coApplicantName> have availed <productName> Account Number <loanAccountNo> of Rs.<sanctionedAmount> for <loanTenure> years tenure from CreditAccess Grameen Limited (herein after referred to as “the Company”). As part of the loan process, I/we would like to make following declaration:",
+		
+    "availed": "Tick who has availed Life Insurance",
+	"reasons":"Reasons, if Group Life Insurance is not opted \n(to be tick for borrowers if insurance not availed)",
+		
+    "applicant": "Applicant  <font face='Arial Unicode MS'>☐</font>",
+    "coApplicant": "Co-applicant   <font face='Arial Unicode MS'>☐</font>",	
+
+    "applicantReasons": "Not interested <font face='Arial Unicode MS'>☑</font>   Already having insurance <font face='Arial Unicode MS'>☐</font>   Premium amount is high <font face='Arial Unicode MS'>☐</font>",
+	
+	"coApplicantReasons": "Not interested <font face='Arial Unicode MS'>☑</font> Already having insurance <font face='Arial Unicode MS'>☐</font> Premium amount is high <font face='Arial Unicode MS'>☐</font>", 
+
+   "line3": "I/We hereby acknowledge that the Company has duly explained the benefits of obtaining Group Life Insurance and the associated risks of not availing such coverage.",
+     
+   "line4": "I/We acknowledge and agree that the loan outstanding shall be covered under the Group Life Insurance only if the deceased loan applicant was enrolled under the said policy. In the absence of such coverage, no insurance benefits shall be applicable.", 
+   
+   "line5": "I/We further understand that the insurance coverage, if opted, will be limited to the sum assured amount of ₹2,00,000 or the sanctioned loan amount, whichever is lower.",
+     
+   "line6": "Furthermore, I/We understand that in the event the applicant/co-applicants/borrowers not to opt for Group Life Insurance, and if any of the aforementioned loan applicants pass away, the surviving loan applicants /borrowers shall have the obligation to repay the entire loan as per the loan agreement and the Company reserves the sole discretion to assess whether to continue the loan agreement with the surviving co-applicants/borrowers. In the event that the surviving co-applicants/borrowers fail to adhere to the procedures prescribed by the Company, or if the Company has reasonable concerns regarding our ability to fulfil the repayment obligations, the Company may exercise its right to recall the loan. In such circumstances, failure to repay the outstanding loan amount may result in the initiation of enforcement actions against the surviving co-applicants/borrowers.",
+     
+   "line7": "Additionally, I/We acknowledge that the settlement of any insurance claim shall be subject to the terms and conditions of the Group Life Insurance policy. In the event that an insurance claim is rejected by the insurer for any reason, such rejection shall not in any manner prejudice or affect our liability to repay the loan in accordance with the terms and conditions set forth in the Loan Agreement executed between the loan applicants and the Company.",
+ 
+   "line8": "I/We confirm that the foregoing statements are true and correct to the best of my/our knowledge and understanding, and I/We request you to proceed accordingly.",
+   
+   "line9": "Yours faithfully,",
+  
+	"applicantName":"Applicant Name : ",
+	"coApplicantName":"Co-Applicant Name : ",
+	"signature":"Signature : ",
+	"delimiterLines":"............."
+
+  }
+}

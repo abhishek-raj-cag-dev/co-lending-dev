@@ -1,0 +1,58 @@
+{
+  "keysForContent": {
+    "applicationName": "স্বাগত পত্র",
+    "customerId": "গ্রাহক ID",
+    "date": "তারিখ",
+    "loanId": "ঋণ ID",
+    "disbursedAmount": "বিতরণকৃত ঋণের পরিমাণঃ",
+    "branch": "<font face='Arial Unicode MS'>শাখার নাম এবং ID</font>",
+
+    "applicantType": "আবেদনকারীর প্রকার",
+    "applicant": "আবেদনকারী",
+    "coApplicant": "সহ-আবেদনকারী",
+    "name": "নাম",
+    "residingAt": "বাসিন্দা",
+
+    "greetingLine": "প্রিয়",
+    "congratulationsParagraph": "অভিনন্দন! আপনার গ্রামীণ উন্নয়ন ঋণ সফলভাবে প্রদান করা হয়েছে।",
+    "congratulationsParagraphRenewal": "অভিনন্দন! আপনার গ্রামীণ উন্নয়ন নবীকরণ ঋণ সফলভাবে প্রদান করা হয়েছে।",
+    "congratulationsParagraphOpenMarket": "অভিনন্দন! আপনার গ্রামীণ উন্নতি ওপেন মার্কেট ঋণ সফলভাবে বিতরণ করা হয়েছে।",
+	"congratulationsParagraphUnnatiLite": "অভিনন্দন! আপনার গ্রামীণ উন্নয়ন ঋণ সফলভাবে প্রদান করা হয়েছে।",
+	"congratulationsParagraphUnnatiRestart": "অভিনন্দন! আপনার গ্রামীণ উন্নয়ন ঋণ সফলভাবে প্রদান করা হয়েছে।",
+	"congratulationsParagraphUnnatiSupplementary": "অভিনন্দন! আপনার গ্রামীণ উন্নয়ন ঋণ সফলভাবে প্রদান করা হয়েছে।",
+	"congratulationsParagraphUnnatiFamilyWelFare": "অভিনন্দন! আপনার গ্রামীণ উন্নয়ন ঋণ সফলভাবে প্রদান করা হয়েছে।",
+	"congratulationsParagraphUnnatiEmergency": "অভিনন্দন! আপনার গ্রামীণ উন্নয়ন ঋণ সফলভাবে প্রদান করা হয়েছে।",
+
+    "missionParagraph": "<br>ক্রেডিট এক্সেস গ্রামীণ লিমিটেড (CA গ্রামীণ)-এ, আমরা আমাদের আর্থিক পণ্য এবং পরিষেবা সমূহের মাধ্যমে অর্থনৈতিক ও সামাজিক অগ্রগতি বৃদ্ধি করার জন্য প্রতিশ্রুতিবদ্ধ। আমাদের উপর আপনার আস্থা রাখার জন্য আমরা কৃতজ্ঞ এবং আমরা নিশ্চিত যে এই ঋণ আপনার আর্থিক লক্ষ্য অর্জনে সহায়তা করবে।",
+
+    "repaymentScheduleNotice": "<br>এই চিঠির সাথে আপনার ঋণের পরিশোধে করার সময়সূচী যোগ করা আছে। বিস্তারিত জানার জন্য, অনুগ্রহ করে নিচে প্রদত্ত আপনার গ্রামীণ উন্নতি ঋণের বিবরণটি দেখুন।",
+	
+	"repaymentScheduleNoticeSup": "",
+	  
+	  "repaymentScheduleNoticeRESTR": "",
+	  
+	  "repaymentScheduleNoticeEMER": "",
+	  
+	  "repaymentScheduleNoticeFWl": "",
+
+    "loanRepaymentDetailsHeading": "ঋণ এবং পরিশোধের বিবরণ:",
+    "sanctionedDate": "অনুমোদনের তারিখ",
+    "loanTenure": "ঋণের মেয়াদ",
+    "loanAmountDisbursed": "প্রদত্ত ঋণের পরিমাণ",
+    "dateOfDisbursement": "প্রদানের তারিখ",
+    "repaymentFrequency": "পরিশোধের সময়কাল",
+    "noOfInstallments": "কিস্তির #",
+    "repaymentStartDate": "পরিশোধ শুরু করার তারিখ",
+    "interestRate": "সুদের হার",
+    "installmentAmount": "কিস্তির পরিমাণ",
+    "repaymentEndDate": "পরিশোধ শেষ হওয়ার তারিখ",
+
+    "termsParagraph": "<font face='Arial Unicode MS'>অনুমোদন পত্র, ঋণ চুক্তি এবং অন্যান্য সহায়ক নথিতে বর্ণিত শর্তাবলী অনুসারে আপনার ঋণ অনুমোদিত এবং প্রদান করা হয়েছে। অনুগ্রহ করে আপনার অ্যাকাউন্টের বিবরণ পরীক্ষা করুন, এবং যদি আপনার কোনো প্রশ্ন বা উদ্বেগ থাকে, তাহলে আমাদের টোল-ফ্রি নম্বর 1800-123-153-153 এ যোগাযোগ করুন অথবা yourvoice@cagrameen.in এ আমাদের ইমেল করুন। <br><br>যদি আপনি আমাদের করা সমাধানে সন্তুষ্ট না হন, তাহলে আপনার কাছে AKMI টোল ফ্রি নম্বর (কর্ণাটকের গ্রাহকদের জন্য) 1800-425-5654 অথবা MFIN টোল ফ্রি নম্বর (অন্যান্য রাজ্যের গ্রাহকদের জন্য) 1800-2700-317 নম্বরে ফোন করার বিকল্প উপলব্ধ থাকবে।</font>",
+
+    "closingParagraph": "<br>আমরা আপনার সাথে আমাদের সম্পর্ককে মূল্যবান বলে মনে করি এবং দীর্ঘ ও ফলপ্রসূ পারস্পরিক সহযোগিতার জন্য উন্মুখ হয়ে আছি।",
+    "feedbackCallNotice": "<br>ঋণ প্রদানের তারিখ থেকে 2 সপ্তাহের মধ্যে আপনি একটি পরিষেবা সংক্রান্ত প্রতিক্রিয়া জানানোর কল পাবেন। সেটিতে আপনার মতামত জানানোর জন্য অনুরোধ করছি।",
+
+    "signoffLine": "<font face='Arial Unicode MS'><b>শুভেচ্ছান্তে,</b></font>",
+    "organizationName": "<font face='Arial Unicode MS'><b>ক্রেডিট এক্সেস গ্রামীণ লিমিটেড</b></font>"
+  }
+}

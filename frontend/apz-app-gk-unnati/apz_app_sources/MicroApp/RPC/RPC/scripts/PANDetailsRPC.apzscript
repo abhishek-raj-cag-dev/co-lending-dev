@@ -1,0 +1,205 @@
+RPC_CURRENT_STAGE = "PANDetailsRPC";
+var panScrId = `RPC__${RPC_CURRENT_STAGE}__`;
+var panNumberTag = panScrId + "panNumberInput";
+var panName = '';
+window.gAppId = apz.appId;
+
+apz.app.onLoad_PANDetailsRPC = function () {
+  ApzCOB.launchRpcCommonSection();
+  ApzCOB.fetchRpcStageFields();
+  let editedFields = ApzCOB.getStageEditedFields();
+  ApzCOB.updateEditedTags(editedFields);
+  apz.app.PANDetailsRPC.checkPANStatus();
+};
+
+apz.app.onShown_PANDetailsRPC = function () {
+  apz.app.PANDetailsRPC.setMinMaxLength();
+};
+apz.app.PANDetailsRPC.setMinMaxLength = function () {
+  const fieldMap = {
+    panNumberInput: "PanNumber",
+    namePerPanInput: "Name",
+  };
+  ApzCOB.setMinMaxLength(
+    Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+      fieldName,
+      fieldId: panScrId + fieldId,
+    })),
+  );
+};
+apz.app.PANDetailsRPC.hideFields = function () {
+  let panValue = ApzCOB.getPayloadDatafromWrapper(
+    "panNumberValue",
+    custType,
+    "customerDetailsList",
+  );
+  panValue = panValue === '' ? 'No' : panValue;
+  $('.rpcquerybtn').removeClass('sno');
+  if (["N", "No", "NO"].includes(panValue)) {
+    //$('.rpcquerybtn').addClass('sno');
+    $("#" + panScrId + "panNumber").addClass("sno");
+    $("#" + panScrId + "namePerPan").addClass("sno");
+  }
+};
+apz.app.PANDetailsRPC.PanVerification = function () {
+  let isValidPanType = ApzCOB.validateEachInputField(panNumberTag);
+  let isValidPanId = ApzCOB.validateEachInputField(panNumberTag);
+  let isValidNumber = false;
+  isValidNumber = apz.app.PANDetailsRPC.PannumberVerCheck();
+  if (isValidPanType && isValidPanId && isValidNumber) {
+    var PanObj = {};
+    PanObj.kycType = "pan";
+    PanObj.kycId = $("#" + panNumberTag)
+      .val()
+      .toUpperCase()
+      .trim();
+    //ApzCOB.RPCPanVerificationCheck(PanObj);
+    apz.app.PANDetailsRPC.PanVerificationCheck(
+      PanObj,
+      apz.app.PANDetailsRPC.panVerificationCallback,
+    );
+  }
+};
+apz.app.PANDetailsRPC.PannumberVerCheck = function () {
+  let isNotSame = true;
+  let errmsg;
+  if (apz.isNull(inSessionStore.customerDetailsList)) {
+    isNotSame = true;
+  } else {
+    let currentType = custType;
+    let otherCustomer = inSessionStore.customerDetailsList.find(
+      (c) => c.customerType !== currentType,
+    );
+    let enteredPan = $("#" + panNumberTag)
+      .val()
+      .toUpperCase()
+      .trim();
+    let otherPan = otherCustomer?.payload?.panNumber?.toUpperCase().trim();
+    if (otherPan && enteredPan === otherPan) {
+      isNotSame = false;
+      errmsg = "Applicant and Co-Applicant PAN numbers must not be the same.";
+      ApzCOB.fnDisplayMsg(errmsg, "E");
+    }
+  }
+  return isNotSame;
+};
+apz.app.PANDetailsRPC.PanVerificationCheck = function (panObj, callBack) {
+  let callBackFn = callBack || ApzCOB.panVerificationCheckCB;
+  let req = {
+    apiRequest: {
+      interfaceName: "ValidateVoterID",
+      requestObj: panObj,
+    },
+  };
+  ApzCOB.showLoader();
+  setTimeout(() => {
+    ApzCOB.serverBuildParam(
+      gAppId,
+      "ValidateVoterID",
+      "N",
+      "N",
+      req,
+      false,
+      callBackFn,
+    );
+  }, 100);
+};
+apz.app.PANDetailsRPC.panVerificationCallback = function (params) {
+  ApzCOB.hideLoader();
+  try {
+    
+    let responseObj = JSON.parse(
+      params.res.APZCBO__ValidateVoterID_Res.apiResponse.ResponseBody
+        .responseObj,
+    );
+    const successEl = $("#" + panScrId + "el_txt_2_ul");
+    const failEl = $("#" + panScrId + "el_txt_3_ul");
+    const errorMessage = "PAN verification failed. Please enter a valid PAN.";
+    $('#RPC__PANDetailsRPC__el_hpl_1_ul').addClass('sno');
+    if (responseObj.result_code === 101) {
+      successEl.removeClass("sno");
+      failEl.addClass("sno");
+      ApzCOB.removeErrMessgae(panNumberTag, "element");
+      panName = responseObj.result.name;
+      $("#" + panScrId + "namePerPanInput").val(panName).prop("disabled", true);
+     
+
+    } else {
+      successEl.addClass("sno");
+      failEl.removeClass("sno");
+      ApzCOB.addErrMessage(panNumberTag, "element");
+      let panErrorBlock = $("#" + panNumberTag).closest("ul").next();
+      if (!panErrorBlock.hasClass("err-msg")) {
+        panErrorBlock = panErrorBlock.next();
+      }
+      if (panErrorBlock.length) {
+        panErrorBlock.find("p").text(errorMessage);
+      }
+      ApzCOB.fnDisplayMsg(errorMessage, "E");
+    }
+  } catch (e) {
+    ApzCOB.traceFrontEndError(e,"");
+    console.log("PAN CALLBACK ERROR:", e);
+  }
+};
+apz.app.PANDetailsRPC.checkPANStatus = function(custType){
+  let currentType = custType == 2 ? "Co-App" : "Applicant";
+  let otherCustomer = inSessionStore.customerDetailsList.find(
+      (c) => c.customerType === currentType,
+    );
+   let panStatus = otherCustomer.payload.panNumberStatus;
+const verifyPan = $("#" + panScrId + "el_hpl_1_ul");
+   if(panStatus === "Verified"){
+      $("#" + panScrId + "el_txt_2_ul").removeClass("sno");
+      $("#" + panScrId + "el_txt_3_ul").addClass("sno");
+      verifyPan.addClass("sno")
+      ApzCOB.removeErrMessgae(panNumberTag, "element");
+   }else{
+      $("#" + panScrId + "el_txt_2_ul").addClass("sno");
+      verifyPan.addClass("sno");
+   }
+
+}
+apz.app.PANDetailsRPC.panChange = function(pthis){
+  const panInput = pthis ? $(pthis) : $("#" + panNumberTag);
+  const panValue = panInput.val().toUpperCase().trim();
+  const verifyButton = $("#" + panScrId + "el_hpl_1");
+  const verifyButtonWrapper = $("#" + panScrId + "el_hpl_1_ul");
+  const errorBlock = $("#" + panScrId + "el_txt_3_ul");
+  const successBlock = $("#" + panScrId + "el_txt_2_ul");
+  const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+  const errorMessage = "Invalid PAN format. Please enter a valid PAN.";
+
+  if (!panValue) {
+    verifyButton.addClass("sno");
+    verifyButtonWrapper.addClass("sno");
+    errorBlock.addClass("sno");
+    successBlock.addClass("sno");
+    ApzCOB.removeErrMessgae(panNumberTag, "element");
+    return;
+  }
+
+  if (panRegex.test(panValue)) {
+    verifyButton.removeClass("sno");
+    verifyButtonWrapper.removeClass("sno");
+    errorBlock.addClass("sno");
+    successBlock.addClass("sno");
+    ApzCOB.removeErrMessgae(panNumberTag, "element");
+    panInput.val(panValue);
+  } else {
+    verifyButton.addClass("sno");
+    verifyButtonWrapper.addClass("sno");
+    successBlock.addClass("sno");
+    errorBlock.removeClass("sno");
+    ApzCOB.addErrMessage(panNumberTag, "element");
+
+    let panErrorBlock = panInput.closest("ul").next();
+    if (!panErrorBlock.hasClass("err-msg")) {
+      panErrorBlock = panErrorBlock.next();
+    }
+    if (panErrorBlock.length) {
+      panErrorBlock.find("p").text(errorMessage);
+    }
+    ApzCOB.fnDisplayMsg(errorMessage, "E");
+  }
+}

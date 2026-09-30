@@ -1,0 +1,52 @@
+{
+    "Select__CardsAccount_Res": {
+        "Airline Card": [
+            {
+                "Feature": "An airline credit card helps you earn miles every time you book tickets using the card",
+                "Benefits": "An airline credit card helps you earn miles every time you book tickets using the card",
+                "points": [
+                    "Maximum balance Rs. 10 lakh",
+                    "Cheque book",
+                    "Monthly Average Balance (MAB) requirement not applicable",
+                    "Higher interest"
+                ]
+            }
+        ],
+        "Fuel Card": [
+            {
+                "Feature": "Fuel Credit cards provide exclusive benefits like redeeming Turbo points for fuel or other exclusive merchandise",
+                "Benefits": "Fuel Credit cards provide exclusive benefits like redeeming Turbo points for fuel or other exclusive merchandise",
+                "points": [
+                    "Maximum balance Rs. 10 lakh",
+                    "Cheque book",
+                    "Monthly Average Balance (MAB) requirement not applicable",
+                    "Higher interest"
+                ]
+            }
+        ],
+        "Shopping Card": [
+            {
+                "Feature": "For a person who loves to shop, a Shopping Credit Card is a real treat!. It can have discounts, accelerated rewards, special bonuses",
+                "Benefits": "For a person who loves to shop, a Shopping Credit Card is a real treat!. It can have discounts, accelerated rewards, special bonuses",
+                "points": [
+                    "Maximum balance Rs. 10 lakh",
+                    "Cheque book",
+                    "Monthly Average Balance (MAB) requirement not applicable",
+                    "Higher interest"
+                ]
+            }
+        ],
+        "Festival Card": [
+            {
+                "Feature": "Festival Credit Cards offers special discounts, accelerated rewards, special bonuses during festival season",
+                "Benefits": "Festival Credit Cards offers special discounts, accelerated rewards, special bonuses during festival season",
+                "points": [
+                    "Maximum balance Rs. 10 lakh1",
+                    "Cheque book1",
+                    "Monthly Average Balance (MAB) requirement not applicable1",
+                    "Higher interest"
+                ]
+            }
+        ]
+    }
+}

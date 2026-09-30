@@ -1,0 +1,1257 @@
+var DBVerifyscrId = 'RPCDBV__RPCDBVerify__',
+    eNachstatus = true,
+    queriesIntfId = "APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__",
+    bankAccField = ["accountName", "accountNumber", "ifsc", "bankName", "branchName", "accountType"],
+    coAppbankFields = ["coAppaccountName", "coAppaccountNumber", "coAppifsc", "coAppbankName", "coAppbranchName", "coAppaccountType"],
+    cbSummaryArrDB = ["overdueAmt", "writeOffAmt", "totIndebtness"],
+    applicantDtls = '',
+    coApplicantdtls = '',
+    bankCode = '',
+    udyamFail = '',
+    udyamDocs = '',
+    prevHypId = '',
+    dbKitGenComments = '',
+    sendBackremarks = '',
+    appAccName = '',
+    appAccNum = '',
+    coappAccName = '',
+    coappAccNum = '',
+    remarksComment = '',
+    result = '',
+    documentQueries = '',
+    RespTS = '',
+    latestSubmissionRests = '',
+    checkedQueries = [],
+    paintArr = [],
+    docQueryTs = '',
+    othVal = '',
+    latestUserId = '',
+    DBdocSecImageId = $(`#${DBVerifyscrId}imgView`);
+window.othReasonSelected = false;
+window.stageDocuments = '';
+window.sanCheckedQueries ='';
+window.eNachcheckedQueries = '';
+window.udyamcheckedQueries = '';
+window.eNachstageDocuments = '';
+window.isPreviewvisible = false;
+window.RPCDBV_CURRENT_STAGE_NO = '';
+window.docQuery = {};
+window.applicationStatus = "DBKITGENERATED";
+window.isAdditionalProduct = window.AdditionalProducts.includes(inSessionStore?.applicationMaster?.productCode) || false;
+window.isAdditionalProdOptionalCoApp = window.AdditionalProductsOptionalCoApp.includes(inSessionStore?.applicationMaster?.productCode);
+apz.app.onLoad_RPCDBVerify = function() {
+    apz.app.RPCDBVerify.updateHeaderDetails();
+    if (apz.childScr === 'RPCDBReviewCnf') {
+        window.picture = $(`#RPCDBV__RPCDBReviewCnf__imgView`)
+    } else {
+        window.picture = $(`#${DBVerifyscrId}imgView`)
+    }
+    ApzCOB.intializeGuillotine(picture);
+};
+apz.app.onShown_RPCDBVerify = function() {
+    $('body').addClass(' unati crdas dbkit ');
+    //to show the screen with preview placeholder
+    $(`#RPCDBV__RPCDBVerify__stage_1 use`).attr("xlink:href", "#icon-sidechldopt");
+    $(`#RPCDBV__RPCDBVerify__stage_2 use`).attr("xlink:href", "#icon-sidechldopt");
+    $(`#RPCDBV__RPCDBVerify__stage_3 use`).attr("xlink:href", "#icon-sidechldopt");
+    $(`#RPCDBV__RPCDBVerify__stage_4 use`).attr("xlink:href", "#icon-sidechldopt");
+    $(`#RPCDBV__RPCDBVerify__stage_5 use`).attr("xlink:href", "#icon-sidechldopt");
+    if ($(".kyc-view").has("sno")) {
+        $('#RPCDBV__RPCDBVerify__gr_row_50').removeClass("semi");
+        $('#RPCDBV__RPCDBVerify__gr_row_48').addClass("nodoc");
+    } else {
+        $('#RPCDBV__RPCDBVerify__gr_row_50').addClass("semi");
+        $('#RPCDBV__RPCDBVerify__gr_row_48').removeClass("nodoc");
+    }
+    // twocol at launch-area if the document preview is available
+    appAccName = ApzCOB.getPayloadDatafromWrapper('accountName', 'Applicant', 'bankDetailsWrapperList');
+    appAccNum = ApzCOB.getPayloadDatafromWrapper('accountNumber', 'Applicant', 'bankDetailsWrapperList');
+    coappAccName = ApzCOB.getPayloadDatafromWrapper('accountName', 'Co-App', 'bankDetailsWrapperList');
+    coappAccNum = ApzCOB.getPayloadDatafromWrapper('accountNumber', 'Co-App', 'bankDetailsWrapperList');
+    apz.app.RPCDBVerify.paintHeaderData();
+    ApzCOB.fetcheNachBankData();
+    ApzCOB.FetchDBKITMasterData('VERIFICATION');
+    dbKitGenComments = inSessionStore.applicationTimelineDtl.findLast(el => el.stage == 'Disbursement Kit')?.remarks;
+    $("#RPCDBV__RPCDBReviewCnf__sanctionComments").text(dbKitGenComments || "---");
+    if (inSessionStore.applicationMaster.productCode === '1009') {
+        window.ApplicationType = 'NEW';
+        window.leadNode = 'leadDetails';
+    } else if (inSessionStore.applicationMaster.productCode === '1001') {
+        window.ApplicationType = 'OpenMarket';
+        window.leadNode = 'cdhLeadDetails';
+    } else if (inSessionStore.applicationMaster.productCode === '1002') {
+        window.ApplicationType = 'RENEWAL';
+        window.leadNode = 'cdhLeadDetails';
+    }
+    $('#APZCBO__BaseScreens__queryModal_close').click(() => {
+        apz.app.RPCFooter.onClickQueryMdlCancel();
+    });
+    if (isRpcDashboardPreview) {
+       ApzCOB.launchSubScreen("RPCDBReviewCnf", `${DBVerifyscrId}RPCDbkitLaunchDiv`);
+       setTimeout(function() {
+           $("body").removeClass('dbkit crdas');
+       },500);
+       $('#RPCDBV__RPCDBVerify__gr_row_17').addClass('sno');
+       $('#RPCDBV__RPCDBVerify__gr_col_17').addClass('dashrpcdbpreview');
+       $('#RPCDBV__RPCDBVerify__DbFooter').addClass('sno');
+       $('#RPCDBV__RPCDBVerify__DbHeader').addClass('sno');
+       ApzCOB.toggleModal(BaseScrId + "preview_modal");
+    } else {
+        $("#APZCBO__BaseScreens__preview_row").empty();
+        ApzCOB.launchSubScreen("RPCdbsanctionDtl", `${DBVerifyscrId}RPCDbkitLaunchDiv`);
+        $('#RPCDBV__RPCDBVerify__gr_col_17').removeClass('dashrpcdbpreview');
+    }
+    setTimeout(function() {
+        apz.app.RPCDBVerify.setInprogressStatus();
+    },500);
+    apz.app.RPCDBVerify.responseUserId();
+    if(window.isAdditionalProduct) {
+       $("#RPCDBV__RPCDBVerify__disbDocumentationRow").css("display", "none");
+        $(`#${DBVerifyscrId}souringdetails_row`).addClass('sno'); 
+        $(`#${DBVerifyscrId}rpc_row`).addClass('sno');
+        $(`#${DBVerifyscrId}sc_row_156`).addClass('sno'); 
+        if(window.isAdditionalProdOptionalCoApp) {
+        $(`#${DBVerifyscrId}ApplicantCBreport_row`).addClass('sno'); 
+        $(`#${DBVerifyscrId}CoApplicantCBreport_row`).addClass('sno');
+        $(`#${DBVerifyscrId}CBreport_row`).removeClass('sno');
+        }
+    }
+};
+apz.app.RPCDBVerify.paintHeaderData = function(lscrId) {
+    lscrId = lscrId || DBVerifyscrId;
+    let {
+        applicationMaster: {
+            memberId = "",
+            applicationId = "",
+            branchId = "",
+            branchName = "",
+            productCode = "",
+            kendraId = "",
+            kendraName = ""
+        } = {}
+    } = inSessionStore;
+    if (inSessionStore.applicationMaster.productCode === "1001") {
+        memberId = inSessionStore?.cdhLeadDetails?.t24CustId || memberId;
+    }
+    let productName = subProductResponse?.filter(el => el.productCode === productCode )?.[0]?.productName;
+    productName = (productName == 'Vishesh') ? 'Unnati Lite' : productName;
+    const custName = ApzCOB.getPayloadDatafromWrapper('customerName', 'Applicant', 'customerDetailsList');
+    const setText = (id, value) => $(`#${lscrId + id}`).text(value);
+    setText("custNameID_txtcnt", `${custName} / ${memberId}`);
+    setText("applicationId_txtcnt", applicationId);
+    setText("branchInfo_txtcnt", `${branchId} / ${branchName}`);
+    setText("kendraIDName_txtcnt", `${kendraId} / ${kendraName}`);
+    setText("loanProduct_txtcnt", productName);
+    setText("loanID_txtcnt", ApzCOB.getPayloadDatafromWrapper('t24LoanId', 'Applicant', 'loanDetails') ?? '');
+    if (isPreviewvisible == true) {
+        window.rework = `#${RPCDBReviewCnfScrId}recurrentRoleType`;
+    } else {
+        window.rework = `#${DBVerifyscrId}currentRoleType`;
+    }
+    let role = gApzCOB.selectedRole.replace(/_/g, '');
+    if (apz.isNull(data.isRework)) {
+        $(rework).addClass("sno");
+    } else {
+        const label = (data.isRework === 'true' /*|| data.isRework === 'false'*/) ? "Rework" : "New";
+        $(rework).removeClass("sno").text(`${role} - ${label}`);
+    }
+    /*if (data.isRework === 'true') {
+        $(rework).text(role + " - Rework");
+    } else {
+        $(rework).text(role + " - New");
+    }*/
+};
+apz.app.RPCDBVerify.NavigateSidebar = function(dbsideID, pthis) {
+    apz.currAppId = "RPCDBV"
+    window.stageDocuments = [];
+    let scrName = Object.keys(window.RPCDBVerify_STAGES).find(key => window.RPCDBVerify_STAGES[key].id === parseInt(dbsideID));
+    let notVerified = false;
+    for (let i = 1; i <= 4; i++) {
+        if ($("#RPCDBV__RPCDBVerify__stage_" + i).find("svg").hasClass("inprg")) {
+            notVerified = true;
+        }
+    }
+    if (dbsideID == "5" && notVerified) {
+        ApzCOB.fnDisplayMsg("Please verify all the stages", "E");
+    } else {
+        $('#RPCDBV__RPCDBVerify__sidebarForm a').removeClass('active');
+        $(pthis).addClass('active');
+        ApzCOB.launchSubScreen(scrName, `${DBVerifyscrId}RPCDbkitLaunchDiv`);
+        window.RPCDBV_CURRENT_STAGE_NO = parseInt(dbsideID);
+    }
+};
+apz.app.RPCDBVerify.downloadFiles = function(pdoctype, pcusttype) {
+    window.CB_LOAN_ID = '';
+    if (pdoctype === 'CB') {
+        let custType = (pcusttype === "1") ? 'Applicant' : 'Co-App';
+        let custDetailID = ApzCOB.getCustDetailID(custType);
+        window.CB_LOAN_ID = ApzCOB.getPayloadDatafromWrapper('cbLoanId', custType, 'cibilDetailsWrapperList');
+        if (apz.isNull(CB_LOAN_ID) && window.isAdditionalProduct ) {
+              CB_LOAN_ID = window.isAdditionalProdOptionalCoApp ? "A01" + gApzCOB.userDetails.applicationId : ( (window.isAdditionalProduct &&  custType == "Applicant") ? "A01" + gApzCOB.userDetails.applicationId : "C01" + gApzCOB.userDetails.applicationId );
+       }
+        ApzCOB.downloadBRECbReport(custDetailID);
+    } else if (pdoctype === 'EXECUTED') {
+        let currLanguage = ApzCOB.getPayloadDatafromWrapper('language', 'Applicant', 'loanDetails');
+        window.CB_LOAN_ID = `${pdoctype}_${gApzCOB.userDetails.applicationId}`
+        ApzCOB.DBDocGenerateAndDownload('', 'FETCH_MANUAL', 'LOAN_APPLICATION', currLanguage, 'Y', apz.app.RPCDBVerify.downloadFilesCB, '');
+    } else {
+        window.CB_LOAN_ID = `${pdoctype}_${gApzCOB.userDetails.applicationId}`
+        req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": "APZCBO",
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "reportType": pdoctype,
+                    "generateReport": false
+                },
+                "interfaceName": "GenerateAndDownloadReport"
+            }
+        }
+        apz.startLoader();
+        ApzCOB.serverBuildParam(gAppId, "GenerateAndDownloadReport", "N", "N", req, false, apz.app.RPCDBVerify.downloadFilesCB);
+    }
+};
+apz.app.RPCDBVerify.downloadFilesCB = function(params) {
+    let b64Data = "";
+    let errMsg = "File download failed.!";
+    const interface = ApzCOB.GetInterfaceResMap(params);
+    const apiResponse = params?.res?.[interface]?.apiResponse;
+    if (apz.isObjectEmpty(apiResponse)) return;
+    errMsg = apiResponse?.ResponseHeader?.ResponseMessage ?? errMsg;
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            const responseStr = apiResponse?.ResponseBody?.responseObj;
+            const response = responseStr ? JSON.parse(responseStr) : {};
+            if (response?.base64) {
+                window.CBBASE64 = b64Data = response.base64;
+                ApzCOB.convertBase64ToPDF(b64Data, CB_LOAN_ID);
+            } else if(response.mergedBase64) {
+                ApzCOB.convertBase64ToPDF(response.mergedBase64, CB_LOAN_ID);
+            } else {
+                ApzCOB.showDBCommonErrorModals("File Not Found.!");
+            }
+        } else {
+            apz.stopLoader();
+            ApzCOB.showDBCommonErrorModals(errMsg);
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showDBCommonErrorModals(errMsg);
+    }
+}
+apz.app.RPCDBVerify.sendback = function() {
+    remarksComment = $(`#RPCDBV__RPCDBReviewCnf__sendbackrRemarks`).val();
+    if (!apz.isNull(remarksComment)) {
+        let confrmTxt = `Do you want to sendback this application for DBKIT?`;
+        let popUpObj = {};
+        popUpObj.text = confrmTxt;
+        popUpObj.Btn1 = {
+            "text": "Yes",
+            "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`); apz.app.RPCDBVerify.Stagemoment('this','PUSHBACK')"
+        }
+        popUpObj.Btn2 = {
+            "text": "No",
+            "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`)"
+        }
+        ApzCOB.showNewCommonConfirmationModal(popUpObj)
+    } else {
+        ApzCOB.fnDisplayMsg("Please enter the remarks", "E");
+    }
+};
+apz.app.RPCDBVerify.submit = function() {
+    remarksComment = $(`#RPCDBV__RPCDBReviewCnf__sendbackrRemarks`).val();
+    if (!apz.isNull(remarksComment)) {
+    let confrmTxt = `Do you want to submit the application for disbursement?`;
+    let popUpObj = {};
+    popUpObj.text = confrmTxt;
+    popUpObj.Btn1 = {
+        "text": "Yes",
+        "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`); apz.app.RPCDBVerify.Stagemoment('this','SUBMIT')"
+    }
+    popUpObj.Btn2 = {
+        "text": "No",
+        "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`)"
+    }
+    ApzCOB.showNewCommonConfirmationModal(popUpObj)
+    } else {
+        ApzCOB.fnDisplayMsg("Please enter the remarks", "E");
+    }
+};
+apz.app.RPCDBVerify.Stagemoment = function(pthis, gaction) {
+    let rMarks = remarksComment || '';
+    ApzCOB.userDetailsData();
+    ApzCOB.stageBasedOnAction(pthis, gaction);
+    window.approveRejectAction = gaction;
+    window.approveRejectAction = "";
+    switch (gaction) {
+        case "SUBMIT":
+            window.approveRejectAction = "DBKITVERIFIED";
+            break;
+        case "PUSHBACK":
+            window.approveRejectAction = "DBPUSHBACK";
+            break;
+        default:
+            break;
+    }
+    let req = {
+        apiRequest: {
+            interfaceName: "",
+            appId: gAppId,
+            requestObj: {
+                appId: gApzCOB.userDetails.appId,
+                status: approveRejectAction,
+                userId: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                applicationId: gApzCOB.userDetails.applicationId,
+                versionNum: gApzCOB.userDetails.versionNum,
+                custDtlId: gApzCOB.userDetails.custDtlId,
+                remarks: rMarks,
+                workflow: {
+                    currentRole: gApzCOB.workflow.currentRole,
+                    action: gApzCOB.workflow.action,
+                    workflowId: gApzCOB.workflow.workflowId,
+                    stage: gApzCOB.workflow.stage,
+                },
+            },
+        },
+    };
+    apz.startLoader();
+    ApzCOB.serverBuildParam(gAppId, "Stagemoment", "N", "N", req, false, apz.app.RPCDBVerify.StagemomentCB);
+};
+apz.app.RPCDBVerify.StagemomentCB = function(params) {
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            let ifaceName = ApzCOB.GetInterfaceResMap(params);
+            if (params.res[ifaceName].apiResponse.ResponseHeader.ResponseCode == 0) {
+                apz.stopLoader();
+                if (approveRejectAction === "DBKITVERIFIED") {
+                    popUpObj = {
+                        text: `Application No ${gApzCOB.userDetails.applicationId} Submitted Successsfully to Disbursement.`,
+                        Btn: {
+                            text: "Ok",
+                            onClick: "apz.app.RPCDBVerify.gotoHome(`newCommonSuccModal`)",
+                        }
+                    };
+                    ApzCOB.showNewCommonSuccessModal(popUpObj);
+                    return;
+                }
+                if (["DBPUSHBACK"].includes(approveRejectAction)) {
+                    apz.stopLoader();
+                    popUpObj = {
+                        text: ``,
+                        Btn: {
+                            text: "Ok",
+                            onClick: "apz.app.RPCDBVerify.gotoHome(`newCommonSuccModal`)",
+                        }
+                    };
+                    if (approveRejectAction === "DBPUSHBACK") {
+                        popUpObj.text = `Application No ${gApzCOB.userDetails.applicationId} Pushed back to DBKit Successfully.`;
+                        ApzCOB.showNewCommonSuccessModal(popUpObj);
+                        return;
+                    }
+                }
+                if (approveRejectAction === "REJECTED") {
+                    apz.stopLoader();
+                    popUpObj = {
+                        text: `Application No ${gApzCOB.userDetails.applicationId} Rejected Successfully.`,
+                        Btn: {
+                            text: "Ok",
+                            onClick: "apz.app.RPCDBVerify.gotoHome(`newCommonSuccModal`)",
+                        }
+                    };
+                    ApzCOB.showNewCommonSuccessModal(popUpObj);
+                    return;
+                }
+            } else {
+                let popUpObj = {
+                    text: "Failed",
+                    Btn: {
+                        text: "OK",
+                        onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`)"
+                    }
+                }
+                ApzCOB.showNewCommonErrorModal(popUpObj);
+            }
+        } else {
+            apz.stopLoader(); // to be done after getting the proper response from backend
+            let popUpObj = {
+                text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+                Btn: {
+                    text: "OK",
+                    onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`)"
+                }
+            }
+            ApzCOB.showNewCommonErrorModal(popUpObj);
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        let popUpObj = {
+            text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+            Btn: {
+                text: "OK",
+                onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`)"
+            }
+        }
+        ApzCOB.showNewCommonErrorModal(popUpObj);
+    }
+    apz.stopLoader();
+};
+apz.app.RPCDBVerify.hideNshowBtns = function() {
+    if (apz.childScr === 'RPCdbsanctionDtl') {
+        $(`#RPCDBV__RPCDBVerify__prevBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__sendbackBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__submitBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__queryBtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__AccpetNextbtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__previewBtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__nextBtn`).removeClass('sno');
+    }
+    if (apz.childScr === 'RPCDBeNach') {
+        $(`#RPCDBV__RPCDBVerify__sendbackBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__submitBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__prevBtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__queryBtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__AccpetNextbtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__previewBtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__nextBtn`).removeClass('sno');
+    }
+    if (apz.childScr === 'RPCDBUdyamReg') {
+        $(`#RPCDBV__RPCDBVerify__queryBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__sendbackBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__submitBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__prevBtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__AccpetNextbtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__previewBtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__nextBtn`).removeClass('sno');
+    }
+    if (apz.childScr === 'RPCDBDocExecutionUnnati') {
+        $(`#RPCDBV__RPCDBVerify__queryBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__sendbackBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__submitBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__prevBtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__AccpetNextbtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__previewBtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__nextBtn`).removeClass('sno');
+    }
+    if (apz.childScr === 'RPCDBReviewCnf') {
+        $(`#RPCDBV__RPCDBVerify__queryBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__AccpetNextbtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__previewBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__nextBtn`).addClass('sno');
+        $(`#RPCDBV__RPCDBVerify__prevBtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__sendbackBtn`).removeClass('sno');
+        $(`#RPCDBV__RPCDBVerify__submitBtn`).removeClass('sno');
+    }
+}
+apz.app.RPCDBVerify.acceptNextBtn = function() {
+    let isValid = true;
+    udyamFail = inSessionStore.udhyamDetails.filter(el => el.udhyamStatus === "Failed");
+    if (RPCDBVerify_STAGES[apz.childScr].id === 4) {
+        for (let i = 0; i < $("#RPCDBV__RPCDBDocExecutionUnnati__DocList1 li").length; i++) {
+            if (!($("#RPCDBV__RPCDBDocExecutionUnnati__docQueries_" + i).hasClass("query")) && !($(
+                    "#RPCDBV__RPCDBDocExecutionUnnati__docApprove_" + i).hasClass("apr"))) {
+                if (i == 2 && window.documentList.findIndex(el => el.order == 3) == -1) {
+                    continue;
+                } //AML
+                isValid = false;
+                ApzCOB.showNewCommonErrorModal("Please Verify mandatory documents.");
+                break;
+            }
+        }
+    }
+    if (isValid) {
+        ApzCOB.rpcDBVerifyStages();
+    }
+}
+
+apz.app.RPCDBVerify.prevBtn = function() {
+    dbsideID = RPCDBVerify_STAGES[apz.childScr].id - 1;
+    if (dbsideID == 2 && window.isAdditionalProduct) {
+        dbsideID -=1;
+    }
+    $(`#${DBVerifyscrId}stage_${dbsideID}`).click();
+}
+apz.app.RPCDBVerify.nextBtn = function() {
+    prevHypId = RPCDBVerify_STAGES[apz.childScr].id;
+    dbsideID = RPCDBVerify_STAGES[apz.childScr].id + 1;
+    if (dbsideID == 2 && window.isAdditionalProduct) {
+        dbsideID +=1;
+    }
+    $(`#${DBVerifyscrId}stage_${dbsideID}`).click();
+}
+apz.app.RPCDBVerify.viewLog = function() {
+    let arr = [];
+    let timeLineWrapper = structuredClone ? structuredClone(inSessionStore.applicationTimelineDtl) : JSON.parse(JSON.stringify(inSessionStore
+        .applicationTimelineDtl))
+    timeLineWrapper.forEach(function(el, index) {
+        timeStamp = '---';
+        if (el?.timeStamp.includes(' ')) {
+            timeStamp = typeof(el.timeStamp) === 'string' ? ApzCOB.dateformatter(el.timeStamp.replace(' ', 'T'), "date", "d/m/Y") : '---';
+        }
+        let lobj = {
+            "stage": apz.isNull(el?.stage) ? "---" : el?.stage,
+            "action": apz.isNull(el?.actionTaken) ? "---" : el?.actionTaken,
+            "userName": apz.isNull(el?.userId) ? "---" : el?.userId,
+            "actionTimeline": timeStamp,
+            "rpcStatRemaks": apz.isNull(el?.rpcStatRemaks) ? "---" : el?.rpcStatRemaks,
+            "remarks": apz.isNull(el?.remarks) ? "---" : el?.remarks
+        }
+        arr.push(lobj);
+    })
+    apz.data.scrdata.APZCBO__ActivityLog_Res = [];
+    apz.data.scrdata.APZCBO__ActivityLog_Res = arr;
+    apz.data.loadData("ActivityLog", gAppId);
+    ApzCOB.toggleModal(BaseScrId + "activityLogModal");
+    $('.crt-list li').attr('onClick', '');
+    apz.data.scrdata.APZCBO__ActivityLog_Res?.forEach(function(el, index) {
+        let rpcStatId = document.getElementById(`${activityIntfId}rpcStatRemaks_${index}_txtcnt`);
+        let remarksId = document.getElementById(`${activityIntfId}remarks_${index}_txtcnt`);
+        if (Array.isArray(el?.rpcStatRemaks)) {
+            if (el.rpcStatRemaks?.length > 0) {
+                rpcStatId.innerHTML = el.rpcStatRemaks?.map(msg => `• ${msg}`).join("<br>");
+            }
+        }
+        if (el?.remarks) {
+            if (el.remarks.includes('~')) {
+                el.remarks = el.remarks.split('~');
+            }
+            if (Array.isArray(el.remarks) && el.remarks?.length > 0) {
+                remarksId.innerHTML = el?.remarks?.map(msg => `• ${msg}`).join("<br>");
+            }
+        }
+    })
+};
+apz.app.RPCDBVerify.previewMdl = function() {
+    window.isPreviewvisible = true;
+    window.previewPrevscrn = apz.childScr;
+    ApzCOB.toggleModal(DBVerifyscrId + 'preViewMdl');
+    $(`#${DBVerifyscrId}preViewMdl_close`).attr('onclick', "apz.app.RPCDBVerify.closePreviewMdl()");
+    let previewrow = DBVerifyscrId + "preview_row";
+    ApzCOB.launchSubScreen("RPCDBReviewCnf", previewrow, "");
+}
+apz.app.RPCDBVerify.closePreviewMdl = function() {
+    window.isPreviewvisible = false;
+    apz.childScr = window.previewPrevscrn;
+    ApzCOB.toggleModal(DBVerifyscrId + 'preViewMdl'); //close
+    $('#RPCDBV__RPCDBVerify__preViewMdl_content #RPCDBV__RPCDBReviewCnf__dbreviewlist').html(''); //MUI-499
+    $(`#RPCDBV__RPCDBReviewCnf__previewheade`).addClass('sno');
+}
+apz.app.RPCDBVerify.paintfileListdata = function() {
+    let docArray = window.documentList;
+    let docData = '';
+    let otherDocId = DisbursementDocs?.find(el => el.docType === "OTHER_DBDOCS")?.id
+    othIndex = window.documentList.findIndex(el =>el.order === otherDocId);
+    let uploadedDocTyps = new Set(window.documentList.map(doc => doc.docType));
+    docData = DisbursementDocs.filter((doc) => uploadedDocTyps.has(doc.docType));
+    const updatedMasterDocs = docData.map(d => {
+        const match = docArray.find(doc => doc.order === d.id);
+        let size = "";
+        if (match && match.size != null && !isNaN(match.size)) {
+            size = (match.size / 1024).toFixed(2) + " KB";
+        }
+        return {
+            ...d,
+            displayName: d.displayName,
+            fileName: d.displayName,
+            size: size
+        };
+    });
+    if (apz.childScr === 'RPCDBReviewCnf') {
+        apz.data.scrdata.RPCDBV__IpaintreViewfilelist_Res = [];
+        apz.data.scrdata.RPCDBV__IpaintreViewfilelist_Res = updatedMasterDocs;
+        apz.data.loadData("IpaintreViewfilelist", apz.currAppId);
+    } else {
+        apz.data.scrdata.RPCDBV__IpaintfileList_Res = [];
+        apz.data.scrdata.RPCDBV__IpaintfileList_Res = updatedMasterDocs;
+        apz.data.loadData("IpaintfileList", apz.currAppId);
+    }
+    // $('#RPCDBV__IpaintfileList__o__RPCDBV__IpaintfileList_Res__displayName_0').trigger('click');
+}
+// apz.app.RPCDBVerify.viewPDFDocument = function(base64) {
+//     $('iframe').remove();
+//     const iframe = document.createElement('iframe');
+//     Object.assign(iframe, {
+//         src: (ApplicationPDFbase64 + base64),
+//         width: "500",
+//         height: "400"
+//     });
+//     document.getElementById(`${DBVerifyscrId}imgView_ul`).appendChild(iframe);
+//     $(`#${DBVerifyscrId}imgView_li`).addClass('sno');
+// }
+apz.app.RPCDBVerify.viewPDFDocument = function(base64, fileName) {
+    $('iframe').remove();
+    const iframe = document.createElement('iframe');
+    Object.assign(iframe, { src: (ApplicationPDFbase64 + base64), width: "700", height: "400"});
+    document.getElementById(`${DBVerifyscrId}DocimgView_ul`).appendChild(iframe);
+    $(`#${DBVerifyscrId}rotate_Image,#${DBVerifyscrId}Zoomout_Img,#${DBVerifyscrId}Zoomin_Img`).addClass('sno');
+    $(`#${DBVerifyscrId}docViewModal_window h1`).text(fileName ?? 'Uploaded Image');
+    ApzCOB.toggleModal(`${DBVerifyscrId}docViewModal`);
+    $(`#${DBVerifyscrId}DocimgView_li`).addClass('sno');
+};
+apz.app.RPCDBVerify.downloadShownImg = function() {
+    // Implementation for downloading the shown image
+};
+
+apz.app.RPCDBVerify.paintDocSectionDocs = function(params) {
+    $('iframe').remove();
+    window.stageDocuments = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.filter(el => (el.payload.documentType ===
+        "Udyam Reg Success" || el.payload.documentType === "Udyam Reg Failed"));
+    if (apz.childScr == 'RPCDBReviewCnf') {
+        window.docSecScrId = 'RPCDBV__RPCDBReviewCnf__';
+        if (stageDocuments.length === 1) {
+            $(`#${docSecScrId}frontView_Img,#${docSecScrId}backView_Img`).attr('disabled', true);
+        } else {
+            $(`#${docSecScrId}frontView_Img`).attr('disabled', true);
+            $(`#${docSecScrId}backView_Img`).attr('disabled', false);
+        }
+    }
+    apz.stopLoader();
+    if (params.hasOwnProperty('errorCode')) {
+        ApzCOB.fnDisplayMsg(params.errorMessage, "E");
+        if (apz.childScr === 'RPCDBReviewCnf') {
+            $(`#RPCDBV__RPCDBReviewCnf__imgView`).attr('src', 'data:image/png;base64,' + '');
+        } else {
+            $(`#${DBVerifyscrId}imgView`).attr('src', 'data:image/png;base64,' + '');
+        }
+    } else if (params.hasOwnProperty('base64')) {
+        if (currDocType?.toLowerCase() !== 'pdf') {
+            $(`#${DBVerifyscrId}imgView`).removeClass('sno');
+            $(`#${DBVerifyscrId}imgView_li`).removeClass('sno');
+            $(`#${DBVerifyscrId}docIcons`).removeClass('sno');
+            if (apz.childScr === 'RPCDBReviewCnf') {
+                $(`#RPCDBV__RPCDBReviewCnf__imgView`).attr('src', 'data:image/png;base64,' + params.base64);
+                if (Object.keys(window.ImageLocationDetails).length > 0) {
+                    apz.app.BaseScreens.paintImageLocationDetails(`#RPCDBV__RPCDBReviewCnf__imgView`, window.ImageLocationDetails);
+                }
+            } else {
+                $(`#${DBVerifyscrId}imgView`).attr('src', 'data:image/png;base64,' + params.base64);
+                if (Object.keys(window.ImageLocationDetails).length > 0) {
+                    apz.app.BaseScreens.paintImageLocationDetails(`#${DBVerifyscrId}imgView`, window.ImageLocationDetails);
+                }
+            }
+            ApzCOB.intializeGuillotine(DBdocSecImageId);
+        }
+    }
+}
+apz.app.RPCDBVerify.paintenachSectionDocs = function(params) {
+    $('iframe').remove();
+    window.stageDocuments = inSessionStore?.applicationDocumentsWrapperList[0]?.applicationDocumentsList.filter(el => (el.payload.documentType ===
+        "DBBankUpdate"));
+    if (stageDocuments.length === 1) {
+        window.docSecScrId = "RPCDBV__RPCDBVerify__";
+        $(`#${docSecScrId}frontView_Img, #${docSecScrId}backView_Img`).attr("disabled", true);
+    }
+    apz.stopLoader();
+    if (params.hasOwnProperty('errorCode')) {
+        ApzCOB.fnDisplayMsg(params.errorMessage, "E");
+        if (apz.childScr === 'RPCDBReviewCnf') {
+            $(`#RPCDBV__RPCDBReviewCnf__img`).attr('src', 'data:image/png;base64,' + '');
+        } else {
+            $(`#${DBVerifyscrId}imgView`).attr('src', 'data:image/png;base64,' + '');
+        }
+    } else if (params.hasOwnProperty('base64')) {
+        if (currDocType?.toLowerCase() !== 'pdf') {
+            $(`#${DBVerifyscrId}imgView`).removeClass('sno');
+            $(`#${DBVerifyscrId}imgView_li`).removeClass('sno');
+            $(`#${DBVerifyscrId}docIcons`).removeClass('sno');
+            if (apz.childScr === 'RPCDBReviewCnf') {
+                $(`#RPCDBV__RPCDBReviewCnf__img`).attr('src', 'data:image/png;base64,' + params.base64);
+                if (Object.keys(window.ImageLocationDetails).length > 0) {
+                    apz.app.BaseScreens.paintImageLocationDetails(`#RPCDBV__RPCDBReviewCnf__img`, window.ImageLocationDetails);
+                }
+            } else {
+                $(`#${DBVerifyscrId}imgView`).attr('src', 'data:image/png;base64,' + params.base64);
+                if (Object.keys(window.ImageLocationDetails).length > 0) {
+                    apz.app.BaseScreens.paintImageLocationDetails(`#${DBVerifyscrId}imgView`, window.ImageLocationDetails);
+                }
+            }
+            ApzCOB.intializeGuillotine(DBdocSecImageId);
+        }
+    }
+}
+apz.app.RPCDBVerify.updateHeaderDetails = function() {
+    let loginResponse = LoggedInUserDetails.loginResponse;
+    let loginName = loginResponse?.userDet?.name;
+    let loginUserId = loginResponse?.userDet?.id;
+    $(`#${DBVerifyscrId}caloggedInUserName_txtcnt`).text(`${loginName} (${loginUserId})`);
+    $(`#${DBVerifyscrId}caloggedInRole_txtcnt`).text(`Role:${loginResponse?.addInfo1}`);
+}
+apz.app.RPCDBVerify.loadQueryModal = function(val) {
+    ApzCOB.removeErrMessgae(`${BaseScrId}otherQueryReasonInp`, "element");
+    currentDoc = val;
+    let currStage = DBKIT_MASTERDATA?.find(el => el.stageName === RPCDBVerify_STAGES[apz.childScr].stageName);
+    currApplicantQueries = [];
+    currApplicantQueries = JSON.parse(currStage?.queries)?.sendbackReason;
+    let queryArray = [...currApplicantQueries, {
+        id: "oth",
+        value: "Other",
+    }];
+    window.othReasonSelected = false;
+    if (queryArray.length > 0) {
+        apz.data.scrdata.APZCBO__RPCQueries_Res = [];
+        if (apz.childScr == 'RPCDBeNach' && ["Success", "Initiated"].includes(applicantDtls[0]?.resDesc)) {
+            apz.data.scrdata.APZCBO__RPCQueries_Res = structuredClone(queryArray).filter(item => item.id === "Q2" || item.id === "oth");
+        } else {
+            apz.data.scrdata.APZCBO__RPCQueries_Res = structuredClone(queryArray);
+        }
+        window.QueriesPainted = apz.data.scrdata.APZCBO__RPCQueries_Res;
+        apz.data.loadData("RPCQueries", gAppId);
+    }
+    $(".crt-list li").attr("onClick", "");
+    $(`#${BaseScrId}otherQueryReasonInp`).val("");
+    $(`#${BaseScrId}otherQueryReasonInp`).attr('maxlength', 250);
+    $('#APZCBO__BaseScreens__queryModal_content').scrollTop(0, 0);
+    $(`#${BaseScrId}otherQueryReasonForm`).addClass("sno");
+    $(`#${BaseScrId}queryList`).find("p").filter(function(el, item) {
+        if ($(`#${queriesIntfId}value_${el}_txtcnt`)[0].textContent === "Other") {
+            othReasonId = `#${queriesIntfId}id_${el}`;
+            $(`#${queriesIntfId}id_${el}`).attr("onchange", "apz.app.RPCDBVerify.onSelectOtherReason();");
+        }
+    });
+    $(`#${BaseScrId}queryList`).addClass("pb-70");
+    if (currApplicantQueries.length === 0) {
+        $(`#${BaseScrId}search_row`).addClass('sno');
+        $('#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__id_0').prop('checked', true).change()
+    } else {
+        $(`#${BaseScrId}search_row`).removeClass('sno');
+    }
+    $("#APZCBO__BaseScreens__otherQueryReasonInp").val('');
+    $(`#${BaseScrId}otherQueryReasonForm`).addClass("sno");
+    let othId = apz.data.scrdata.APZCBO__RPCQueries_Res.findIndex(el => el.id === "oth");
+    let lQueriespropset = apz.app.RPCDBVerify.getQueryReasons(RPCDBV_CURRENT_STAGE_NO,apz.childScr);
+    if (RPCDBVerify_STAGES[apz.childScr].id == 4) {
+        documentQueries = window?.dbVerificationQueries?.filter(q=>q.split("^")[0]===val);
+        if (documentQueries?.length > 0 && !window.reuploadedDocs.includes(currentDoc)) {
+            for (let i = 0; i < documentQueries.length; i++) {
+                
+                let query = apz.app.RPCDBVerify.getCheckedQuery(documentQueries[i]);
+                for (let j = 0; j < $("#APZCBO__BaseScreens__queryList li").length; j++) {
+                    if ($("#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__value_" + j + "_txtcnt").text() === query) {
+                        $("#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__id_" + j).prop("checked", "checked");
+                    } else if ((documentQueries[i].split("^")[1].split("?")[0] == "oth")) {
+                        query = documentQueries[i].split("^")[1].split("?")[1];
+                        $("#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__id_" + ($("#APZCBO__BaseScreens__queryList>ul").children().last().attr("rowno"))).prop("checked", "checked");
+                        $("#APZCBO__BaseScreens__otherQueryReasonInp").val(query);
+                        $(`#${BaseScrId}otherQueryReasonForm`).removeClass("sno");
+                    }
+                }
+            }
+        }
+    }else 
+    if (RPCDBVerify_STAGES[apz.childScr].id == 1) {
+        if(lQueriespropset?.length > 0) {
+            $("#APZCBO__BaseScreens__queryList > ul > li input").prop("checked",false);
+            sanCheckedQueries = lQueriespropset?.map(item => item.Q);
+            for (let i = 0; i < sanCheckedQueries.length; i++) {
+                let query = sanCheckedQueries[i];
+                for (let j = 0; j < $("#APZCBO__BaseScreens__queryList li").length; j++) {
+                    if ($("#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__value_" + j + "_txtcnt").text() === query) {
+                        $("#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__id_" + j).prop("checked", "checked");
+                    } else if (sanCheckedQueries[i].split("?")[0] == "oth") {
+                        query = sanCheckedQueries[i]?.split("?")[1];
+                        if (othId >= 0) {
+                            $("#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__id_" + othId).prop("checked", "checked");
+                        }
+                        $("#APZCBO__BaseScreens__otherQueryReasonInp").val(query);
+                        $(`#${BaseScrId}otherQueryReasonForm`).removeClass("sno");
+                    }
+                }
+            }
+        }
+    } else 
+    if (RPCDBVerify_STAGES[apz.childScr].id == 2) {
+        $("#APZCBO__BaseScreens__queryList > ul > li input").prop("checked",false);
+        if (lQueriespropset?.length > 0) {
+            eNachQueries = lQueriespropset?.map(item => item.Q);
+            for (let i = 0; i < eNachQueries.length; i++) {
+                let query = eNachQueries[i];
+                for (let j = 0; j < $("#APZCBO__BaseScreens__queryList li").length; j++) {
+                    if ($("#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__value_" + j + "_txtcnt").text() === query) {
+                        $("#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__id_" + j).prop("checked", "checked");
+                    } else if (eNachQueries[i].split("?")[0] == "oth") {
+                        query = eNachQueries[i].split("?")[1];
+                        if (othId >= 0) {
+                            $("#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__id_" + othId).prop("checked", "checked");
+                        }
+                        $("#APZCBO__BaseScreens__otherQueryReasonInp").val(query);
+                        $(`#${BaseScrId}otherQueryReasonForm`).removeClass("sno");
+                    }
+                }
+            }
+        }
+    }else 
+    if (RPCDBVerify_STAGES[apz.childScr].id == 3) {
+        $("#APZCBO__BaseScreens__queryList > ul > li input").prop("checked", false);
+        if (lQueriespropset?.length > 0) {
+            udyamQueries = lQueriespropset?.map(item => item.Q);
+            for (let i = 0; i < udyamQueries.length; i++) {
+                let query = udyamQueries[i];
+                for (let j = 0; j < $("#APZCBO__BaseScreens__queryList li").length; j++) {
+                    if ($("#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__value_" + j + "_txtcnt").text() === query) {
+                        $("#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__id_" + j).prop("checked", "checked");
+                    } else if (udyamQueries[i].split("?")[0] == "oth") {
+                        query = udyamQueries[i].split("?")[1];
+                        if (othId >= 0) {
+                            $("#APZCBO__RPCQueries__o__APZCBO__RPCQueries_Res__id_" + othId).prop("checked", "checked");
+                        }
+                        $("#APZCBO__BaseScreens__otherQueryReasonInp").val(query);
+                        $(`#${BaseScrId}otherQueryReasonForm`).removeClass("sno");
+                    }
+                }
+            }
+        }
+    }
+    ApzCOB.toggleModal(BaseScrId + "queryModal");
+};
+apz.app.RPCDBVerify.getCheckedQuery = function(query){
+if (query.split("^")[1].indexOf("oth?") != -1) {
+        return query.split("^oth?")[1];
+    } else {
+        return (JSON.parse(DBKIT_MASTERDATA.filter(e => e.id === 11)[0].queries)).sendbackReason.filter(e1 => e1.id === query.split("^")[1])[0]
+            .value;
+    }
+}
+apz.app.RPCDBVerify.onSelectOtherReason = function() {
+    othVal = $(othReasonId).prop("checked");
+    if (othVal) {
+        $(`#${BaseScrId}queryList`).removeClass("pb-70")
+        window.othReasonSelected = true;
+        $(`#${BaseScrId}otherQueryReasonForm`).removeClass("sno");
+    } else {
+        $(`#${BaseScrId}queryList`).addClass("pb-70")
+        window.othReasonSelected = false;
+        $(`#${BaseScrId}otherQueryReasonForm`).addClass("sno");
+        $(`#${BaseScrId}otherQueryReasonInp`).val("");
+        ApzCOB.removeErrMessgae(`${BaseScrId}otherQueryReasonInp`, "element");
+    }
+};
+apz.app.RPCFooter.onClickQueryMdlCancel = function() {
+    checkedQueries = [];
+    $(`#${BaseScrId}queryList`).addClass("pb-70");
+    apz.app.RPCDBVerify.uncheckOthercheckbox();
+};
+apz.app.RPCDBVerify.uncheckOthercheckbox = function() {
+    window.othReasonSelected = false;
+    $(othReasonId).prop("checked", false)
+    $(`#${BaseScrId}otherQueryReasonForm`).addClass("sno");
+    $(`#${BaseScrId}otherQueryReasonInp`).val("");
+    ApzCOB.removeErrMessgae(`${BaseScrId}otherQueryReasonInp`, "element");
+    ApzCOB.toggleModal(BaseScrId + "queryModal");
+}
+apz.app.RPCFooter.onClickQueryMdlSave = function() {
+    ApzCOB.removeErrMessgae(`${BaseScrId}otherQueryReasonInp`, "element");
+    let checkedLength = -1;
+    let checkedReasons = '';
+    window.docQueries = [];
+    window.docapprove = [];
+    checkedQueries = [];
+    let result = {
+        docapprove: [],
+        docQueries: []
+    };
+    if (othReasonSelected) {
+        otherVal = $(`#${BaseScrId}otherQueryReasonInp`).val();
+        if (apz.isNull(otherVal)) {
+            ApzCOB.addErrMessage(`${BaseScrId}otherQueryReasonInp`, "element");
+            document.getElementById('APZCBO__BaseScreens__el_txt_136_txtcnt').scrollIntoView();
+            return;
+        }
+    }
+    QueriesPainted.forEach(function(item, index) {
+        if ($(`#${queriesIntfId}id_${index}`).prop("checked")) {
+            checkedLength++;
+            checkedQueries.push(QueriesPainted[index]?.id + "_" + QueriesPainted[index]?.value);
+            if (othReasonId === `#${queriesIntfId}id_${index}`) {
+                checkedQueries[checkedQueries?.length - 1] = checkedQueries?.[checkedQueries?.length - 1] + "?" + $(
+                    `#${BaseScrId}otherQueryReasonInp`).val();
+            }
+        }
+    });
+    apz.app.RPCDBVerify.addInprogressStatus(`${DBVerifyscrId}stage_${RPCDBVerify_STAGES[apz.childScr].id}`);
+    if (RPCDBVerify_STAGES[apz.childScr].id === 1) {
+        window.sanctionDtlsQueries = checkedQueries;
+        if (checkedQueries.length > 0) {
+            $("#RPCDBV__RPCdbsanctionDtl__Query").removeClass('sno');
+            $("#RPCDBV__RPCdbsanctionDtl__queryFrm").removeClass('sno');
+            $("#RPCDBV__RPCdbsanctionDtl__queryRow").removeClass('sno');
+            $("span#RPCDBV__RPCdbsanctionDtl__selectedQuerydata").html("");
+            for (var q = 0; q < checkedQueries.length; q++) {
+                if (checkedQueries[q].split('_')[0] === 'oth') {
+                    checkedReasons = checkedQueries[q].split('_')[1].split('?')[1];
+                } else {
+                    checkedReasons = checkedQueries[q].split("_")[1];
+                }
+                $("span#RPCDBV__RPCdbsanctionDtl__selectedQuerydata").append('<p>' + (q + 1) + ". " + checkedReasons + '</p>')
+            }
+        } else if (checkedQueries.length == 0) {
+            // checkedQueries;
+            $("#RPCDBV__RPCdbsanctionDtl__Query").addClass('sno');
+            $("#RPCDBV__RPCdbsanctionDtl__queryFrm").addClass('sno');
+            $("#RPCDBV__RPCdbsanctionDtl__queryRow").addClass('sno');
+            $("span#RPCDBV__RPCdbsanctionDtl__selectedQuerydata").html("");
+            $("span#RPCDBV__RPCdbsanctionDtl__selectedQuerydata").append('<p>' + (q + 1) + ". " + checkedReasons + '</p>')
+        }
+        result = checkedQueries.map(q => {
+            var [key, value] = q.split("_");
+            return key === "oth" ? `oth${value.replace("Other",'')}` : key;
+        });
+        ApzCOB.RpcDBQuerySave(result);
+        checkedQueries = [];
+    } else if (RPCDBVerify_STAGES[apz.childScr].id === 2) {
+        window.eNachQueries = checkedQueries;
+        if (checkedQueries.length > 0) {
+            $("#RPCDBV__RPCDBeNach__eQuery").removeClass('sno');
+            $("#RPCDBV__RPCDBeNach__EqueryFrm").removeClass('sno');
+            $("#RPCDBV__RPCDBeNach__Equeryrow").removeClass('sno');
+            $("span#RPCDBV__RPCDBeNach__EselectedQuerydata").html("");
+            for (var q = 0; q < checkedQueries.length; q++) {
+                if (checkedQueries[q].split('_')[0] === 'oth') {
+                    checkedReasons = checkedQueries[q].split('_')[1].split('?')[1];
+                } else {
+                    checkedReasons = checkedQueries[q].split("_")[1];
+                }
+                $("span#RPCDBV__RPCDBeNach__EselectedQuerydata").append('<p>' + (q + 1) + ". " + checkedReasons + '</p>')
+            }
+        } else if (checkedQueries.length == 0) {
+            // checkedQueries;
+            $("#RPCDBV__RPCDBeNach__eQuery").addClass('sno');
+            $("#RPCDBV__RPCDBeNach__EqueryFrm").addClass('sno');
+            $("#RPCDBV__RPCDBeNach__Equeryrow").addClass('sno');
+            $("span#RPCDBV__RPCDBeNach__EselectedQuerydata").html("");
+            $("span#RPCDBV__RPCDBeNach__EselectedQuerydata").append('<p>' + (q + 1) + ". " + checkedReasons + '</p>')
+        }
+        result = checkedQueries.map(q => {
+            let [key, value] = q.split("_");
+            return key === "oth" ? `oth${value.replace("Other",'')}` : key;
+        });
+        ApzCOB.RpcDBQuerySave(result);
+        checkedQueries = [];
+    } else if (RPCDBVerify_STAGES[apz.childScr].id === 3) {
+        window.udyamQueries = checkedQueries;
+        if (checkedQueries.length > 0) {
+            $("#RPCDBV__RPCDBUdyamReg__UQuery").removeClass('sno');
+            $("#RPCDBV__RPCDBUdyamReg__UqueryFrm").removeClass('sno');
+            $("#RPCDBV__RPCDBUdyamReg__UqueryRow").removeClass('sno');
+            $("span#RPCDBV__RPCDBUdyamReg__UselectedQuerydata").html("");
+            for (var q = 0; q < checkedQueries.length; q++) {
+                if (checkedQueries[q].split('_')[0] === 'oth') {
+                    checkedReasons = checkedQueries[q].split('_')[1].split('?')[1];
+                } else {
+                    checkedReasons = checkedQueries[q].split("_")[1];
+                }
+                $("span#RPCDBV__RPCDBUdyamReg__UselectedQuerydata").append('<p>' + (q + 1) + ". " + checkedReasons + '</p>')
+            }
+        } else if (checkedQueries.length == 0) {
+            $("#RPCDBV__RPCDBUdyamReg__UQuery").addClass('sno');
+            $("#RPCDBV__RPCDBUdyamReg__UqueryFrm").addClass('sno');
+            $("#RPCDBV__RPCDBUdyamReg__UqueryRow").addClass('sno');
+            $("span#RPCDBV__RPCDBUdyamReg__UselectedQuerydata").html("");
+            $("span#RPCDBV__RPCDBUdyamReg__UselectedQuerydata").append('<p>' + (q + 1) + ". " + checkedReasons + '</p>')
+        }
+        result = checkedQueries.map(q => {
+            let [key, value] = q.split("_");
+            return key === "oth" ? `oth${value.replace("Other",'')}` : key;
+        });
+        ApzCOB.RpcDBQuerySave(result);
+        checkedQueries = [];
+    } else if (RPCDBVerify_STAGES[apz.childScr].id === 4) {
+        window.docQuery[currentDoc] = checkedQueries;
+        if (checkedQueries.length > 0) {
+            $("#RPCDBV__RPCDBDocExecutionUnnati__DocList1_row_" + rowno + " .docQueryRow").removeClass('sno');
+            $("#RPCDBV__RPCDBDocExecutionUnnati__DocList1_row_" + rowno + " span#RPCDBV__RPCDBDocExecutionUnnati__Doc_Queries_li").html("");
+            for (let q = 0; q < checkedQueries.length; q++) {
+                if (checkedQueries[q].split('_')[0] === 'oth') {
+                    checkedReasons = checkedQueries[q].split('_')[1].split('?')[1];
+                } else {
+                    checkedReasons = checkedQueries[q].split("_")[1];
+                }
+                $("#RPCDBV__RPCDBDocExecutionUnnati__DocList1_row_" + rowno + " span#RPCDBV__RPCDBDocExecutionUnnati__Doc_Queries_li").append(
+                    '<p>' + (q + 1) + ". " + checkedReasons + '</p>')
+            }
+            $("#RPCDBV__RPCDBDocExecutionUnnati__docQueries_" + rowno).addClass('query');
+            $("#RPCDBV__RPCDBDocExecutionUnnati__docApprove_" + rowno).removeClass("apr");
+            $("#RPCDBV__RPCDBDocExecutionUnnati__docApprove_" + rowno + "_txtcnt").text("Approve");
+        } else if (checkedQueries.length == 0) {
+            $("#RPCDBV__RPCDBDocExecutionUnnati__DocList1_row_" + rowno + " .docQueryRow").addClass('sno');
+            $("#RPCDBV__RPCDBDocExecutionUnnati__DocList1_row_" + rowno + " span#RPCDBV__RPCDBDocExecutionUnnati__Doc_Queries_li").html("");
+            $("#RPCDBV__RPCDBDocExecutionUnnati__DocList1_row_" + rowno + " span#RPCDBV__RPCDBDocExecutionUnnati__Doc_Queries_li").append('<p>' +
+                (q + 1) + ". " + checkedReasons + '</p>')
+            $("#RPCDBV__RPCDBDocExecutionUnnati__docQueries_" + rowno).removeClass('query');
+        }
+        apz.app.RPCDBVerify.DocqueriestimeStamp();
+
+        result.docQueries = window.dbVerificationQueries.filter(e=>e.split("^")[0]!=currentDoc);
+        checkedQueries.forEach(reason => {
+            let reasonCode = '';
+        if (reason.split("_")[0] === 'oth') {
+                         reasonCode = reason.split("_")[0] + '?' + reason.split("_")[1].split('?')[1]
+                    } else {
+                         reasonCode = reason.split("_")[0];
+                    }
+                    result.docQueries.push(`${currentDoc}^${reasonCode}^${docQueryTs}`);
+        });
+        window.approvedDocs = window.approvedDocs.filter(item => currentDoc!==item);
+        window.dbVerificationQueries = [...new Set([...result.docQueries])];
+        window.reuploadedDocs = window.reuploadedDocs.filter(item => currentDoc!==item);
+        if($("#APZCBO__BaseScreens__queryModal").css("display")!='none')
+        ApzCOB.toggleModal(BaseScrId + "queryModal");
+    apz.app.RPCDBDocExecutionUnnati.paintDocData();
+        checkedQueries = [];
+    } else {
+        checkedQueries = [];
+        window.othReasonSelected = false;
+        if (othReasonSelected) {
+            otherVal = $(`#${BaseScrId}otherQueryReasonInp`).val();
+            if (apz.isNull(otherVal)) {
+                ApzCOB.addErrMessage(`${BaseScrId}otherQueryReasonInp`, "element");
+                document.getElementById('APZCBO__BaseScreens__el_txt_136_txtcnt').scrollIntoView();
+                return;
+            }
+        }
+        QueriesPainted.forEach(function(item, index) {
+            if ($(`#${queriesIntfId}id_${index}`).prop("checked")) {
+                checkedLength++;
+                if (currentDoc == undefined || currentDoc == null) {
+                    checkedQueries.push(QueriesPainted[index]?.id);
+                } else {
+                    checkedQueries.push(currentDoc + "_" + QueriesPainted[index]?.id);
+                }
+                if (othReasonId === `#${queriesIntfId}id_${index}`) {
+                    checkedQueries[checkedQueries?.length - 1] = checkedQueries?.[checkedQueries?.length - 1] + "?" + $(
+                        `#${BaseScrId}otherQueryReasonInp`).val();
+                }
+            }
+        });
+        ApzCOB.RpcDBQuerySave(checkedQueries);
+        checkedQueries = [];
+    }
+};
+apz.app.RPCDBVerify.DocqueriestimeStamp = function() {
+    let now = new Date();
+    let pad = n => n.toString().padStart(2, '0');
+    docQueryTs =
+        `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} - ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+apz.app.RPCDBVerify.queriestimeStamp = function(dtime) {
+    if (!dtime?.[0]?.timeStamp?.[0]) return;
+    let ts = dtime[0].timeStamp[0];
+    let pad = n => n.toString().padStart(2, '0');
+    formattedTimestamp =
+        `${pad(ts.date.day)}/${pad(ts.date.month)}/${ts.date.year} - ${pad(ts.time.hour)}:${pad(ts.time.minute)}:${pad(ts.time.second)}`;
+}
+apz.app.RPCFooter.searchInQueryMdl = function() {
+    let query = $("#APZCBO__BaseScreens__searchQueryInput").val();
+    window.searchresults = QueriesPainted.filter((lead) => Object.values(lead).some((value) => String(value).toLowerCase().includes(query
+        .toLowerCase())));
+    if (searchresults?.length > 0) {
+        apz.data.scrdata.APZCBO__RPCQueries_Res = [];
+        apz.data.scrdata.APZCBO__RPCQueries_Res = searchresults;
+        apz.data.loadData("RPCQueries", gAppId);
+        $(`#${BaseScrId}queryList .wrapped.undefined.ssp`).remove();
+        $(`#${BaseScrId}queryList`).find("p").filter(function(el, item) {
+            if ($(`#${queriesIntfId}value_${el}_txtcnt`)[0].textContent === "Other") {
+                othReasonId = `#${queriesIntfId}id_${el}`;
+                $(`#${queriesIntfId}id_${el}`).attr("onchange", "apz.app.RPCFooter.onSelectOtherReason();");
+            }
+        });
+        $(`#${BaseScrId}noResult_row`).addClass("sno");
+        $(`#${BaseScrId}queryList`).removeClass("sno");
+    } else {
+        $(`#${BaseScrId}noResult_row`).removeClass("sno");
+        $(`#${BaseScrId}queryList`).addClass("sno");
+        $(`#${BaseScrId}otherQueryReasonForm`).addClass("sno");
+    }
+};
+apz.app.RPCFooter.onSelectOtherReason = function() {
+    let othVal = $(othReasonId).prop("checked");
+    if (othVal) {
+        $(`#${BaseScrId}queryList`).removeClass("pb-70")
+        window.othReasonSelected = true;
+        $(`#${BaseScrId}otherQueryReasonForm`).removeClass("sno");
+    } else {
+        $(`#${BaseScrId}queryList`).addClass("pb-70")
+        window.othReasonSelected = false;
+        $(`#${BaseScrId}otherQueryReasonForm`).addClass("sno");
+        $(`#${BaseScrId}otherQueryReasonInp`).val("");
+        ApzCOB.removeErrMessgae(`${BaseScrId}otherQueryReasonInp`, "element");
+    }
+};
+apz.app.RPCFooter.validateInput = function() {
+    let inputField = $("#APZCBO__BaseScreens__otherQueryReasonInp");
+    let value = inputField.val().trim();
+    if (value !== "") {
+        ApzCOB.removeErrMessgae(`${BaseScrId}otherQueryReasonInp`, "element");
+    }
+}
+apz.app.RPCDBVerify.loadQueryModalForDoc = function(pthis) {
+    if (apz.childScr === 'RPCdbsanctionDtl' || apz.childScr === 'RPCDBeNach' || apz.childScr === 'RPCDBUdyamReg') {
+        apz.app.RPCDBVerify.loadQueryModal();
+    } else if (apz.childScr == 'RPCDBDocExecutionUnnati') {
+        rowno = $(pthis).closest("li").attr("rowno");
+        apz.app.RPCDBVerify.loadQueryModal($("#RPCDBV__IpaintfileList__o__RPCDBV__IpaintfileList_Res__displayName_" + rowno + "_txtcnt").text());
+    }
+};
+apz.app.RPCDBVerify.approve = function(pthis) {
+    rowno = $(pthis).closest("li").attr("rowno");
+    $("#RPCDBV__RPCDBDocExecutionUnnati__docApprove_" + rowno).addClass("apr");
+    $("#RPCDBV__RPCDBDocExecutionUnnati__docApprove_" + rowno + "_txtcnt").text("Approved");
+    $("#RPCDBV__RPCDBDocExecutionUnnati__docQueries_" + rowno).removeClass('query');
+    $("#RPCDBV__RPCDBDocExecutionUnnati__DocList1_row_" + rowno + " .docQueryRow").addClass('sno');
+    currentDoc = $("#RPCDBV__IpaintfileList__o__RPCDBV__IpaintfileList_Res__displayName_" + rowno + "_txtcnt").text();
+    window.approvedDocs = [...new Set([...window.approvedDocs,currentDoc])];
+    window.dbVerificationQueries = [...new Set(window.dbVerificationQueries.filter(item => currentDoc!==(item.split('^')[0])))];
+    window.reuploadedDocs = [...new Set(window.reuploadedDocs.filter(item => currentDoc!==item))];
+    apz.app.RPCDBDocExecutionUnnati.paintDocData();
+}
+apz.app.RPCDBVerify.gotoHome = function(modalId) {
+    if (!apz.isNull(modalId)) ApzCOB.closeCommonModal(modalId);
+    apz.app.Login.OnClickMakerChecker("");
+}
+apz.app.RPCDBVerify.addInprogressStatus = function(hypId) {
+    apz.app.RPCDBVerify.clearIcons(hypId);
+    $(`#${hypId} svg`).addClass('inprg');
+    $(`#${hypId} use`).attr("xlink:href", "#icon-sideprg");
+};
+apz.app.RPCDBVerify.addCompleteStatus = function(hypId) {
+    apz.app.RPCDBVerify.clearIcons(hypId);
+    $(`#${hypId} svg`).addClass('suc');
+    $(`#${hypId} use`).attr("xlink:href", "#icon-sidechk");
+};
+apz.app.RPCDBVerify.addErrorStatus = function(hypId) {
+    apz.app.RPCDBVerify.clearIcons(hypId);
+    $(`#${hypId} svg`).addClass('error');
+    $(`#${hypId} use`).attr("xlink:href", "#icon-fail-filled");
+};
+apz.app.RPCDBVerify.clearIcons = function(hypId) {
+    $(`#${hypId} svg`).removeClass('error sec inprg');
+    $(`#${hypId} use`).attr("xlink:href", "#icon-sidechldopt");
+};
+apz.app.RPCDBVerify.downloadImage = function() {
+    let fileName = '';
+    if (apz.childScr == 'RPCDBDocExecutionUnnati') {
+        fileName = SELECTED_DOC_FILE_NAME.replace(/\.pdf$/i, "");
+        let pdfBase64 = $("iframe").attr('src').replace(ApplicationPDFbase64, '');
+        ApzCOB.downloadBase64File(pdfBase64, fileName)
+    } else {
+        fileName = stageDocuments[pcount].payload.documentFileName;
+        let valbase64 = $("#RPCDBV__RPCDBVerify__imgView").attr('src').replace('data:image/png;base64,', '');
+        ApzCOB.convertBase64ToPNG(valbase64, fileName);
+    }
+};
+apz.app.RPCDBVerify.getQueryReasons = function(screenNo, stageName) {
+    if(apz.isNull(inSessionStore?.dbKitStatDetails?.filter(e => e.stageID == screenNo)?.[0]?.query)) {
+        return [];
+    } else {
+        return inSessionStore?.dbKitStatDetails?.filter(e => e.stageID == screenNo)?.[0]?.query && inSessionStore?.dbKitStatDetails?.filter(e => e
+        .stageID == screenNo)?.[0]?.query.map(function(item) {
+        let lQueries = JSON.parse(DBKIT_MASTERDATA?.filter(e => e.stageName === stageName)[0]?.queries)?.sendbackReason;
+        return {
+            "Q": lQueries?.find(ele => ele.id == item.split("$")[0])?.value || item.split("$")[0],
+            "R": item?.split("$")?.[1],
+            "RTS" : item?.split("$")?.[2]
+        }
+    })
+    }
+};
+apz.app.RPCDBVerify.setModifedtag = function() {
+    let hasReupload = stageDocuments.some(doc => doc.payload.isReupload === "Y");
+    if ((hasReupload)&&(!apz.isNull(eNachcheckedQueries[0]?.R)||!apz.isNull(udyamcheckedQueries[0]?.R))) {
+        $(`#RPCDBV__RPCDBVerify__modify`).removeClass('sno');
+    } else {
+        $(`#RPCDBV__RPCDBVerify__modify`).addClass('sno');
+    }
+};
+apz.app.RPCDBVerify.setInprogressStatus = function() {
+    for (let i = 1; i <= 3; i++) {
+        let QueryReasons = apz.app.RPCDBVerify.getQueryReasons(i, apz.app.RPCDBVerify.getStageNameById(i));
+        if (!apz.isNull(QueryReasons) && !apz.isNull(QueryReasons?.[0]?.R)) {
+            apz.app.RPCDBVerify.addInprogressStatus(`${DBVerifyscrId}stage_` + i);
+        } else {
+            if (data.isRework === 'true') {
+                let setQueryTag = QueryReasons;
+                if (!apz.isNull(setQueryTag) && !apz.isNull(setQueryTag?.[0]?.Q)) {
+                    apz.app.RPCDBVerify.addErrorStatus(`${DBVerifyscrId}stage_` + i)
+                } else {
+                    apz.app.RPCDBVerify.addCompleteStatus(`${DBVerifyscrId}stage_` + i)
+                }
+            } else {
+                apz.app.RPCDBVerify.clearIcons(`${DBVerifyscrId}stage_` + i)
+            }
+        }
+    }
+    if (inSessionStore?.dbVerificationQueries && inSessionStore?.dbVerificationQueries?.find(item => item.includes('$'))) {
+        apz.app.RPCDBVerify.addInprogressStatus(`${DBVerifyscrId}stage_` + 4)
+    } else {
+        if (data.isRework === 'true') {
+            if (inSessionStore.dbVerificationQueries?.length !== 0) {
+                apz.app.RPCDBVerify.addErrorStatus(`${DBVerifyscrId}stage_` + 4)
+            } else {
+                apz.app.RPCDBVerify.addCompleteStatus(`${DBVerifyscrId}stage_` + 4)
+            }
+        } else {
+            apz.app.RPCDBVerify.clearIcons(`${DBVerifyscrId}stage_` + 4)
+        }
+    }
+};
+apz.app.RPCDBVerify.getStageNameById = function(id) {
+    for (const key in RPCDBVerify_STAGES) {
+        if (RPCDBVerify_STAGES[key].id === id) {
+            return RPCDBVerify_STAGES[key].stageName;
+        }
+    }
+    return null;
+};
+apz.app.RPCDBVerify.responseTs = function() {
+    let freshlySubmittedDisbursementKit = inSessionStore?.applicationTimelineDtl?.filter(entry => entry.stage === "Disbursement Kit" && entry
+        .actionTaken === "Submitted");
+    let getLatestSubmission = (data) => {
+        return data.reduce((latest, current) => {
+            const latestTime = new Date(latest.timeStamp);
+            const currentTime = new Date(current.timeStamp);
+            return currentTime > latestTime ? current : latest;
+        });
+    };
+    latestSubmissionRests = getLatestSubmission(freshlySubmittedDisbursementKit);
+};
+apz.app.RPCDBVerify.farmatdocResponseTS = function(ts) {
+    const date = new Date(ts);
+    const datePart = new Intl.DateTimeFormat('en-GB').format(date); // DD/MM/YYYY
+    const timePart = date.toTimeString().split(' ')[0]; // HH:MM:SS (24-hour format)
+    RespTS = `${datePart} - ${timePart}`;
+}
+apz.app.RPCDBVerify.responseUserId = function() {
+    let lastSubmitdata = inSessionStore?.applicationTimelineDtl?.filter(entry => entry.stage === "Disbursement Kit" && entry.actionTaken ===
+        "Submitted");
+    latestUserId = lastSubmitdata?.reduce((latest, current) => {
+        return new Date(current.timeStamp) > new Date(latest.timeStamp) ? current : latest;
+    }).userId;
+}  
+
+apz.app.RPCDBVerify.showPreview = function (params, pthis) {
+    // $('#RPCDBV__RPCDBVerify__sidebarForm a').removeClass('active');
+    // $(pthis).addClass('active');
+    window.previousScreenId = apz.childScr;
+    window.previousMicroAppId = apz.currAppId;
+    $('#RPCDBV__RPCDBVerify__gr_col_55').addClass('sno');
+    if (params === "ApplicationDetails") {
+        // ApzCOB.launchMicroApp("cmnPre", "PreviewApplicantDetails", "RPCDBV__RPCDBVerify__RPCDbkitLaunchDiv", "");
+                ApzCOB.toggleModal("APZCBO__BaseScreens__preview_modal")
+        ApzCOB.launchMicroApp("cmnPre", "PreviewApplicantDetails", "APZCBO__BaseScreens__preview_modal_content", "");
+   
+    }
+    if (params === "CreditAssessmentDetails") {
+        // ApzCOB.launchMicroApp("cmnPre", "PreviewCA", "RPCDBV__RPCDBVerify__RPCDbkitLaunchDiv", "");
+                ApzCOB.toggleModal("APZCBO__BaseScreens__preview_modal")
+        ApzCOB.launchMicroApp("cmnPre", "PreviewCA", "APZCBO__BaseScreens__preview_modal_content", "");
+   
+    }
+    if (params === "SanctionDetails") {
+        // ApzCOB.launchMicroApp("cmnPre", "PreviewSanction", "RPCDBV__RPCDBVerify__RPCDbkitLaunchDiv", "");
+        ApzCOB.toggleModal("APZCBO__BaseScreens__preview_modal")
+        ApzCOB.launchMicroApp("cmnPre", "PreviewSanction", "APZCBO__BaseScreens__preview_modal_content", "");
+   
+    }
+};
+

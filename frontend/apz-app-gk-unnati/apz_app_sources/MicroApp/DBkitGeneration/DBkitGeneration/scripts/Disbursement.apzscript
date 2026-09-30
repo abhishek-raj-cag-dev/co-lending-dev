@@ -1,0 +1,82 @@
+var scrId = "DBkitG__Disbursement__";
+window.DB_CURRENT_STAGE = "Disbursement";
+var skipNetOffCal = window.SkipNetoffProducts.includes(inSessionStore?.applicationMaster?.productCode);
+window.isAdditionalProduct = window.AdditionalProducts.includes(inSessionStore?.applicationMaster?.productCode) || false;
+apz.app.onLoad_Disbursement = function() {
+        $('#APZCBO__BaseScreens__baseScroll').removeClass('custom-form-launch var2');
+        $('#APZCBO__BaseScreens__landingRowHeader').addClass('sno');
+        $(`#${DbbaseScrId}disbursmentMenu`).removeClass('sno');
+        $(`#${DbbaseScrId}eNachRow,#${DbbaseScrId}UdyamRegRow,#${DbbaseScrId}DocExecutionUnnatiRow`).addClass('sno');
+        $(`#${DbbaseScrId}sendbackBtn,#${DbbaseScrId}nextBtn,#${DbbaseScrId}backBtn`).addClass('sno');
+        $(`#${DbbaseScrId}disburseBtn`).removeClass('sno');
+        $(`.LoanApplnDoc,.SancDoc,.KfsDOC`).addClass('sno');
+        if(!window.isAdditionalProduct){
+           $(`.CamDoc`).removeClass('sno');  
+        }
+        $(`.extDocument`).removeClass('sno');  
+        $('.mainMenu a').attr('onclick','');
+        $(`#${DbbaseScrId}DBLoanDetails_hyp_txtcnt`).text("Sanction Details");
+}
+apz.app.onShown_Disbursement = function() {
+apz.app.Disbursement.paintDetails();    
+}
+apz.app.Disbursement.paintDetails = function() {
+    let applicantCBDetails;
+    let coApplicantCBDetails;
+    let {cibilDetailsWrapperList,loanDetails,leadDetails, renewalLeadDetails, cdhLeadDetails} = inSessionStore || {};
+    if([cibilDetailsWrapperList, loanDetails].some(apz.isObjectEmpty)) return;
+    cibilDetailsWrapperList.forEach(custType => {
+        if(custType.cibilDetails.custDtlId === gApzCOB.userDetails.custDtlId){
+            applicantCBDetails = custType.cibilDetails.payload;
+        } else if(custType.cibilDetails.custDtlId === gApzCOB.userDetails.CoApplicantCustomerId){
+            coApplicantCBDetails = custType.cibilDetails.payload;
+        }
+    })
+    if(window.AdditionalProductsOptionalCoApp.includes(inSessionStore.applicationMaster.productCode)) {
+        coApplicantCBDetails = applicantCBDetails;
+    }
+    coApplicantCBDetails.stampDutyCharge = 0;
+    let caglOs = leadDetails?.caglOs || renewalLeadDetails?.caglOs || cdhLeadDetails?.caglOs || 0;
+    let insurancePremium = Number(coApplicantCBDetails?.insuranceChargeJoint) + Number(coApplicantCBDetails?.insuranceChargeMember) + Number(coApplicantCBDetails?.insuranceChargeSpouse);
+    let netAmountTotal  = 0;
+    if(!skipNetOffCal){
+    netAmountTotal =  Number(coApplicantCBDetails?.processingFees) + Number(insurancePremium) + Number(coApplicantCBDetails?.stampDutyCharge) + Number(caglOs);
+    }else{
+        netAmountTotal =  Number(coApplicantCBDetails?.processingFees) + Number(insurancePremium) + Number(coApplicantCBDetails?.stampDutyCharge);
+    }
+    let totalAmountValue = Number(loanDetails?.sanctionedLoanAmount) - netAmountTotal;
+    let bankInfo = inSessionStore.bankDetailsWrapperList.find(bank => parseInt(bank.bankDetails.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId));
+    if(apz.isObjectEmpty(bankInfo)) return;
+    const fieldMappingsInput = {
+        accountHolderName : bankInfo.bankDetails?.payload?.accountName,
+        accountNumber : bankInfo.bankDetails?.payload?.accountNumber,
+        ifscCode : bankInfo.bankDetails?.payload?.ifsc,
+        bankName : bankInfo.bankDetails?.payload?.bankName,
+        bankBranchName : bankInfo.bankDetails?.payload?.branchName,
+        typeOfAccount : bankInfo.bankDetails?.payload?.accountType
+    };
+    const loanFieldMappings = {
+        loanAmount: ApzCOB.formatamountVal(loanDetails?.sanctionedLoanAmount),
+        roi: coApplicantCBDetails?.roi,
+        prosessingFee: ApzCOB.formatamountVal(coApplicantCBDetails?.processingFees),
+        insPrem: ApzCOB.formatamountVal(insurancePremium),
+        stampDutyCharge: coApplicantCBDetails?.stampDutyCharge,
+        caglOS: ApzCOB.formatamountVal(caglOs),
+        cbTriggerDate: (`Current CAGL outstanding (As of ${ApzCOB.getCBTriggerDate() || ''})`),
+        netOffAmt: ApzCOB.formatamountVal(netAmountTotal),
+        postNetAmt: ApzCOB.formatamountVal(totalAmountValue),
+        installmentFreq:  `${ApzCOB.formatamountVal(coApplicantCBDetails?.approvedLoanEMI)} / ${loanDetails?.payload?.frequencyOfRepayment}`
+    };
+    Object.entries(fieldMappingsInput).forEach(([key, value]) => {
+        $(`#${scrId}${key}`).val(value);
+    });
+    Object.entries(loanFieldMappings).forEach(([elem, val]) => {
+        if(apz.isNull(val) || val === undefined){
+         $(`#${scrId}${elem}`).parents('span.srb.pri').addClass('sno');   
+        }else {
+             $(`#${scrId}${elem}`).parents('span.srb.pri').removeClass('sno');  
+         $(`#${scrId}${elem}`).text(val);   
+        }
+        
+    });
+};

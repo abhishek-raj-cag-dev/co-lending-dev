@@ -1,0 +1,711 @@
+var scrId = "Dashbo__NewDashBoard__";
+window.isRPCLogin = true;
+var searchVal = '';
+window.rpcDashboardTypes = ['PENDING', 'COMPLETED', 'PUSHBACK'];
+window.rpcDashboardActiveType = 'PENDING';
+window.isRpcDashboardPreview = false;
+var headerarrId = ['rpc_COMPLETED_Tab', 'rpc_PENDING_Tab', 'rpc_PUSHBACK_Tab'];
+window.RPC_CURRENT_STAGE = '';
+apz.app.onLoad_NewDashBoard = function() {
+    $(`#${BaseScrId}sc_col_283`).removeClass("sno");
+    $(`#${BaseScrId}sc_row_200`).removeClass("dashbrd-header"); 
+    $('body').addClass('unati');
+};
+apz.app.onShown_NewDashBoard = function(params) {
+    window.approvedDocs = [];
+    window.dbVerificationQueries = [];
+    window.reuploadedDocs = [];
+    window.documentList = [];
+    apz.app.NewDashBoard.setMinMaxLength();
+    ApzCOB.fetchSubProduct();
+    window.LoanStatusDtls = params;
+    $('body').removeClass('crdas dbkit');
+    $(`#${BaseScrId}loggedInUserName_txtcnt`).text(
+        `${LoggedInUserDetails.loginResponse.userDet.name} (${LoggedInUserDetails.loginResponse.userDet.id})`);
+        apz.app.NewDashBoard.commonElemHiding();
+    if (gApzCOB.selectedRole == 'RPC_Maker') {
+        apz.app.NewDashBoard.makerScrPainting();
+        $(`#${BaseScrId}loggedInRole_txtcnt`).text("Role: RPC Maker");
+    } else if (gApzCOB.selectedRole == 'RPC_Checker') {
+        apz.app.NewDashBoard.checkerScrPainting();
+        $(`#${BaseScrId}loggedInRole_txtcnt`).text("Role: RPC Checker");
+    } else if (gApzCOB.selectedRole == 'RPC_DB_verification'){
+        apz.app.NewDashBoard.DBVerificationPainting();
+        $(`#${BaseScrId}loggedInRole_txtcnt`).text("Role: RPC DB verification");
+    }
+    apz.app.NewDashBoard.paintCaseAGeng();
+    $(`#${scrId}allBtn`).click();
+    apz.app.NewDashBoard.fnlockApplicaton("unlockUser", "");
+    if (apz.deviceType == 'WEB') {
+        $(`#${BaseScrId}logoutIcon`).removeClass("sno");
+        $(`#${BaseScrId}home_Icon`).addClass("sno");
+    }
+    rpcDashboardTypes.map(types => {
+        $(`#${scrId}rpc_${types}_Tab`).attr("onclick", `apz.app.NewDashBoard.headerTab(this,'${types}')`); 
+        headerarrId.push(`rpc_${types}_Tab`);
+    })
+    apz.app.NewDashBoard.addPointer(headerarrId);
+    $("body").removeClass("mak-chk");
+    $(`#${scrId}rpc_PENDING_Tab`).addClass('active-dash');
+    if (window.pageCount == 1) {
+        $(`#${scrId}paginationPrevBtn`).prop("disabled", true);
+    }
+    $("#Dashbo__NewDashBoard__sc_col_59").attr("onclick", "apz.app.NewDashBoard.searchInpData(this)");
+    $("input").attr("autocomplete", "off");
+    let textValue = "";
+    if(gApzCOB.selectedRole === 'RPC_Maker') {
+        textValue = "RPC Maker to Sourcing";
+    } else if (gApzCOB.selectedRole === 'RPC_DB_verification') {
+        textValue = "Sent to DB Kit Execution";
+    } else {
+        textValue = "RPC Checker to Sourcing";
+    }
+    $(`#${scrId}sentBackTileInnerText`).text(textValue);
+    if (DBKIT_MASTERDATA.length === 0) {
+        ApzCOB.FetchDBKITMasterData("ALL");
+    }
+};
+apz.app.NewDashBoard.setMinMaxLength = function() {
+    const fieldMap = {
+        searchInput: "searchRPC"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: scrId + fieldId
+    })));
+};
+apz.app.NewDashBoard.commonElemHiding = function(){
+ $(`#${scrId}makerPendingPushbackTray`).addClass("sno");  
+ $(`#${scrId}checkerToMakerPushback`).addClass("sno");
+  $(`#${scrId}checkerToSourcingPushback`).addClass("sno");
+}
+apz.app.NewDashBoard.makerScrPainting = function() {
+    window.fresh_case = [];
+    window.reworkCase = [];
+    window.RPC_CM = [];
+    $(`#${scrId}PendingMainTxt`).text("Maker's Pool")
+    $(`#${scrId}compTxt`).text("Pending with Checker");
+    $(`#${scrId}completedSubTxt`).text("Approved by RPC Maker");
+    $(`#${scrId}makerPendingPushbackTray`).removeClass("sno");
+    $(`#${scrId}checkerToMakerPushback`).removeClass("sno");
+    $(`#${scrId}completedCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.PendingRpcVerification ?? ''));
+    $(`#${scrId}pendingTotalCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.totalApplications ?? ''));
+    $(`#${scrId}sentBackToSourcingCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.SourcingPushback ?? ''));
+    $(`#${scrId}freshCaseCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.freshCases ?? ''));
+    $(`#${scrId}reworkCaseCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.reworkCases ?? ''));
+    $(`#${scrId}checkerToMakerPushbackCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.rpcCheckerToMaker ?? ''));
+};
+apz.app.NewDashBoard.formatLOan_TAT = function(params) {
+    for (let i of params) {
+        if (!i.loanAmount.toString().includes("₹")) {
+            i.loanAmount = "₹" + ApzCOB.fn_FormatAmount(i.loanAmount);
+        }
+        if (!i.rpcTAT?.toLowerCase()?.includes("days") && !i.rpcTAT?.toLowerCase()?.includes("hours") && !i.rpcTAT?.toLowerCase()?.includes("minutes") && !i.rpcTAT?.toLowerCase()?.includes("just")) {
+            i.rpcTAT = apz.app.NewDashBoard.tat_formatDate(i.rpcTAT);
+            i.rpcTAT = i.rpcTAT.replace(/(\d{1,5})([a-zA-Z]{1,20})/, '$1 $2');
+        }
+    }
+};
+apz.app.NewDashBoard.checkerScrPainting = function() {
+    $(`#${scrId}compTxt`).text("Approved");
+    $(`#${scrId}completedSubTxt`).text("Approved by Checker");
+    $(`#${scrId}PendingMainTxt`).text("Checker's Pool");
+    $(`#${scrId}checkerToSourcingPushback`).removeClass("sno");
+    $(`#${scrId}completedCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.RpcVerified ?? ''));
+    $(`#${scrId}freshCaseCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.freshCases ?? ''));
+    $(`#${scrId}reworkCaseCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.reworkCases ?? ''));
+    $(`#${scrId}pendingTotalCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.totalApplications ?? ''));
+    $(`#${scrId}checkerToMakerSendBackCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.rpcCheckerToMaker ?? ''));
+    $(`#${scrId}sentBackToSourcingCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.SourcingPushback ?? ''));
+};
+apz.app.NewDashBoard.paintCaseAGeng = function() {
+    let caseAgeingData = window.LoanStatusDtls.map.RPCCaseAgeing.myArrayList;
+    if (caseAgeingData.length > 0) {
+        let caseArr = caseAgeingData.map(item => ({
+            days: Object.keys(item.map)[0],
+            dayVal: ApzCOB.formatToTwoDigits(Object.values(item.map)[0] ?? '')
+        }));
+        apz.data.scrdata.Dashbo__IPaintCaseAgeng_Res = caseArr;
+        apz.data.loadData('IPaintCaseAgeng', 'Dashbo');
+    }
+};
+apz.app.NewDashBoard.freshCasePaint = function(params) {
+    $(`#${scrId}appDetailsList`).removeClass("sno");
+    apz.app.NewDashBoard.rem_add_ActClass(params);
+    apz.data.scrdata.Dashbo__IPaintDashCase_Res = window.fresh_case;
+    apz.data.loadData('IPaintDashCase', 'Dashbo');
+    $(`#${scrId}searchInput`).css({'border-color': ''});
+    $(`#Dashbo__NewDashBoard__tatSortDown,#Dashbo__NewDashBoard__tatSortUp`).attr('style','');
+    apz.app.NewDashBoard.addPointer("");
+};
+apz.app.NewDashBoard.reworkCasePaint = function(params) {
+    $(`#${scrId}appDetailsList`).removeClass("sno");
+    apz.app.NewDashBoard.rem_add_ActClass(params);
+    apz.data.scrdata.Dashbo__IPaintDashCase_Res = window.reworkCase;
+    apz.data.loadData('IPaintDashCase', 'Dashbo');
+    $(`#${scrId}searchInput`).css({'border-color': ''});
+    $(`#Dashbo__NewDashBoard__tatSortDown,#Dashbo__NewDashBoard__tatSortUp`).attr('style','');
+    apz.app.NewDashBoard.addPointer("");
+};
+apz.app.NewDashBoard.RPC_CM_Paint = function(params) {
+    $(`#${scrId}appDetailsList`).removeClass("sno");
+    apz.app.NewDashBoard.rem_add_ActClass(params);
+    apz.data.scrdata.Dashbo__IPaintDashCase_Res = window.RPC_CM;
+    apz.data.loadData('IPaintDashCase', 'Dashbo');
+    $(`#${scrId}searchInput`).css({'border-color': ''});
+    $(`#Dashbo__NewDashBoard__tatSortDown,#Dashbo__NewDashBoard__tatSortUp`).attr('style','');
+    apz.app.NewDashBoard.addPointer("");
+};
+apz.app.NewDashBoard.AllTabClick = function(params) {
+    apz.app.NewDashBoard.rem_add_ActClass(params);
+    let allArrData = [];
+    for (let i of window.LoanStatusDtls.map.pendingRPC.myArrayList) {
+        allArrData.push(i.map);
+    }
+    apz.data.scrdata.Dashbo__IPaintDashCase_Res = allArrData;
+    apz.data.loadData('IPaintDashCase', 'Dashbo');
+    $(`#${scrId}searchInput`).css({'border-color': ''});
+    $(`#Dashbo__NewDashBoard__tatSortDown,#Dashbo__NewDashBoard__tatSortUp`).attr('style','');
+    apz.app.NewDashBoard.addPointer("");
+};
+apz.app.NewDashBoard.rem_add_ActClass = function(params) {
+    $('.my-task-tab button').removeClass('active');
+    $(`#${params.id}`).addClass('active');
+};
+apz.app.NewDashBoard.setvalforTabs = function(){
+    if (gApzCOB.selectedRole == 'RPC_Maker') {
+        if (rpcDashboardActiveType == 'PENDING') {
+            window.dashtab = 'all';
+        } else if (rpcDashboardActiveType == 'COMPLETED') {
+            window.dashtab = 'pendingForRPCVerification';
+        } else if (rpcDashboardActiveType == 'PUSHBACK') {
+            window.dashtab = 'pushBack';
+        }
+    } else if (gApzCOB.selectedRole == 'RPC_Checker') {
+        if (rpcDashboardActiveType == 'PENDING') {
+            window.dashtab = 'all';
+        } else if (rpcDashboardActiveType == 'COMPLETED') {
+            window.dashtab = 'rpcVerified';
+        } else if (rpcDashboardActiveType == 'PUSHBACK') {
+            window.dashtab = 'allSentBack';
+        }
+    }
+}
+apz.app.NewDashBoard.onFocusSearchInput = function() {
+    $(`#${scrId}searchInput`).css({'border-color': ''});
+};
+apz.app.NewDashBoard.searchInpData = function(pthis) {
+    searchVal = $(`#${scrId}searchInput`).val();
+    apz.app.NewDashBoard.setvalforTabs();
+    let lselectedId = {
+        "id" : "Dashbo__NewDashBoard__allBtn"
+    }
+    apz.app.BaseScreens.fetchRPCDashboardData(window.dashtab, "searchApplication", lselectedId, 1);
+};
+apz.app.NewDashBoard.primarLaunch = function(pthis) {
+    let rowno = document.getElementById(pthis.id).getAttribute('rowno');
+    window.data = apz.data.scrdata.Dashbo__IPaintDashCase_Res[rowno];
+    let applnId = data.applicationId;
+    let req = {
+        "apiRequest": {
+            "interfaceName": "",
+            "appId": gAppId,
+            "requestObj": {
+                "applicationId": applnId,
+                "userId": gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                //  "applicationId": "16202346089849322",
+                "appId": gApzCOB.userDetails.appId,
+                "versionNum": 1
+            }
+        }
+    }
+    let lcallback = apz.app.NewDashBoard.primarLaunchCB;
+    if(gApzCOB.selectedRole == "RPC_DB_verification") {
+        lcallback = apz.app.NewDashBoard.launchDbMicroAppCB;
+    }
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "FetchApplication", "N", "N", req, false, lcallback);
+    }, 1000)
+};
+apz.app.NewDashBoard.primarLaunchCB = function(params) {
+    let errMsg = "";
+    window.coapplirel = "";
+    window.coappliSpouseEdit = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchApplication_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            gApzCOB.rpcStages = [];
+            gApzCOB.rpcStages = Object.values(RPC_STAGES);
+            ApzCOB.updateInsessionData(params);
+                    if(rpcDashboardActiveType === 'PENDING'){
+                        apz.app.NewDashBoard.fnlockApplicaton("lockUser", gApzCOB?.userDetails?.applicationId);
+                        ApzCOB.launchMicroApp('RPC', 'RpcStageScreen', 'APZCBO__BaseScreens__BaseDIV', "");
+                        if (apz.deviceType == 'WEB') {
+                            $("#APZCBO__BaseScreens__logoutIcon").addClass("sno");
+                            $("#APZCBO__BaseScreens__home_Icon").removeClass("sno");
+                        }  
+                        window.isRpcDashboardPreview = false;
+                        window.isRpcPreviewEnabled = false;
+                    } else {
+                        isRpcDashboardPreview = true;
+                    ApzCOB.previewModal();
+                    }
+        } else {
+            apz.stopLoader();
+            let responseMsg = params?.res?.APZCBO__FetchApplication_Res?.apiResponse?.ResponseBody?.responseObj || "";
+            if (responseMsg.includes('GK')) {
+                /*$(`#${scrId}locktxt_txtcnt`).text(responseMsg);
+                ApzCOB.toggleModal(scrId + 'lockModal');*/
+                ApzCOB.fnDisplayMsg(responseMsg, "E");
+                return;
+            } else {
+                if (responseMsg.includes('Renewal')) {
+                    errMsg = responseMsg;
+                }
+                $(`#${scrId}locktxt_txtcnt`).text(errMsg);
+                ApzCOB.toggleModal(scrId + 'lockModal');
+            }
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.toggleModal(scrId + 'lockModal');
+        $(`#${scrId}locktxt_txtcnt`).html(technicalErrMsg);
+    }
+};
+apz.app.NewDashBoard.addPointer = function(params) {
+    if (params == "") {
+        for (let i = 0; i < apz.data.scrdata.Dashbo__IPaintDashCase_Res.length; i++) {
+            $("#Dashbo__IPaintDashCase__o__Dashbo__IPaintDashCase_Res__applicationId_" + i).css("cursor", "pointer");
+        }
+    } else {
+        for (let i of params) {
+            $("#" + scrId + i).css("cursor", "pointer");
+        }
+    }
+};
+apz.app.NewDashBoard.tat_formatDate = function(input) {
+    const timeRegex = /(\d{1,5})S\|(\d{1,5})M\|(\d{1,5})H\|(\d{1,5})D/;
+    const match = input.match(timeRegex);
+    let str = "";
+    if (!match) {
+        throw new Error("Invalid input format");
+    }
+    if (match[match.length - 1] != 0) {
+        str = match[match.length - 1] + "Days Before";
+    } else if (match[match.length - 2] != 0) {
+        str = match[match.length - 2] + "hours Before";
+    } else if (match[match.length - 3] != 0) {
+        str = match[match.length - 3] + "minutes Before";
+    } else if (match[match.length - 4] != 0) {
+        str = "Just now";
+    }
+    return str;
+};
+apz.app.NewDashBoard.sortTat = function(params) {
+    const getSeconds = (tat) => {
+        if (tat?.toLowerCase()?.includes("day")) {
+            return parseInt(tat) * 24 * 60 * 60;
+        }
+        if (tat?.toLowerCase()?.includes("hour")) {
+            return parseInt(tat) * 60 * 60;
+        }
+        if (tat?.toLowerCase()?.includes("minutes")) {
+            return parseInt(tat) * 60;
+        }
+        return 0;
+    };
+    apz.data.scrdata.Dashbo__IPaintDashCase_Res.sort((a, b) => {
+        const tatA = getSeconds(a.rpcTAT);
+        const tatB = getSeconds(b.rpcTAT);
+        return params === "One" ? tatA - tatB : tatB - tatA;
+    });
+    $(`#Dashbo__NewDashBoard__tatSortDown,#Dashbo__NewDashBoard__tatSortUp`).attr('style','');
+    let rpctatCSS = {'fill': 'rgb(0, 72, 134)'};
+    if(params === "One") {
+        $(`#${scrId}tatSortDown`).css(rpctatCSS);
+    } else {
+        $(`#${scrId}tatSortUp`).css(rpctatCSS);
+    }
+    apz.data.loadData('IPaintDashCase', 'Dashbo');
+};
+apz.app.NewDashBoard.PaginationInput = function() {
+    apz.app.NewDashBoard.setvalforTabs();
+    let enteredPageNo = parseInt($(`#${scrId}pageInputbox`).val());
+    if (enteredPageNo > 0 && enteredPageNo <= window.page_Txt) {
+        window.pageInpVal = enteredPageNo;
+        window.pageCount = window.pageInpVal;
+        $(`#${scrId}paginationPrevBtn`).prop("disabled", true);
+        $(`#${scrId}paginationNextBtn`).prop("disabled", true);
+        if (window.pageCount == 1) {
+            $(`#${scrId}paginationPrevBtn`).prop("disabled", false);
+        }
+        if (window.pageCount == window.page_Txt) {
+            $(`#${scrId}paginationNextBtn`).prop("disabled", false);
+        }
+        let activeId = $("#Dashbo__NewDashBoard__sc_row_25 button.active").attr('id');
+        apz.app.BaseScreens.fetchRPCDashboardData(window.dashtab, "tabSwitch", {"id": activeId}, window.pageInpVal);
+    } else {
+        $(`#${scrId}pageInputbox`).val(parseInt(window.pageCount));
+        ApzCOB.showRpcModals({
+                    text: 'Invalid page number',
+                    Btn1: {
+                        text: "OK",
+                        onClick: "apz.app.NewDashBoard.closeRPCErrMdl()"
+                    }
+        }, "Error");
+    }
+};
+apz.app.NewDashBoard.nextBtn = function() {
+    apz.app.NewDashBoard.setvalforTabs();
+    if (window.pageCount != window.page_Txt) {
+        window.pageCount += 1;
+        let activeId = $("#Dashbo__NewDashBoard__sc_row_25 button.active").attr('id'); 
+        apz.app.BaseScreens.fetchRPCDashboardData(window.dashtab, "tabSwitch", {"id": activeId}, window.pageCount);
+        $(`#${scrId}paginationPrevBtn`).prop("disabled", false);
+    }
+};
+apz.app.NewDashBoard.prevBtn = function() {
+    apz.app.NewDashBoard.setvalforTabs();
+    window.pageCount -= 1;
+    if (window.pageCount == 1) {
+        $(`#${scrId}paginationPrevBtn`).prop("disabled", true);
+    }
+    let activeId = $("#Dashbo__NewDashBoard__sc_row_25 button.active").attr('id'); 
+    apz.app.BaseScreens.fetchRPCDashboardData(window.dashtab, "tabSwitch", {"id": activeId}, window.pageCount);
+};
+apz.app.NewDashBoard.convertValuesToString = function(obj) {
+    if (typeof obj !== "object" || obj === null) {
+        return String(obj); // Convert primitive values to string
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(item => apz.app.NewDashBoard.convertValuesToString(item)); // Convert array items
+    }
+    return Object.fromEntries(Object.entries(obj).map(([key, value]) => [key, apz.app.NewDashBoard.convertValuesToString(value)]));
+};
+apz.app.NewDashBoard.validDuplicate = function(data, appliId) {
+    let flag = true;
+    for (let i of data) {
+        if (i.applicationId == appliId) {
+            flag = false;
+        }
+    }
+    return flag;
+};
+apz.app.NewDashBoard.pageCountTxt = function(params) {
+    if (window.page_Txt == 0) {
+        // window.page_Txt = 1;
+        $(`#${scrId}paginationPrevBtn`).prop("disabled", true);
+        $(`#${scrId}paginationNextBtn`).prop("disabled", true);
+        $("#" + scrId + "Pageofpage_txtcnt").text("Page " + window.page_Txt + " of " + window.page_Txt);
+    } else {
+        if (window.page_Txt <= 1) {
+            $(`#${scrId}paginationPrevBtn`).prop("disabled", true);
+            $(`#${scrId}paginationNextBtn`).prop("disabled", true);
+            $(`#${scrId}pageInputbox`).prop("disabled", true);
+        } else if (window.page_Txt > 1) {
+            if (window.pageCount == 1) {
+                $(`#${scrId}paginationPrevBtn`).prop("disabled", true);
+                $(`#${scrId}paginationNextBtn`).prop("disabled", false);
+                $(`#${scrId}pageInputbox`).prop("disabled", false);
+            } else if (window.pageCount == window.page_Txt) {
+                $(`#${scrId}paginationPrevBtn`).prop("disabled", false);
+                $(`#${scrId}paginationNextBtn`).prop("disabled", true);
+                $(`#${scrId}pageInputbox`).prop("disabled", false);
+            } else {
+                $(`#${scrId}paginationNextBtn`).prop("disabled", false);
+                $(`#${scrId}paginationPrevBtn`).prop("disabled", false);
+                $(`#${scrId}pageInputbox`).prop("disabled", false);
+            }
+        }
+        $("#" + scrId + "Pageofpage_txtcnt").text("Page " + window.pageCount + " of " + window.page_Txt);
+    }
+};
+apz.app.NewDashBoard.fnlockApplicaton = function(params, applicId) {
+    var request = {
+        "apiRequest": {
+            "interfaceName": params,
+            "appId": gAppId,
+            "requestObj": {
+                "userId": gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                "applicationId": applicId
+            }
+        }
+    }
+    apz.startLoader();
+    ApzCOB.serverBuildParam(gAppId, "CommonAPI", "N", "N", request, false, apz.app.NewDashBoard.fnlockApplicatonCB);
+};
+apz.app.NewDashBoard.fnlockApplicatonCB = function(params) {
+    apz.stopLoader();
+}
+apz.app.NewDashBoard.closeLockModal = function() {
+    if ($("#" + scrId + 'lockModal').is(":visible")) {
+        $('#' + scrId + 'lockModal_close').trigger('click');
+    }
+};
+apz.app.NewDashBoard.headerTab = function(params, tabType) {
+    $(`#${scrId}searchInput`).css({'border-color': ''});
+    $(`#${scrId}tatSortDown,#${scrId}tatSortUp`).attr('style','');
+    window.rpcDashboardActiveType = tabType;
+    let arrId = ['rpc_COMPLETED_Tab', 'rpc_PENDING_Tab', 'rpc_PUSHBACK_Tab'];
+    for (let i of arrId) {
+        if ($("#" + scrId + i).hasClass('active-dash')) {
+            $("#" + scrId + i).removeClass('active-dash');
+        }
+    }
+    let id = params.id.split("__")[2];
+    $("#" + scrId + id).addClass('active-dash');
+    window.pageCount = 1;
+    $("#Dashbo__NewDashBoard__pageInputbox").val(window.pageCount);
+    if (id == "rpc_COMPLETED_Tab") {
+        if (gApzCOB.selectedRole == 'RPC_Maker') {
+            apz.app.BaseScreens.fetchRPCDashboardData("pendingForRPCVerification", "headerTabSwitch", "", 1);
+            $(`#${scrId}el_label_20`).text("Pending with Checker");
+            $(`#${scrId}allBtn`).attr("onclick", `apz.app.BaseScreens.fetchRPCDashboardData("pendingForRPCVerification","tabSwitch",this,1)`);
+            $(`#${scrId}sc_col_47`).addClass("brdr-left")
+        } else if (gApzCOB.selectedRole == 'RPC_DB_verification') {
+            apz.app.BaseScreens.fetchRPCDashboardData("DBKITVERIFIED", "headerTabSwitch", "", 1);
+            $(`#${scrId}el_label_20`).text("Approved");
+            $(`#${scrId}sc_col_47`).addClass("brdr-left");
+            $(`#${scrId}allBtn`).attr("onclick", `apz.app.BaseScreens.fetchRPCDashboardData("DBKITVERIFIED","tabSwitch",this,1)`);
+            $(`#${scrId}sc_col_49`).addClass("brdr-left");
+        } else {
+            apz.app.BaseScreens.fetchRPCDashboardData("rpcVerified", "headerTabSwitch", "", 1);
+            $(`#${scrId}el_label_20`).text("Approved");
+            $(`#${scrId}sc_col_47`).addClass("brdr-left");
+            $(`#${scrId}allBtn`).attr("onclick", `apz.app.BaseScreens.fetchRPCDashboardData("rpcVerified","tabSwitch",this,1)`);
+            $(`#${scrId}sc_col_49`).addClass("brdr-left");
+        }
+        $(`#${scrId}checkerToMakerPushback`).hide();
+        $(`#${scrId}subTab1`).hide();
+        $(`#${scrId}el_hpl_3`).hide();
+    } else if (id == "rpc_PUSHBACK_Tab") {
+        if (gApzCOB.selectedRole == 'RPC_Maker') {
+            apz.app.BaseScreens.fetchRPCDashboardData("IPUSHBACK", "headerTabSwitch", "", 1);
+            $(`#${scrId}allBtn`).attr("onclick", `apz.app.BaseScreens.fetchRPCDashboardData("IPUSHBACK","tabSwitch",this,1)`);
+            $(`#${scrId}checkerToMakerPushback`).hide();
+            $(`#${scrId}subTab1`).hide();
+            $(`#${scrId}el_hpl_3`).hide();
+            $(`#${scrId}el_label_20`).text("Sent Back");
+        } else if(gApzCOB.selectedRole == 'RPC_DB_verification') {
+            apz.app.BaseScreens.fetchRPCDashboardData("DBPUSHBACK", "headerTabSwitch", "", 1);
+            $(`#${scrId}allBtn`).attr("onclick", `apz.app.BaseScreens.fetchRPCDashboardData("DBPUSHBACK","tabSwitch",this,1)`);
+            $(`#${scrId}checkerToMakerPushback`).hide();
+            $(`#${scrId}subTab1`).hide();
+            $(`#${scrId}el_hpl_3`).hide();
+            $(`#${scrId}el_label_20`).text("Sent Back");
+        } else {
+            apz.app.BaseScreens.fetchRPCDashboardData("allSentBack", "headerTabSwitch", "", 1);
+            $(`#${scrId}checkerToMakerPushback`).hide();
+            $(`#${scrId}subTab1`).show();
+            $(`#${scrId}el_hpl_3`).show();
+            $(`#${scrId}subTab1`).text("RPC Checker to Maker");
+            $(`#${scrId}el_hpl_3`).text("RPC Checker to Sourcing");
+            $(`#${scrId}subTab1`).attr("onclick", "");
+            $(`#${scrId}el_hpl_3`).attr("onclick", "");
+            $(`#${scrId}allBtn`).attr("onclick", "");
+            $(`#${scrId}allBtn`).attr("onclick", `apz.app.BaseScreens.fetchRPCDashboardData("allSentBack","tabSwitch",this,1)`);
+            $(`#${scrId}subTab1`).attr("onclick", `apz.app.BaseScreens.fetchRPCDashboardData("rpcPushBack","tabSwitch",this,1)`);
+            $(`#${scrId}el_hpl_3`).attr("onclick", `apz.app.BaseScreens.fetchRPCDashboardData("IPUSHBACK","tabSwitch",this,1)`);
+            $(`#${scrId}el_label_20`).text("Sent Back");
+            $(`#${scrId}sc_col_47`).removeClass("brdr-left")
+        }
+    } else {
+        $(`#${scrId}checkerToMakerPushback`).show();
+        $(`#${scrId}subTab1`).show();
+        $(`#${scrId}el_hpl_3`).show();
+        $(`#${scrId}sc_col_47`).removeClass("brdr-left");
+        $(`#${scrId}subTab1`).text("Fresh Cases");
+        $(`#${scrId}el_hpl_3`).text("Rework Cases");
+        $(`#${scrId}el_label_20`).text("My Task");
+        $(`#${scrId}subTab1`).attr("onclick", "");
+        $(`#${scrId}el_hpl_3`).attr("onclick", "");
+        $(`#${scrId}allBtn`).attr("onclick", "");
+        $(`#${scrId}allBtn`).attr("onclick", `apz.app.BaseScreens.fetchRPCDashboardData("all","tabSwitch",this,1)`);
+        $(`#${scrId}subTab1`).attr("onclick", `apz.app.BaseScreens.fetchRPCDashboardData("freshCases","tabSwitch",this,1)`);
+        $(`#${scrId}el_hpl_3`).attr("onclick", `apz.app.BaseScreens.fetchRPCDashboardData("reworkCases","tabSwitch",this,1)`);
+        $(`#${scrId}allBtn`).click();
+    }
+};
+apz.app.NewDashBoard.closeRPCErrMdl = function() {
+    $(`#${scrId}RpcError_modal_close`).click();
+};
+//On Enter call searchFunction
+$(`#${scrId}searchInput`).keypress(function(e) {
+    if (e.which === 13) {
+        $(`#${scrId}el_icn_1`).click();
+    }
+})
+//On Enter call master searchFunction
+$(`#${scrId}masterSearchNew`).keypress(function(e) {
+    if (e.which === 13) {
+        $(`#${scrId}el_icn_11`).click();
+    }
+})
+//DBV
+apz.app.NewDashBoard.launchDbMicroApp = function(lappId){
+    gApzCOB.userDetails.applicationId = lappId;
+    gApzCOB.userDetails.versionNum = 1;
+    let applnId = gApzCOB.userDetails.applicationId;
+    let req = {
+            apiRequest: {
+                interfaceName: "",
+                appId: gAppId,
+                requestObj: {
+                    applicationId: applnId,
+                    userId: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                    //  "applicationId": "16202346089849322",
+                    appId: gApzCOB.userDetails.appId,
+                    versionNum: gApzCOB.userDetails.versionNum,
+                },
+            },
+        };
+        apz.startLoader();
+        setTimeout(() => {
+            ApzCOB.serverBuildParam(gAppId, "FetchApplication", "N", "N", req, false, apz.app.NewDashBoard.launchDbMicroAppCB);
+        }, 1000);
+}
+apz.app.NewDashBoard.launchDbMicroAppCB = function(params) {
+    let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchApplication_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            ApzCOB.fetchSubProduct();//
+            if (rpcDashboardActiveType === 'PENDING') {
+                apz.app.NewDashBoard.fnlockApplicaton("lockUser", gApzCOB?.userDetails?.applicationId);
+                ApzCOB.launchMicroApp('RPCDBV', 'RPCDBVerify', `${gAppId}__BaseScreens__BaseDIV`, '');
+                isRpcDashboardPreview = false;
+            } else {
+                isRpcDashboardPreview = true;
+                ApzCOB.RPCDBpreviewModal();
+            }
+        } else {
+            apz.stopLoader();
+            let responseMsg = params?.res?.APZCBO__FetchApplication_Res?.apiResponse?.ResponseBody?.responseObj || "";
+            if (responseMsg.includes('GK')) {
+                /*$(`#${scrId}locktxt_txtcnt`).text(responseMsg);
+                ApzCOB.toggleModal(scrId + 'lockModal');*/
+                ApzCOB.fnDisplayMsg(responseMsg, "E");
+                return;
+            } else {
+                if (responseMsg.includes('Renewal')) {
+                    errMsg = responseMsg;
+                }
+                $(`#${scrId}locktxt_txtcnt`).text(errMsg);
+                ApzCOB.toggleModal(scrId + 'lockModal');
+            }
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.toggleModal(scrId + 'lockModal');
+        $(`#${scrId}locktxt_txtcnt`).html(technicalErrMsg);
+    }
+};
+apz.app.NewDashBoard.DBVerificationPainting = function() {
+    $(`#${scrId}compTxt`).text("Approved");
+    $(`#${scrId}completedSubTxt`).text("Sent for Disbursement");
+    $(`#${scrId}PendingMainTxt`).text("DB Verification");
+    $(`#${scrId}sentBackTileInnerText`).text('Sent to DB Kit Execution');
+    $(`#${scrId}checkerToSourcingPushback`).addClass("sno");
+    $(`#${scrId}completedCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.RpcVerified ?? ''));
+    $(`#${scrId}freshCaseCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.freshCases ?? ''));
+    $(`#${scrId}reworkCaseCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.reworkCases ?? ''));
+    $(`#${scrId}pendingTotalCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.totalApplications ?? ''));
+    $(`#${scrId}sentBackToSourcingCount_txtcnt`).text(ApzCOB.formatToTwoDigits(window.LoanStatusDtls.map.SourcingPushback ?? ''));
+};
+
+apz.app.NewDashBoard.masterSearchInpData = function (pthis) {
+    if (isViewAccessEnabled) {
+        $(".viewDetailsBtn").removeClass('sno')
+    } else {
+        $(".viewDetailsBtn").addClass('sno')
+    }
+    apz.app.NewDashBoard.setvalforTabs();
+    let searchVal = $(`#${scrId}masterSearchNew`).val();
+    var req = {
+        "apiRequest": {
+            "requestObj": {
+                "searchValue": searchVal
+            },
+            "interfaceName": "MasterSearchApi",
+            "appId": "APZCBO"
+        }
+    }
+    ApzCOB.serverBuildParam(gAppId, "MasterSearchApi", "N", "N", req, false, apz.app.NewDashBoard.masterSearchInpDataCB);
+}
+apz.app.NewDashBoard.masterSearchInpDataCB = function (params) {
+     apz.stopLoader();
+    ApzCOB.toggleModal("APZCBO__BaseScreens__finalSearch");
+    if (ApzCOB.handleServiceCallBacks(params)) {
+        apz.stopLoader();
+        let masterSearchData = JSON.parse(params.res.APZCBO__MasterSearchApi_Res.apiResponse.ResponseBody.responseObj);
+        if (masterSearchData.length > 0) {
+            $("#APZCBO__BaseScreens__no_data_row").addClass("sno");
+            $("#APZCBO__BaseScreens__search_data_row").removeClass("sno");
+            apz.data.scrdata.APZCBO__MasterSearchDetails_Res = {}
+            let ProductData = apz.data.scrdata.Select__IpaintProductDetails_Res.data
+            const modifiedData = masterSearchData.map(item => {
+                let loanTypeName = item.loanType;
+                if (ProductData.length > 0 && item.loanType) {
+                    const prodInfo = ProductData.find(prod => prod.productCode === item.loanType);
+                    if (prodInfo) {
+                        loanTypeName = prodInfo.productName;
+                    }
+                }
+                return {
+                    ...item,
+                    loanType: loanTypeName,
+                    customerName: `${item.customerName}/${item.customerId}`,
+                    branchId: `${item.branchName}/${item.branchId}`,
+                    kendraId: `${item.kendraName}/${item.kendraId}`,
+                    loanAmount: item.loanAmount ? item.loanAmount : "-"
+                };
+            });
+            apz.data.scrdata.APZCBO__MasterSearchDetails_Res.data = modifiedData;
+            apz.data.loadData("MasterSearchDetails", "APZCBO");
+        } else {
+            $("#APZCBO__BaseScreens__search_data_row").addClass("sno");
+            $("#APZCBO__BaseScreens__no_data_row").removeClass("sno");
+
+        }
+    }
+};
+apz.app.NewDashBoard.openReportModal = function () {
+    apz.setElmValue("APZCBO__BaseScreens__fromDate", "")
+    apz.setElmValue("APZCBO__BaseScreens__toDate", "")
+    $('#APZCBO__BaseScreens__fromDate').datepicker("option", "maxDate", Date.parse(DATE_TODAY));
+    $('#APZCBO__BaseScreens__fromDate').datepicker("option", "yearRange", "-100:+0");
+    $('#APZCBO__BaseScreens__toDate').datepicker("option", "maxDate", Date.parse(DATE_TODAY));
+    $('#APZCBO__BaseScreens__toDate').datepicker("option", "yearRange", "-100:+0");
+    const arr = Object.entries(RPC_REPORTS_LOV).map(([desc, val]) => ({
+        "val": val,
+        "desc": desc
+    }));
+    apz.populateDropdown(document.getElementById("APZCBO__BaseScreens__reportType"), arr);
+    ApzCOB.toggleModal("APZCBO__BaseScreens__DownloadReport");
+};

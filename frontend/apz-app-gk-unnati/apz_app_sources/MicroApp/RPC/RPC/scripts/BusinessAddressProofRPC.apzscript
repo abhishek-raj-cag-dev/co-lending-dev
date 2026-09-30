@@ -1,0 +1,505 @@
+RPC_CURRENT_STAGE = 'BusinessAddressProofRPC';
+var bussAddrPrfScrId = `RPC__${RPC_CURRENT_STAGE}__`,
+    addSameAsRadio = `${bussAddrPrfScrId}addressSameAsInput`,
+    bussAddrProofTagId = `${bussAddrPrfScrId}currentAddressProofInput`,
+    addrFields = ['addressType', 'addressLine1', 'addressLine2', 'addressLine3', 'pinCode', 'city', 'district', 'area', 'landMark', 'state',
+        'country'];
+var addrType = "Occupation",
+    subAddrType = "Office";
+window.lAddressSameAs = '', window.validPinCode = false;
+window.activeTag = '';
+window.currBusinessIndex = '';
+var srcMapping  = {"Rental Income": "rentalIncome","Salary": "salary", "Pension": "pension", "Agriculture": "agriculture", "Wage": "wage"};
+apz.app.onLoad_BusinessAddressProofRPC = function() {
+    isAppCoAppOccTagYes = false;
+    window.KMRESPONSE = '';
+    window.lastSecondWf = '';
+    window.lastWf = '';
+    //  ApzCOB.fetchRpcOccupationTabs();
+    // apz.populateDropdown(document.getElementById(bussAddrProofTagId), ApzCOB.formatDropDownforArray(bssAddrProof));
+    apz.populateDropdown(document.getElementById(bussAddrProofTagId), ApzCOB.formatDropDownforArray(bssAddrProof));
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+    // apz.app.BusinessAddressProofRPC.paintIncomeData();
+};
+apz.app.onShown_BusinessAddressProofRPC = function() {
+    apz.app.BusinessAddressProofRPC.setMinMaxLength();
+       if (!$('.rpcStageSubmenuRow').hasClass('sno')) {
+        if ($(`#RPC__${RPC_CURRENT_STAGE}__rpcStageSubmenuItem_1`).length > 0) {
+            $(`#RPC__${RPC_CURRENT_STAGE}__rpcStageSubmenuItem_1`).click();
+        }
+        const visibleChildCount = $(
+            `[id^="RPC__RPCSidebar__menuBarList_row_-1_${RPC_CURRENT_STAGE_NO}"] .ttl-chld:visible`
+        ).length;
+        if (
+            $(`#RPC__${RPC_CURRENT_STAGE}__rpcStageSubmenuItem_2`).length > 0 &&
+            [6, 7].includes(RPC_CURRENT_STAGE_NO) &&
+            visibleChildCount === 1 &&
+            !isAppCoAppOccTagYes
+        ) {
+            $(`#RPC__${RPC_CURRENT_STAGE}__rpcStageSubmenuItem_2`).click();
+        }
+    }
+};
+apz.app.BusinessAddressProofRPC.setMinMaxLength = function() {
+    const fieldMap = {
+        addressLine1Input: "AddressLine1",
+        addressLine2Input: "AddressLine2",
+        addressLine3Input: "AddressLine3",
+        pinCodeInput: "Pincode",
+        cityInput: "City",
+        districtInput: "District",
+        stateInput: "State",
+        countryInput: "Country",
+        landMarkInput: "Landmark",
+        areaInput: "Area",
+        locateCoOrdinatesInput: "LocationCoord"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: bussAddrPrfScrId + fieldId
+    })));
+};
+apz.app.BusinessAddressProofRPC.onchangepincode = function(pthis){
+    let { value: pincodeVal } = pthis;
+    if (apz.isNull(pincodeVal) || !pinlengthErr) {
+        validPinCode = false;
+        ["areaInput", "cityInput", "districtInput", "stateInput"].forEach(el => {
+            $(`#RPC__${RPC_CURRENT_STAGE}__${el}`).val('');
+        })
+        return;
+    }
+    window.pincodeAddresstype = addressType;
+    ApzCOB.fetchpincodeDtls(pincodeVal, RPC_CURRENT_STAGE);
+};
+apz.app.BusinessAddressProofRPC.paint_pincode = function(params) {
+    $(`#${bussAddrPrfScrId}cityInput`).val(params.city).focus();
+    $(`#${bussAddrPrfScrId}districtInput`).val(params.district).focus();
+    $(`#${bussAddrPrfScrId}stateInput`).val(params.state).focus();
+    $(`#${bussAddrPrfScrId}countryInput`).val(params.country).focus();
+    $(`#${bussAddrPrfScrId}areaInput`).val(params.area).focus();
+};
+apz.app.BusinessAddressProofRPC.configFieldsBasedOnConditions = function() {
+    currApplOccupation = ApzCOB.getPayloadData('occupation', custType, 'BusinessPhotoRPC') ;
+    $(`#${addSameAsRadio} input`).map((el, item) => {
+        fieldId = item.id
+        if (!$(`#${fieldId}`).prop('checked')) {
+            $(`#${fieldId}_lbl_`).addClass('sno');
+        }
+    })
+    $('.rpcEditBtn label.ett-labl').parent().removeClass('sno');
+    lAddressSameAs =ApzCOB.getPayloadData('addressSameAs', custType);
+    if (lAddressSameAs?.toLowerCase() === 'present') {
+        $('.rpcEditBtn label.ett-labl').parent().addClass('sno');
+    }
+}
+apz.app.BusinessAddressProofRPC.editRadioCheck = function() {
+    window.addressradioCheck = '';
+    if ($(`#${bussAddrPrfScrId}addressSameAsInput_option_Present`).is(":checked")) {
+        addressradioCheck = 'Present';
+    } else if ($(`#${bussAddrPrfScrId}addressSameAsInput_option_Permanent`).is(":checked")) {
+        addressradioCheck = 'Permanent';
+    } else if ($(`#${bussAddrPrfScrId}addressSameAsInput_option_Other`).is(":checked")) {
+        addressradioCheck = 'Other';
+    }
+    apz.app.BusinessAddressProofRPC.fetchAddressData(addressradioCheck);
+    window.fields = [`${bussAddrPrfScrId}addressLine1Input`, `${bussAddrPrfScrId}addressLine2Input`, `${bussAddrPrfScrId}addressLine3Input`,
+        `${bussAddrPrfScrId}landMarkInput`, `${bussAddrPrfScrId}pinCodeInput`
+    ];
+    if (addressradioCheck === 'Present') {
+        // Disable all address fields
+        fields.forEach(id => ApzCOB.addDisableToInput(id));
+        ApzCOB.addDisableToInput(`${bussAddrPrfScrId}businessAddressProofInput_ext`);
+    } else if (addressradioCheck === 'Permanent' || addressradioCheck === 'Other') {
+        // Enable all address fields
+        fields.forEach(id => ApzCOB.removeDisableToInput(id));
+        ApzCOB.removeDisableToInput(`${bussAddrPrfScrId}businessAddressProofInput_ext`);
+    }
+};
+
+apz.app.BusinessAddressProofRPC.fetchAddressData = function(checkedaddr) {
+    const addressList = inSessionStore.addressDetailsWrapperList?.[0]?.addressDetailsList || [];
+    const getAddresses = (customerType, mainType, subType, sameAsType) => {
+        const customer = inSessionStore.customerDetailsList.find(c => c.customerType === customerType);
+        if (!customer) return [];
+        return addressList.filter(a => a.custDtlId === customer.custDtlId && a.addressType === mainType && Array.isArray(a.payload
+            ?.addressList)).flatMap(a => a.payload.addressList).filter(addr => {
+            if (sameAsType) {
+                // For 'Other' case
+                return addr.addressSameAs === sameAsType && addr.addressType === subType;
+            } else {
+                // For 'Present' or 'Permanent'
+                return addr.addressType === subType;
+            }
+        });
+    };
+    if (checkedaddr === 'Present') {
+        window.applicantData = getAddresses("Applicant", "Personal", "Present") || [];
+        window.coAppData = getAddresses("Co-App", "Personal", "Present") || [];
+    } else if (checkedaddr === 'Permanent') {
+        window.applicantData = getAddresses("Applicant", "Personal", "Permanent") || [];
+        window.coAppData = getAddresses("Co-App", "Personal", "Permanent") || [];
+    } else if (checkedaddr === 'Other') {
+        // Filter: addressType === 'Occupation' and payload.addressList where addressSameAs === 'Other' and addressType === 'Office'
+        window.applicantData = getAddresses("Applicant", "Occupation", "Office", "Other") || [];
+        window.coAppData = getAddresses("Co-App", "Occupation", "Office", "Other") || [];
+    }
+    apz.app.BusinessAddressProofRPC.mapAddressFields();
+};
+apz.app.BusinessAddressProofRPC.mapAddressFields = function() {
+    const allowedFields = ["addressLine1", "addressLine2", "addressLine3", "landMark", "area", "pinCode", "city", "district", "state", "country",
+        "locateCoOrdinates"
+    ];
+    const fillFields = (custType, data) => {
+        currentTypeFields.filter(f => allowedFields.includes(f.fieldId)).forEach(f => {
+            const selector = `#RPC__${RPC_CURRENT_STAGE}__${f.fieldId}Input`;
+            const value = data?.[0]?.[f.fieldId] || "";
+            $(selector).val(value);
+        });
+    };
+    if (custType == 'Applicant') {
+        fillFields("Applicant", window.applicantData);
+    } else if (custType == 'Co-App') {
+        fillFields("Co-App", window.coAppData);
+    }
+}
+//Income Summary changes
+apz.app.BusinessAddressProofRPC.viewIncomeSummary = function() {
+    let OverAllNetIncome = 0;
+    apz.app.BusinessAddressProofRPC.resetBusinessObj();
+    bussWrapperData = inSessionStore.bcmpiIncomeDetails.bcmpiIncomeDetailsWrapper;
+    formatIncome = (val) => apz.app.BusinessAddressProofRPC.formatAndUnformat((val || 0).toString());
+    /* Business Income */
+    Object.entries(bussWrapperData.business || {}).forEach(([businessType, businessList]) => {
+        if (!Array.isArray(businessList) || !businessList.length) return;
+        targetKey = businessType === 'dairy' ? 'Dairy' : businessType;
+        businessList.forEach((el) => {
+            incomeSources.business[targetKey].push({
+                ownedBy: el.kiranaType || el.otherType || el.DairyType || el.tailoringType,
+                income: formatIncome(el.netMonthlyIncome || el.netBusinessIncome)
+            });
+            OverAllNetIncome = OverAllNetIncome + formatIncome(el.netMonthlyIncome || el
+                .netBusinessIncome)
+        });
+    });
+    /* Common handler for Other Income */
+    incomeTypeMap = {
+        rentalIncome: 'Rentalincome',
+        agriculture: 'Agriculture',
+        salary: 'Salary',
+        wage: 'Wage',
+        pension: 'Pension'
+    };
+    netincomeTypeMap = {
+        rentalIncome: 'monthlyRentalIncome',
+        agriculture: 'declaredIncome',
+        salary: 'netSalary',
+        wage: 'selfDeclaredWage',
+        pension: 'applicantPensionIncome'
+    };
+    setOtherIncome = (sourceKey, targetKey) => {
+        source = bussWrapperData[sourceKey];
+        debugger
+        if (apz.isObjectEmpty(source)) return;
+        applicantIncome = source?.applicant?.[netincomeTypeMap[sourceKey]] || source?.applicant?.other?.[netincomeTypeMap[sourceKey]] || 0;
+        coApplicantIncome = source?.coApplicant?.[netincomeTypeMap[sourceKey]] || source?.coApplicant?.other?.[netincomeTypeMap[sourceKey]]  || source?.coApplicant?.coApplicantPensionIncome || 0;
+        ownedBy = '';
+        income = 0;
+        if (source.applicant && source.coApplicant) {
+            ownedBy = 'Both';
+            income = formatIncome(applicantIncome) + formatIncome(coApplicantIncome);
+        } else if (source.applicant) {
+            ownedBy = 'Applicant';
+            income = formatIncome(applicantIncome);
+        } else if (source.coApplicant) {
+            ownedBy = 'Co-Applicant';
+            income = formatIncome(coApplicantIncome);
+        }
+        incomeSources.otherIncome[targetKey] = {
+            ownedBy,
+            income
+        };
+        OverAllNetIncome = parseInt(OverAllNetIncome) + parseInt(income || 0);
+    };
+    Object.entries(incomeTypeMap).forEach(([sourceKey, targetKey]) => {
+        setOtherIncome(sourceKey, targetKey);
+    });
+    $('.incSumm').addClass('sno');
+    incomeSources.totals.monthly = ApzCOB.formatIndianRupees(OverAllNetIncome);
+    incomeSources.totals.annually = ApzCOB.formatIndianRupees(OverAllNetIncome * 12);
+    $(`#${RPCSTageScreenID}totalHousehldIncValue`).text(ApzCOB.formatIndianRupees(OverAllNetIncome) ?? `₹ 0`);
+    $(`#${RPCSTageScreenID}totalDeclaredIncValue`).text(ApzCOB.formatIndianRupees(OverAllNetIncome * 12) ?? `₹ 0`);
+    if (OverAllNetIncome > 0) {
+        $('.incSumm').removeClass('sno');
+        apz.app.BusinessAddressProofRPC.paintIncomeSummaryData(incomeSources);
+    }
+    ApzCOB.toggleModal(RPCSTageScreenID + 'incomeSummaryMdl');
+};
+apz.app.BusinessAddressProofRPC.paintIncomeSummaryData = function(incomeSources) {
+    /* ---------- BUSINESS INCOME ---------- */
+    const businessTypes = ["Dairy", "Kirana", "Tailoring", "Other"];
+    businessTypes.forEach((type, index) => {
+        const data = incomeSources.business[type] || [];
+        const row = index + 1;
+        let totalIncome = 0;
+        let owners = new Set();
+        data.forEach(item => {
+            totalIncome += item.income || 0;
+            if (item.ownedBy) owners.add(item.ownedBy);
+        });
+        const ownedByText = owners.size ? [...owners].join(", ") : "None";
+        // $(`#${kmScrId}el_txt_${296 + (index * 3)}`).text(`Business ${row} - ${type}`);
+        $(`#${RPCSTageScreenID}business${row}_ownedBy`).text(ownedByText);
+        $(`#${RPCSTageScreenID}business${row}_income`).text(`₹ ${totalIncome.toLocaleString()}`);
+    });
+    /* ---------- OTHER INCOME ---------- */
+    const otherMap = {
+        Agriculture: 1,
+        Salary: 2,
+        Wage: 3,
+        Pension: 4,
+        Rentalincome: 5
+    };
+    Object.keys(otherMap).forEach(type => {
+        const idx = otherMap[type];
+        const data = incomeSources.otherIncome[type] || {};
+        const ownedBy = data.ownedBy || "None";
+        const income = data.income || 0;
+        $(`#${RPCSTageScreenID}OtherInc${idx}_ownedBy`).text(ownedBy);
+        $(`#${RPCSTageScreenID}OtherInc${idx}_income`).text(`₹ ${income.toLocaleString()}`);
+    });
+    /* ---------- TOTALS ---------- */
+    $(`#${RPCSTageScreenID}totalMonthlyIncome`).text(incomeSources.totals.monthly);
+    $(`#${RPCSTageScreenID}totalAnnualIncome`).text(incomeSources.totals.annually);
+};
+apz.app.BusinessAddressProofRPC.formatAndUnformat = function(amtVal) {
+    if (apz.isNull(amtVal) || amtVal == 0) return '';
+    let currNetIncome = ApzCOB.fn_FormatAmount(amtVal);
+    currNetIncome = ApzCOB.unformatAmountWithDecimal(amtVal);
+    return parseInt(currNetIncome);
+};
+apz.app.BusinessAddressProofRPC.resetBusinessObj = function() {
+    incomeSources = {
+        business: {
+            Dairy: [],
+            Tailoring: [],
+            Kirana: [],
+            Other: []
+        },
+        otherIncome: {
+            Agriculture: {},
+            Salary: {},
+            Wage: {},
+            Pension: {},
+            Rentalincome: {}
+        },
+        totals: {
+            monthly: 0,
+            annually: 0
+        }
+    };
+}
+apz.app.BusinessAddressProofRPC.launchCustomerSection = function(pthis) {
+    apz.childScr = 'BusinessAddressProofRPC';
+    ['appNetIncomeRow', 'coappNetIncomeRow'].hide();
+    if (pthis.value === 'Applicant') {
+        ['appNetIncomeRow'].show();
+    } else if (pthis.value === 'Co-Applicant') {
+        ['coappNetIncomeRow'].show();
+    } else if (pthis.value === 'Both') {
+        ['appNetIncomeRow', 'coappNetIncomeRow'].show();
+    }
+};
+apz.app.BusinessAddressProofRPC.customIndianRupeeFormat = function(obj, decimalPoints = 2) {
+    var value = obj.value;
+    if (!value) return;
+    // remove commas
+    value = value.replace(/,/g, '');
+    // validate number
+    if (isNaN(value)) {
+        obj.value = '';
+        return;
+    }
+    var num = parseFloat(value);
+    // format number with commas and decimals
+    var formatted = num.toLocaleString('en-IN', {
+        minimumFractionDigits: decimalPoints,
+        maximumFractionDigits: decimalPoints
+    });
+    obj.value = formatted;
+};
+apz.app.BusinessAddressProofRPC.onSelectBussAddr = function(pthis) {
+    let $addrList = $(`#${bussAddrPrfScrId}addressList`);
+    let $otherRow = $(`#${bussAddrPrfScrId}otherBussAddrRow`);
+    $addrList.find('.etb-rdio input[type="radio"]').prop('checked', false);
+    $(pthis).prop('checked', true);
+    if (pthis.id.includes('Other')) {
+        $otherRow.removeClass('sno');
+    } else {
+        $otherRow.addClass('sno');
+        $otherRow.find('input').val('').focus();
+        $(`#${bussAddrPrfScrId}currentAddressProofInput`).val(PleaseSelect).change();
+        $(`#${bussAddrProofTagId}`).val(PleaseSelect).change();
+    }
+};
+apz.app.BusinessAddressProofRPC.paintAddressOptions = function(pIndex, selectedVal) {
+    //addressSameAs - ApplicantVoter Co-AppVoter ApplicantSecondaryKyc Co-AppSecondaryKyc Other
+    //Addresstype - Voter , SecondaryKyc
+    let noAddrText = 'Data not available, please update the address details';
+    let addrMap = [
+        { id: 'AppVoterAddr_txtcnt', type: 'Voter', cust: 'Applicant' },
+        { id: 'coAppVoterAddr_txtcnt', type: 'Voter', cust: 'Co-App' },
+        { id: 'AppAadhaarAddr_txtcnt', type: 'SecondaryKyc', cust: 'Applicant' },
+        { id: 'coAppAadhaarAddr_txtcnt', type: 'SecondaryKyc', cust: 'Co-App' }
+    ];
+    addrMap.forEach(item => {
+        let addr = apz.app.BusinessAddressProofRPC.getAddressStr(item.type, item.cust) || false;
+        let elem = $(`#${bussAddrPrfScrId}${item.id}`);
+        elem.text(addr ? addr : noAddrText);
+        if (!addr) {
+            elem.parent().addClass('aadhaar-fallback-text');
+            $(`#${bussAddrPrfScrId}${item.cust+item.type}Rdo`).addClass('aadhar-radio-disable')
+        }
+    });
+    if (selectedVal) {
+        $(`#${bussAddrPrfScrId + selectedVal}Rdo_option_ApplicantVoter`).change();
+        $(`#${bussAddrPrfScrId}addressList .bsaddr-body-row`).each((index, item) => {
+            $('#' + item.id).removeClass('sno');
+        })
+        $(`#${bussAddrPrfScrId}addressList .etb-rdio.ett-rdio`).removeClass('aadhar-radio-disable');
+        if (!editFlag) {
+            $(`#${bussAddrPrfScrId}addressList .bsaddr-body-row`).each((index, item) => {
+                $('#' + item.id).addClass('sno');
+            })
+            $(`#${bussAddrPrfScrId + selectedVal}Row`).removeClass('sno');
+            $(`#${bussAddrPrfScrId}addressList .etb-rdio.ett-rdio`).addClass('aadhar-radio-disable');
+        }
+        let $addrList = $(`#${bussAddrPrfScrId}addressList`);
+        $addrList.find('.etb-rdio input[type="radio"]').prop('checked', false);
+        $(`#${bussAddrPrfScrId + selectedVal}Rdo_option_${selectedVal}`).prop('checked', true);
+        $(`#${bussAddrPrfScrId}otherBussAddrRow`).addClass('sno');
+        if (selectedVal === 'Other') {
+            $(`#${bussAddrPrfScrId + selectedVal}Rdo_option_${selectedVal}`).change();
+            addrType = 'Occupation';
+            subAddrType = 'Office';
+            let OthOffAddr = inSessionStore.addressDetailsWrapperList[0].addressDetailsList.find(el => el.addressType === 'Occupation' && el.custDtlId === ApzCOB.getCustDetailID('Applicant'))?.payload?.addressList?.find(addr => addr.businessIndex == pIndex);
+            $(`#${bussAddrPrfScrId}otherBussAddrRow`).removeClass('sno');
+            if (OthOffAddr) {
+                $(`#${bussAddrPrfScrId + selectedVal}Rdo_option_${selectedVal}`).change();
+                addrFields.forEach(el => {
+                    $(`#${bussAddrPrfScrId + el}Input`).val(OthOffAddr[el] || "");
+                });
+                $(`#${bussAddrPrfScrId}currentAddressProofInput`).val(OthOffAddr.currentAddressProof)
+            } else {
+                addrFields.forEach(el => {
+                    $(`#${bussAddrPrfScrId}otherBussAddr${el}`).val("").attr("placeholder", "Please type here");
+                });
+                $(`#${bussAddrPrfScrId}currentAddressProofInput`).prop('selectedIndex', 0);
+            }
+            $(`#${bussAddrPrfScrId}ApplicantVoterRow,#${bussAddrPrfScrId}Co-AppVoterRow,#${bussAddrPrfScrId}ApplicantSecondaryKycRow,#${bussAddrPrfScrId}Co-AppSecondaryKycRow`).addClass('sno');
+        } else {
+           $(`#${bussAddrPrfScrId}OtherRow`).addClass('sno'); 
+        }
+    }
+};
+apz.app.BusinessAddressProofRPC.getAddressStr = function(addrType, custType) {
+    if (apz.isNull(inSessionStore.addressDetailsWrapperList)) return '';
+    let custDetailID = ApzCOB.getCustDetailID(custType);
+    let addrList = inSessionStore.addressDetailsWrapperList[0]?.addressDetailsList?.find(el => el.custDtlId === custDetailID && el.addressType === 'Personal')?.payload?.addressList || [];
+    if (addrList.length === 0) return false;
+    let Addr = addrList.find(a => a.addressType === addrType) || {};
+    if (Addr && Addr.addressLine1) {
+        return [Addr.addressLine1, Addr.addressLine2, Addr.addressLine3, Addr.district, Addr.city, Addr.pinCode, Addr.state, Addr.country].filter(Boolean).join(", ");
+    }
+}
+apz.app.BusinessAddressProofRPC.paintIncomeData = function() {
+    window.activeTag = $(`#${bussAddrPrfScrId}applicantsList .active span`).text();
+    $('#RPC__BusinessAddressProofRPC__incSourceHdr').text(activeTag);
+    if (activeTag.includes('Business')) {
+        $('#RPC__BusinessAddressProofRPC__ownedByRow, #RPC__BusinessAddressProofRPC__bussAddrSection').removeClass('sno');
+        window.currBusinessIndex = parseInt(activeTag.split(' ')[1]);
+        $('.bss-sec').removeClass('sno');
+        $('.rpcquerybtn').removeClass('sno');
+        $(`#${bussAddrPrfScrId}otherIncSourcrForm, #${bussAddrPrfScrId}otherIncSourcrFormRow`).addClass('sno');
+        apz.app.BusinessAddressProofRPC.paintBusinessIncomeData(currBusinessIndex);
+    } else {
+        $('.bss-sec').addClass('sno');
+        $('.rpcquerybtn').addClass('sno');
+        $(`#${bussAddrPrfScrId}otherIncSourcrForm, #${bussAddrPrfScrId}otherIncSourcrFormRow`).removeClass('sno');
+        apz.app.BusinessAddressProofRPC.paintOtherIncomeData(activeTag);
+    }
+};
+apz.app.BusinessAddressProofRPC.paintBusinessIncomeData = function(currBusinessIndex) {
+    window.bussData = ApzCOB.getIncomeData(inSessionStore.bcmpiIncomeDetails.bcmpiIncomeDetailsWrapper, "business", currBusinessIndex);
+    if (apz.isNull(bussData)) return;
+    let bussType = bussData.data.tailoringType || bussData.data.DairyType || bussData.data.kiranaType || bussData.data.otherType;
+    let bussCategory = bussData.category === 'dairy' ? 'Dairy' : bussData.category;
+    $(`#${bussAddrPrfScrId}businessOwnedByOption span`).addClass('sno');
+    $(`#${bussAddrPrfScrId}businessOwnedByOption_option_${bussType}_lbl_`).removeClass('sno');
+    $(`#${bussAddrPrfScrId}businessOwnedByOption_option_${bussType}`).prop('checked', true);
+    $(`#${bussAddrPrfScrId}businessTypeOption span`).addClass('sno');
+    $(`#${bussAddrPrfScrId}businessTypeOption_option_${bussCategory}_lbl_`).removeClass('sno');
+    $(`#${bussAddrPrfScrId}businessTypeOption_option_${bussCategory}`).prop('checked', true);
+    apz.app.BusinessAddressProofRPC.paintAddressOptions(currBusinessIndex, bussData.data.addressSameAs);
+    $(`#${bussAddrPrfScrId}NetBusinessIncome`).val('₹ ' + ApzCOB.formatamountVal(bussData.data.netMonthlyIncome || bussData.data.netBusinessIncome || 0));
+    $(`#${bussAddrPrfScrId}otherLineofBussRow, #${bussAddrPrfScrId}streetVendorRow, #${bussAddrPrfScrId}K-TypeofshopRow`).addClass('sno');
+    if (bussData.category == 'Kirana') {
+        $(`#${bussAddrPrfScrId}streetVendorRow, #${bussAddrPrfScrId}K-TypeofshopRow`).removeClass('sno');
+        $(`#${bussAddrPrfScrId}streetVendor_option_${bussData.data.streetVendor}`).prop('checked', true);
+        $(`#${bussAddrPrfScrId}K-Typeofshop`).val(bussData.data.kiranaShopType);
+        $input = $(`#${bussAddrPrfScrId}K-Typeofshop`);
+        $(`#${bussAddrPrfScrId}K-Typeofshop`).closest('td, div').attr('title', $input.val());
+    } else if (bussData.category == 'Other') {
+        $(`#${bussAddrPrfScrId}otherLineofBussRow`).removeClass('sno');
+        $(`#${bussAddrPrfScrId}O_OthLineOfBus_drop`).val(bussData.data.lineOfOtherBusiness);
+        $input = $(`#${bussAddrPrfScrId}O_OthLineOfBus_drop`);
+        $(`#${bussAddrPrfScrId}O_OthLineOfBus_drop`).closest('td, div').attr('title', $input.val());
+    }
+};
+apz.app.BusinessAddressProofRPC.paintOtherIncomeData = function(activeTag) {
+    window.othrSrcIncData = ApzCOB.getIncomeData(inSessionStore?.bcmpiIncomeDetails?.bcmpiIncomeDetailsWrapper, srcMapping[activeTag]);
+    const keys = Object.keys(othrSrcIncData || {});
+    let incOwndedBy = keys.length > 1 ? 'Both' : keys[0] || '';
+    let typeMapping = {
+        'applicant': 'Applicant',
+        'coApplicant': 'Co-Applicant',
+        'Both': 'Both'
+    };
+    const ownershipType = typeMapping[incOwndedBy];
+    $(`#${bussAddrPrfScrId}othSrcOwnedByOption span`).addClass('sno');
+    $(`#${bussAddrPrfScrId}othSrcOwnedByOption_option_${ownershipType}_lbl_`).removeClass('sno');
+    $(`#${bussAddrPrfScrId}othSrcOwnedByOption_option_${ownershipType}`).prop('checked', true);
+    const appNetRowID = 'RPC__BusinessAddressProofRPC__appNetIncomeRow';
+    const appNetIncId = 'RPC__BusinessAddressProofRPC__appNetIncome';
+    const coAppNetRowID = 'RPC__BusinessAddressProofRPC__coappNetIncomeRow';
+    const coAppNetIncId = 'RPC__BusinessAddressProofRPC__coappNetIncome';
+    $(`#${appNetRowID} ,#${coAppNetRowID}`).addClass('sno');
+    if (ownershipType === 'Both') {
+        $(`#${appNetRowID}, #${coAppNetRowID}`).removeClass('sno');
+        $(`#${appNetIncId}`).val(apz.app.BusinessAddressProofRPC.getIncValue(othrSrcIncData?.applicant) || '');
+        $(`#${coAppNetIncId}`).val(apz.app.BusinessAddressProofRPC.getIncValue(othrSrcIncData?.coApplicant) || '');
+    } else {
+        const isApplicant = ownershipType === 'Applicant';
+        const rowId = isApplicant ? appNetRowID : coAppNetRowID;
+        const inputId = isApplicant ? appNetIncId : coAppNetIncId;
+        const income = isApplicant ? apz.app.BusinessAddressProofRPC.getIncValue(othrSrcIncData?.applicant) : apz.app.BusinessAddressProofRPC.getIncValue(othrSrcIncData?.coApplicant);
+        $(`#${rowId}`).removeClass('sno');
+        $(`#${inputId}`).val(income || '0');
+    }
+};
+apz.app.BusinessAddressProofRPC.handleEditFunction = function() {
+    if (activeTag.includes('Business')) {
+        apz.app.BusinessAddressProofRPC.paintAddressOptions(currBusinessIndex, bussData.data.addressSameAs);
+    }
+};
+apz.app.BusinessAddressProofRPC.getIncValue = function(obj) {
+    if (!obj || typeof obj !== 'object') {
+        return obj;
+    }
+    for (const value of Object.values(obj)) {
+        const result = apz.app.BusinessAddressProofRPC.getIncValue(value);
+        if (result !== undefined) {
+            return ApzCOB.formatIndianRupees(result || 0);
+        }
+    }
+};

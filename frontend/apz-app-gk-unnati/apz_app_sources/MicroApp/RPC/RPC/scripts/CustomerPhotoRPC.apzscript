@@ -1,0 +1,6 @@
+RPC_CURRENT_STAGE = 'CustomerPhotoRPC'
+apz.app.onLoad_CustomerPhotoRPC = function() {
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+};
+apz.app.onShown_CustomerPhotoRPC = function() {}

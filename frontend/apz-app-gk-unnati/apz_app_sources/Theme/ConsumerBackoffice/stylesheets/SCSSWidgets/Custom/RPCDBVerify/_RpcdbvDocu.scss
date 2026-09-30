@@ -1,0 +1,270 @@
+.srb.eoc.wrapped.viewlondtl .ett-para {
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 16px;
+    vertical-align: middle;
+    color: #525252;
+    background: #E3E8EF;
+    padding: 0 16px;
+    border-radius: 104px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    width: unset;
+    cursor:pointer;
+}
+.modal .ett-bttn.pri.btn-lst-approve {
+    background: #FFFF !important
+}
+.ett-bttn.pri.btn-lst-approve, .ett-bttn.pri.btn-lst-qry {
+    height: 36px;
+    border-radius: 104px;
+    border: 1px solid #D4D4D4;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 14px;
+    vertical-align: middle;
+    color: #737373;
+    background: transparent;
+    display: flex;
+    align-items: center;
+}
+.btn-lst-approve.active{
+    background:#D1FADF;
+    color:#039855;
+    border: 1px solid #039855;
+    
+}
+
+.btn-lst-qry.active{
+    background:#FEF3F2;
+    color:#D92D20;
+    border: 1px solid #D92D20;
+}
+.srb.eoc.wrapped.viewlondtl{
+width:auto;
+float:right
+}
+
+.rpcdbvmain .enachsuc .suc-ttl .ett-para{width:100%;display: flex;justify-content: center;}
+.rpcdbvmain .enachsuc .suc-id {width:100%;display: flex;justify-content: center;}
+body.unati .rpcdbvmain .msg-suc-fail .srb {
+    justify-content: center;
+}
+
+
+
+.list-doc-upload .list-cnt li .scb-col30 > .srb {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    justify-content: flex-end;
+}
+.list-doc-upload .list-cnt li .scb-col70 > .srb {
+    display: flex;
+}
+.list-doc-upload .list-cnt li .scb-col30 > .srb span {
+    width: auto;
+}
+
+.ett-bttn.pri.btn-lst-qry.query {
+    border: 1px solid  #D92D20;
+    background: #FEF3F2;
+    color: #D92D20;
+}
+.docunati .hdrsec .scb-col85 ,.docunati .hdrsec .scb-col15 {
+    width: auto;
+}
+
+.docunati .hdrsec {
+    display: flex;
+    justify-content: space-between;
+    align-items:center;
+}
+
+.docunati .hdrsec .scb-col85 .srb.eoc.wrapped {
+    width: auto;
+}
+
+.rpcdbvmain .enachsuc.doc-un .suc-ttl .ett-para {
+    justify-content: center;
+}
+
+.mb4 {
+    margin-bottom: 4px;
+} 
+
+.list-doc-upload .list-main-sec.crt-list > ul.tsp li .srb {
+    display: flex;
+    justify-content: flex-start;
+}
+.reviewdocuexe.list-doc-upload {
+    gap: 0;
+}
+.reviewdocuexe .queryhdr.eror p.ett-para {
+    font-size: 14px;
+}
+.mt12 {
+    margin-top: 12px;
+}
+.list-doc-upload .list-main-sec.crt-list > ul.tsp li .srb.file-siz p.ett-para {
+    font-size: 14px;
+    color: #525252;
+}
+.reviewdocuexe.list-doc-upload .list-main-sec.crt-list > ul.tsp li  .srb.link-desc-icon {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.reviewdocuexe .srb.link-desc-icon span {
+    width: auto;
+}
+
+.reviewdocuexe .srb.link-desc-icon > span:last-child .srb {
+    display: flex;
+    gap: 12px;
+}
+
+
+body.unati.crdas  .rpcdbvmain-sec .lon-hdr .crt-form span .flb {
+    // line-height: 21px;
+}
+
+.rpcdbvmain-sec .lon-hdr .crt-form > span {
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.rpcdbvmain-sec .lon-hdr .crt-form > span > span {
+    align-items: center;
+    gap: 4px;
+}
+.dbkit .kyc-view .pst-simp > div .tool-hdr .img-tools span:first-child {
+    margin-right: 8px;
+    
+}
+.dbkitmain .rpcdbvmain-sec .pst-simp.pa0 > div.lmvalues .srb > span {
+    padding: 0;
+}
+@media screen and (max-width:1460px){
+.rpcdbvmain-sec .aprrej .sagap.srb span {
+    display: inline;
+}
+}
+.docname .flb {
+    font-weight: 400;
+    font-size: 11px !important;
+    color: #004886 !important;
+    padding-left: 4px;
+    margin: 0;
+}
+.reviewdocuexe .srb.link-desc-icon .docname > span {
+    display: flex;
+    align-items: center;
+}
+.regenrateexe .srb {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.regenrateexe .srb span {
+    width: auto;
+}
+
+.regenrateexe .srb.eoc.drndp {
+    width: 125px;
+}
+
+.list-main-sec.crt-list > ul.tsp li .ett-para.modfd {
+ font-size: 11px;
+ font-weight: 400;
+ color: #004886;
+ margin-left: 8px;
+}
+
+body.unati .modfd .ett-para.pri {
+    color: #004886;
+}
+
+.queryhdr.eror p.ett-para.pri {
+    font-size: 16px;
+}
+
+.cp { 
+    cursor: pointer;
+ }
+
+@media only screen and (min-width: 500px) and (max-width: 1024px) {
+    .cabasediv.dbkitmain .cabody {
+        margin-left: 0px;
+    }
+    .crdas.dbkit .rpcdbvmain .lon-hdr {
+        width: 100%;
+        margin-left: 0px;
+    }
+    .dbkit .cabasediv .casidebarwrap {
+        height: 100vh;
+    }
+    .kyc-applcnt.d-flex {
+        flex-direction: column;
+    }
+    .kyc-applcnt.d-flex > span {
+        width: 100%;
+    }
+    .kyc-applcnt > span.scb-col70 > .srb.pri .revConf > .srb.pri {
+        width: 45%;
+    }
+    .kyc-applcnt > span.scb-col70 > .srb.pri .revConf {
+        justify-content: space-between;
+    }
+    .unati.crdas.dbkit .launch-area {
+        margin-top: 150px;
+    }
+    .pst-simp.pa0 > div.kyc-rvew {
+        padding: 24px;
+        margin-top: 24px;
+    }
+    .rpcdbvmain-sec .lon-hdr .crt-form > span > span {
+        align-items: self-start;
+    }
+    .unati.crdas.dbkit .cafooter {
+        width: 100%;
+    }
+   .rpcdbvreview.rcblk .threecol.shwdtl > span.scb-col100 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+.bank-verify{
+    position: relative;
+}
+.bank-verify .ett-para.pri.suc {
+    font-size: 12px !important;
+    color: #039855 !important;
+}
+.bank-verify .ett-para.pri.failed {
+    font-size: 12px;
+    color: #D92D20 !important;
+}
+.bank-verify .icon-success-filled {
+    display: none;
+}
+.bank-verify .ett-para.pri.suc svg {
+    display: block;
+    position: absolute;
+    right: 16px;
+    bottom: 32px;
+}
+.bank-verify .icon-fail-filled {
+    display: none;
+}
+.bank-verify .ett-para.pri.failed .icon-fail-filled {
+    display: block;
+    position: absolute;
+    bottom: 32px;
+    right: 16px;
+}

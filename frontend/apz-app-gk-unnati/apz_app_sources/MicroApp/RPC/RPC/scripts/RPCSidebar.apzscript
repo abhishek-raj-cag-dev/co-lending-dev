@@ -1,0 +1,200 @@
+var menuBarListID = '#RPC__RPCSidebar__menuBarList';
+//var activityIntfId = 'APZCBO__ActivityLog__o__APZCBO__ActivityLog_Res__'
+// var rpcOccupationsTab = [];
+
+apz.app.onLoad_RPCSidebar = function() {
+    // ApzCOB.fetchRpcOccupationTabs();
+    ApzCOB.fetchRpcOccupationTabsNewKM();
+    apz.app.RPCSidebar.paintStages();
+    ApzCOB.addActiveToCurrentStage();
+    ApzCOB.updateSideMenuStatusTags();
+}
+apz.app.onShown_RPCSidebar = function() {
+    ApzCOB.fetchRpcStageFields("ReviewConfirm");
+    if(RPC_CURRENT_STAGE_NO === 6) {
+        let subMenu = [];
+        if (!apz.isObjectEmpty(RPC_STAGES)) {
+            let stageData = Object.values(RPC_STAGES).find(stage => stage.id === RPC_CURRENT_STAGE_NO);
+            if (!apz.isObjectEmpty(stageData)) {
+                subMenu = stageData.subMenu;
+            }
+        }
+        if (subMenu.length > 0) {
+            let selectElementID = `RPC__${RPC_CURRENT_STAGE}__rpcStageSubmenuItem_0`;
+            let parentDiv = $(`#${selectElementID}`).parent();
+            subMenu.forEach((stage, index) => {
+                let currentIndex = index + 1;
+                /*if([6, 7].includes(RPC_CURRENT_STAGE_NO) && subMenu.length == 1) {
+                    currentIndex = ApzCOB.setcustTypeforOccuStages(subMenu[0]);
+                }*/
+                let newId = `RPC__BusinessPhotoRPC__rpcStageSubmenuItem_${currentIndex}`
+                $(`#${newId} span`).text(stage);
+            })
+        } else {
+            $('.rpcStageSubmenuRow').addClass('sno');
+        }
+    }
+}
+apz.app.RPCSidebar.paintStages = function() {
+    RPC_SIDEMENU_LAUNCHED = true;
+    if (!apz.isObjectEmpty(RPC_STAGES)) {
+        gApzCOB.rpcStages = Object.values(RPC_STAGES);
+        let selectElementID = 'RPC__RPCSidebar__menuBarList_row_-1';
+        let parentDiv = $('#RPC__RPCSidebar__menuBarList ul');
+        gApzCOB.rpcStages.forEach((rpc, index) => {
+            let currentIndex = index + 1;
+            let currentRow = `#RPC__RPCSidebar__menuBarList_row_-1_${currentIndex}`;
+            ApzCOB.cloneDashboardDivs(selectElementID, parentDiv, currentIndex);
+            $(`${currentRow} .sid-ttl`).attr('stage-id', rpc.id);
+            $(`${currentRow} .sid-ttl`).attr("onclick", `apz.app.RPCSidebar.navigateToStage(${rpc.id})`);
+            $(`${currentRow} .sid-ttl span`).text(rpc.name);
+            let subMenu = rpc.subMenu || [];
+            let subMenuRow = $(`${currentRow} #RPC__RPCSidebar__subMenuRow_row`);
+            let childID = $(subMenuRow).find(".border-col")
+            $(childID).addClass("dshd-brd")
+            if (subMenu.length > 0) {
+                let subMenuElementID = 'RPC__RPCSidebar__subMenuItem_0_row';
+                let subMenuParentDiv = $(`${currentRow} #${subMenuElementID}`).parent();
+                subMenu.forEach((sub, subIndex) => {
+                    let currentSubIndex = subIndex + 1;
+                    // if([7].includes(rpc.id) && subMenu.length == 1) {
+                    //     currentSubIndex = ApzCOB.setcustTypeforOccuStages(sub);
+                    // }
+                    let subMenuItem = `#RPC__RPCSidebar__subMenuItem_${currentSubIndex}`;
+                    ApzCOB.cloneDashboardDivs(subMenuElementID, subMenuParentDiv, currentSubIndex);
+                    $(`${currentRow} ${subMenuItem} a.subMenulink span`).text(sub);
+                    $(`${currentRow} ${subMenuItem} a.subMenulink span`).attr('title',sub);
+                    $(`${currentRow} ${subMenuItem}`).removeClass('sno');
+                });
+                subMenuRow.removeClass('sno');
+                $(`${currentRow}`).find('.mainStage').removeClass('mainStage')
+            } else {
+                subMenuRow.addClass('sno');
+            }
+            // if ([6, 7].includes(rpc.id)){
+            //      if (subMenu.length > 0) {
+            //         $(currentRow).removeClass('sno');
+            //      }
+            //     } else {
+            //       $(currentRow).removeClass('sno');
+            //     }
+                  $(currentRow).removeClass('sno');
+        });
+    }
+}
+apz.app.RPCSidebar.updateStageInfo = function() {
+    let currentStageID = RPC_STAGES[RPC_CURRENT_STAGE].id;
+    $(`${menuBarListID} .sid-ttl`).removeClass('active')
+    $(`${menuBarListID} .sid-ttl[stage-id=${currentStageID}]`).addClass('active');
+}
+apz.app.RPCSidebar.navigateToStage = function(stageId) {
+    isRpcDashboardPreview = false;
+    isRpcPreviewEnabled  = false;
+    editFlag = false;
+    isCompare = false;
+    pcount = 0;
+    const stage = gApzCOB.rpcStages.find((stage) => stage.id === stageId);
+    if (stage?.screenName && stage?.screenName === "ReviewConfirm") {
+        if(RPC_REV_CONF_VAL_REQ){
+            if (rpcStepperStatus.length > 0) {
+                let allVerified = rpcStepperStatus.every(
+                    (item) => item.isVerified === true);
+                    // allVerified = true;
+                if (allVerified) {
+                    RPC_CURRENT_STAGE_NO = stageId;
+                    isRpcPreviewEnabled = false;
+                    $('#APZCBO__BaseScreens__preview_row').html('');
+                    $(`#${mainSec}`).html('')
+                    ApzCOB.launchSubScreen(stage.screenName, mainSec, "");
+                } else {
+                    ApzCOB.showRpcModals({
+                        text: "Verify all the stages first",
+                        Btn1: {
+                            text: "OK",
+                            onClick: "apz.app.RpcStageScreen.closeRPCErrMdl()"
+                        }
+                    }, "Error");
+                }
+            } else {
+                return;
+            }
+        } else {
+            RPC_CURRENT_STAGE_NO = stageId;
+            ApzCOB.launchSubScreen(stage.screenName, mainSec, "");
+        }
+    } else if (stage?.screenName) {
+        if([6,7].includes(stage.id) && stage.subMenu.length === 0){
+            
+        }
+        RPC_CURRENT_STAGE_NO = stageId;
+        ApzCOB.launchSubScreen(stage.screenName, mainSec, "");
+    }
+};
+apz.app.RPCSidebar.onClickViewLog = function() {
+    let arr = [];
+    let timeLineWrapper = structuredClone ? structuredClone(inSessionStore.applicationTimelineDtl) : JSON.parse(JSON.stringify(inSessionStore.applicationTimelineDtl))
+    timeLineWrapper.forEach(function(el, index) {
+        timeStamp = '---';
+        if (el?.timeStamp.includes(' ')) {
+            timeStamp = typeof(el.timeStamp) === 'string' ? ApzCOB.dateformatter(el.timeStamp.replace(' ', 'T'), "date", "d/m/Y") : '---';
+        }
+        if(Array.isArray(el?.rpcStatRemaks)){
+            el.rpcStatRemaks = apz.app.RPCSidebar.getQueryValues(el.rpcStatRemaks);
+        }
+        let lobj = {
+            "stage": apz.isNull(el?.stage) ? "---" : el?.stage,
+            "action": apz.isNull(el?.actionTaken) ? "---" : el?.actionTaken,
+            "userName": apz.isNull(el?.userId) ? "---" : el?.userId,
+            "actionTimeline": timeStamp,
+            "rpcStatRemaks": apz.isNull(el?.rpcStatRemaks) ? "---" : el?.rpcStatRemaks,
+            "remarks": apz.isNull(el?.remarks) ? "---" : el?.remarks
+        }
+        arr.push(lobj);
+    })
+    apz.data.scrdata.APZCBO__ActivityLog_Res = [];
+    apz.data.scrdata.APZCBO__ActivityLog_Res = arr;
+    apz.data.loadData("ActivityLog", gAppId);
+    ApzCOB.toggleModal(BaseScrId + "activityLogModal");
+    $('.crt-list li').attr('onClick', '');
+    $(`#${BaseScrId}activityLogList .srb.pri.wrapped.undefined.ssp`).remove();
+    $(`#${BaseScrId}activityLogModal_content`).scrollTop(0,0);
+    apz.data.scrdata.APZCBO__ActivityLog_Res?.forEach(function(el, index) {
+        rpcStatId = document.getElementById(`${activityIntfId}rpcStatRemaks_${index}_txtcnt`);
+        remarksId = document.getElementById(`${activityIntfId}remarks_${index}_txtcnt`);
+        if (Array.isArray(el?.rpcStatRemaks)) {
+            if (el.rpcStatRemaks?.length > 0) {
+                rpcStatId.innerHTML = el.rpcStatRemaks?.filter(msg => msg).map(msg => `• ${msg}`).join("<br>");
+            }
+        }
+        if (el?.remarks) {
+            if (el.remarks.includes('~')) {
+                el.remarks = el.remarks.split('~');
+            }
+            if (Array.isArray(el.remarks) && el.remarks?.length > 0) {
+                remarksId.innerHTML = el?.remarks?.map(msg => `• ${msg}`).join("<br>");
+            }
+        }
+    })
+};
+apz.app.RPCSidebar.getQueryValues = function(queryArray) {
+    var allQueries = [];
+    if (Array.isArray(queryArray)) {
+        queryArray.forEach(({ custType, query, stageID }) => {
+            RPC_ALL_STAGE_QUERIES.filter(rpc => {
+                if (rpc.custType === custType && rpc.stageID === stageID) {
+                    rpc.query.filter(queryItem => {
+                        if (query.includes(queryItem.id)) {
+                            allQueries.push(queryItem.value);
+                        }
+                    })
+                }
+            })
+            query.forEach(q => {
+                if (/^oth\?/.test(q)) {
+                    allQueries.push(q.split("?")[1] || "");
+                }
+            });
+        })
+    }
+    return allQueries || [];
+}

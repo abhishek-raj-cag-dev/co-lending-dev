@@ -1,0 +1,333 @@
+.pst-simp.pa0 > div.lmvalues.sendbak {
+    background: #FEE4E2;
+}
+
+.pst-simp.pa0 > div.lmvalues .srb .sendlbllft span .srb,
+.pst-simp.pa0 > div.lmvalues .srb .sendlblrht span .srb {
+                                                         margin:0px;
+                                                         width: auto;
+                                                         display: inline-flex;
+                                                         margin-right: 4px;
+                                                         line-height: normal;
+                                                         }
+ 
+.pst-simp.pa0 > div.lmvalues .srb .sendlftdat span .srb,
+.pst-simp.pa0 > div.lmvalues .srb .sendrhtdat span .srb,
+.pst-simp.pa0 > div.lmvalues .srb .autapproved  span .srb{
+                                                         margin:0px;
+                                                         width: auto;
+                                                         display: inline-flex;
+                                                         margin-right: 4px;
+                                                         }
+.pst-simp.pa0 > div.lmvalues .srb .sendlbllft span .srb dl, 
+.pst-simp.pa0 > div.lmvalues .srb .sendlblrht span .srb dl,
+.pst-simp.pa0 > div.lmvalues .srb .sendlftdat span .srb dl, 
+.pst-simp.pa0 > div.lmvalues .srb .sendrhtdat span .srb dl{
+margin:0px
+}
+.pst-simp.pa0 > div.lmvalues .srb.sendlbllft,
+.pst-simp.pa0 > div.lmvalues .srb.sendlblrht{margin-bottom: 0;}
+ 
+
+.pst-simp.pa0 > div.lmvalues.sanc-dec .rht dl{
+display:flex;
+justify-content:flex-end
+}
+ 
+
+
+.egl-lon p.ett-para {
+    font-weight: 600;
+}
+
+
+.pst-simp.pa0 > div.lmvalues.sanc-dec .rht span {
+    position: relative;
+}
+
+.pst-simp.pa0 > div.lmvalues.sanc-dec dl.approved dd {
+    background: #F2F9EB;
+    width: auto; 
+    padding-top: 8px;
+    padding-right: 12px;
+    padding-bottom: 8px;
+    padding-left: 16px;
+    border-radius: 104px;
+    border-width: 1px;
+    border: 1px solid #CDE7B1;
+    box-shadow: 0px 1px 2px 0px #1018280D;
+    color: #039855;
+}
+.pst-simp.pa0 > div.lmvalues.sanc-dec .rht dl.approved dd {
+    padding-right: 44px;
+}
+.pst-simp.pa0 > div.lmvalues.sanc-dec .rht dl.icon {
+    position: absolute;
+    right: 12px;
+    top: 7px;
+}
+.pend .ett-bttn.sec {
+    height: 28px;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 4px 12px;
+    border-radius: 48px;
+    background: #FEF0C7; 
+    -webkit-background-clip: #FEF0C7;
+    -webkit-text-fill-color: #DC6803;
+    border-color: transparent;
+}
+.approve .ett-bttn.sec {
+    height: 28px;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 4px 12px;
+    border-radius: 48px;
+    background: #fff; 
+    -webkit-background-clip: #FEF0C7;
+    -webkit-text-fill-color: #737373;
+    border:1px solid #E5E5E5;
+    box-shadow: 0px 1px 2px 0px #1018280D;
+}
+.approved .ett-bttn.sec {
+    height: 28px;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 4px 12px;
+    border-radius: 48px;
+    background: #F2F9EB; 
+    -webkit-background-clip: #FEF0C7;
+    -webkit-text-fill-color: #039855;
+    border:1px solid #CDE7B1; 
+    box-shadow: 0px 1px 2px 0px #1018280D;
+}
+.approved .ett-bttn.sec > .ett-icon{
+    width:16px;
+    height:16px;
+}
+
+.srb > span.comp-date {
+    display: inline-flex;
+}
+
+.srb > span.comp-date .srb {
+    width: auto;
+    margin-right: 2px;
+}
+.srb > span.comp-date .srb p.ett-para{
+font-weight: 400;
+font-size: 11px;
+line-height: 16px; 
+} 
+.srb > span.comp-date .srb li {
+    line-height: 16px;
+}
+ .srb > span.comp-date .srb p.ett-para{font-weight: 400;font-size: 11px;line-height: 16px;letter-spacing: 0;} 
+
+
+ 
+
+.re-assess .egl-lon {
+    /* display: inline; */
+    gap: 4px;
+}
+
+
+.re-assess .egl-lon p.ett-para{
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+letter-spacing: 0.2px;    
+} 
+
+.re-assess .egl-lon .re-assesment-remark{
+    
+}
+
+.re-assess .egl-lon .re-assesment-remark label{
+     font-size: 13px !important;
+    margin-top: 5px;
+    color: #000;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.re-assess .egl-lon .re-assesment-remark label span{
+    
+}
+
+.re-assess .egl-lon span {
+    // width: auto;
+    // display: inline-flex;
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4.1px;
+}
+
+.re-assess .egl-lon span .srb {
+    width: auto;
+}
+
+.re-assess .egl-lon span:first-child {
+    margin-right: 2px;
+}
+.lmvalues .srb > span.comp-date {
+    display: inline;
+}
+.upl-status .uploadimg{
+margin:8px 0;
+}
+.pst-simp.pa0 > div.lmvalues .srb .sendlblrht span .srb:last-child,.pst-simp.pa0 > div.lmvalues .srb .sendrhtdat span .srb:last-child {
+    margin: 0;
+}
+.upl-status .shwdtl > span.scb-col100 {
+    gap: 16px;
+}
+.sanc-com .imgupload.mb0 {
+    margin-bottom: 0;
+}
+// styles added by Jyothi 20-03-2025
+ 
+.qcparent{
+    display: flex !important;
+    flex-direction: row;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #d4d4d4;
+}
+.qcparent .queryItems input {
+    display: block !important;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+}
+.qcparent .queryItems {
+    display: flex;
+    gap: 12px;
+}
+.querycategory {
+    width: 30%;
+}
+.crt-form.hor.pri .query .queryheading label {
+    font-family: 'Open Sans';
+    font-size: 12px;
+    font-weight: 400;
+    color:#737373;
+}
+.crt-form.hor.pri .query {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 16px;
+}
+.crt-form.hor.pri .query .queryList {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 4px;
+}
+.crt-form.hor.pri .query .queryList input {
+    display: block !important;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+}
+.qry-lst.sanction-query-list{
+    margin-bottom: 16px;
+}
+.sanction-query-modal .can-sav.srb li {
+    justify-content: end;
+}
+.sanction-query-modal .can-sav.srb li button.tsp {
+    border: 1px solid #004886;
+}
+.sanction-dev .tab-label-lists .ett-bttn.active::before {
+    border: 2px solid #527D24;
+}
+.sanction-dev .cabody .lon-hdr .srb.custno.pri {
+    justify-content: space-between;
+    gap: 24px;
+}
+.sanction-dev .can-sav.srb li {
+    justify-content:flex-end
+    
+}
+.sanction-dev.crdas .btm-seperator > .scb-col50 {
+    gap: 0px;
+}
+.sanction-query-modal .crt-form.pb-70 {
+    padding-bottom: 70px;
+}
+body.unati .sanction-query-modal .query-heading .ett-para {
+    color: #004886;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Open Sans';
+}
+.crt-form.hor.pri .query .queryList input {
+    min-width: 20px;
+}
+.srb > span.inline-amnt { 
+    // width: initial;
+}
+
+.pst-simp.pa0 > div.lmvalues  .srb > span.inline-amnt dl.eoc.wrapped {
+    width: auto;
+    display: inline-block;
+    margin-left: 4px;
+}
+.sanction-dev .srb.wrapped.shwdtl.hypli > span.scb-col100 > .srb {width: calc(50% - 12px);display: flex;flex-direction: column;flex-wrap: wrap;min-width: unset;}
+ 
+ 
+.sanction-dev .srb.wrapped.shwdtl.hypli > span.scb-col100 > .srb.uploadimg > .scb-col100 .uplnk{display: flex;align-items: center;}
+ 
+.sanction-dev .srb.wrapped.shwdtl.hypli > span.scb-col100 > .srb.uploadimg {
+    flex-wrap: nowrap;
+    display: unset;
+    height: 68px;
+    margin: 0;
+}
+.devaitionDesc {
+    padding-right: 15%;
+}
+
+.sanction-dev .srb.wrapped.shwdtl.hypli > span.scb-col100 > .srb.uploadimg .docUploadedBy {
+     margin-left: 2.5rem;   
+}
+.sanction-dev .srb.wrapped.shwdtl.hypli > span.scb-col100 > .srb.uploadimg .docUploadedBy label{
+     font-size: 13px !important;
+    color: #0070c4;
+    font-weight: 600;
+    line-height: 15px;
+    letter-spacing: 0.1px;  
+}
+.sanc-dec .cen span.deviationErrorText,span.deviationErrorText { 
+    font-size: 12px;
+    color: red;
+    float: right;
+    margin-top: 4px;
+}
+.qcparent .ett-chek.hor.pri > span.queryItems, .ett-chek.hor.pri.queryList span.queryItems {
+    margin: 0;
+}
+body.pri.LoginBase.crdas.sanction-dev.unati.sanction-suc-scr .base-screen {
+background:#EFF8FF;
+}
+body.pri.unati.crdas.sanction-suc-scr .pnt-head.pri{display:block; }
+.crdas.sanction-suc-scr .rolepage .pagebody{padding-top: 84px !important;}
+
+.crdas.sanction-dev.sanction-suc-scr .lon-hdr {margin-top:48px}
+body.unati.crdas.sanction-suc-scr .base-screen{height: calc(100vh - 84px);}
+.crt-form.hor.pri .query {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.crt-form.hor.pri .query span:not(.queryheading){
+    display: flex;
+    justify-content: flex-start;
+    align-items: baseline;
+    gap: 12px;
+}

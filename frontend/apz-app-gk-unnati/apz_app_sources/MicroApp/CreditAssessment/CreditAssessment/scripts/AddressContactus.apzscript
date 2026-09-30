@@ -1,0 +1,447 @@
+var AddContScrId = "CrdAss__AddressContactus__";
+var baseScrId = "CrdAss__Cabase__";
+window.CURRENTSCREEN = "AddressContactus";
+window.CA_CURRENT_STAGE = "AddressContact";
+window.queriesAppl = [];
+window.queriesCoApp = [];
+window.queriesRelnship = [];
+window.queriesAddrContact = [];
+window.custTypePhotoKyc = "";
+window.checkedQueriesForPhotoKyc = [];
+window.photoKycQueriesForNextStage = [];
+window.updtdChckdQueriesStringForPhotoKyc = "";
+window.isAddressVerified = false;
+window.snoFlag = false;
+var picture = '';
+var imgArray = [];
+apz.app.onLoad_AddressContactus = function() {};
+apz.app.onShown_AddressContactus = function() {
+    $(`#${AddContScrId}AddrQueriesRow`).addClass('qry-pnt');
+    apz.app.commonca.fetchImageIds();
+    const filteredResOwnership = resOwnership.filter(item => ["Please Select", "Self Owned", "Rented"].includes(item));
+    apz.populateDropdown(document.getElementById(`${AddContScrId}A_residence_ownership`), ApzCOB.formatDropDownforArray(filteredResOwnership));
+    apz.populateDropdown(document.getElementById(`${AddContScrId}A_residence_stabilit_present_city`), ApzCOB.formatDropDownforArray(resYr));
+    apz.populateDropdown(document.getElementById(`${AddContScrId}A_residence_stability`), ApzCOB.formatDropDownforArray(resYr));
+    apz.app.paintAddressContactDetails();
+    apz.app.Cabase.hideShowBtnBasedOnScreen();
+    window.CA_CURRENT_STAGE_NO = CA_ALL_STAGE_FIELDS.find(stage => stage.stageName === CA_CURRENT_STAGE)?.id;
+    apz.app.AddressContactus.preCheckedFields();
+    apz.app.AddressContactus.paintingQueries();
+    apz.app.Cabase.paintingDateTimeForQueries();
+    apz.app.AddressContactus.paintingQueryLabels();
+    picture = $('#CrdAss__AddressContactus__A__ADDRESS_PROOF');
+    ApzCOB.intializeGuillotine(picture);
+};
+apz.app.paintAddressContactDetails = function() {
+    let addressDetails;
+    let permanentDetails;
+    if (inSessionStore.addressDetailsWrapperList[0].addressDetailsList.length > 0 && inSessionStore.customerDetailsList.length > 0) {
+        inSessionStore.addressDetailsWrapperList[0].addressDetailsList.forEach(type => {
+            if (type.addressType === "Personal" && type.custDtlId === gApzCOB.userDetails.custDtlId) {
+                type.payload.addressList.forEach(address => {
+                    if (address.addressType === "Present") {
+                        addressDetails = address;
+                        $(`#${AddContScrId}A_present_address`).text(
+                            `${addressDetails.addressLine1}, ${addressDetails.addressLine2}, ${addressDetails.addressLine3}, ${addressDetails.area}, ${addressDetails.district}, ${addressDetails.city} - ${addressDetails.pinCode}, ${addressDetails.state}, ${addressDetails.country}.`
+                            );
+                    } else if (address.addressType === "Permanent") {
+                        permanentDetails = address;
+                        if (address.addressSameAs === 'Y') {
+                            $(`#${AddContScrId}A_permanent_address`).text("Same as present address");
+                        } else {
+                            $(`#${AddContScrId}A_permanent_address`).text(`${permanentDetails.addressLine1}, ${permanentDetails.addressLine2}, ${permanentDetails.addressLine3}, ${permanentDetails.area}, ${permanentDetails.district},
+                                 ${permanentDetails.city} - ${permanentDetails.pinCode}, ${permanentDetails.state}, ${permanentDetails.country}.`);
+                        }
+                    }
+                });
+            }
+        });
+        let AppCustId = ApzCOB.getCustDetailID('Applicant');
+        let applicantInsessionData = inSessionStore?.customerDetailsList?.filter(item => item.custDtlId == AppCustId);
+        $(`#${AddContScrId}A_mobilenumber`).text(applicantInsessionData[0]?.mobileNumber);
+        $(`#${AddContScrId}A_residence_ownership`).val(addressDetails.residenceOwnership);
+        $(`#${AddContScrId}A_residence_stability`).val(apz.app.AddressContactus.formatYearsInput(addressDetails.residenceAddressSince));
+        $(`#${AddContScrId}A_residence_stabilit_present_city`).val(apz.app.AddressContactus.formatYearsInput(addressDetails.residenceCitySince));
+    }
+    ApzCOB.addDisableToInput(`${AddContScrId}A_residence_ownership`)
+    ApzCOB.addDisableToInput(`${AddContScrId}A_residence_stabilit_present_city`)
+    ApzCOB.addDisableToInput(`${AddContScrId}A_residence_stability`)
+    ApzCOB.dropDownOnChange(document.getElementById("CrdAss__AddressContactus__A_residence_ownership"));
+    ApzCOB.dropDownOnChange(document.getElementById("CrdAss__AddressContactus__A_residence_stability"));
+    ApzCOB.dropDownOnChange(document.getElementById("CrdAss__AddressContactus__A_residence_stabilit_present_city"));
+}
+apz.app.verifyAddressContactUs = function(pthis) {
+    if (pthis.id === `${AddContScrId}A_VERIFY_BTN` && $("#CrdAss__AddressContactus__A_QUERIED_BTN_ul").hasClass("sno")) {
+        isAddressVerified = true;
+        $(`#${AddContScrId}A_VERIFY_BTN`).addClass("sno");
+        $(`#${AddContScrId}A_VERIFIED_BTN_ul`).removeClass("sno");
+    } else {
+        ApzCOB.showCaModals({
+            text: "Please resolve the query",
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.editAddressContactUs = function() {
+    $(`#${AddContScrId}edit_col`).addClass("sno");
+    ApzCOB.removeDisableToInput(`${AddContScrId}A_residence_ownership`);
+    ApzCOB.removeDisableToInput(`${AddContScrId}A_residence_stabilit_present_city`)
+    ApzCOB.removeDisableToInput(`${AddContScrId}A_residence_stability`)
+    $(`#${baseScrId}reject_btn`).addClass("sno");
+    $(`#${baseScrId}sendback_btn`).addClass("sno");
+    $(`#${baseScrId}bckBtn`).addClass("sno");
+    $(`#${baseScrId}nxtBtn`).addClass("sno");
+    $(`#${baseScrId}cancel_btn`).removeClass("sno");
+    $(`#${baseScrId}save_btn`).removeClass("sno");
+    $("#CrdAss__AddressContactus__AddverificationBtnRow").addClass("sno");
+    if ($("#CrdAss__AddressContactus__AddrQueriesRow").hasClass("sno")) {
+        window.snoFlag = true;
+    } else {
+        $("#CrdAss__AddressContactus__AddQueryheaderRow").addClass('sno');
+        $("#CrdAss__AddressContactus__AddrQueriesRow").addClass('sno');
+    }
+}
+apz.app.AddressContactus.saveAddressContactUs = function() {
+    let lvalid;
+    lvalid = apz.app.AddressContactus.validateAddressContactUsFields();
+    if (lvalid) {
+        apz.app.AddressContactus.submitAddressDeails();
+    } else {
+        // show the error msg
+    }
+}
+apz.app.AddressContactus.submitAddressDeails = function() {
+    let residenceOwnership = $(`#${AddContScrId}A_residence_ownership`).val()
+    let presentAddressStability = $(`#${AddContScrId}A_residence_stability`).val();
+    let presentCityStability = $(`#${AddContScrId}A_residence_stabilit_present_city`).val();
+    let addressDetails = inSessionStore.addressDetailsWrapperList;
+    let req = {
+        "apiRequest": {
+            "requestObj": {
+                "appId": gAppId,
+                "applicationId": gApzCOB.userDetails.applicationId,
+                "versionNum": 1,
+                "stageId": "3",
+                "requestType": "Edit",
+                "customerType": "Applicant",
+                "editedFields": ["A_residence_ownership", "A_residence_stability", "A_residence_stabilit_present_city"],
+                "addressDetailsWrapperList": {}
+            },
+            "userId": LoggedInUserDetails.loginResponse.userDet.id,
+            "appId": gAppId,
+            "interfaceName": "UploadCALoanData"
+        }
+    }
+    req.apiRequest.requestObj.addressDetailsWrapperList = addressDetails;
+    req.apiRequest.requestObj.addressDetailsWrapperList[0].addressDetailsList.forEach(type => {
+        if (type.addressType === "Personal" && type.custDtlId === gApzCOB.userDetails.custDtlId) {
+            type.payload.addressList.forEach(address => {
+                if (address.addressType === "Present") {
+                    address.residenceOwnership = residenceOwnership;
+                    address.residenceAddressSince = presentAddressStability;
+                    address.presentAddressStability = presentCityStability;
+                }
+            });
+        }
+    });
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.AddressContactus.submitAddressDeailsCB);
+    }, 1000)
+}
+apz.app.AddressContactus.submitAddressDeailsCB = function(params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            apz.app.Cabase.storeWindowData();
+            ApzCOB.addDisableToInput(`${AddContScrId}A_residence_ownership`)
+            ApzCOB.addDisableToInput(`${AddContScrId}A_residence_stabilit_present_city`)
+            ApzCOB.addDisableToInput(`${AddContScrId}A_residence_stability`)
+            $(`#${AddContScrId}edit_col`).removeClass("sno");
+            $(`#${baseScrId}reject_btn`).removeClass("sno");
+            $(`#${baseScrId}bckBtn`).removeClass("sno");
+            $(`#${baseScrId}nxtBtn`).removeClass("sno");
+            $(`#${baseScrId}cancel_btn`).addClass("sno");
+            $(`#${baseScrId}save_btn`).addClass("sno");
+            $("#CrdAss__AddressContactus__AddverificationBtnRow").removeClass("sno");
+            if (!isAddressVerified) {
+                $(`#${baseScrId}sendback_btn`).removeClass("sno");
+            }
+            if (snoFlag) {
+                return
+            } else {
+                $("#CrdAss__AddressContactus__AddQueryheaderRow").removeClass('sno');
+                $("#CrdAss__AddressContactus__AddrQueriesRow").removeClass('sno');
+            }
+            //ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"), "S");// success popup
+            // code to highlight side bar link
+        } else {
+            apz.stopLoader();
+            if (params.res.APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj == ApzCOB.getDescfromLitCode("LIT_fetchLockAppli")) {
+                $(`#${scrId}locktxt_txtcnt`).text(ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"));
+                ApzCOB.toggleModal(scrId + 'lockModal');
+            } else {
+                $(`#${scrId}locktxt_txtcnt`).text(errMsg);
+                ApzCOB.toggleModal(scrId + 'lockModal');
+            }
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.toggleModal(scrId + 'lockModal');
+        $(`#${scrId}locktxt_txtcnt`).html(technicalErrMsg);
+    }
+}
+apz.app.AddressContactus.validateAddressContactUsFields = function() {
+    let lvalid = true;
+    if ($(`#${AddContScrId}A_residence_ownership`).val() === "Please Select" || $(`#${AddContScrId}A_residence_ownership`).val() === '') {
+        lvalid = false;
+        $("#CrdAss__AddressContactus__A_residence_ownershipErrorDiv").removeClass('sno');
+    }
+    if ($(`#${AddContScrId}A_residence_stability`).val() === 'Please Select' || $(`#${AddContScrId}A_residence_stability`).val() === '') {
+        lvalid = false;
+        $("#CrdAss__AddressContactus__A_residence_stabilityErrorDiv").removeClass('sno');
+    }
+    if ($(`#${AddContScrId}A_residence_stabilit_present_city`).val() === 'Please Select' || $(`#${AddContScrId}A_residence_stabilit_present_city`)
+        .val() === '') {
+        lvalid = false;
+        $("#CrdAss__AddressContactus__A_residence_stabilit_present_cityErrorDiv").removeClass('sno');
+    }
+    return lvalid;
+}
+apz.app.AddressContactus.cancelAddressContactUs = function() {
+    $(`#${AddContScrId}edit_col`).removeClass("sno");
+    $(`#${baseScrId}reject_btn`).removeClass("sno");
+    $(`#${baseScrId}bckBtn`).removeClass("sno");
+    $(`#${baseScrId}nxtBtn`).removeClass("sno");
+    $(`#${baseScrId}cancel_btn`).addClass("sno");
+    $(`#${baseScrId}save_btn`).addClass("sno");
+    $("#CrdAss__AddressContactus__AddverificationBtnRow").removeClass("sno");
+    apz.app.paintAddressContactDetails();
+    if (!isAddressVerified) {
+        $(`#${baseScrId}sendback_btn`).removeClass("sno");
+    }
+    if (snoFlag) {
+        return
+    } else {
+        $("#CrdAss__AddressContactus__AddQueryheaderRow").removeClass('sno');
+        $("#CrdAss__AddressContactus__AddrQueriesRow").removeClass('sno');
+    }
+    apz.app.paintAddressContactDetails();
+}
+apz.app.AddressContactus.launchNextStage = function() {
+    if (isAddressVerified) {
+        let req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": gAppId,
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "versionNum": 1,
+                    "stageId": "3",
+                    "requestType": "Verify",
+                    "customerType": "Applicant",
+                    "editedFields": []
+                },
+                "userId": LoggedInUserDetails.loginResponse.userDet.id,
+                "appId": gAppId,
+                "interfaceName": "UploadCALoanData"
+            }
+        }
+        apz.startLoader();
+        setTimeout(() => {
+            ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.AddressContactus.launchNextStageCB);
+        }, 1000)
+    } else if (queriesAddrContact.length > 0) {
+        let req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": gAppId,
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "versionNum": 1,
+                    "stageId": "3",
+                    "requestType": "Query",
+                    "customerType": "Applicant",
+                    "editedFields": [],
+                    "queries": photoKycQueriesForNextStage
+                },
+                "userId": LoggedInUserDetails.loginResponse.userDet.id,
+                "appId": gAppId,
+                "interfaceName": "UploadCALoanData"
+            }
+        }
+        apz.startLoader();
+        setTimeout(() => {
+            ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.AddressContactus.launchNextStageCB);
+        }, 1000)
+    } else {
+        ApzCOB.showCaModals({
+            text: "Verify All the Data",
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.AddressContactus.launchNextStageCB = function(params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            ApzCOB.launchSubScreen('Insurancedetails', "CrdAss__Cabase__caLaunchCol", "");
+            apz.app.Cabase.SidebarSelect.moveToNextStep();
+        } else {
+            apz.stopLoader();
+            ApzCOB.showCaModals({
+                text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.Cabase.closeCaErrMdl()"
+                }
+            }, "Error");
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showCaModals({
+            text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.AddressContactus.preCheckedFields = function() {
+    const queryDtls = inSessionStore?.bcmpiStatDetails?.find(
+        (item) => item.stageID === CA_CURRENT_STAGE_NO);
+    if (queryDtls) {
+        let preSelectedQueryData = queryDtls.query;
+        queriesAddrContact = preSelectedQueryData;
+        photoKycQueriesForNextStage = [...queriesAddrContact];
+    } else {
+        return;
+    }
+}
+apz.app.AddressContactus.paintingQueries = function() {
+    const allQueries = JSON.parse(CA_ALL_STAGE_FIELDS.filter(item => item.id === 3 && item.queries)[0]?.queries || '{}').sendbackReason
+    if (queriesAddrContact.length > 0) {
+        const addrMatchedValues = allQueries.filter(query => queriesAddrContact.includes(query.id)).map(query => query.value);
+        const othEntry = queriesAddrContact.find((item) => item.startsWith("oth?"));
+        if (othEntry) {
+            const [othId, othValue] = othEntry.split("?");
+            if (othValue.trim() !== "") {
+                addrMatchedValues.push(othValue);
+            }
+        }
+        $(`#${AddContScrId}AddQueryheaderRow`).removeClass("sno");
+        $(`#${AddContScrId}AddrQueriesRow`).removeClass("sno");
+        $(`#${AddContScrId}AddrQueryData_`).html('')
+        const queryRow = $(`#${AddContScrId}AddrQueriesRow`);
+        queryRow.html('');
+        queryRow.find("[id^='CrdAss__AddressContactus__AddrQueryData_']").remove();
+        addrMatchedValues.forEach((queryValue, index) => {
+            queryRow.append(
+                `<div id="CrdAss__AddressContactus__AddrQueryData_${index + 1}"><p>${index + 1}.&nbsp;&nbsp;${queryValue}</p></div>`);
+        });
+    } else {
+        $(`#${AddContScrId}AddQueryheaderRow`).addClass("sno");
+        $(`#${AddContScrId}AddrQueriesRow`).addClass("sno");
+    }
+}
+apz.app.AddressContactus.paintingQueryLabels = function() {
+    const matchedItem = inSessionStore?.bcmpiVerifiedStage?.some(item => item.startsWith(`${CA_CURRENT_STAGE_NO}_`));
+    if (matchedItem) {
+        isAddressVerified = true;
+        $(`#${AddContScrId}A_VERIFY_BTN`).addClass("sno");
+        $(`#${AddContScrId}A_VERIFIED_BTN_ul`).removeClass("sno");
+        $(`#${AddContScrId}QUERY_BTN`).removeClass("sno");
+        $(`#${AddContScrId}A_QUERIED_BTN_ul`).addClass("sno");
+        $(`#${CabaseScrId}sendback_btn`).addClass("sno");
+        return;
+    }
+    const queryDtls = inSessionStore?.bcmpiStatDetails?.find(
+        (item) => item.stageID === CA_CURRENT_STAGE_NO);
+    if (!matchedItem && queryDtls) {
+        $(`#${AddContScrId}A_VERIFY_BTN`).removeClass("sno");
+        $(`#${AddContScrId}A_VERIFIED_BTN_ul`).addClass("sno");
+        $(`#${AddContScrId}QUERY_BTN`).addClass("sno");
+        $(`#${AddContScrId}A_QUERIED_BTN_ul`).removeClass("sno");
+        isAddressVerified = false;
+    } else {
+        $(`#${CabaseScrId}sendback_btn`).addClass("sno");
+        return;
+    }
+}
+apz.app.AddressContactus.formatYearsInput = function(input) {
+    let formattedInput = input.trim().toLowerCase();
+    if (formattedInput.includes("less")) {
+        return "Less than 1 Year";
+    }
+    let yearsMatch = formattedInput.match(/^(\d+)\s*(year|years)?$/i);
+    if (yearsMatch) {
+        let years = yearsMatch[1];
+        let isYearWordPresent = yearsMatch[2];
+        if (!isYearWordPresent) {
+            return years === "1" ? `${years} Year` : `${years} Years`;
+        } else {
+            return formattedInput.replace(/(year|years)/i, (match) => match.charAt(0).toUpperCase() + match.slice(1));
+        }
+    }
+    return input;
+}
+apz.app.AddressContactus.onChangeResStability = function(pthis) {
+    let cityValue = $("#CrdAss__AddressContactus__A_residence_stabilit_present_city").val();
+    let resValue = $("#CrdAss__AddressContactus__A_residence_stability").val();
+    let cityIndex = resYr.indexOf(cityValue);
+    let resIndex = resYr.indexOf(resValue);
+    if ((resIndex != 0 && resIndex < 3) || (cityIndex != 0 && cityIndex < 3)) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_RESIDENTIAL_STABILITY_TWO_YR_ERR"), "E");
+        $(pthis).val(PleaseSelect);
+        $(`#${pthis.id}_div`).find('li').removeClass('is-selected hilt');
+        $(`#${pthis.id}_div`).find('li').first().addClass('is-selected hilt');
+    } else if (cityIndex === 0 || resIndex === 0) {
+        // do nothing
+    } else if (resYr.indexOf(resValue) > resYr.indexOf(cityValue)) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_RESIDENTIAL_STABILITY_ERR"), "E");
+        $(pthis).val(PleaseSelect);
+        $(`#${pthis.id}_div`).find('li').removeClass('is-selected hilt');
+        $(`#${pthis.id}_div`).find('li').first().addClass('is-selected hilt');
+    }
+}
+apz.app.AddressContactus.onChangeResOwnership = function(pthis) {
+    //Self Owned - UAU-932
+    if (ApplicationType === "OpenMarket" && !['self owned', 'please select'].includes(pthis.value?.toLowerCase())) {
+        ApzCOB.fnDisplayMsg("Own house is mandatory for UNNATI OPEN MARKET loan.", "E");
+        $(`#${AddContScrId}A_residence_ownership`).val(PleaseSelect);
+        ApzCOB.dropDownOnChange(document.getElementById(`${AddContScrId}A_residence_ownership`));
+    }
+};

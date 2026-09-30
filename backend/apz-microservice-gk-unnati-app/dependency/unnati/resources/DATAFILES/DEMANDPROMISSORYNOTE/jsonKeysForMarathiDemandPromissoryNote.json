@@ -1,0 +1,14 @@
+{
+  "keysForContent": {
+    "applicationName": "दर्शनी वचनपत्र ",
+    "rs": "रु.",
+    "date": "तारीख :",
+	"place":"स्थळ :",
+    "note": "मागणीनुसार,मी <applicantName> वय <applicantAge> वर्षे <applicantAddress> येथे राहणारी,आणि <coApplicantName> वयाची <coApplicantAge> वर्षांची & यांची मुलगा/मुलगी/पती <coApplicantAddress> येथे राहणारा , संयुक्तपणे आणि वैयक्तिकरित्या क्रेडिट एक्सेस ग्रामीण लिमिटेड (सीए ग्रामीण) यांना, किंवा रु. <sanctionedAmount> (<sanctionedAmountInWords> only) प्राप्त झालेल्या कर्जाच्या मोबदल्यात मंजूर रकमेवर @<rateOfInterest> टक्के प्रतिवर्ष व्याजासह पेमेंट देण्याचे वचन देतो",
+	"noteNew": "मागणीनुसार,मी <applicantName> वय <applicantAge> वर्षे <applicantAddress> येथे राहणारी,आणि <coApplicantName> वयाची <coApplicantAge> वर्षांची & यांची मुलगा/मुलगी/पती <coApplicantAddress> येथे राहणारा , संयुक्तपणे आणि वैयक्तिकरित्या क्रेडिट एक्सेस ग्रामीण लिमिटेड (सीए ग्रामीण) यांना, किंवा रु. <sanctionedAmount> (<sanctionedAmountInWords> only) प्राप्त झालेल्या कर्जाच्या मोबदल्यात मंजूर रकमेवर @<rateOfInterest> टक्के प्रतिवर्ष व्याजासह पेमेंट देण्याचे वचन देतो",
+	"loanAccount":"कर्ज खाते क्रमांक :",
+    "applicantName": " 1. अर्जदाराचे नाव :",
+    "signature": "स्वाक्षरी",
+    "coApplicantName": "2. सह-अर्जदार :"
+	}
+}

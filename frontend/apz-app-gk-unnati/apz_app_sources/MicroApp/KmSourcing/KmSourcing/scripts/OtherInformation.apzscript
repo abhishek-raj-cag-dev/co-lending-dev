@@ -1,0 +1,2813 @@
+/**
+ * @author Swaroop Raj R (CAGL)
+ */
+var kmScrId = 'KmSourc__OtherInformation__';
+window.kmothInfoScr = 'KmSourc__OtherInformation__';
+var kmIPaintCustAppInsDetailsId = "KmSourc__IPaintCustAppInsDetails__o__custAppInsDetails__";
+//var kmIPaintCustCoAppInsDetailsId = "KmSourc__IPaintCustCoAppInsDetails__o__custCoAppInsDetails__";
+var kmIPaintCustomInsDetailsId = "KmSourc__IPaintCustomNomineeDetails__o__customNomineeDetails__";
+var kmIPaintEditInsuranceDetailsId = "KmSourc__IPaintEditInsuranceDetails__o__editInsuranceDetails__";
+var kmIPaintInsuranceDetailsId = "KmSourc__IPaintInsuranceDetails__o__insuranceDetails__"
+var kmIPaintAppInsuranceDetailsId = "KmSourc__IPaintAppInsuranceDetails__o__appInsuranceDetails__"
+var kmIPaintCoAppInsuranceDetailsId = "KmSourc__IPaintCoAppInsuranceDetails__o__coAppInsuranceDetails__"
+KM_CURR_STAGE_NAME = 'OtherInformation';
+KM_CURR_STAGE_NO = '4';
+// apz.app.OtherInformation.paintData = function() {};
+// apz.app.OtherInformation.createRequest = function() {};
+var TempImageObject = {}
+apz.app.OtherInformation = {}
+var otherReasonsDDValues = NOT_OPTING_INSURANCEOTHERREASON;
+var genderDDValues = gender;
+var accountTypeDDValues = accTypes;
+var typeOfDocDDValues = DOCUMENT_BANK_TYPE;
+var insurersBothDDValues = INSURANCE_PROVIDER;
+var insurersApplicantDDValues = INSURANCE_PROVIDER;
+var insurersNoInsDDValues = []
+var searchVal = '';
+var newMinAge = minAge;
+var newMaxAge = maxAge;
+var insIndex = '';
+var newInsIndex = '';
+var othInforEditFlag = {
+    valEnach: "", //19th june changes
+    valPennyCheck: "", //19th june changes
+    newBankValEnach: "", //19th june changes
+    valChangeBank: false,
+    customApplicant: false,
+    //customCoApplicant: false,
+    customNominee: false,
+    OtherInfocustType: ""
+    //AdditionalDoc: false,
+}; // add at intial 
+var insuranceTypeSelected = "";
+// var appInsPayload ="";
+var selectedDDvalueForDocs = "";
+var pennyResponse = "";
+var amlQuestionConsent = "";
+window.bankSelected = "";
+window.bankAccountNoVerifiedOtherInfo;
+apz.app.onLoad_OtherInformation = function () {
+    gApzCOB.currentApplicant = 1;
+    const mandatoryFields = [
+        "bankDetTypeOfDocument",
+        "changeBankRadioBtn",
+        "typeOfDocChangeBank",
+        "insuranceNotOptingReasons",
+        "nameOfAdditionalDoc",
+        "otherReasonInput",
+        "changeBankTypeOfDoc"
+    ];
+    mandatoryFields.forEach(fieldId => {
+        ApzCOB.addFieldMandatory(`${kmScrId}${fieldId}`);
+    });
+    const applicantElm = [
+        "appNomineeForIns",
+        "appGender",
+        "appDob",
+        "appRelationWithNom"
+    ]
+    applicantElm.forEach(fieldId => {
+        ApzCOB.addFieldMandatory(`${kmIPaintAppInsuranceDetailsId}${fieldId}`);
+    });
+    $("#KmSourc__IPaintCustomNomineeDetails__o__customNomineeDetails__customNomContactNumber").addClass("phnNmbr");
+    const custApplicantElm = [
+        "custAppNomineeForIns",
+        "custAppGender",
+        "custAppDob",
+        "custAppRelationWithNom",
+        "custAppNomContactNumber"
+    ]
+    custApplicantElm.forEach(fieldId => {
+        ApzCOB.addFieldMandatory(`${kmIPaintCustAppInsDetailsId}${fieldId}`);
+    });
+    const coApplicantElm = [
+        "coAppNomineeForIns",
+        "coAppGender",
+        "coAppDob",
+        "coAppRelationWithNom",
+    ]
+    coApplicantElm.forEach(fieldId => {
+        ApzCOB.addFieldMandatory(`${kmIPaintCoAppInsuranceDetailsId}${fieldId}`);
+    });
+    const customNomineeElm = [
+        "customNomineeForIns",
+        "customGender",
+        "customDob",
+        "customRelationWithNom",
+        "customNomContactNumber"
+    ]
+    customNomineeElm.forEach(fieldId => {
+        ApzCOB.addFieldMandatory(`${kmIPaintCustomInsDetailsId}${fieldId}`);
+    });
+    const custEditElm = [
+        "editModelNomineeName",
+        "editModelNomineeGender",
+        "editModelNomineeDOB",
+        "editNomineeRelationship"
+    ]
+    custEditElm.forEach(fieldId => {
+        ApzCOB.addFieldMandatory(`${kmIPaintEditInsuranceDetailsId}${fieldId}`);
+    });
+    const disableFieldIds = [
+        "accountHolderNameInput",
+        "accountNumberInput",
+        "ifscCodeInput",
+        "bankNameInput",
+        "branchNameInput",
+        "accountTypeBankDetials",
+        // "bankName",
+        // "branchName",
+        "changeBankBankName",
+        "changeBankBranchName"
+    ];
+    disableFieldIds.forEach(fieldId => {
+        ApzCOB.AddOrRemoveDisableFields([`${kmScrId}${fieldId}`], true);
+    });
+    const insuranceDetails = [
+        "sumAssuredInput",
+        //"nameOfInsurerInput",
+        "insurancePremiumInput"
+    ]
+    insuranceDetails.forEach(fieldId => {
+        ApzCOB.AddOrRemoveDisableFields([`${kmIPaintInsuranceDetailsId}${fieldId}`], true);
+    });
+    const appInsuranceDetails = [
+        "appNomineeForIns",
+        "appGender",
+        "appDob",
+        "appAgeOfNominee",
+        "appRelationWithNom"
+    ]
+    appInsuranceDetails.forEach(fieldId => {
+        ApzCOB.AddOrRemoveDisableFields([`${kmIPaintAppInsuranceDetailsId}${fieldId}`], true);
+    });
+    const custAppInsDetails = [
+        "custAppAge"
+    ]
+    custAppInsDetails.forEach(fieldId => {
+        ApzCOB.AddOrRemoveDisableFields([`${kmIPaintCustAppInsDetailsId}${fieldId}`], true);
+    });
+    const coAppInsuranceDetails = [
+        "coAppNomineeForIns",
+        "coAppGender",
+        "coAppDob",
+        "coAppAgeOfNominee",
+        //"coAppRelationWithNom",
+    ]
+    coAppInsuranceDetails.forEach(fieldId => {
+        ApzCOB.AddOrRemoveDisableFields([`${kmIPaintCoAppInsuranceDetailsId}${fieldId}`], true);
+    });
+    const customNomineeDetails = [
+        "customAge",
+    ]
+    customNomineeDetails.forEach(fieldId => {
+        ApzCOB.AddOrRemoveDisableFields([`${kmIPaintCustomInsDetailsId}${fieldId}`], true);
+    });
+    const editInsuranceDetails = [
+        "editModelNomineeAge"
+    ]
+    editInsuranceDetails.forEach(fieldId => {
+        ApzCOB.AddOrRemoveDisableFields([`${kmIPaintEditInsuranceDetailsId}${fieldId}`], true);
+    });
+    //apz.app.Kmbase.toggleSidebar();
+};
+apz.app.onShown_OtherInformation = function () {
+    $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+    $(`#${kmbaseScr}OtherInformation_hyp`).addClass('active');
+    apz.populateDropdown(document.getElementById(kmScrId + "insuranceNotOptingReasons"), apz.app.OtherInformation.buildDDValues(otherReasonsDDValues));
+    apz.populateDropdown(document.getElementById(kmIPaintAppInsuranceDetailsId + "appGender"), apz.app.OtherInformation.buildDDValues(genderDDValues));
+    apz.populateDropdown(document.getElementById(kmIPaintCustAppInsDetailsId + "custAppGender"), apz.app.OtherInformation.buildDDValues(genderDDValues));
+    apz.populateDropdown(document.getElementById(kmIPaintCoAppInsuranceDetailsId + "coAppGender"), apz.app.OtherInformation.buildDDValues(genderDDValues));
+    apz.populateDropdown(document.getElementById(kmIPaintCustomInsDetailsId + "customGender"), apz.app.OtherInformation.buildDDValues(genderDDValues));
+    apz.populateDropdown(document.getElementById(kmIPaintEditInsuranceDetailsId + "editModelNomineeGender"), apz.app.OtherInformation.buildDDValues(genderDDValues));
+    apz.populateDropdown(document.getElementById(kmScrId + "changeBankAccountType"), apz.app.OtherInformation.buildDDValues(accountTypeDDValues));
+    apz.populateDropdown(document.getElementById(kmScrId + "accountTypeBankDetials"), apz.app.OtherInformation.buildDDValues(accountTypeDDValues));
+    apz.populateDropdown(document.getElementById(kmScrId + "bankDetTypeOfDocument"), apz.app.OtherInformation.buildDDValues(typeOfDocDDValues));
+    apz.populateDropdown(document.getElementById(kmScrId + "changeBankTypeOfDoc"), apz.app.OtherInformation.buildDDValues(typeOfDocDDValues));
+    apz.populateDropdown(document.getElementById(kmIPaintAppInsuranceDetailsId + "appRelationWithNom"), apz.app.OtherInformation.buildDDValues(relations));
+    apz.populateDropdown(document.getElementById(kmIPaintCustAppInsDetailsId + "custAppRelationWithNom"), apz.app.OtherInformation.buildDDValues(relations));
+    apz.populateDropdown(document.getElementById(kmIPaintCoAppInsuranceDetailsId + "coAppRelationWithNom"), apz.app.OtherInformation.buildDDValues(relations));
+    apz.populateDropdown(document.getElementById(kmIPaintCustomInsDetailsId + "customRelationWithNom"), apz.app.OtherInformation.buildDDValues(relations));
+    apz.populateDropdown(document.getElementById(kmIPaintEditInsuranceDetailsId + "editNomineeRelationship"), apz.app.OtherInformation.buildDDValues(relations));
+    apz.app.OtherInformation.fnLoadAMLQuestions();
+    apz.app.OtherInformation.setMinMaxLength();
+    //apz.app.OtherInformation.fnLoadInsuranceDetails();
+    if (inSessionStore.customerDetailsList.length === 2) {
+        apz.app.OtherInformation.paintApplicantInsuranceDetails();
+    }
+    // ApzCOB.fetcheNachBankData();
+    $("#KmSourc__IPaintCustAppInsDetails__o__custAppInsDetails__custAppDob").datepicker("option", "maxDate", Date.parse(DATE_TODAY));
+    //$("#KmSourc__IPaintCustomNomineeDetails__o__customNomineeDetails__customDob").datepicker("option", "maxDate", Date.parse(DATE_TODAY));
+    $("#KmSourc__IPaintEditInsuranceDetails__o__editInsuranceDetails__editModelNomineeDOB").datepicker("option", "maxDate", Date.parse(DATE_TODAY));
+    $('input.hasDatepicker').datepicker("option", {
+        maxDate: Date.parse(DATE_TODAY),
+        yearRange: "-100:+0"
+    });
+    // apz.app.OtherInformation.fnPrefixValidatePhoneNo("KmSourc__IPaintCustAppInsDetails__o__custAppInsDetails__custAppNomContactNumber", "KmSourc__OtherInformation__sc_row_273");
+    // apz.app.OtherInformation.fnPrefixValidatePhoneNo("KmSourc__IPaintCustomNomineeDetails__o__customNomineeDetails__customNomContactNumber", "KmSourc__OtherInformation__sc_row_345");
+    if (inSessionStore?.amlQuestion?.payload?.amlQuestionList?.length > 0) {
+        apz.app.OtherInformation.setAMLQuestionnaireData(inSessionStore?.amlQuestion?.payload)
+    }
+    let docList = inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList ?? [];
+    let custDtlId = gApzCOB?.userDetails?.custDtlId;
+    let AddDocExists = docList.some(item =>
+        parseInt(item?.custDtlId) === parseInt(custDtlId) &&
+        item?.payload?.documentType === 'COAPPLNT_CUST_NOMINEE_DOCS'
+    );
+    if (AddDocExists) {
+        $("#KmSourc__OtherInformation__insuranceTypeRadioBtn_option_bothInsurance").attr("checked", true);
+    }
+    if (gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1 !== 'BM') {
+        apz.app.OtherInformation.fnInsuranceTypeOnChange();
+    }
+    ApzCOB.scrollTopKMSourcing();
+    apz.app.OtherInformation.fnInsuranceTypeInSession();
+    apz.app.OtherInformation.onShownPaintBankDetails();
+    apz.app.OtherInformation.fnPaintAllDocuments();
+    //Disable after painting document
+    apz.app.Kmbase.bmRecommendation();
+    apz.app.OtherInformation.fnLoadBankBasicDetails();
+    apz.app.OtherInformation.bankAccNoVerify();
+    apz.app.OtherInformation.paintCoApplicantInsuranceDetails();
+    apz.app.Kmbase.paintQueryResponsedata();
+    if (lastBM)
+        apz.app.Kmbase.paintQueryResponsedata(true);
+    if (gApzCOB.productCode === "1001") {
+        $("#KmSourc__OtherInformation__changeBankRadioBtn_option_yes").click()
+        $("#" + kmScrId + "changeBankRadioBtn_option_no").attr("disabled", true)
+        $("#" + kmScrId + "changeBankRadioBtn_option_no").addClass('BankDetailsDisable');
+        $("#KmSourc__OtherInformation__validateENachbtn").addClass("sno");
+        $("#" + kmScrId + "pennyChackbtn").addClass("sno");
+        $("#" + kmScrId + "pennyCheckSuccessbtn").addClass("sno");
+        $("#KmSourc__OtherInformation__uploadDocDiv").addClass("sno");
+        $("#" + kmScrId + "eNachValidatedbtn").addClass("sno")
+        $("#KmSourc__OtherInformation__eNachInvalidbtn").addClass("sno");
+    }
+    $("#KmSourc__OtherInformation__changeBankTypeOfDoc_ext").attr("readonly", "readonly");
+    $("#KmSourc__OtherInformation__changeBankTypeOfDoc").attr("readonly", "readonly");
+    $("#KmSourc__OtherInformation__bankDetTypeOfDocument").attr("readonly", "readonly");
+    $("#KmSourc__OtherInformation__bankDetTypeOfDocument_ext").attr("readonly", "readonly");
+    $("#KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput").attr("readonly", "readonly");
+    $("#KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput_ext").attr("readonly", "readonly");
+};
+apz.app.OtherInformation.onShownPaintBankDetails = function () {
+    //let BankDetailsData = inSessionStore?.leadDetails || inSessionStore?.cdhLeadDetails || '';
+    //let BankDetailsData = gApzCOB.selLeadDtls;
+    // $("#" + kmScrId + "accountHolderNameInput").val(ApzCOB.getSubstrValue("#" + kmScrId + "accountHolderNameInput", BankDetailsData.nameAsPerBankAcc));
+    // $("#" + kmScrId + "accountNumberInput").val(ApzCOB.getSubstrValue("#" + kmScrId + "accountHolderNameInput", BankDetailsData.accNumber));
+    // $("#" + kmScrId + "ifscCodeInput").val(ApzCOB.getSubstrValue("#" + kmScrId + "accountHolderNameInput", BankDetailsData.ifscCode));
+    // $("#" + kmScrId + "bankNameInput").val(ApzCOB.getSubstrValue("#" + kmScrId + "accountHolderNameInput", BankDetailsData.bankName));
+    // $("#" + kmScrId + "branchNameInput").val(ApzCOB.getSubstrValue("#" + kmScrId + "accountHolderNameInput", BankDetailsData.branchName));
+    // $("#" + kmScrId + "accountTypeBankDetials").val(BankDetailsData.typeOfAcc);
+    let BankDetailsData = gApzCOB.selLeadDtls;
+    $("#" + kmScrId + "accountHolderNameInput").val(BankDetailsData.nameAsPerBankAcc);
+    $("#" + kmScrId + "accountNumberInput").val(BankDetailsData.accNumber);
+    $("#" + kmScrId + "ifscCodeInput").val(BankDetailsData.ifscCode);
+    $("#" + kmScrId + "bankNameInput").val(BankDetailsData.bankName);
+    $("#" + kmScrId + "branchNameInput").val(BankDetailsData.branchName);
+    $("#" + kmScrId + "accountTypeBankDetials").val(BankDetailsData.typeOfAcc);
+    if (gApzCOB.productCode === "1001") { //UAU-1708
+        $("#KmSourc__OtherInformation__accountVerifyBtn").addClass('sno');
+    }
+};
+apz.app.OtherInformation.paintApplicantInsuranceDetails = function () {
+    apz.data.scrdata.KmSourc__IPaintAppInsuranceDetails_Res = {}
+    apz.data.scrdata.KmSourc__IPaintAppInsuranceDetails_Res.appInsuranceDetails = {}
+    // if (inSessionStore.customerDetailsList[0].payload.hasOwnProperty("gkCustomerType")){
+    // insIndex = (inSessionStore.customerDetailsList[0].payload.gkCustomerType !== 'Applicant') ? 0 : 1;
+    // } else {
+    //     insIndex = 1;
+    // }
+    // var lData = {
+    //     appNomineeForIns: inSessionStore.customerDetailsList[insIndex]?.customerName,
+    //     appGender: inSessionStore.customerDetailsList[insIndex].payload?.gender,
+    //     appDob: inSessionStore.customerDetailsList[insIndex].payload?.dob,
+    //     appAgeOfNominee: inSessionStore.customerDetailsList[insIndex].payload?.age,
+    //     appRelationWithNom: inSessionStore.customerDetailsList[insIndex].payload?.relationShipWithApplicant,
+    // }
+    insIndex = (gApzCOB.requestNodes.customerDetailsList[0].customerType === 'Applicant') ? 1 : 0;
+    let appInsPayload = gApzCOB.requestNodes.customerDetailsList[insIndex].payload;
+    if (typeof appInsPayload === "string") {
+        appInsPayload = JSON.parse(appInsPayload);
+    }
+    var lData = {
+        appNomineeForIns: inSessionStore.customerDetailsList[insIndex]?.customerName,
+        appGender: appInsPayload.gender === "F" ? "Female" : appInsPayload.gender === "M" ? "Male" : appInsPayload.gender,
+        appDob: (appInsPayload.dob && appInsPayload.dob.includes("/"))
+            ? appInsPayload.dob.split("/").reverse().join("-")
+            : appInsPayload.dob,
+        appAgeOfNominee: appInsPayload.age,
+        appRelationWithNom: appInsPayload.relationShipWithApplicant,
+    };
+    // var lData = {
+    //     appNomineeForIns: gApzCOB.requestNodes.customerDetailsList[insIndex].customerName,
+    //     appGender: gApzCOB.requestNodes.customerDetailsList[insIndex].payload.gender,
+    //     appDob: gApzCOB.requestNodes.customerDetailsList[insIndex].payload.dob,
+    //     appAgeOfNominee: gApzCOB.requestNodes.customerDetailsList[insIndex].payload.age,
+    //     appRelationWithNom: gApzCOB.requestNodes.customerDetailsList[insIndex].payload.relationShipWithApplicant,
+    // }
+    apz.data.scrdata.KmSourc__IPaintAppInsuranceDetails_Res.appInsuranceDetails = lData;
+    apz.data.loadData("IPaintAppInsuranceDetails", "KmSourc");
+};
+apz.app.OtherInformation.paintCoApplicantInsuranceDetails = function () {
+    let appInsPayload = gApzCOB.requestNodes.customerDetailsList[insIndex].payload;
+    if (typeof appInsPayload === "string") {
+        appInsPayload = JSON.parse(appInsPayload);
+    }
+    let coApplicantRelationWithNominee = "";
+    if (gApzCOB.requestNodes.customerDetailsList.length === 1) {
+        newInsIndex = 0;
+        coApplicantRelationWithNominee = "Please Select";
+    }
+    else {
+        newInsIndex = (insIndex === 0) ? 1 : 0;
+        // Relationship with CoApp reverse mapping
+        // sessionVal = appInsPayload.relationShipWithApplicant.toLowerCase();
+        // if (sessionVal === "spouse") {
+        //     coApplicantRelationWithNominee = "Spouse";
+        // } else if (sessionVal === "father" || sessionVal === "mother") {
+        //     coApplicantRelationWithNominee = "Daughter";
+        // } else if (sessionVal === "son" || sessionVal === "daughter") {
+        //     coApplicantRelationWithNominee = "Mother";
+        // } else if (sessionVal === "father-in-law" || sessionVal === "mother-in-law") {
+        //     coApplicantRelationWithNominee = "Daughter-In-law";
+        // } else if (sessionVal === "daughter-in-law") {
+        //     coApplicantRelationWithNominee = "Mother-In-law";
+        // } else {
+        //     coApplicantRelationWithNominee = "Please Select";
+        // }
+    }
+    apz.data.scrdata.KmSourc__IPaintCoAppInsuranceDetails_Res = {}
+    apz.data.scrdata.KmSourc__IPaintCoAppInsuranceDetails_Res.coAppInsuranceDetails = {}
+    var coAppInsPayload = gApzCOB.requestNodes.customerDetailsList[newInsIndex].payload;
+    if (typeof coAppInsPayload === "string") {
+        coAppInsPayload = JSON.parse(coAppInsPayload);
+    }
+    var lData = {
+        coAppNomineeForIns: gApzCOB.requestNodes.customerDetailsList[newInsIndex].customerName,
+        coAppGender: coAppInsPayload.gender === "F" ? "Female" : coAppInsPayload.gender === "M" ? "Male" : coAppInsPayload.gender,
+        coAppDob: (coAppInsPayload.dob && coAppInsPayload.dob.includes("/"))
+            ? coAppInsPayload.dob.split("/").reverse().join("-")
+            : coAppInsPayload.dob,
+        coAppAgeOfNominee: coAppInsPayload.age,
+        //coAppRelationWithNom: coApplicantRelationWithNominee,
+        coAppRelationWithNom: inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Co-App")?.insuranceDetails?.payload?.nomineeRelation ?? "Please Select",
+    };
+    // var lData = {
+    //     coAppNomineeForIns: gApzCOB.requestNodes.customerDetailsList[newInsIndex].customerName,
+    //     coAppGender: gApzCOB.requestNodes.customerDetailsList[newInsIndex].payload.gender,
+    //     coAppDob: gApzCOB.requestNodes.customerDetailsList[newInsIndex].payload.dob,
+    //     coAppAgeOfNominee: gApzCOB.requestNodes.customerDetailsList[newInsIndex].payload.age,
+    //     //coAppRelationWithNom: inSessionStore.customerDetailsList[0].payload?.relationShipWithApplicant,
+    //     coAppRelationWithNom: coApplicantRelationWithNominee
+    // }
+    apz.data.scrdata.KmSourc__IPaintCoAppInsuranceDetails_Res.coAppInsuranceDetails = lData;
+    apz.data.loadData("IPaintCoAppInsuranceDetails", "KmSourc");
+};
+apz.app.OtherInformation.bankAccNoVerify = function () {
+    let bankCurrIndex = !apz.isNull(inSessionStore.bankDetailsWrapperList) ? ApzCOB.getIndexforBankWrapper("Applicant") : 0;
+    let accntVerifiedFromSession = inSessionStore?.bankDetailsWrapperList?.[bankCurrIndex]?.bankDetails?.payload?.accntVerified ?? "";
+    if (window.bankAccountNoVerifiedOtherInfo === "Verified" || accntVerifiedFromSession === "Verified") {
+        $("#KmSourc__OtherInformation__accountVerifyBtn").addClass('sno');
+        $("#KmSourc__OtherInformation__accountVerifiedBtn").removeClass("sno");
+        $("#KmSourc__OtherInformation__verifiedAccount").removeClass("sno");
+        $("#KmSourc__OtherInformation__verifiedAccount").addClass('suc');
+    } else if (window.bankAccountNoVerifiedOtherInfo === "Invalid" || accntVerifiedFromSession === "Invalid") {
+        $("#KmSourc__OtherInformation__accountVerifyBtn").addClass('sno');
+        $("#KmSourc__OtherInformation__accountInvalidBtn").removeClass("sno");
+        $("#KmSourc__OtherInformation__invalidAccount").removeClass("sno");
+        $("#KmSourc__OtherInformation__invalidAccount").addClass('failed');
+    }
+}
+apz.app.OtherInformation.setMinMaxLength = function () {
+    const fieldMap = {
+        //accountHolderNameInput: "Name",
+        //accountNumberInput: "AccountNumber",
+        //ifscCodeInput: "IFSC",
+        //bankNameInput: "BankName",
+        //branchNameInput: "BankName",
+        changeBankIFSCCode: "IFSC",
+        changeBankBankName: "BankName",
+        changeBankBranchName: "BankName"
+        //otherReasonInput:"",
+        //nameOfAdditionalDoc:""
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: kmScrId + fieldId
+    })));
+    const fieldMapEdit = {
+        editModelNomineeName: "Name",
+        editModelNomineeDOB: "Dob"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMapEdit).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: kmIPaintEditInsuranceDetailsId + fieldId
+    })));
+    const fieldMapCustApp = {
+        custAppNomineeForIns: "Name",
+        custAppNomContactNumber: "MobileNumber",
+        custAppDob: "Dob"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMapCustApp).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: kmIPaintCustAppInsDetailsId + fieldId
+    })));
+    const fieldMapCustomNominee = {
+        customNomineeForIns: "Name",
+        customNomContactNumber: "MobileNumber",
+        customDob: "Dob"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMapCustomNominee).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: kmIPaintCustomInsDetailsId + fieldId
+    })));
+};
+apz.app.OtherInformation.buildDDValues = function (items) {
+    let params = [];
+    items.forEach((desc, index) => {
+        params.push({
+            val: desc,
+            desc: desc,
+        });
+    });
+    if (!items.includes("Please Select")) {
+        params.unshift({
+            val: "",
+            desc: "Please Select"
+        });
+    }
+    return params;
+};
+apz.app.OtherInformation.fnLoadAMLQuestions = function () {
+    apz.data.scrdata.KmSourc__loadAMLQuestions_Req = {};
+    apz.data.scrdata.KmSourc__loadAMLQuestions_Req.amlQuestions = []
+    if (apz.isNull(DBKIT_MASTERDATA) || Object.keys(DBKIT_MASTERDATA).length === 0) {
+        ApzCOB.FetchDBKITMasterData("KMSOURCING");
+    }
+    if (apz.isNull(DBKIT_MASTERDATA) || Object.keys(DBKIT_MASTERDATA).length === 0) {
+        let amlQuestionFilePath = apz.getDataFilesPath() + "/amlQuestionaire.json"
+        let amlQuesDataSet = apz.getFile(amlQuestionFilePath)
+        apz.data.scrdata.KmSourc__loadAMLQuestions_Req.amlQuestions = JSON.parse(amlQuesDataSet)
+    } else {
+        apz.data.scrdata.KmSourc__loadAMLQuestions_Req.amlQuestions = JSON.parse(DBKIT_MASTERDATA.find(({ stageName }) => stageName === "OtherInformation")?.queries)
+    }
+    let amlQuestions = apz.data.scrdata.KmSourc__loadAMLQuestions_Req.amlQuestions;
+    apz.data.loadData("loadAMLQuestions", "KmSourc")
+    for (let i = 0; i < amlQuestions.length; i++) {
+        $("#KmSourc__loadAMLQuestions__i__amlQuestions__question_" + i).empty();
+        $("#KmSourc__loadAMLQuestions__i__amlQuestions__question_" + i).append(`${amlQuestions[i].question}`);
+        var $li = $('#' + kmScrId + 'amlQuestionList_row_' + i);
+        var onclickCode = $li.attr('onclick');
+        if (onclickCode) {
+            onclickCode = onclickCode
+                .replace('apz.data.selectRow(this, event);', '')
+                .replace('apz.data.rowClicked(this,event);', '');
+            $li.attr('onclick', onclickCode);
+        }
+    }
+}
+apz.app.OtherInformation.insNotOptDropDownValue = function () {
+    let selectedReasons = $("#" + kmScrId + "insuranceNotOptingReasons").val();
+    if (selectedReasons === "Other") {
+        $("#" + kmScrId + "otherReasonRow").removeClass("sno");
+    } else {
+        $("#" + kmScrId + "otherReasonRow").addClass("sno");
+    }
+};
+apz.app.OtherInformation.validateENach = function () {
+    let ifscInput = $("#" + kmScrId + "ifscCodeInput").val().trim().toUpperCase();
+    let changeBankBankStatus = apz.getElmValue(kmScrId + "changeBankRadioBtn");
+    let bankCurrIndex = !apz.isNull(inSessionStore.bankDetailsWrapperList) ? ApzCOB.getIndexforBankWrapper("Applicant") : 0;
+    let accntVerifiedFromSession = inSessionStore?.bankDetailsWrapperList?.[bankCurrIndex]?.bankDetails?.payload?.accntVerified ?? "";
+    if (apz.isNull(window.bankAccountNoVerifiedOtherInfo) && accntVerifiedFromSession !== "Verified") {
+        ApzCOB.fnDisplayMsg("Please verify the existing applicant's bank account number", "E");
+    } else if (window.bankAccountNoVerifiedOtherInfo === "invalid") {
+        ApzCOB.fnDisplayMsg("The applicant's bank account number must be verified to perform eNACH", "E");
+    } else if (changeBankBankStatus === "yes") {
+        ApzCOB.fnDisplayMsg("Please select No for Change Bank Details to proceed with eNACH", "E");
+    } else {
+        if (ALL_eNACH_BANKS.length > 0) {
+            let ifscPrefix = ifscInput.substring(0, 4);
+            // const bankExists = ALL_eNACH_BANKS.some(bank =>
+            //     bank.code.toUpperCase() === ifscPrefix
+            // );
+            const bankExists = ALL_eNACH_BANKS.filter(e1 =>
+                [
+                    e1.new_ifsc?.toUpperCase()?.trim(),
+                    e1.old_ifsc?.toUpperCase()?.trim()
+                ].includes(ifscPrefix?.toUpperCase()?.trim())
+            );
+            if (bankExists?.length > 0) {
+                $("#" + kmScrId + "validateENachbtn").addClass("sno");
+                $("#" + kmScrId + "eNachValidatedbtn").removeClass("sno");
+                $("#" + kmScrId + "pennyChackbtn").removeClass("sno");
+                othInforEditFlag.valEnach = "true"; //19th june changes
+                //$("#"+kmScrId + "changeBankRadioBtn_option_yes").attr("disabled", true)
+            } else {
+                $("#" + kmScrId + "validateENachbtn").addClass("sno");
+                $("#" + kmScrId + "eNachInvalidbtn").removeClass("sno");
+                $("#" + kmScrId + "changeBankRadioBtn_option_no").attr("disabled", true)
+                $("#" + kmScrId + "changeBankRadioBtn_option_no").addClass('BankDetailsDisable');
+                $("#" + kmScrId + "changeBankRadioBtn_option_yes").attr("checked", true)
+                apz.app.OtherInformation.fnChangeAccountDetailsOnChange();
+                othInforEditFlag.valEnach = "false";  //19th june changes
+            }
+        } else {
+            ApzCOB.fnDisplayMsg("Please try again later", "E");
+        }
+    }
+};
+apz.app.OtherInformation.validateENachOnChangeBank = function () {
+    if (ALL_eNACH_BANKS.length !== 0) {
+        let ifscInputLength = $("#" + kmScrId + "changeBankIFSCCode").val().trim().toUpperCase().length;
+        if (ifscInputLength === 11) {
+            let ifscInput = $("#" + kmScrId + "changeBankIFSCCode").val().trim().toUpperCase();
+            if (!apz.isNull($("#" + kmScrId + "changeBankIFSCCode").val())) {
+                let ifscPrefix = ifscInput.substring(0, 4);
+                // const bankExistsOnChangeBank = ALL_eNACH_BANKS.some(bank =>
+                //     bank.code.toUpperCase() === ifscPrefix
+                // );
+                const bankExistsOnChangeBank = ALL_eNACH_BANKS.filter(e1 =>
+                [
+                    e1.new_ifsc?.toUpperCase()?.trim(),
+                    e1.old_ifsc?.toUpperCase()?.trim()
+                ].includes(ifscPrefix?.toUpperCase()?.trim())
+            );
+                if (bankExistsOnChangeBank?.length > 0) {
+                    $("#" + kmScrId + "changeBankValidateENachbtn").addClass("sno");
+                    $("#" + kmScrId + "changeBankeNachValidatedbtn").removeClass("sno");
+                    othInforEditFlag.newBankValEnach = "true"; //19th june changes
+                    isOtherInfoSaveDraft = "";
+                    apz.app.OtherInformation.fnSaveDraftOrNext(true);
+                } else {
+                    $("#" + kmScrId + "changeBankValidateENachbtn").addClass("sno");
+                    $("#" + kmScrId + "changeBankeNachInvalid").removeClass("sno");
+                    othInforEditFlag.newBankValEnach = "false"; //19th june changes
+                }
+            } else {
+                ApzCOB.fnDisplayMsg("Please enter valid IFSC code", "E");
+            }
+        } else {
+            $("#" + kmScrId + "changeBankIFSCCode").val("")
+            ApzCOB.fnDisplayMsg("Invalid IFSC code length. Expected 11 characters", "E");
+        }
+    } else {
+        ApzCOB.fnDisplayMsg("Please try again later", "E");
+    }
+};
+apz.app.OtherInformation.fnInsuranceTypeInSession = function () {
+    const insTypeFromSession =
+        inSessionStore?.insuranceDetailsWrapperList?.find(
+            item => item?.insuranceDetails?.insuranceType
+        )?.insuranceDetails?.insuranceType;
+    if (apz.isNull(insTypeFromSession)) return;
+    insuranceTypeSelected = insTypeFromSession;
+    /* Filter as per insurance type then load */
+    let insuranceData = inSessionStore?.insuranceDetailsWrapperList;
+    var filteredInsuranceData = insuranceData?.filter(
+        item => item?.insuranceDetails?.insuranceType
+    ) || [];
+    let loanAmountSession = filteredInsuranceData?.[0]?.insuranceDetails?.payload?.loanAmount ?? "";
+    $("#" + kmScrId + "nomineeCustomDiv").addClass("sno");
+    $("#KmSourc__OtherInformation__noInsCheckBox").prop("checked", false);
+    //$("#KmSourc__OtherInformation__insuranceNotOptingReasons").val("Please Select");
+    apz.setElmValue("KmSourc__OtherInformation__insuranceNotOptingReasons", "Please Select")
+    $("#KmSourc__OtherInformation__otherReasonInput").val('');
+    let custDtlIdApplicant = ApzCOB.getCustDetailID('Co-App');
+    //apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__sumAssuredInput", loanAmountSession == null ? '' : (loanAmountSession > 200000 ? 200000 : loanAmountSession)); // new insurance changes 31st july
+    //apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__sumAssuredInput", inSessionStore?.insuranceDetailsWrapperList?.[0]?.insuranceDetails?.payload?.loanAmount ?? "")
+    //apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__insurancePremiumInput", filteredInsuranceData?.[0]?.insuranceDetails?.payload?.insurancePremium ?? "") // new insurance changes 31st july
+    if (insTypeFromSession === "bothInsurance") {
+        $("#KmSourc__OtherInformation__insuranceTypeRadioBtn_option_bothInsurance").attr("checked", true);
+        let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        let custDtlId = gApzCOB.userDetails.custDtlId;
+        let AddDocExists = docList.some(item =>
+            parseInt(item.custDtlId) === parseInt(custDtlId) &&
+            item.payload.documentType === 'COAPPLNT_CUST_NOMINEE_DOCS'
+        );
+        if (AddDocExists) {
+            $("#" + kmScrId + "nomineeCustomDiv").removeClass("sno");
+        }
+        ApzCOB.addFieldMandatory("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput");
+        apz.populateDropdown(document.getElementById("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput"), apz.app.OtherInformation.buildDDValues(insurersBothDDValues));
+        $("#KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput").attr("readonly", "readonly");
+        $("#KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput_ext").attr("readonly", "readonly");
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput", filteredInsuranceData?.[0]?.insuranceDetails?.payload?.insurerName ?? "")
+        $("#" + kmScrId + "jiontInsuranceNote").removeClass("sno");
+        $("#" + kmScrId + "applicantInsuranceNote").addClass("sno");
+        $("#" + kmScrId + "nomineeApplicantDiv").removeClass("sno");
+        $("#" + kmScrId + "nomineeCoApplicantDiv").removeClass("sno");
+        $("#" + kmScrId + "insuranceWarningDiv").addClass("sno");
+        // $("#" + kmScrId + "addCustomNomineeBtnRow").removeClass("sno");
+        apz.setElmValue(kmIPaintCoAppInsuranceDetailsId + "coAppRelationWithNom", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Co-App")?.insuranceDetails?.payload?.nomineeRelation ?? "Please Select");
+        ApzCOB.AddOrRemoveDisableFields([`KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput`], false);
+        // new insurance changes 31st july - start
+        let loanAmount = inSessionStore?.cibilDetailsWrapperList?.find(item =>
+            item?.cibilDetails?.custDtlId === Number(gApzCOB?.userDetails?.CoApplicantCustomerId))?.cibilDetails?.eligibleAmt ?? 0;
+        let insuranceChargeApplicant = inSessionStore?.cibilDetailsWrapperList?.find(x => x?.cibilDetails?.custDtlId == custDtlIdApplicant)?.cibilDetails?.payload?.insuranceChargeMember ?? '';
+        let insuranceChargeSpouse = inSessionStore?.cibilDetailsWrapperList?.find(x => x?.cibilDetails?.custDtlId == custDtlIdApplicant)?.cibilDetails?.payload?.insuranceChargeSpouse ?? '';
+        let insuranceChargeBoth = Number(insuranceChargeApplicant) + Number(insuranceChargeSpouse);
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__sumAssuredInput", loanAmount == null ? '' : (loanAmount > 200000 ? 200000 : loanAmount));
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__insurancePremiumInput", insuranceChargeBoth);
+        // new insurance changes 31st july - end    
+        const hasCustNominee = inSessionStore.insuranceDetailsWrapperList?.some(
+            item => item.insuranceDetails?.insuredCustType === "Cust-Nominee"
+        );
+        if (hasCustNominee) {
+            const custNomineeData = inSessionStore?.insuranceDetailsWrapperList?.find(
+                item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee"
+            )?.insuranceDetails?.payload;
+            $("#" + kmScrId + "nomineeCustomDiv").removeClass("sno");
+            apz.setElmValue(kmIPaintCustomInsDetailsId + "customNomineeForIns", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.nomineeName ?? "");
+            apz.setElmValue(kmIPaintCustomInsDetailsId + "customGender", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.gender ?? "Please Select");
+            apz.setElmValue(kmIPaintCustomInsDetailsId + "customDob", apz.app.OtherInformation.formatDate(inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.nomineeDob ?? ""));
+            apz.setElmValue(kmIPaintCustomInsDetailsId + "customAge", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.age ?? "");
+            apz.setElmValue(kmIPaintCustomInsDetailsId + "customRelationWithNom", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.nomineeRelation ?? "Please Select");
+            apz.setElmValue(kmIPaintCustomInsDetailsId + "customNomContactNumber", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.mobileNumber ?? "");
+            othInforEditFlag.customNominee = true;
+            apz.app.OtherInformation.insuranceDetailsHideAndShow();
+        } else {
+            othInforEditFlag.customNominee = false;
+            apz.app.OtherInformation.insuranceDetailsHideAndShow();
+        }
+    }
+
+    else if (insTypeFromSession === "applicant") {
+        const reason = inSessionStore.insuranceDetailsWrapperList
+            ?.find(item => item.insuranceDetails?.insuranceType === "applicant")
+            ?.insuranceDetails?.payload?.reason;
+        const hasOtherReasonValue = inSessionStore.insuranceDetailsWrapperList?.some(
+            item =>
+                item.insuranceDetails?.insuranceType === "applicant" &&
+                item.insuranceDetails?.payload?.otherReason?.trim()
+        );
+        const otherReasonValue = inSessionStore.insuranceDetailsWrapperList
+            ?.find(
+                item =>
+                    item.insuranceDetails?.insuranceType === "applicant" &&
+                    item.insuranceDetails?.payload?.otherReason?.trim()
+            )
+            ?.insuranceDetails?.payload?.otherReason;
+        const appInsuranceConsent = inSessionStore.insuranceDetailsWrapperList
+            ?.find(
+                item => item.insuranceDetails?.insuranceType === "applicant"
+            )
+            ?.insuranceDetails?.payload?.insuranceConsent;
+        $("#KmSourc__OtherInformation__insuranceTypeRadioBtn_option_applicant").attr("checked", true);
+        //$("#KmSourc__OtherInformation__noInsCheckBox").prop("checked", true);
+        apz.setElmValue("KmSourc__OtherInformation__insuranceNotOptingReasons", apz.isNull(reason) ? "Please Select" : reason)
+        if (appInsuranceConsent === "true") {
+            $("#KmSourc__OtherInformation__noInsCheckBox").prop("checked", true);
+        }
+        if (hasOtherReasonValue) {
+            $("#KmSourc__OtherInformation__otherReasonRow").removeClass("sno");
+            $("#KmSourc__OtherInformation__otherReasonInput").val(otherReasonValue);
+        }
+        $("#KmSourc__OtherInformation__insuranceTypeRadioBtn_option_applicant").attr("checked", true);
+        let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        let custDtlId = gApzCOB.userDetails.custDtlId;
+        let AddDocExists = docList.some(item =>
+            parseInt(item.custDtlId) === parseInt(custDtlId) &&
+            item.payload.documentType === 'COAPPLNT_CUST_NOMINEE_DOCS'
+        );
+        if (AddDocExists) {
+            $("#" + kmScrId + "nomineeCustomDiv").removeClass("sno");
+        }
+        $("#KmSourc__OtherInformation__applicantInsCoLabel").removeClass("sno")
+        ApzCOB.addFieldMandatory("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput");
+        apz.populateDropdown(document.getElementById("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput"), apz.app.OtherInformation.buildDDValues(insurersApplicantDDValues));
+        $("#KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput").attr("readonly", "readonly");
+        $("#KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput_ext").attr("readonly", "readonly");
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput", filteredInsuranceData?.[0]?.insuranceDetails?.payload?.insurerName ?? "")
+        // $("#" + kmScrId + "addCustomNomineeBtnRow").removeClass("sno");
+        $("#" + kmScrId + "applicantInsuranceNote").removeClass("sno");
+        $("#" + kmScrId + "jiontInsuranceNote").addClass("sno");
+        $("#" + kmScrId + "nomineeApplicantDiv").removeClass("sno");
+        $("#" + kmScrId + "nomineeCoApplicantDiv").addClass("sno");
+        $("#" + kmScrId + "insuranceWarningDiv").removeClass("sno");
+        ApzCOB.AddOrRemoveDisableFields([`KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput`], false);
+        // new insurance changes 31st july - start
+        let loanAmount = inSessionStore?.cibilDetailsWrapperList?.find(item =>
+            item?.cibilDetails?.custDtlId === Number(gApzCOB?.userDetails?.CoApplicantCustomerId))?.cibilDetails?.eligibleAmt ?? 0;
+        let insuranceChargeApplicant = inSessionStore?.cibilDetailsWrapperList?.find(x => x?.cibilDetails?.custDtlId == custDtlIdApplicant)?.cibilDetails?.payload?.insuranceChargeMember ?? '';
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__sumAssuredInput", loanAmount == null ? '' : (loanAmount > 200000 ? 200000 : loanAmount));
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__insurancePremiumInput", insuranceChargeApplicant);
+        // new insurance changes 31st july - end    
+        const hasCustNominee = inSessionStore.insuranceDetailsWrapperList?.some(
+            item => item.insuranceDetails?.insuredCustType === "Cust-Nominee"
+        );
+        if (hasCustNominee) {
+            const custNomineeData = inSessionStore?.insuranceDetailsWrapperList?.find(
+                item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee"
+            )?.insuranceDetails?.payload;
+            $("#" + kmScrId + "nomineeCustomDiv").removeClass("sno");
+            apz.setElmValue(kmIPaintCustomInsDetailsId + "customNomineeForIns", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.nomineeName ?? "");
+            apz.setElmValue(kmIPaintCustomInsDetailsId + "customGender", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.gender ?? "Please Select");
+            apz.setElmValue(kmIPaintCustomInsDetailsId + "customDob", apz.app.OtherInformation.formatDate(inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.nomineeDob ?? ""));
+            apz.setElmValue(kmIPaintCustomInsDetailsId + "customAge", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.age ?? "");
+            apz.setElmValue(kmIPaintCustomInsDetailsId + "customRelationWithNom", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.nomineeRelation ?? "Please Select");
+            apz.setElmValue(kmIPaintCustomInsDetailsId + "customNomContactNumber", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.mobileNumber ?? "");
+            othInforEditFlag.customNominee = true;
+            apz.app.OtherInformation.insuranceDetailsHideAndShow();
+        } else {
+            othInforEditFlag.customNominee = false;
+            apz.app.OtherInformation.insuranceDetailsHideAndShow();
+        }
+    }
+
+    else if (insTypeFromSession === "noInsurance") {
+        const reason = inSessionStore.insuranceDetailsWrapperList
+            ?.find(item => item.insuranceDetails?.insuranceType === "noInsurance")
+            ?.insuranceDetails?.payload?.reason;
+        const hasOtherReasonValue = inSessionStore.insuranceDetailsWrapperList?.some(
+            item =>
+                item.insuranceDetails?.insuranceType === "noInsurance" &&
+                item.insuranceDetails?.payload?.otherReason?.trim()
+        );
+        const otherReasonValue = inSessionStore.insuranceDetailsWrapperList
+            ?.find(
+                item =>
+                    item.insuranceDetails?.insuranceType === "noInsurance" &&
+                    item.insuranceDetails?.payload?.otherReason?.trim()
+            )
+            ?.insuranceDetails?.payload?.otherReason;
+        const noInsInsuranceConsent = inSessionStore.insuranceDetailsWrapperList
+            ?.find(
+                item => item.insuranceDetails?.insuranceType === "noInsurance"
+            )
+            ?.insuranceDetails?.payload?.insuranceConsent;
+        let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        let custDtlId = gApzCOB.userDetails.custDtlId;
+        let AddDocExists = docList.some(item =>
+            parseInt(item.custDtlId) === parseInt(custDtlId) &&
+            item.payload.documentType === 'COAPPLNT_CUST_NOMINEE_DOCS'
+        );
+        if (AddDocExists) {
+            ApzCOB.fnDisplayMsg("Please delete the uploaded documents to proceed with changing insurance type", "E");
+            $("#KmSourc__OtherInformation__insuranceTypeRadioBtn_option_bothInsurance").attr("checked", true)
+            apz.app.OtherInformation.fnInsuranceTypeOnChange();
+            return;
+        }
+        $("#KmSourc__OtherInformation__insuranceTypeRadioBtn_option_noInsurance").attr("checked", true);
+        ApzCOB.removeFieldMandatory("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput");
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__sumAssuredInput", "---");
+        apz.populateDropdown(document.getElementById("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput"), apz.app.OtherInformation.buildDDValues(insurersNoInsDDValues));
+        ApzCOB.AddOrRemoveDisableFields([`KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput`], true);
+        //$("#KmSourc__OtherInformation__noInsCheckBox").prop("checked", true);
+        apz.setElmValue("KmSourc__OtherInformation__insuranceNotOptingReasons", apz.isNull(reason) ? "Please Select" : reason)
+        if (noInsInsuranceConsent === "true") {
+            $("#KmSourc__OtherInformation__noInsCheckBox").prop("checked", true);
+        }
+        if (hasOtherReasonValue) {
+            $("#KmSourc__OtherInformation__otherReasonRow").removeClass("sno");
+            $("#KmSourc__OtherInformation__otherReasonInput").val(otherReasonValue);
+        }
+        //$("#KmSourc__OtherInformation__insuranceNotOptingReasons").val(reason);
+        $("#" + kmIPaintCustomInsDetailsId + "customNomineeForIns").val("");
+        apz.setElmValue(kmIPaintCustomInsDetailsId + "customGender", "")
+        $("#" + kmIPaintCustomInsDetailsId + "customDob").val("");
+        $("#" + kmIPaintCustomInsDetailsId + "customAge").val("");
+        apz.setElmValue(kmIPaintCustomInsDetailsId + "customRelationWithNom", "Please Select")
+        $("#" + kmIPaintCustomInsDetailsId + "customNomContactNumber").val("");
+        $("#" + kmScrId + "applicantInsuranceNote").addClass("sno");
+        $("#" + kmScrId + "jiontInsuranceNote").addClass("sno");
+        $("#" + kmScrId + "nomineeApplicantDiv").addClass("sno");
+        $("#" + kmScrId + "nomineeCoApplicantDiv").addClass("sno");
+        $("#" + kmScrId + "insuranceWarningDiv").removeClass("sno");
+        $("#" + kmScrId + "addCustomNomineeBtnRow").addClass("sno");
+        othInforEditFlag.customApplicant = false;
+        othInforEditFlag.customNominee = false;
+        // new insurance changes 31st july - start
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__sumAssuredInput", "---");
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__insurancePremiumInput", "---");
+        // new insurance changes 31st july - end
+    }
+}
+apz.app.OtherInformation.fnInsuranceTypeOnChange = function (pthis) {
+    insuranceTypeSelected = apz.getElmValue(kmScrId + "insuranceTypeRadioBtn");
+    //$("#" + kmScrId + "nomineeCustomApplicantDiv").addClass("sno");
+    $("#" + kmScrId + "nomineeCustomDiv").addClass("sno");
+    $("#KmSourc__OtherInformation__noInsCheckBox").prop("checked", false);
+    $("#KmSourc__OtherInformation__insuranceNotOptingReasons").val("Please Select");
+    $("#KmSourc__OtherInformation__otherReasonInput").val('');
+    let custDtlIdApplicant = ApzCOB.getCustDetailID('Co-App');
+    if (insuranceTypeSelected === "bothInsurance") {
+        let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        let custDtlId = gApzCOB.userDetails.custDtlId;
+        // let AddDocExists = docList.some(function (item) {
+        //     if (parseInt(item.custDtlId) === parseInt(custDtlId)) {
+        //         return item.payload.documentType === 'COAPPLNT_CUST_NOMINEE_DOCS';
+        //     }
+        // });
+        let AddDocExists = docList.some(item =>
+            parseInt(item.custDtlId) === parseInt(custDtlId) &&
+            item.payload.documentType === 'COAPPLNT_CUST_NOMINEE_DOCS'
+        );
+        if (AddDocExists) {
+            // ApzCOB.fnDisplayMsg("Please delete the uploaded documents to proceed with changing insurance type", "E");
+            // $("#KmSourc__OtherInformation__insuranceTypeRadioBtn_option_applicant").attr("checked", true)
+            // return;
+            othInforEditFlag.customNominee = true;
+            $("#" + kmScrId + "nomineeCustomDiv").removeClass("sno");
+        } else {
+            othInforEditFlag.customNominee = false; //9th june new insurance changes
+        }
+        // $("#" + kmIPaintCustomInsDetailsId + "customNomineeForIns").val("");
+        // apz.setElmValue(kmIPaintCustomInsDetailsId + "customGender", "")
+        // $("#" + kmIPaintCustomInsDetailsId + "customDob").val("");
+        // $("#" + kmIPaintCustomInsDetailsId + "customAge").val("");
+        // apz.setElmValue(kmIPaintCustomInsDetailsId + "customRelationWithNom", "Please Select")
+        // $("#" + kmIPaintCustomInsDetailsId + "customNomContactNumber").val("");
+        $("#" + kmScrId + "jiontInsuranceNote").removeClass("sno");
+        $("#" + kmScrId + "applicantInsuranceNote").addClass("sno");
+        $("#" + kmScrId + "nomineeApplicantDiv").removeClass("sno");
+        $("#" + kmScrId + "nomineeCoApplicantDiv").removeClass("sno");
+        $("#" + kmScrId + "insuranceWarningDiv").addClass("sno");
+        // $("#" + kmScrId + "addCustomNomineeBtnRow").removeClass("sno");
+        apz.setElmValue(kmIPaintCoAppInsuranceDetailsId + "coAppRelationWithNom", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Co-App")?.insuranceDetails?.payload?.nomineeRelation ?? "Please Select");
+        // new insurance changes 26th june
+        let loanAmount = inSessionStore?.cibilDetailsWrapperList?.find(item =>
+            item?.cibilDetails?.custDtlId === Number(gApzCOB?.userDetails?.CoApplicantCustomerId))?.cibilDetails?.eligibleAmt ?? 0;
+        let insuranceChargeApplicant = inSessionStore?.cibilDetailsWrapperList?.find(x => x?.cibilDetails?.custDtlId == custDtlIdApplicant)?.cibilDetails?.payload?.insuranceChargeMember ?? '';
+        let insuranceChargeSpouse = inSessionStore?.cibilDetailsWrapperList?.find(x => x?.cibilDetails?.custDtlId == custDtlIdApplicant)?.cibilDetails?.payload?.insuranceChargeSpouse ?? '';
+        let insuranceChargeBoth = Number(insuranceChargeApplicant) + Number(insuranceChargeSpouse);
+        ApzCOB.AddOrRemoveDisableFields([`KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput`], false);
+        ApzCOB.addFieldMandatory("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput");
+        ApzCOB.addFieldMandatory("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput");
+        apz.populateDropdown(document.getElementById("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput"), apz.app.OtherInformation.buildDDValues(insurersBothDDValues));
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__sumAssuredInput", loanAmount == null ? '' : (loanAmount > 200000 ? 200000 : loanAmount));
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__insurancePremiumInput", insuranceChargeBoth); // 24 june changes
+        apz.app.OtherInformation.insuranceDetailsHideAndShow();
+        $("#KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput").attr("readonly", "readonly");
+        $("#KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput_ext").attr("readonly", "readonly");
+    }
+    else if (insuranceTypeSelected === "applicant") {
+        let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        let custDtlId = gApzCOB.userDetails.custDtlId;
+        // let AddDocExists = docList.some(function (item) {
+        //     if (parseInt(item.custDtlId) === parseInt(custDtlId)) {
+        //         return item.payload.documentType === 'COAPPLNT_CUST_NOMINEE_DOCS';
+        //     }
+        // });
+        let AddDocExists = docList.some(item =>
+            parseInt(item.custDtlId) === parseInt(custDtlId) &&
+            item.payload.documentType === 'COAPPLNT_CUST_NOMINEE_DOCS'
+        );
+        if (AddDocExists) {
+            // ApzCOB.fnDisplayMsg("Please delete the uploaded documents to proceed with changing insurance type", "E");
+            // $("#KmSourc__OtherInformation__insuranceTypeRadioBtn_option_bothInsurance").attr("checked", true)
+            // return;
+            othInforEditFlag.customNominee = true;
+            $("#" + kmScrId + "nomineeCustomDiv").removeClass("sno");
+        } else {
+            othInforEditFlag.customNominee = false;
+        }
+        // $("#" + kmIPaintCustomInsDetailsId + "customNomineeForIns").val("");
+        // apz.setElmValue(kmIPaintCustomInsDetailsId + "customGender", "")
+        // $("#" + kmIPaintCustomInsDetailsId + "customDob").val("");
+        // $("#" + kmIPaintCustomInsDetailsId + "customAge").val("");
+        // apz.setElmValue(kmIPaintCustomInsDetailsId + "customRelationWithNom", "Please Select")
+        // $("#" + kmIPaintCustomInsDetailsId + "customNomContactNumber").val("");
+        // $("#" + kmScrId + "addCustomNomineeBtnRow").removeClass("sno");
+        $("#" + kmScrId + "applicantInsuranceNote").removeClass("sno");
+        $("#" + kmScrId + "jiontInsuranceNote").addClass("sno");
+        $("#" + kmScrId + "nomineeApplicantDiv").removeClass("sno");
+        $("#" + kmScrId + "nomineeCoApplicantDiv").addClass("sno");
+        $("#" + kmScrId + "insuranceWarningDiv").removeClass("sno");
+        $("#KmSourc__OtherInformation__applicantInsCoLabel").removeClass("sno")
+        // new insurance changes 26th june
+        let loanAmount = inSessionStore?.cibilDetailsWrapperList?.find(item =>
+            item?.cibilDetails?.custDtlId === Number(gApzCOB?.userDetails?.CoApplicantCustomerId))?.cibilDetails?.eligibleAmt ?? 0;
+        let insuranceChargeMember = inSessionStore?.cibilDetailsWrapperList?.find(x => x?.cibilDetails?.custDtlId == custDtlIdApplicant)?.cibilDetails?.payload?.insuranceChargeMember ?? '';
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__sumAssuredInput", loanAmount == null ? '' : (loanAmount > 200000 ? 200000 : loanAmount));
+        ApzCOB.AddOrRemoveDisableFields([`KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput`], false);
+        ApzCOB.addFieldMandatory("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput")
+        ApzCOB.addFieldMandatory("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput")
+        apz.populateDropdown(document.getElementById("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput"), apz.app.OtherInformation.buildDDValues(insurersApplicantDDValues));
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__insurancePremiumInput", insuranceChargeMember); // 24 june changes
+        apz.app.OtherInformation.insuranceDetailsHideAndShow();
+        $("#KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput").attr("readonly", "readonly");
+        $("#KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput_ext").attr("readonly", "readonly");
+    }
+    else if (insuranceTypeSelected === "noInsurance") {
+        let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        let custDtlId = gApzCOB.userDetails.custDtlId;
+        let AddDocExists = docList.some(item =>
+            parseInt(item.custDtlId) === parseInt(custDtlId) &&
+            item.payload.documentType === 'COAPPLNT_CUST_NOMINEE_DOCS'
+        );
+        if (AddDocExists) {
+            ApzCOB.fnDisplayMsg("Please delete the uploaded documents to proceed with changing insurance type", "E");
+            $("#KmSourc__OtherInformation__insuranceTypeRadioBtn_option_bothInsurance").attr("checked", true)
+            apz.app.OtherInformation.fnInsuranceTypeOnChange();
+            return;
+        }
+        $("#" + kmIPaintCustomInsDetailsId + "customNomineeForIns").val("");
+        apz.setElmValue(kmIPaintCustomInsDetailsId + "customGender", "")
+        $("#" + kmIPaintCustomInsDetailsId + "customDob").val("");
+        $("#" + kmIPaintCustomInsDetailsId + "customAge").val("");
+        apz.setElmValue(kmIPaintCustomInsDetailsId + "customRelationWithNom", "")
+        $("#" + kmIPaintCustomInsDetailsId + "customNomContactNumber").val("");
+        $("#" + kmScrId + "applicantInsuranceNote").addClass("sno");
+        $("#" + kmScrId + "jiontInsuranceNote").addClass("sno");
+        $("#" + kmScrId + "nomineeApplicantDiv").addClass("sno");
+        $("#" + kmScrId + "nomineeCoApplicantDiv").addClass("sno");
+        $("#" + kmScrId + "insuranceWarningDiv").removeClass("sno");
+        $("#KmSourc__OtherInformation__applicantInsCoLabel").addClass("sno")
+        $("#" + kmScrId + "addCustomNomineeBtnRow").addClass("sno");
+        othInforEditFlag.customApplicant = false;
+        othInforEditFlag.customNominee = false;
+        // new insurance changes 26th june
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__sumAssuredInput", "---");
+        apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__insurancePremiumInput", "---"); // 24 june changes
+        ApzCOB.AddOrRemoveDisableFields([`KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput`], true);
+        ApzCOB.removeFieldMandatory("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput");
+        apz.populateDropdown(document.getElementById("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput"), apz.app.OtherInformation.buildDDValues(insurersNoInsDDValues));
+        //apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput", ""); // 24 june changes
+    }
+};
+apz.app.OtherInformation.fnChangeAccountDetailsOnChange = function (pthis) {
+    //let selectedChangeBankRadioBtn = pthis.value; 
+    let bankCurrIndex = !apz.isNull(inSessionStore.bankDetailsWrapperList) ? ApzCOB.getIndexforBankWrapper("Applicant") : 0;
+    let selectedChangeBankRadioBtn = apz.getElmValue(kmScrId + "changeBankRadioBtn");
+    if (selectedChangeBankRadioBtn === "yes") {
+        let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        let custDtlId = gApzCOB.userDetails.custDtlId;
+        let changeBankDetailsStatusOnChange = inSessionStore?.bankDetailsWrapperList?.[bankCurrIndex]?.bankDetails?.payload?.editBankDetails;
+        let AddDocExists = docList.some(item =>
+            parseInt(item.custDtlId) === parseInt(custDtlId) &&
+            item.payload.documentType === 'BANK_ACCOUNT_PROOF'
+        );
+        if (AddDocExists) {
+            if (changeBankDetailsStatusOnChange !== "Yes" && gApzCOB.productCode !== "1001") {
+                ApzCOB.fnDisplayMsg("Please delete the uploaded documents of the old bank account to proceed with changing the bank account details", "E");
+                $("#" + kmScrId + "changeBankRadioBtn_option_no").attr("checked", true)
+                return;
+            }
+        }
+        let pennyResponseSession = inSessionStore?.bankDetailsWrapperList?.[bankCurrIndex]?.bankDetails?.payload?.pennyResp;
+        if (
+            (!apz.isNull(pennyResponse) || (!apz.isNull(pennyResponseSession) && changeBankDetailsStatusOnChange !== "Yes") || othInforEditFlag.valPennyCheck === "true")
+            && gApzCOB.productCode !== "1001"
+        ) {
+            ApzCOB.fnDisplayMsg("e-NACH & Penny check response will be changed. Are you sure you want to continue?", "C", apz.app.OtherInformation.erasePennyResponse);
+        }
+        // if (pennyResponse !== "") {
+        //     ApzCOB.fnDisplayMsg("The applicable image/document/verifications/data will be permanently removed, Are you sure you want to continue?", "C", apz.app.OtherInformation.erasePennyResponse);
+        // }
+        othInforEditFlag.valChangeBank = true;
+        // if (inSessionStore?.bankDetailsWrapperList?.[0]?.bankDetails?.payload) {
+        //     inSessionStore.bankDetailsWrapperList[0].bankDetails.payload.editBankDetails = "Yes";
+        // }
+        apz.setElmValue(kmScrId + "changeBankAccountType", "Savings");
+        $("#" + kmScrId + "changedBankDetails").removeClass("sno");
+        //$("#" + kmScrId + "validateENachbtn").addClass("sno"); MUI-364 fixes (code merging issue)
+        //to enable eNach-validate button if it is disabled
+        // $("#" + kmScrId + "changeBankValidateENachbtn").removeClass("sno");
+        // $("#" + kmScrId + "changeBankeNachValidatedbtn").addClass("sno");
+        $("#" + kmScrId + "changeBankeNachValidatedbtn").addClass("sno");
+        $("#" + kmScrId + "changeBankeNachInvalid").addClass("sno");
+        $("#" + kmScrId + "changeBankValidateENachbtn").addClass("sno");
+    }
+    else if (selectedChangeBankRadioBtn === "no") {
+        let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        let custDtlId = gApzCOB.userDetails.custDtlId;
+        let AddDocExists = docList.some(item =>  //16th june Bank_account_proof changes 
+            parseInt(item.custDtlId) === parseInt(custDtlId) &&
+            item.payload.documentType === 'BANK_ACCOUNT_PROOF'
+        );
+        if (AddDocExists) {
+            ApzCOB.fnDisplayMsg("Please delete the uploaded documents to proceed with changing bank account details", "E");
+            $("#" + kmScrId + "changeBankRadioBtn_option_yes").attr("checked", true)
+            return;
+        }
+        othInforEditFlag.valChangeBank = false;
+        // if (inSessionStore?.bankDetailsWrapperList?.[0]?.bankDetails?.payload) {
+        //     inSessionStore.bankDetailsWrapperList[0].bankDetails.payload.editBankDetails = "No";
+        // }
+        $("#" + kmScrId + "changeBankIFSCCode").val("");
+        $("#" + kmScrId + "changeBankBankName").val("");
+        $("#" + kmScrId + "changeBankBranchName").val("");
+        $("#" + kmScrId + "changedBankDetails").val("");
+        apz.setElmValue(kmScrId + "changeBankAccountType", "Savings");
+        apz.setElmValue(kmScrId + "changeBankTypeOfDoc", "");
+        $("#" + kmScrId + "changedBankDetails").addClass("sno");
+        //$("#" + kmScrId + "validateENachbtn").removeClass("sno"); // MUI-171 fixes (code merging issue)
+    }
+}
+apz.app.OtherInformation.erasePennyResponse = function (params) {
+    if (params.choice) {
+        let bankCurrIndex = !apz.isNull(inSessionStore.bankDetailsWrapperList) ? ApzCOB.getIndexforBankWrapper("Applicant") : 0;
+        pennyResponse = "";
+        if (gApzCOB.productCode !== "1001") {
+            $("#" + kmScrId + "pennyChackbtn").removeClass("sno");
+        }
+        $("#" + kmScrId + "pennyChackbtn").addClass("sno");
+        $("#" + kmScrId + "validateENachbtn").removeClass("sno");
+        //$("#" + kmScrId + "validateENachbtn").addClass("sno");  MUI-364 fixes (code merging issue)
+        $("#" + kmScrId + "eNachValidatedbtn").addClass("sno");
+        $("#" + kmScrId + "pennyCheckSuccessbtn").addClass("sno");
+        $("#" + kmScrId + "uploadDocDiv").addClass("sno");
+        othInforEditFlag.valPennyCheck = "";
+        othInforEditFlag.valChangeBank = true;
+        // if (inSessionStore?.bankDetailsWrapperList?.[0]?.bankDetails?.payload) {
+        //     inSessionStore.bankDetailsWrapperList[0].bankDetails.payload.editBankDetails = "Yes";
+        // }
+        apz.setElmValue(kmScrId + "changeBankAccountType", "Savings");
+        $("#" + kmScrId + "changedBankDetails").removeClass("sno");
+        $("#" + kmScrId + "changeBankeNachValidatedbtn").addClass("sno");
+        $("#" + kmScrId + "changeBankeNachInvalid").addClass("sno");
+        $("#" + kmScrId + "changeBankValidateENachbtn").addClass("sno");
+        let loadBasicBankDetails = inSessionStore?.bankDetailsWrapperList?.[bankCurrIndex]?.bankDetails?.payload;
+        if (loadBasicBankDetails?.editBankDetails == "Yes" && apz.isNull(loadBasicBankDetails?.secondaryENachStatus)) { //31st july fixes
+            $("#" + kmScrId + "changeBankValidateENachbtn").removeClass("sno");
+        }
+    } else {
+        $("#" + kmScrId + "changeBankRadioBtn_option_no").attr("checked", true);
+        othInforEditFlag.valChangeBank = false;
+        // if (inSessionStore?.bankDetailsWrapperList?.[0]?.bankDetails?.payload) {
+        //     inSessionStore.bankDetailsWrapperList[0].bankDetails.payload.editBankDetails = "No";
+        // }
+        $("#" + kmScrId + "changeBankIFSCCode").val("");
+        $("#" + kmScrId + "changeBankBankName").val("");
+        $("#" + kmScrId + "changeBankBranchName").val("");
+        $("#" + kmScrId + "changedBankDetails").val("");
+        apz.setElmValue(kmScrId + "changeBankAccountType", "Savings");
+        apz.setElmValue(kmScrId + "changeBankTypeOfDoc", "");
+        $("#" + kmScrId + "changedBankDetails").addClass("sno");
+    }
+}
+apz.app.OtherInformation.validateENachChangeBank = function () {
+    $("#" + kmScrId + "changeBankValidateENachbtn").addClass("sno");
+    $("#" + kmScrId + "changeBankeNachValidatedbtn").removeClass("sno");
+};
+apz.app.OtherInformation.fnOnFocusIFSCCode = function () {
+    $("#" + kmScrId + "changeBankeNachValidatedbtn").addClass("sno");
+    $("#" + kmScrId + "changeBankeNachInvalid").addClass("sno");
+    $("#" + kmScrId + "changeBankValidateENachbtn").removeClass("sno");
+    othInforEditFlag.newBankValEnach = ""
+    if ($("#" + kmScrId + "changeBankIFSCCode").next(".err").length > 0) {
+        $("#" + kmScrId + "changeBankBankName").val('')
+        $("#" + kmScrId + "changeBankBranchName").val('')
+    }
+};
+apz.app.OtherInformation.onChangeBankNameSecondary = function () {
+    let bankNamelenght = $("#" + kmScrId + "changeBankBankName").val().length;
+    if (bankNamelenght > 0) {
+        $("#" + kmScrId + "changeBankValidateENachbtn").removeClass("sno");
+    } else {
+        $("#" + kmScrId + "changeBankeNachValidatedbtn").addClass("sno");
+        $("#" + kmScrId + "changeBankeNachInvalid").addClass("sno");
+        $("#" + kmScrId + "changeBankValidateENachbtn").addClass("sno");
+    }
+};
+apz.app.OtherInformation.ageCalculator = function (pthis) {
+    var age = ApzCOB.getAge($(pthis).val());
+    if (pthis.id === 'KmSourc__IPaintCustAppInsDetails__o__custAppInsDetails__custAppDob') {
+        if (age > 0 && age < 60) {
+            $('#' + kmIPaintCustAppInsDetailsId + 'custAppAge').val(age).change();
+            ApzCOB.removeErrMessgae(kmIPaintCustAppInsDetailsId + 'custAppAge', "element");
+        } else {
+            $('#' + kmIPaintCustAppInsDetailsId + 'custAppAge').val('');
+            $(pthis).val("")
+            ApzCOB.fnDisplayMsg(`Please select valid age(min:${newMinAge},max:${newMaxAge})`, "E");
+        }
+    } else if (pthis.id === 'KmSourc__IPaintCustomNomineeDetails__o__customNomineeDetails__customDob') {
+        if (age > 0 && age < 60) {
+            $('#' + kmIPaintCustomInsDetailsId + 'customAge').val(age).change();
+            ApzCOB.removeErrMessgae(kmIPaintCustomInsDetailsId + 'customAge', "element");
+        } else {
+            $('#' + kmIPaintCustomInsDetailsId + 'customAge').val('');
+            $(pthis).val("")
+            ApzCOB.fnDisplayMsg(`Please select valid age(min:${newMinAge},max:${newMaxAge})`, "E");
+        }
+    } else {
+        if (age > 0 && age < 60) {
+            $('#' + kmIPaintEditInsuranceDetailsId + 'editModelNomineeAge').val(age).change();
+            ApzCOB.removeErrMessgae(kmIPaintEditInsuranceDetailsId + 'editModelNomineeAge', "element");
+        } else {
+            $('#' + kmIPaintEditInsuranceDetailsId + 'editModelNomineeAge').val('');
+            $(pthis).val("")
+            ApzCOB.fnDisplayMsg(`Please select valid age(min:${newMinAge},max:${newMaxAge})`, "E");
+        }
+    }
+};
+apz.app.OtherInformation.dobValidation = function (pthis) {
+    let age = $(pthis).val();
+    let msg = `Please select valid age(min:${newMinAge},max:${newMaxAge})`;
+    if (!(parseInt(age) >= newMinAge)) {
+        $(pthis).val("");
+        if (pthis.id === "KmSourc__IPaintEditInsuranceDetails__o__editInsuranceDetails__editModelNomineeAge") {
+            $("#" + kmIPaintEditInsuranceDetailsId + "editModelNomineeDOB").val("")
+        } else if (pthis.id === "KmSourc__IPaintCustAppInsDetails__o__custAppInsDetails__custAppAge") {
+            $("#" + kmIPaintCustAppInsDetailsId + "custAppDob").val("")
+            KmSourc__IPaintCustAppInsDetails__o__custAppInsDetails__custAppDob
+        } else if (pthis.id === "KmSourc__IPaintCustomNomineeDetails__o__customNomineeDetails__customAge") {
+            $("#" + kmIPaintCustomInsDetailsId + "customDob").val("")
+        }
+        ApzCOB.fnDisplayMsg(msg, "E");
+    }
+};
+apz.app.OtherInformation.fnUploadAdditionalDocOnClick = function () {
+    $("#" + kmScrId + "additionalDocumentDiv").removeClass("sno");
+    //$("#" + kmScrId + "additionalDocUploadBtnDiv").addClass("sno");
+    $("#" + kmScrId + "addDocFrm").addClass("sno");
+    $("#" + kmScrId + "upldaddocNav").addClass("sno");
+    //othInforEditFlag.AdditionalDoc === true;
+};
+apz.app.OtherInformation.fnUploadExtraAdditionalDocOnClick = function () {
+    $("#" + kmScrId + "nameOfAdditionalDoc").val("");
+    ApzCOB.AddOrRemoveDisableFields([`${kmScrId}nameOfAdditionalDoc`], false);
+}
+apz.app.OtherInformation.fnAppAddDifferentNomineeOnClick = function () {
+    //$("#" + kmScrId + "nomineeCustomApplicantDiv").removeClass("sno");
+    othInforEditFlag.customApplicant = true;
+};
+apz.app.OtherInformation.fnCoAppAddDifferentNomineeOnClick = function () {
+    $("#" + kmScrId + "nomineeCustomDiv").removeClass("sno");
+    //$("#KmSourc__OtherInformation__gr_col_38").addClass("sno")
+    othInforEditFlag.customNominee = true;
+    apz.app.OtherInformation.insuranceDetailsHideAndShow();
+};
+apz.app.OtherInformation.onClickCustomNomineeAppDeleteBtn = function () {
+    let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+    let AddDocExists = docList.some(function (item) {
+        return item.payload.documentType === 'APPLNT_CUST_NOMINEE_DOCS';
+    });
+    if (AddDocExists) {
+        ApzCOB.fnDisplayMsg("Please delete the uploaded documents to proceed with nominee deletion", "E");
+        return;
+    }
+    ApzCOB.fnDisplayMsg("Are you sure you want to delete the nominee?", "C", apz.app.OtherInformation.onClickCustomNomineeAppDeleteBtnCB);
+};
+apz.app.OtherInformation.onClickCustomNomineeAppDeleteBtnCB = function (params) {
+    if (params.choice) {
+        $("#" + kmIPaintCustAppInsDetailsId + "custAppNomineeForIns").val('');
+        $("#" + kmIPaintCustAppInsDetailsId + "custAppGender").val('Please Select');
+        $("#" + kmIPaintCustAppInsDetailsId + "custAppDob").val('');
+        $("#" + kmIPaintCustAppInsDetailsId + "custAppAge").val('');
+        $("#" + kmIPaintCustAppInsDetailsId + "custAppRelationWithNom").val('Please Select');
+        $("#" + kmIPaintCustAppInsDetailsId + "custAppNomContactNumber").val('');
+        //$("#" + kmScrId + "nomineeCustomApplicantDiv").addClass("sno");
+        // $("#" + kmScrId + "custAppDocUpload").addClass("sno");
+        // $("#" + kmScrId + "custCoAppDocList").addClass("sno");
+        othInforEditFlag.customApplicant = false;
+        // let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        // let AddDocExists = docList.some(function (item) {
+        //     return item.payload.documentType === 'APPLNT_CUST_NOMINEE_DOCS';
+        // });
+        // if (AddDocExists) {
+        //     ApzCOB.fnDisplayMsg("Please delete the uploaded documents to proceed with nominee deletion", "E");
+        // }
+    }
+};
+apz.app.OtherInformation.onClickCustomNomineeCoAppDeleteBtn = function () {
+    let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+    let AddDocExists = docList.some(function (item) {
+        return item.payload.documentType === 'COAPPLNT_CUST_NOMINEE_DOCS';
+    });
+    if (AddDocExists) {
+        ApzCOB.fnDisplayMsg("Please delete the uploaded documents to proceed with nominee deletion", "E");
+        return;
+    }
+    ApzCOB.fnDisplayMsg("Are you sure you want to delete the nominee?", "C", apz.app.OtherInformation.onClickCustomNomineeCoAppDeleteBtnCB);
+};
+apz.app.OtherInformation.onClickCustomNomineeCoAppDeleteBtnCB = function (params) {
+    if (params.choice) {
+        $("#" + kmIPaintCustomInsDetailsId + "customNomineeForIns").val('');
+        $("#" + kmIPaintCustomInsDetailsId + "customGender").val('Please Select');
+        $("#" + kmIPaintCustomInsDetailsId + "customDob").val('');
+        $("#" + kmIPaintCustomInsDetailsId + "customAge").val('');
+        $("#" + kmIPaintCustomInsDetailsId + "customRelationWithNom").val('Please Select');
+        $("#" + kmIPaintCustomInsDetailsId + "customNomContactNumber").val('');
+        $("#" + kmScrId + "nomineeCustomDiv").addClass("sno");
+        // $("#" + kmScrId + "custCoAppDocUpload").addClass("sno");
+        // $("#" + kmScrId + "custCoAppDocList").addClass("sno");
+        othInforEditFlag.customNominee = false;
+        apz.app.OtherInformation.insuranceDetailsHideAndShow();
+        // let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        // let AddDocExists = docList.some(function (item) {
+        //     return item.payload.documentType === 'COAPPLNT_CUST_NOMINEE_DOCS';
+        // });
+        // if (AddDocExists) {
+        //     ApzCOB.fnDisplayMsg("Please delete the uploaded documents to proceed with nominee deletion", "E");
+        // }
+    }
+};
+apz.app.OtherInformation.onClickeNachEnabledBanks = function () {
+    ApzCOB.toggleModal(kmScrId + "eNachBanksListModal"); // Model Name
+    apz.app.OtherInformation.painteNachBanksList();
+};
+apz.app.OtherInformation.painteNachBanksList = function () {
+    formattedBanks = [];
+    if (ALL_eNACH_BANKS?.length === 0) return;
+    let uniqueBankNames = ALL_eNACH_BANKS.map(el => el.bank_name)?.unique();
+    if (uniqueBankNames?.length === 0) return;
+    uniqueBankNames.forEach((bankName, index) => {
+        const bankEntries = (ALL_eNACH_BANKS).filter(b => b?.bank_name === bankName);
+        if (bankEntries.length > 0) {
+            const firstEntry = bankEntries[0];
+            formattedBanks.push({
+                srNo: index + 1,
+                bank_name: firstEntry?.bank_name || '',
+                net_banking_code: firstEntry['net_banking_code'] !== 'NA' ? "Y" : "N",
+                debit_card_code: firstEntry['debit_card_code'] !== 'NA' ? "Y" : "N",
+                aadhaar_otp_code: firstEntry['aadhaar_otp_code'] !== 'NA' ? "Y" : "N",
+                bank_code: firstEntry?.code || ''
+            });
+        }
+    });
+    if (formattedBanks.length === 0) {
+        $("#" + kmScrId + "noRecodsForm").removeClass("sno");
+        return;
+    }
+    apz.data.scrdata.KmSourc__IPainteNachBanksList_Res = [];
+    apz.data.scrdata.KmSourc__IPainteNachBanksList_Res = formattedBanks;
+    apz.data.loadData("IPainteNachBanksList", "KmSourc");
+    $("#" + kmScrId + "noRecodsForm").addClass("sno");
+};
+//smartsearch
+apz.app.OtherInformation.search = async function (ev) {
+    let p1 = new Promise(resolve => {
+        setTimeout(async () => {
+            let txtVal = await apz.app.OtherInformation.getValue();
+            if (txtVal !== "" && searchVal !== txtVal || txtVal === "" && showAllList) {
+                showAllList = txtVal === "" ? false : true;
+                searchVal = txtVal;
+                resolve(txtVal)
+            }
+        }, 1)
+    });
+    p1.then(async function (val) {
+        window.searchLength = formattedBanks.filter(ldata => {
+            const fieldsToSearch = [ldata.bank_name];
+            return fieldsToSearch.some(field => field?.toString().toUpperCase().includes(val.toUpperCase()));
+        });
+        if (apz.data.scrdata.KmSourc__IPainteNachBanksList_Res.length === window.searchLength.length) {
+            return
+        }
+        apz.data.scrdata.KmSourc__IPainteNachBanksList_Res = [...window.searchLength];
+        apz.app.OtherInformation.hideNShow();
+        $("#" + kmScrId + "eNachBanksList").scrollTop(0, 0);
+        $("#" + kmScrId + "eNachBanksList .wrapped.undefined.ssp").remove()
+    })
+};
+apz.app.OtherInformation.getValue = function () {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(document.getElementById(kmScrId + "searcheNachBank")?.value?.trim())
+        }, 1e3)
+    })
+};
+apz.app.OtherInformation.hideNShow = function () {
+    if (window.searchLength.length === 0) {
+        $("#" + kmScrId + "eNachBanksList").addClass("sno");
+        $("#" + kmScrId + "noRecodsForm").removeClass("sno");
+    } else {
+        apz.data.loadData("IPainteNachBanksList", "KmSourc");
+        $("#" + kmScrId + "eNachBanksList").removeClass("sno");
+        $("#" + kmScrId + "noRecodsForm").addClass("sno");
+    }
+};
+apz.app.OtherInformation.uploadBtnClick = function (fileObj, browseId, type, docCat) {
+    IS_ADITIONAL_DOC_OPERATION = false;
+    window.browseFileElem = fileObj;
+    selType = type;
+    if ($("#" + kmScrId + "" + selType).val() === PleaseSelect) {
+        ApzCOB.fnDisplayMsg("Please select document type", "E");
+        return false;
+    } else {
+        selCat = docCat;
+        FileSideBrowseId = browseId;
+        var browseAttr = $(fileObj).attr('id');
+        DOC_NO = browseAttr.split('Camera')[1];
+        apz.app.OtherInformation.SelectOption('camera');
+    }
+};
+apz.app.OtherInformation.SelectOption = function (captureType) {
+    var strDate = new Date().getTime() + "";
+    if (captureType === 'camera' || captureType === 'photo') {
+        var cameraObj = {
+            "zoomLevel": "20",
+            "targetWidth": "",
+            "targetHeight": "",
+            "crop": "Y", //Y or N
+            "flash": "N",
+            "action": "base64_Save", // save,base64
+            "fileName": 'b' + strDate,
+            "encodingType": "JPG",
+            "quality": "80",
+            "unCompressed": "N",
+            "sourceType": captureType // photo / camera
+        };
+        cameraObj.id = "CAMERA_ID";
+        cameraObj.callBack = apz.app.OtherInformation.cameraCallback;
+        apz.ns.openCamera(cameraObj);
+        ApzCOB.getGeoCordinatesMobile();
+    } else {
+        var json = {
+            "filter": "",
+            "fileCategory": "EXTERNAL", // AUDIO, VIDEO, PHOTO
+            "location": "docs",
+            "openFile": "N"
+        };
+        json.id = "FILEBROWSER_ID";
+        json.callBack = apz.app.OtherInformation.getFileCallback;
+        apz.ns.fileBrowser(json);
+    }
+};
+apz.app.OtherInformation.getFileCallback = function (lparams) {
+    if (apz.isNull(lparams.errorCode)) {
+        var json = {
+            "filePath": lparams.filePath,
+            "id": "FILEREAD_ID",
+            "callBack": apz.app.OtherInformation.readBase64
+        };
+        mobileFilePath = lparams.filePath;
+        //json.id = "FILEREAD_ID";
+        //json.callBack = apz.app.OtherInformation.readBase64;
+        apz.ns.fileToBase64(json);
+    } else {
+        ApzCOB.fnDisplayMsg('Operation cancelled', "E", "");
+    }
+};
+apz.app.OtherInformation.cameraCallback = function (lparams) {
+    if (lparams.status) {
+        filesObj = lparams;
+        let docsize = ApzCOB.getBase64FileSizeInBytes(filesObj.encodedImage);
+        groupCode = 'LOAN';
+        localFileObj = {};
+        localFileObj.filename = lparams.path.split('/')[lparams.path.split('/').length - 1];
+        let activeCustType = gApzCOB?.currentApplicant == '1' ? 'A' : 'C';
+        let fileExtenName = localFileObj.filename?.split('.')?.pop();
+        // localFileObj.filename = `${activeCustType}_${selType}_${DOC_NO}.${fileExtenName}`;
+        localFileObj.filetype = localFileObj.filename;
+        localFileObj.filelocation = apz.appId + "/" + localFileObj.filename;
+        localFileObj.fieldID = kmScrId + selType + FileSideBrowseId;
+        localFileObj.filePath = `${apz.appId}/${groupCode}/${gApzCOB.userDetails.applicationId}`;
+        localFileObj.productGroupCode = groupCode;
+        localFileObj.docSize = docsize;
+        localFileObj.base64Value = filesObj.encodedImage;
+        localFileObj.docCategory = selCat;
+        localFileObj.docType = selType;
+        localFileObj.isAdiDoc = IS_ADITIONAL_DOC_OPERATION ? "Y" : "N";
+        apz.app.OtherInformation.getFileArrNew();
+        ApzCOB.documentAutoSave(localFileObj, selType);
+    } else {
+        ApzCOB.fnDisplayMsg(!apz.isNull(lparams.text) ? lparams.text : "Operation cancelled", "E", "");
+    }
+};
+apz.app.OtherInformation.getFileArrNew = function () {
+    var isValid3 = true;
+    var tempFileArr = [];
+    finalDocsArr = [];
+    localFileObj.docSide = "Front";
+    localFileObj.docNo = (!apz.isNull(DOC_NO)) ? parseInt(DOC_NO) : "";
+    if (IS_ADITIONAL_DOC_OPERATION) {
+        localFileObj.docName = $('#' + kmScrId + "otherdocType").val();
+        localFileObj.docCategory = apz.getElmValue(kmScrId + 'otherdocpri');
+    } else {
+        localFileObj.docName = $('#' + kmScrId + selType + '_SubHeaderDropDown').val();
+    }
+    localFileObj.docLevel = parseInt(DOC_NO);
+    let hasDocLevel2 = documentProofObj[selType]?.some(
+        obj => parseInt(obj.docLevel) === 2
+    );
+    if (hasDocLevel2) {
+        localFileObj.docLevel = 1;
+    } else {
+        localFileObj.docLevel = parseInt(DOC_NO);
+    }
+    documentProofObj[selType].push(localFileObj);
+    documentProofObj[selType].sort((doc1, doc2) => doc1.docLevel - doc2.docLevel);
+    tempFileArr = documentProofObj[selType];
+    return tempFileArr;
+}
+apz.app.OtherInformation.readBase64 = function (lparams) {
+    if (!apz.isNull(lparams.text)) {
+        var curFileObj = {
+            'encodedImage': lparams.text.split('\n').join(''),
+            'path': mobileFilePath,
+            'status': true
+        }
+        apz.app.OtherInformation.cameraCallback(curFileObj);
+    }
+};
+//-----------------Penncy check---------------------------------------------------------------
+apz.app.OtherInformation.pennyCheck = function () {
+    let selectedChangeBankRadioBtnPenny = apz.getElmValue(kmScrId + "changeBankRadioBtn");
+    if (selectedChangeBankRadioBtnPenny === "yes") {
+        ApzCOB.fnDisplayMsg("Please select No for Change Bank Details to proceed with the penny check", "E");
+    } else {
+        apz.app.OtherInformation.validatePennyCheck();
+    }
+};
+apz.app.OtherInformation.validatePennyCheck = function () {
+    // for demo purposes
+    // $("#" + kmScrId + "pennyChackbtn").addClass("sno");
+    // $("#" + kmScrId + "pennyCheckSuccessbtn").removeClass("sno");
+    // $("#" + kmScrId + "uploadDocDiv").removeClass("sno");
+    // othInforEditFlag.valPennyCheck = true;
+
+    window.applicationData = [];
+    let custDetailID = ApzCOB.getCustDetailID("Applicant");
+    applicationData = inSessionStore['customerDetailsList']?.filter(cust => cust.custDtlId === custDetailID) || [];
+    var Mob = applicationData[0].mobileNumber;
+    let beneficiaryAccount = $("#" + kmScrId + "accountNumberInput").val();
+    let beneficiaryIFSC = $("#" + kmScrId + "ifscCodeInput").val();
+    let beneficiaryName = $("#" + kmScrId + "accountHolderNameInput").val();
+    var request = {
+        "apiRequest": {
+            "interfaceName": "SignzyPennylessCheck",
+            "appId": gAppId,
+            "applicationId": inSessionStore.applicationId,
+            "requestObj": {
+                "beneficiaryAccount": beneficiaryAccount,
+                "beneficiaryIFSC": beneficiaryIFSC,
+                "beneficiaryMobile": Mob,
+                "beneficiaryName": beneficiaryName,
+                "nameFuzzy": true
+            }
+        }
+    }
+    apz.startLoader();
+    ApzCOB.serverBuildParam(gAppId, "SignzyPennylessCheck", "N", "N", request, false, apz.app.OtherInformation.ValidatePennyCheckCB);
+};
+apz.app.OtherInformation.ValidatePennyCheckCB = function (params) {
+    apz.stopLoader();
+    var serviceFailErrMsg = 'Penny Check service failed. Please try again later.';
+    let currIndex = !apz.isNull(inSessionStore.bankDetailsWrapperList) ? ApzCOB.getIndexforBankWrapper("Applicant") : 0;              
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            let parsedCustomerDetails = JSON.parse(params.res.APZCBO__SignzyPennylessCheck_Res.apiResponse.ResponseBody.responseObj);
+            let parsedResponse = parsedCustomerDetails.responseObj ? JSON.parse(parsedCustomerDetails.responseObj) : '';
+            if (parsedResponse?.result?.reason?.toLowerCase() === 'success') {
+                pennyResponse = parsedCustomerDetails.responseObj;
+                apz.app.OtherInformation.handlePennyCheckPass(parsedResponse);
+            } else {
+                apz.app.OtherInformation.handlePennyCheckFail();
+                var errMsg = parsedResponse?.result?.reason;
+                if (apz.isNull(errMsg)) {
+                    errMsg = parsedCustomerDetails.hasOwnProperty('errorMessage') ? parsedCustomerDetails.errorMessage : params.res
+                        .APZCBO__SignzyPennylessCheck_Res?.apiResponse?.ResponseHeader?.ResponseMessage;
+                }
+                ApzCOB.fnDisplayMsg(errMsg, "E");
+            }
+        } else {
+            if (inSessionStore.bankDetailsWrapperList?.[currIndex]?.bankDetails?.payload) {
+                inSessionStore.bankDetailsWrapperList[currIndex].bankDetails.payload.pennyCheckStatus = '';
+            }
+            ApzCOB.fnDisplayMsg(serviceFailErrMsg, "E");
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        if (inSessionStore.bankDetailsWrapperList?.[currIndex]?.bankDetails?.payload) {
+            inSessionStore.bankDetailsWrapperList[currIndex].bankDetails.payload.pennyCheckStatus = '';
+        }
+        ApzCOB.fnDisplayMsg(); //serviceFailErrMsg
+    }
+};
+apz.app.OtherInformation.handlePennyCheckPass = function (paintData) {
+    //pennyStatus = true;
+    let currIndex = !apz.isNull(inSessionStore.bankDetailsWrapperList) ? ApzCOB.getIndexforBankWrapper("Applicant") : 0;
+    //inSessionStore.bankDetailsWrapperList[currIndex].bankDetails.payload.pennyCheckStatus = 'Pass';
+    $("#" + kmScrId + "pennyChackbtn").addClass("sno");
+    $("#" + kmScrId + "pennyCheckSuccessbtn").removeClass("sno");
+    $("#" + kmScrId + "uploadDocDiv").removeClass("sno");
+    othInforEditFlag.valPennyCheck = "true"; //19th june changes
+    isOtherInfoSaveDraft = "";
+    apz.app.OtherInformation.fnSaveDraftOrNext(true);
+    // // $(`#RPC__${RPC_CURRENT_STAGE}__statusform, #RPC__${RPC_CURRENT_STAGE}__statusDataform`).removeClass('sno');
+    // // $(`#RPC__${RPC_CURRENT_STAGE}__statustext`).attr('class', 'ett-para pri fs14 suc');
+    // // $(`#RPC__BankAccountProofRPC__statustext_txtcnt`).text('Penny Check Response: Pass');
+    // // $(`#RPC__${RPC_CURRENT_STAGE}__exceptionForm, #RPC__${RPC_CURRENT_STAGE}__exceptionMsg`).addClass('sno');
+    // // // ApzCOB.removeDisableToInput('RPC__RPCFooter__Acceptnext');
+    // // ApzCOB.addDisableToInput('RPC__BankAccountProofRPC__pennyCheckBtnId');
+    // // if (gApzCOB.selectedRole === 'RPC_Maker') {
+    // //     $('.rpcEditBtn').removeClass('sno');
+    // // }
+    // // if (apz.isNull(paintData) && !apz.isNull(inSessionStore.bankDetailsWrapperList[currIndex].OtherInformation.payload?.pennyResp)) {
+    // //     paintData = JSON.parse(inSessionStore.bankDetailsWrapperList[currIndex].OtherInformation.payload?.pennyResp);
+    // // }
+    // // formattedTime = (paintData?.result?.auditTrail?.timestamp) ? ApzCOB.dateformatter(paintData?.result?.auditTrail?.timestamp, "date",
+    // //     "d/m/Y")?.split('.')?.[0] : paintData?.result?.auditTrail?.timestamp;
+    // // responseData = {
+    // //     pennyAccountNumberInput: inSessionStore.bankDetailsWrapperList[currIndex].OtherInformation.payload?.accountNumber,
+    // //     pennyAccountNameInput: paintData?.result?.bankTransfer?.beneName,
+    // //     pennyifscInput: paintData?.result?.bankTransfer?.beneIFSC,
+    // //     bankTransactionStatusInput: paintData?.result?.bankTransfer?.response,
+    // //     bankRRNInput: paintData?.result?.bankTransfer?.bankRRN,
+    // //     bankResponseInput: paintData?.result?.reason,
+    // //     statuscodeInput: paintData?.result?.auditTrail?.value,
+    // //     statusasperserviceInput: paintData?.result?.reason,
+    // //     isvalidInput: paintData?.result?.active,
+    // //     responsedateInput: formattedTime
+    // // }
+    // // $.each(responseData, function(key, value) {
+    // //     $(`#RPC__${RPC_CURRENT_STAGE}__${key}`).text(value);
+    // // });
+};
+apz.app.OtherInformation.handlePennyCheckFail = function () {
+    //pennyStatus = false;
+    let currIndex = !apz.isNull(inSessionStore.bankDetailsWrapperList) ? ApzCOB.getIndexforBankWrapper("Applicant") : 0;
+    //inSessionStore.bankDetailsWrapperList[currIndex].bankDetails.payload.pennyCheckStatus = 'Fail';
+    $("#" + kmScrId + "pennyChackbtn").addClass("sno");
+    $("#" + kmScrId + "pennyCheckFailurebtn").removeClass("sno");
+    $("#" + kmScrId + "changeBankRadioBtn_option_no").attr("disabled", true)
+    $("#" + kmScrId + "changeBankRadioBtn_option_no").addClass('BankDetailsDisable');
+    $("#" + kmScrId + "changeBankRadioBtn_option_yes").attr("checked", true)
+    apz.app.OtherInformation.fnChangeAccountDetailsOnChange();
+    othInforEditFlag.valPennyCheck = "false"; //19th june changes
+    isOtherInfoSaveDraft = "";
+    apz.app.OtherInformation.fnSaveDraftOrNext(true);
+    // //$(`#RPC__${RPC_CURRENT_STAGE}__reEnterAccountNumber, #RPC__${RPC_CURRENT_STAGE}__exceptionForm, #RPC__${RPC_CURRENT_STAGE}__statusform`).removeClass('sno');
+    // //$(`#RPC__${RPC_CURRENT_STAGE}__exceptionMsg`).addClass('sno');
+    // //$(`#KmSourc__BankDetails__statustext`).attr('class', 'ett-para pri fs14 penny-failed');
+    // //$(`#KmSourc__BankDetails__statustext`).text('Penny Check Response: Fail');
+    // //ApzCOB.addDisableToInput('RPC__BankAccountProofRPC__pennyCheckBtnId');
+    // //ApzCOB.removeDisableToInput('RPC__BankAccountProofRPC__raiseExceptionBtn');
+    // // if (gApzCOB.selectedRole === 'RPC_Maker') {
+    // //     $('.rpcEditBtn').removeClass('sno');
+    // // }
+};
+apz.app.OtherInformation.fnCommonDocUpload = function (parentID, docType, pthis) {
+    if (docType === "BANK_ACCOUNT_PROOF") {
+        let BankProofDocValuePri = $("#" + kmScrId + "bankDetTypeOfDocument").val();
+        const bankDocCount1 = inSessionStore.applicationDocumentsWrapperList[0]
+            .applicationDocumentsList
+            .filter(doc => doc.documentType === "BANK_ACCOUNT_PROOF")
+            .length;
+        if (bankDocCount1 > 9) {
+            ApzCOB.fnDisplayMsg("User allowed to upload maximum of 10 documents", "E");
+            return false;
+        }
+        if (BankProofDocValuePri !== "Please Select" && !apz.isNull(BankProofDocValuePri)) {
+            bankSelected = "Primary";
+            apz.app.Kmbase.validateMaxDocs(parentID, docType, pthis);
+        } else if (BankProofDocValuePri === "Please Select" || apz.isNull(BankProofDocValuePri)) {
+            ApzCOB.fnDisplayMsg("Please select document type", "E");
+        }
+    }
+    // else if (docType === "CHANGED_BANK_DOCS") {  //16th june Bank_account_proof changes 
+    //     const newBankDocCount1 = inSessionStore.applicationDocumentsWrapperList[0]
+    //         .applicationDocumentsList
+    //         .filter(doc => doc.documentType === "CHANGED_BANK_DOCS")
+    //         .length;
+    //     if (newBankDocCount1 > 9) {
+    //         ApzCOB.fnDisplayMsg("User allowed to upload maximum of 10 documents", "E");
+    //         return false;
+    //     }
+    //     if ($("#" + kmScrId + "changeBankTypeOfDoc").val() !== "Please Select") {
+    //         apz.app.Kmbase.validateMaxDocs(parentID, docType, pthis);
+    //     } else if ($("#" + kmScrId + "changeBankTypeOfDoc").val() === "Please Select") {
+    //         ApzCOB.fnDisplayMsg("Please select document type", "E");
+    //     }
+    // }
+    else if (docType === "ADDITIONAL_DOCS") {
+        let docNameLength = $("#" + kmScrId + "nameOfAdditionalDoc").val().length;
+        if (docNameLength >= 4 && docNameLength <= 25) {
+            apz.app.Kmbase.validateMaxDocs(parentID, docType, pthis);
+        } else {
+            $("#" + kmScrId + "nameOfAdditionalDoc").val('');
+            ApzCOB.fnDisplayMsg("Please enter the document type name with 4 to 25 characters", "E");
+        }
+    } else {
+        apz.app.Kmbase.validateMaxDocs(parentID, docType, pthis);
+    }
+}
+apz.app.OtherInformation.fnNewBankDocUpload = function (parentID, docType, pthis) {
+    let BankProofType = $("#" + kmScrId + "changeBankTypeOfDoc").val()
+    if (docType === "BANK_ACCOUNT_PROOF") {  //16th june Bank_account_proof changes 
+        const newBankDocCount1 = inSessionStore.applicationDocumentsWrapperList[0]
+            .applicationDocumentsList
+            .filter(doc => doc.documentType === "BANK_ACCOUNT_PROOF")
+            .length;
+        if (newBankDocCount1 > 9) {
+            ApzCOB.fnDisplayMsg("User allowed to upload maximum of 10 documents", "E");
+            return false;
+        }
+        if (BankProofType !== "Please Select" && !apz.isNull(BankProofType)) {
+            bankSelected = "Secondary";
+            apz.app.Kmbase.validateMaxDocs(parentID, docType, pthis);
+        } else if (BankProofType === "Please Select" || apz.isNull(BankProofType)) {
+            ApzCOB.fnDisplayMsg("Please select document type", "E");
+        }
+    }
+}
+apz.app.OtherInformation.fnEditAppCoAppNomDetails = function (custType) {
+    let custData = "";
+    if (custType === "APPLICANT") {
+        othInforEditFlag.OtherInfocustType = "APPLICANT"
+        custData = apz.data.scrdata.KmSourc__IPaintAppInsuranceDetails_Res.appInsuranceDetails
+        apz.data.scrdata.KmSourc__IPaintEditInsuranceDetails_Res = {}
+        apz.data.scrdata.KmSourc__IPaintEditInsuranceDetails_Res.editInsuranceDetails = {}
+        var lData = {
+            editModelNomineeName: custData.appNomineeForIns,
+            editModelNomineeGender: custData.appGender,
+            editModelNomineeDOB: custData.appDob,
+            editModelNomineeAge: custData.appAgeOfNominee,
+            editNomineeRelationship: custData.appRelationWithNom,
+        }
+        apz.data.scrdata.KmSourc__IPaintEditInsuranceDetails_Res.editInsuranceDetails = lData;
+        apz.data.loadData("IPaintEditInsuranceDetails", "KmSourc");
+        ApzCOB.toggleModal(kmScrId + "editNomineeModel");
+    } else if (custType === "COAPPLICANT") {
+        othInforEditFlag.OtherInfocustType = "COAPPLICANT"
+        custData = apz.data.scrdata.KmSourc__IPaintCoAppInsuranceDetails_Res.coAppInsuranceDetails
+        apz.data.scrdata.KmSourc__IPaintEditInsuranceDetails_Res = {}
+        apz.data.scrdata.KmSourc__IPaintEditInsuranceDetails_Res.editInsuranceDetails = {}
+        var lData = {
+            editModelNomineeName: custData.coAppNomineeForIns,
+            editModelNomineeGender: custData.coAppGender,
+            editModelNomineeDOB: custData.coAppDob,
+            editModelNomineeAge: custData.coAppAgeOfNominee,
+            editNomineeRelationship: custData.coAppRelationWithNom,
+        }
+        apz.data.scrdata.KmSourc__IPaintEditInsuranceDetails_Res.editInsuranceDetails = lData;
+        apz.data.loadData("IPaintEditInsuranceDetails", "KmSourc");
+        ApzCOB.toggleModal(kmScrId + "editNomineeModel");
+    }
+}
+apz.app.OtherInformation.fnConfirmAppCoAppNomDetails = function () {
+    let lCurrentData = apz.data.buildData("IPaintEditInsuranceDetails", "KmSourc")
+    let currentData = lCurrentData.KmSourc__IPaintEditInsuranceDetails_Res.editInsuranceDetails;
+    let cNomineeGender = $('#' + kmIPaintEditInsuranceDetailsId + 'editModelNomineeGender').val();
+    let cRelationshipWithNominee = $('#' + kmIPaintEditInsuranceDetailsId + 'editNomineeRelationship').val();
+    let cNomineeForInsurance = $('#' + kmIPaintEditInsuranceDetailsId + 'editModelNomineeName').val();
+    let cNomineeDOB = $('#' + kmIPaintEditInsuranceDetailsId + 'editModelNomineeDOB').val();
+    if (cNomineeGender === "Please Select" || cRelationshipWithNominee === "Please Select") {
+        ApzCOB.fnDisplayMsg("Please select a value from the dropdown", "E");
+        return;
+    } else if (apz.isNull(cNomineeForInsurance) || apz.isNull(cNomineeDOB)) {
+        ApzCOB.fnDisplayMsg("Please fill all required fields", "E");
+        return;
+    }
+    if (othInforEditFlag.OtherInfocustType === "APPLICANT") {
+        let lData = {
+            appNomineeForIns: currentData.editModelNomineeName,
+            appGender: currentData.editModelNomineeGender,
+            appDob: currentData.editModelNomineeDOB,
+            appAgeOfNominee: currentData.editModelNomineeAge,
+            appRelationWithNom: currentData.editNomineeRelationship
+        }
+        apz.data.scrdata.KmSourc__IPaintAppInsuranceDetails_Res.appInsuranceDetails = {}
+        apz.data.scrdata.KmSourc__IPaintAppInsuranceDetails_Res.appInsuranceDetails = lData;
+        apz.data.loadData("IPaintAppInsuranceDetails", "KmSourc");
+        othInforEditFlag.OtherInfocustType = ""
+        ApzCOB.toggleModal(kmScrId + "editNomineeModel");
+    } else if (othInforEditFlag.OtherInfocustType === "COAPPLICANT") {
+        let lData = {
+            coAppNomineeForIns: currentData.editModelNomineeName,
+            coAppGender: currentData.editModelNomineeGender,
+            coAppDob: currentData.editModelNomineeDOB,
+            coAppAgeOfNominee: currentData.editModelNomineeAge,
+            coAppRelationWithNom: currentData.editNomineeRelationship
+        }
+        apz.data.scrdata.KmSourc__IPaintCoAppInsuranceDetails_Res.coAppInsuranceDetails = {}
+        apz.data.scrdata.KmSourc__IPaintCoAppInsuranceDetails_Res.coAppInsuranceDetails = lData;
+        apz.data.loadData("IPaintCoAppInsuranceDetails", "KmSourc");
+        othInforEditFlag.OtherInfocustType = ""
+        ApzCOB.toggleModal(kmScrId + "editNomineeModel");
+    }
+}
+// apz.app.OtherInformation.fnLoadInsuranceDetails = function () {
+//     let insuranceDetailsFilePath = apz.getDataFilesPath() + "/insuranceDetails.json"
+//     let insuranceDetailsDataSet = apz.getFile(insuranceDetailsFilePath)
+//     apz.data.scrdata.KmSourc__IPaintInsuranceDetails_Res = {}
+//     apz.data.scrdata.KmSourc__IPaintInsuranceDetails_Res.insuranceDetails = {}
+//     apz.data.scrdata.KmSourc__IPaintInsuranceDetails_Res.insuranceDetails = JSON.parse(insuranceDetailsDataSet)
+//     apz.data.loadData("IPaintInsuranceDetails", "KmSourc");
+//     let loanAmount = inSessionStore?.loanDetails?.loanAmount;
+//     apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__sumAssuredInput", loanAmount == null ? '' : (loanAmount > 200000 ? 200000 : loanAmount));
+//     apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput", "CreditAccess Life Insurance");
+//     apz.setElmValue("KmSourc__IPaintInsuranceDetails__o__insuranceDetails__insurancePremiumInput",);
+// };
+apz.app.OtherInformation.fnValidateOtherInformation = function () {
+    // if (gApzCOB.productCode === "1001") {
+    //     othInforEditFlag.valEnach = true;
+    //     othInforEditFlag.valPennyCheck = true;
+    // }
+    let bankCurrIndex = !apz.isNull(inSessionStore.bankDetailsWrapperList) ? ApzCOB.getIndexforBankWrapper("Applicant") : 0;
+    let accntVerifiedFromSession = inSessionStore?.bankDetailsWrapperList?.[bankCurrIndex]?.bankDetails?.payload?.accntVerified ?? "";
+    let nameOfInsurerVal = $("#KmSourc__IPaintInsuranceDetails__o__insuranceDetails__nameOfInsurerInput").val();
+    let amlCheckBoxVal = $("#KmSourc__OtherInformation__amlCheckBox").is(":checked");
+    let appCbStatus = (ApplicationStatus !== 'PENDING' && document.querySelector("#KmSourc__Kmbase__AppCBcheck_hyp svg").classList.contains("error"));
+    let coAppCbStatus = (ApplicationStatus !== 'PENDING' && document.querySelector("#KmSourc__Kmbase__CoAppCBcheck_hyp svg").classList.contains("error"));
+    let appAadharAddressAdditionalStatus = document.querySelector("#KmSourc__Kmbase__AppAadhaarDetails_hyp svg").classList.contains("suc")
+        || (ApplicationStatus === 'PENDING' && document.querySelector("#KmSourc__Kmbase__AppAadhaarDetails_hyp svg").classList.contains("error"));
+    let coAppAadharAddressAdditionalStatus = document.querySelector("#KmSourc__Kmbase__CoAppAadhaarDetails_hyp svg").classList.contains("suc")
+        || (ApplicationStatus === 'PENDING' && document.querySelector("#KmSourc__Kmbase__CoAppAadhaarDetails_hyp svg").classList.contains("error"));
+    let businessIncomeStatus = document.querySelector("#KmSourc__Kmbase__BusinessIncome_hyp svg").classList.contains("suc")
+        || document.querySelector("#KmSourc__Kmbase__BusinessIncome_hyp svg").classList.contains("error");
+    if ((apz.isNull(window.bankAccountNoVerifiedOtherInfo) && accntVerifiedFromSession !== "Verified") && othInforEditFlag.valChangeBank === false && gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1 == 'KM') {
+        ApzCOB.fnDisplayMsg("Please verify the existing applicant's bank account number", "E");
+        return false;
+    }
+    if (othInforEditFlag.valEnach === "" && othInforEditFlag.valChangeBank === false) //MUI-191
+    {
+        ApzCOB.fnDisplayMsg("Complete eNACH to verify bank details", "E");
+        return false;
+    }
+    if (othInforEditFlag.valPennyCheck === "" && othInforEditFlag.valChangeBank === false) //MUI-191
+    {
+        ApzCOB.fnDisplayMsg("Complete penny check to verify bank details", "E");
+        return false;
+    }
+    if (othInforEditFlag.valChangeBank === false && othInforEditFlag.valPennyCheck === "true") { //19th june changes
+        const bankDocCount = inSessionStore.applicationDocumentsWrapperList[0]
+            .applicationDocumentsList
+            .filter(doc => doc.documentType === "BANK_ACCOUNT_PROOF")
+            .length;
+        if (bankDocCount < 2) {
+            ApzCOB.fnDisplayMsg("Please upload a minimum of 2 documents for the existing applicant bank account", "E");
+            return false;
+        }
+    }
+    if (apz.getElmValue(kmScrId + "changeBankRadioBtn") === "yes") {
+        if (!(apz.app.OtherInformationvalidateFields(kmScrId + "changeBankBankName", kmScrId + "changeBankAccountType"))) {
+            ApzCOB.fnDisplayMsg("Please enter the new bank account details", "E");
+            return false;
+            //} else if (othInforEditFlag.newBankValEnach === false) { 
+        } else if (othInforEditFlag.newBankValEnach === "") {  //19th june changes
+            ApzCOB.fnDisplayMsg("Complete eNACH to verify new bank details", "E");
+            return false;
+        } else if (othInforEditFlag.newBankValEnach === "false") {  //19th june changes
+            ApzCOB.fnDisplayMsg("eNACH verification is required for the new bank account details to proceed", "E");
+            return false;
+        }
+    }
+    if (othInforEditFlag.valChangeBank === true && othInforEditFlag.newBankValEnach === "true") { //19th june changes
+        const newBankDocCount = inSessionStore.applicationDocumentsWrapperList[0]
+            .applicationDocumentsList
+            .filter(doc => doc.documentType === "BANK_ACCOUNT_PROOF") //16th june change Bank Proof
+            .length;
+        if (newBankDocCount < 2) {
+            ApzCOB.fnDisplayMsg("Please upload a minimum of 2 documents for the new applicant bank account", "E");
+            return false;
+        }
+    }
+    if (apz.isNull(apz.app.OtherInformation.getAMLQuestionnaireData())) {
+        ApzCOB.fnDisplayMsg("Please complete the AML questionnaire", "E");
+        return false;
+    }
+    if (!(apz.app.OtherInformation.isAMLQuestionnaireAllYes())) {
+        ApzCOB.fnDisplayMsg("Both the applicant and co-applicant must select 'Yes' for all AML questions", "E");
+        return false;
+    }
+    if (!amlCheckBoxVal) {
+        ApzCOB.fnDisplayMsg("Please select the AML Questions checkbox before proceeding", "E");
+        return false;
+    }
+    // if (othInforEditFlag.customApplicant === true) {
+    //     if (!(apz.app.OtherInformationvalidateFields(kmIPaintCustAppInsDetailsId + "custAppNomineeForIns",
+    //         kmIPaintCustAppInsDetailsId + "custAppGender", kmIPaintCustAppInsDetailsId + "custAppDob",
+    //         kmIPaintCustAppInsDetailsId + "custAppRelationWithNom", kmIPaintCustAppInsDetailsId + "custAppNomContactNumber"))) {
+    //         ApzCOB.fnDisplayMsg("Please enter required applicant custom nominee details", "E");
+    //         return false;
+    //     }
+    // }
+    if (othInforEditFlag.customNominee === true) {
+        if (!(apz.app.OtherInformationvalidateFields(kmIPaintCustomInsDetailsId + "customNomineeForIns",
+            kmIPaintCustomInsDetailsId + "customGender", kmIPaintCustomInsDetailsId + "customDob",
+            kmIPaintCustomInsDetailsId + "customRelationWithNom", kmIPaintCustomInsDetailsId + "customNomContactNumber"))) {
+            ApzCOB.fnDisplayMsg("Please enter required co-applicant custom nominee details", "E");
+            return false;
+        }
+    }
+    if (othInforEditFlag.customNominee === true) {
+        const customNomineeDocCount = inSessionStore.applicationDocumentsWrapperList[0]
+            .applicationDocumentsList
+            .filter(doc => doc.documentType === "COAPPLNT_CUST_NOMINEE_DOCS")
+            .length;
+        if (customNomineeDocCount < 2) {
+            ApzCOB.fnDisplayMsg("Please upload a minimum of 2 documents for Custom Nominee KYC", "E");
+            return false;
+        }
+    }
+    if (insuranceTypeSelected === "bothInsurance") {
+        let appRelationWithNominee = $("#KmSourc__IPaintCoAppInsuranceDetails__o__coAppInsuranceDetails__coAppRelationWithNom").val();
+        if ((apz.isNull(appRelationWithNominee) || appRelationWithNominee == "Please Select") && othInforEditFlag.customNominee === false) {
+            ApzCOB.fnDisplayMsg("Please select the Nominee Relationship with Co-applicant for the Co-Applicant insurance", "E");
+            return false;
+        }
+        if (apz.isNull(nameOfInsurerVal) || nameOfInsurerVal == "Please Select") {
+            ApzCOB.fnDisplayMsg("Please select the Name of the insurer", "E");
+            return false;
+        }
+    }
+    if (insuranceTypeSelected === "applicant") {
+        if (apz.isNull(nameOfInsurerVal) || nameOfInsurerVal == "Please Select") {
+            ApzCOB.fnDisplayMsg("Please select the Name of the insurer", "E");
+            return false;
+        }
+    }
+    if (insuranceTypeSelected === "noInsurance" || insuranceTypeSelected === "applicant") {
+        let checkBox = $("#KmSourc__OtherInformation__noInsCheckBox").is(":checked");
+        let selectedNotOptingDDValue = $("#KmSourc__OtherInformation__insuranceNotOptingReasons").val();
+        selectedNotOptingDDValue = !apz.isNull(selectedNotOptingDDValue) ? selectedNotOptingDDValue : "Please Select";
+        let otherReasonValue = $("#KmSourc__OtherInformation__otherReasonInput").val();
+        if (!checkBox) {
+            ApzCOB.fnDisplayMsg("Please ensure the no insurance checkbox is selected", "E");
+            return false;
+        } else if (selectedNotOptingDDValue === "Please Select") {
+            ApzCOB.fnDisplayMsg("Please select a reason for not opting for insurance", "E");
+            return false;
+        } else if (selectedNotOptingDDValue === "Other") {
+            if ((otherReasonValue.length < 20 || otherReasonValue.length > 100)) {
+                ApzCOB.fnDisplayMsg("Other reason should contain at least 20 characters and not exceed 100 characters", "E");
+                return false;
+            }
+        }
+    }
+    if (appCbStatus || coAppCbStatus) {
+        ApzCOB.fnDisplayMsg(`Please complete the ${appCbStatus ? 'Applicant' : 'Co-Applicant'} CB check section`, "E");
+        return false;
+    }
+    if (!appAadharAddressAdditionalStatus) {
+        ApzCOB.fnDisplayMsg("Please complete the Applicant Aadhaar, Address & additional details section", "E");
+        return false;
+    }
+    if (!coAppAadharAddressAdditionalStatus) {
+        ApzCOB.fnDisplayMsg("Please complete the Co-Applicant Aadhaar, Address & additional details section", "E");
+        return false;
+    }
+    if (!businessIncomeStatus) {
+        ApzCOB.fnDisplayMsg("Please complete the Business/income source details section", "E");
+        return false;
+    }
+    if (!apz.app.Kmbase.validateQueryResponse()) {
+        return false;
+    }
+    // if (othInforEditFlag.AdditionalDoc === true) {
+    //     let docNameLength = $("#" + kmScrId + "nameOfAdditionalDoc").val().length;
+    //     if (!(docNameLength >= 4 && docNameLength <= 25)) {
+    //         $("#" + kmScrId + "nameOfAdditionalDoc").val('');
+    //         ApzCOB.fnDisplayMsg("Please enter the document type name with 4 to 25 characters", "E");
+    //         return false;
+    //     } 
+    // }
+    return true;
+}
+apz.app.OtherInformationvalidateFields = function (...ids) {
+    for (let i = 0; i < ids.length; i++) {
+        let el = document.getElementById(ids[i]);
+
+        if (!el) continue;
+
+        let tag = el.tagName.toLowerCase();
+        let type = el.type ? el.type.toLowerCase() : "";
+
+        // Textbox / input
+        if (tag === "input" && type !== "radio") {
+            if (el.value.trim() === "" || el.value.trim() === "Please Select") {
+                return false;
+            }
+        }
+        // Radio button group
+        if (tag === "input" && type === "radio") {
+            let radios = document.getElementsByName(el.name);
+            let checked = false;
+
+            for (let r of radios) {
+                if (r.checked) {
+                    checked = true;
+                    break;
+                }
+            }
+            if (!checked) {
+                return false;
+            }
+        }
+        // Dropdown
+        if (tag === "select") {
+            if (el.value === "" || el.selectedIndex === 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+// AML Questionnaire input validation
+apz.app.OtherInformation.getAMLQuestionnaireData = function () {
+    const questionRows = document.querySelectorAll('[id^="KmSourc__OtherInformation__amlQuestionList_row_"]');
+    if (!questionRows || questionRows.length === 0) return null;
+    const amlQuestionList = [];
+    for (let index = 0; index < questionRows.length; index++) {
+        const row = questionRows[index];
+        const rowNo = index;
+        // Get question text
+        const questionEl = document.querySelector(
+            `#KmSourc__loadAMLQuestions__i__amlQuestions__question_${rowNo}`
+        );
+        const questionHeader = questionEl?.querySelector('h3')?.innerText?.trim() || null;
+        // If question header itself is null, return null
+        if (questionHeader === null) return null;
+        // Get applicant selected radio value
+        const applicantRadio = row.querySelector(
+            `input[name="KmSourc__OtherInformation__el_rdo_3_${rowNo}_${rowNo}"]:checked`
+        );
+        const applicantValue = applicantRadio ? applicantRadio.value : null;
+        // Get co-applicant selected radio value
+        const coApplicantRadio = row.querySelector(
+            `input[name="KmSourc__OtherInformation__el_rdo_6_${rowNo}_${rowNo}"]:checked`
+        );
+        const coApplicantValue = coApplicantRadio ? coApplicantRadio.value : null;
+        // If either applicant or co-applicant has not answered, return null
+        if (applicantValue === null || coApplicantValue === null) return null;
+        amlQuestionList.push({
+            questionType: questionHeader,
+            applicant: applicantValue,
+            coApplicant: coApplicantValue,
+        });
+    }
+    return amlQuestionList.length > 0 ? { amlQuestionList } : null;
+}
+// apz.app.OtherInformation.setPrefix = function (pthis) {
+//   if (!pthis.value.startsWith("+91 ")) {
+//     pthis.value = "+91 ";
+//   }
+// };
+// apz.app.OtherInformation.formatMobile = function (pthis) {
+//   let d = pthis.value.replace(/\D/g, "").replace(/^91/, "").slice(0, 10);
+//   pthis.value = "+91 " + d;
+// };
+// apz.app.OtherInformation.validateMobile = function (pthis) {
+//   let d = pthis.value.replace(/\D/g, "").slice(-10);
+//   if (d.length !== 10) {
+//     $("#KmSourc__OtherInformation__sc_row_273").removeClass("sno");
+//     return false;
+//   }
+//   return true;
+// };
+
+// apz.app.OtherInformation.fnPrefixValidatePhoneNo = function (mainInpId, errorId) {
+//     var input = document.getElementById(mainInpId);
+//     // Always enforce prefix on focus
+//     input.addEventListener("focus", () => {
+//         if (!input.value.startsWith("+91 ")) {
+//             input.value = "+91 ";
+//         }
+//     });
+//     // Handle typing
+//     input.addEventListener("input", () => {
+//         let value = input.value;
+//         // Remove everything except digits
+//         let digits = value.replace(/\D/g, "");
+//         // Remove leading 91 if user types it manually
+//         if (digits.startsWith("91")) {
+//             digits = digits.slice(2);
+//         }
+//         // Limit to 10 digits
+//         digits = digits.slice(0, 10);
+//         // Set formatted value
+//         input.value = "+91 " + digits;
+//     });
+//     // Validate on blur (or on form submit)
+//     function validatePhone() {
+//         let digits = input.value.split(" ")[1].replace(/\D/g, "").slice(-10);
+//         if (digits.length !== 10) {
+//             $("#" + errorId).removeClass("sno");
+//             return false;
+//         }
+//     }
+//     input.addEventListener("blur", validatePhone);
+// }
+apz.app.OtherInformation.fnSaveDraftOrNext = function (isDraft) {
+    apz.startLoader();
+    var isVerified = "";
+    if (isDraft) {
+        isVerified = "N"
+    } else {
+        isVerified = "Y"
+    }
+    let docNamePrimaryBank = $("#KmSourc__OtherInformation__bankDetTypeOfDocument").val();
+    let docNameSecondaryBank = $("#KmSourc__OtherInformation__changeBankTypeOfDoc").val();
+    amlQuestionConsent = $("#KmSourc__OtherInformation__amlCheckBox").is(":checked");
+    let insData = apz.data.buildData("IPaintInsuranceDetails", "KmSourc").KmSourc__IPaintInsuranceDetails_Res.insuranceDetails;
+    let insAppNomData = apz.data.buildData("IPaintAppInsuranceDetails", "KmSourc").KmSourc__IPaintAppInsuranceDetails_Res.appInsuranceDetails;
+    let insCoAppNomData = apz.data.buildData("IPaintCoAppInsuranceDetails", "KmSourc").KmSourc__IPaintCoAppInsuranceDetails_Res.coAppInsuranceDetails;
+    let insCustAppNomData = apz.data.buildData("IPaintCustAppInsDetails", "KmSourc").KmSourc__IPaintCustAppInsDetails_Res.custAppInsDetails;
+    let insCustomNomineeData = apz.data.buildData("IPaintCustomNomineeDetails", "KmSourc").KmSourc__IPaintCustomNomineeDetails_Res.customNomineeDetails
+    let bankDetails = apz.app.OtherInformation.fnBuildDataForBankDetails();
+    let changeBankDetails = apz.app.OtherInformation.fnBuildDataForChangeBankDetails();
+    let bankDetailsAllPayload = apz.app.OtherInformation.getBankPayload(bankDetails, othInforEditFlag, changeBankDetails, docNamePrimaryBank, docNameSecondaryBank)
+    let req = {};
+    let role = gApzCOB.LoggedInUserDetails.loginResponse.addInfo1;
+    let intfName = "CreateLoan";
+    req.apiRequest = {};
+    req.apiRequest.requestObj = {};
+    req.apiRequest.userId = gApzCOB.LoggedInUserDetails.loginResponse.userDet.id;
+    req.apiRequest.appId = gAppId;
+    req.apiRequest.interfaceName = intfName;
+    req.apiRequest.requestObj = {
+        isNewSourcing: "Y",
+        isStageVerified: isVerified,
+        appId: gApzCOB.userDetails.appId,
+        applicationId: !apz.isNull(gApzCOB.relatedApplicationId) ? gApzCOB.relatedApplicationId : gApzCOB.userDetails.applicationId,
+        versionNum: window.versionNum,
+        isExistingCustomer: "",
+        customerDetailsList: inSessionStore.customerDetailsList,
+        addressDetailsWrapperList: inSessionStore.addressDetailsWrapperList,
+        applicationDocumentsWrapperList: inSessionStore.applicationDocumentsWrapperList || [],
+        applicationMaster: {
+            applicationType: "online",
+            appId: gApzCOB.userDetails.appId,
+            applicationId: gApzCOB.userDetails.applicationId,
+            createdBy: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+            currentScreenId: "OtherInformation",
+            currentStageNo: 1,
+            custDtlId: gApzCOB.userDetails.custDtlId,
+            addressDtlsId: gApzCOB.userDetails.addressDtlsId,
+            customerId: ProductData[0].productCode === "1001" ? "" : gApzCOB.userDetails.customerId,
+            declarationFlag: gApzCOB.userDetails.declarationFlag,
+            mobileNumber: !apz.isNull(gApzCOB.userDetails.mobileNum) ? gApzCOB.userDetails.mobileNum : "",
+            productCode: apz.isNull(gApzCOB.productCode) ? "1009" : gApzCOB.productCode,
+            productGroupCode: gApzCOB.product,
+            searchCode1: gApzCOB.selLeadDtls.kendraId,
+            searchCode2: gApzCOB.selLeadDtls.customerId,
+            custDtlSlNum: gApzCOB.currentApplicant,
+            applicantsCount: gApzCOB.noOfApplicants,
+            mainProductGroupCode: gApzCOB.mainProductGroupCode,
+            kendraId: gApzCOB.selLeadDtls.kendraId,
+            kendraName: gApzCOB.selLeadDtls.kendraName,
+            branchId: gApzCOB.selLeadDtls.glBranchId,
+            branchName: gApzCOB.selLeadDtls.glBranchName,
+            memberId: gApzCOB.selLeadDtls.customerId,
+            primaryKycType: "Voter ID",
+            primaryKycId: gApzCOB.selLeadDtls.primaryKyc,
+            // secondaryKycType: secondaryKycType,
+            // secondaryKycId: secondaryKycId,
+            workitemNo: ProductData[0].productCode === "1001"
+                ? String(gApzCOB.selLeadDtls.referenceId || gApzCOB.selLeadDtls.openMarketId)
+                : gApzCOB.selLeadDtls.pid
+            // alternateVoterId: alternateVoterId
+        },
+        amlQuestion: {
+            "applicationId": gApzCOB.userDetails.applicationId,
+            "payload": {
+                "amlQuestionList": apz.app.OtherInformation.getAMLQuestionnaireData()?.amlQuestionList,
+                "amlQuestionsConsent": amlQuestionConsent
+            }
+        },
+        "bankDetailsWrapperList": [
+            {
+                "bankDtlId": "",
+                "bankDetails": {
+                    appId: gApzCOB.userDetails.appId,
+                    applicationId: !apz.isNull(gApzCOB.relatedApplicationId) ? gApzCOB.relatedApplicationId : gApzCOB.userDetails.applicationId,
+                    versionNum: window.versionNum,
+                    "bankDtlId": "",
+                    "custDtlId": gApzCOB.userDetails.custDtlId,
+                    "payload": {
+                        "bankdocumentType": bankDetailsAllPayload.bankdocumentType,
+                        "accountType": bankDetailsAllPayload.accountType,
+                        "accountName": bankDetailsAllPayload.accountName,
+                        "ifsc": bankDetailsAllPayload.ifsc,
+                        "bankName": bankDetailsAllPayload.bankName,
+                        "branchName": bankDetailsAllPayload.branchName,
+                        "accountNumber": bankDetailsAllPayload.accountNumber,
+                        "editBankDetails": bankDetailsAllPayload.editBankDetails,
+                        "pennyCheckStatus": bankDetailsAllPayload.pennyCheckStatus,
+                        "pennyResp": bankDetailsAllPayload.pennyResp,
+                        "eNachStatus": bankDetailsAllPayload.eNachStatus,
+                        "primaryPennyCheckStatus": bankDetailsAllPayload.primaryPennyCheckStatus,
+                        "primaryENachStatus": bankDetailsAllPayload.primaryENachStatus,
+                        "secondaryENachStatus": bankDetailsAllPayload.secondaryENachStatus,
+                        "accntVerified": bankDetailsAllPayload.accntVerified,
+                        "reEnterAccountNumber": bankDetailsAllPayload.reEnterAccountNumber,
+                    }
+                }
+            }
+        ],
+        "insuranceType": insuranceTypeSelected,
+        "insuranceDetailsWrapperList": getInsurancePayload({
+            radioValue: insuranceTypeSelected,        // or "Applicant" or "NoInsurance"
+            isNomineeRequired: othInforEditFlag.customNominee,    // true → includes Cust-Nominee object
+            insData,
+            insAppNomData,
+            insCoAppNomData,
+            insCustomNomineeData,
+            gApzCOB,
+            gAppId,
+        }),
+        workflow: {
+            currentRole: role
+        }
+    }
+    if (["BMPUSHBACK", "IPUSHBACK", "CAPUSHBACK"].includes(window.ApplicationStatus))
+        req.apiRequest.requestObj.queryResponse = apz.app.Kmbase.prepareQueryResponse();
+    ApzCOB.serverBuildParam(gAppId, "CreateLoan", "N", "N", req, false, apz.app.OtherInformation.fnOtherInformationCB);
+}
+apz.app.OtherInformation.fnOtherInformationCB = function (params) {
+    apz.stopLoader();
+    if (apz.isNull(params.errors)) {
+        if (params.res.hasOwnProperty("APZCBO__CreateLoan_Res") && params.res.APZCBO__CreateLoan_Res?.apiResponse?.ResponseHeader?.ResponseCode == '0') {
+            ApzCOB.updateInsessionData(params);
+            apz.app.Kmbase.paintSidebarStatus();
+            if (params.req?.apiRequest?.requestObj?.isStageVerified == 'N' && isOtherInfoSaveDraft === true) {
+                ApzCOB.showNewCommonSuccessModal({
+                    text: "Draft saved successfully",
+                    Btn: {
+                        text: "OK",
+                        onClick: "ApzCOB.closeCommonModal(`newCommonSuccModal`)"
+                    }
+                });
+                return;
+            }
+            if (params.req?.apiRequest?.requestObj?.isStageVerified == 'Y') {
+
+            }
+        }
+    }
+};
+apz.app.OtherInformation.fnBuildDataForBankDetails = function () {
+    let bankCurrIndex = !apz.isNull(inSessionStore.bankDetailsWrapperList) ? ApzCOB.getIndexforBankWrapper("Applicant") : 0;
+    return {
+        "accountType": $("#KmSourc__OtherInformation__accountTypeBankDetials").val(),
+        "accountName": apz.getElmValue("KmSourc__OtherInformation__accountHolderNameInput"),
+        "ifsc": apz.getElmValue("KmSourc__OtherInformation__ifscCodeInput"),
+        "bankName": apz.getElmValue("KmSourc__OtherInformation__bankNameInput"),
+        "branchName": apz.getElmValue("KmSourc__OtherInformation__branchNameInput"),
+        "accountNumber": apz.getElmValue("KmSourc__OtherInformation__accountNumberInput"),
+        "pennyCheckStatus": othInforEditFlag.valPennyCheck,
+        "pennyResp": "",
+        "eNachStatus": othInforEditFlag.valEnach,
+        "accntVerified": !apz.isNull(window.bankAccountNoVerifiedOtherInfo)
+            ? window.bankAccountNoVerifiedOtherInfo
+            : !apz.isNull(inSessionStore?.bankDetailsWrapperList?.[bankCurrIndex]?.bankDetails?.payload?.accntVerified)
+                ? inSessionStore.bankDetailsWrapperList[bankCurrIndex].bankDetails.payload.accntVerified
+                : "",
+    }
+}
+apz.app.OtherInformation.fnBuildDataForChangeBankDetails = function () {
+    return {
+        "accountType": $("#KmSourc__OtherInformation__changeBankAccountType").val(),
+        "accountName": "",
+        "ifsc": apz.getElmValue("KmSourc__OtherInformation__changeBankIFSCCode"),
+        "bankName": apz.getElmValue("KmSourc__OtherInformation__changeBankBankName"),
+        "branchName": apz.getElmValue("KmSourc__OtherInformation__changeBankBranchName"),
+        "accountNumber": "",
+        "pennyCheckStatus": "",
+        "pennyResp": "",
+        "eNachStatus": othInforEditFlag.newBankValEnach
+    }
+}
+apz.app.OtherInformation.fnPaintAllDocuments = function () {
+    let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+    let bankCurrIndex = !apz.isNull(inSessionStore.bankDetailsWrapperList) ? ApzCOB.getIndexforBankWrapper("Applicant") : 0;
+    let changeBankDetailsStatus = inSessionStore?.bankDetailsWrapperList?.[bankCurrIndex]?.bankDetails?.payload?.editBankDetails;
+    if (apz.isNull(changeBankDetailsStatus) && gApzCOB.productCode == "1001") {
+        changeBankDetailsStatus = 'Yes'; //Open Market JIRA - UAU-1344
+    }
+    let lDocTypeOthInfo = [
+        "BANK_ACCOUNT_PROOF",
+        //"CHANGED_BANK_DOCS",
+        "APPLNT_CUST_NOMINEE_DOCS",
+        "COAPPLNT_CUST_NOMINEE_DOCS",
+        "ADDITIONAL_DOCS"
+    ];
+    lDocTypeOthInfo.forEach(function (lDocType) {
+        apz.app.Kmbase.paintDocumentName(lDocType);
+    });
+    lDocTypeOthInfo.forEach(function (docType) {
+        let exists = docList.some(function (item) {
+            //if ((item.payload.documentType === docType) && (docType === "BANK_ACCOUNT_PROOF" || docType === "CHANGED_BANK_DOCS")) {
+            if ((item.payload.documentType === docType) && (docType === "BANK_ACCOUNT_PROOF")) { // 16 june changes 
+                selectedDDvalueForDocs = item?.payload?.documentFileName ?? '';
+            }
+            return item.payload.documentType === docType;
+        });
+        if (exists) {
+            switch (docType) {
+                case "BANK_ACCOUNT_PROOF":
+                    if (changeBankDetailsStatus === "No") {
+                        //UAU-1548 fixes
+                        // $("#" + kmScrId + "validateENachbtn").addClass("sno");
+                        // $("#" + kmScrId + "eNachValidatedbtn").removeClass("sno");
+                        // $("#" + kmScrId + "pennyChackbtn").addClass("sno");
+                        // $("#" + kmScrId + "pennyCheckSuccessbtn").removeClass("sno");
+                        $("#" + kmScrId + "uploadDocDiv").removeClass("sno");
+                        let docTypePri = selectedDDvalueForDocs.replace(/_\d+\.[^.]+$/, '').replace(/_/g, ' ');
+                        //$("#KmSourc__OtherInformation__bankDetTypeOfDocument").val(selectedDDvalueForDocs);
+                        apz.setElmValue("KmSourc__OtherInformation__bankDetTypeOfDocument", docTypePri)
+                        let docDDValuePriBank = $("#KmSourc__OtherInformation__bankDetTypeOfDocument").val();
+                        if ((!apz.isNull(docDDValuePriBank)) && docDDValuePriBank !== "Please Select") {
+                            ApzCOB.AddOrRemoveDisableFields([`${kmScrId}bankDetTypeOfDocument`], true);
+                        } else {
+                            ApzCOB.AddOrRemoveDisableFields([`${kmScrId}bankDetTypeOfDocument`], false);
+                        }
+                        //othInforEditFlag.valEnach = "true"; //UAU-1548 fixes
+                        //othInforEditFlag.valPennyCheck = "true"; //UAU-1548 fixes
+                    } else if (changeBankDetailsStatus === "Yes") {
+                        //$("#KmSourc__OtherInformation__changeBankTypeOfDoc").val(selectedDDvalueForDocs);
+                        let docTypeSec = selectedDDvalueForDocs.replace(/_\d+\.[^.]+$/, '').replace(/_/g, ' ');
+                        apz.setElmValue("KmSourc__OtherInformation__changeBankTypeOfDoc", docTypeSec)
+                        let docDDValueSecBank = $("#KmSourc__OtherInformation__changeBankTypeOfDoc").val();
+                        if ((!apz.isNull(docDDValueSecBank)) && docDDValueSecBank !== "Please Select") {
+                            ApzCOB.AddOrRemoveDisableFields([`${kmScrId}changeBankTypeOfDoc`], true);
+                        } else {
+                            ApzCOB.AddOrRemoveDisableFields([`${kmScrId}changeBankTypeOfDoc`], false);
+                        }
+                        $("#" + kmScrId + "changeBankRadioBtn_option_yes").attr("checked", true)
+                        apz.app.OtherInformation.fnChangeAccountDetailsOnChange();
+                    }
+                    break;
+                case "APPLNT_CUST_NOMINEE_DOCS":
+                    //$("#" + kmScrId + "nomineeCustomApplicantDiv").removeClass("sno");
+                    othInforEditFlag.customApplicant = true;
+                    break;
+                case "COAPPLNT_CUST_NOMINEE_DOCS":
+                    $("#" + kmScrId + "nomineeCustomDiv").removeClass("sno");
+                    apz.setElmValue(kmIPaintCustomInsDetailsId + "customNomineeForIns", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.nomineeName ?? "");
+                    apz.setElmValue(kmIPaintCustomInsDetailsId + "customGender", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.gender ?? "Please Select");
+                    apz.setElmValue(kmIPaintCustomInsDetailsId + "customDob", apz.app.OtherInformation.formatDate(inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.nomineeDob ?? ""));
+                    apz.setElmValue(kmIPaintCustomInsDetailsId + "customAge", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.age ?? "");
+                    apz.setElmValue(kmIPaintCustomInsDetailsId + "customRelationWithNom", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.nomineeRelation ?? "Please Select");
+                    apz.setElmValue(kmIPaintCustomInsDetailsId + "customNomContactNumber", inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.mobileNumber ?? "")
+                    othInforEditFlag.customNominee = true;
+                    apz.app.OtherInformation.insuranceDetailsHideAndShow();
+                    break;
+                case "ADDITIONAL_DOCS":
+                    $("#" + kmScrId + "additionalDocumentDiv").removeClass("sno");
+                    //$("#" + kmScrId + "additionalDocUploadBtnDiv").addClass("sno");
+                    $("#" + kmScrId + "addDocFrm").addClass("sno");
+                    $("#" + kmScrId + "upldaddocNav").addClass("sno");
+                    ApzCOB.AddOrRemoveDisableFields([`${kmScrId}nameOfAdditionalDoc`], false);
+                    break;
+            }
+        }
+    });
+}
+apz.app.OtherInformation.setAMLQuestionnaireData = function (data) {
+    if (!data || !data.amlQuestionList || data.amlQuestionList.length === 0) return;
+    const questionRows = document.querySelectorAll('[id^="KmSourc__OtherInformation__amlQuestionList_row_"]');
+    if (!questionRows || questionRows.length === 0) return;
+    let amlConsent = inSessionStore?.amlQuestion?.payload?.amlQuestionsConsent;
+    if (amlConsent === "true") {
+        $("#KmSourc__OtherInformation__amlCheckBox").prop("checked", true);
+    } else {
+        $("#KmSourc__OtherInformation__amlCheckBox").prop("checked", false);
+    }
+    data.amlQuestionList.forEach((item, index) => {
+        const row = questionRows[index];
+        if (!row) return;
+
+        const rowNo = index;
+
+        const questionEl = document.querySelector(
+            `#KmSourc__loadAMLQuestions__i__amlQuestions__question_${rowNo}`
+        );
+        const questionHeader = questionEl?.querySelector('h3')?.innerText?.trim();
+
+        if (!questionHeader || questionHeader !== item.questionType) {
+            console.warn("Question mismatch at row:", rowNo);
+            return;
+        }
+
+        if (item.applicant) {
+            const applicantRadio = row.querySelector(
+                `input[name="KmSourc__OtherInformation__el_rdo_3_${rowNo}_${rowNo}"][value="${item.applicant}"]`
+            );
+            if (applicantRadio) applicantRadio.checked = true;
+        }
+
+        if (item.coApplicant) {
+            const coApplicantRadio = row.querySelector(
+                `input[name="KmSourc__OtherInformation__el_rdo_6_${rowNo}_${rowNo}"][value="${item.coApplicant}"]`
+            );
+            if (coApplicantRadio) coApplicantRadio.checked = true;
+        }
+    });
+};
+apz.app.OtherInformation.fnValidateMobileNumber = function (pthis) {
+    if (!apz.isNull($("#" + pthis.id).val())) {
+        let mobRegex = "^[6789]\\d{9}$";
+        let err = ApzCOB.commonRegex(mobRegex, $("#" + pthis.id).val());
+        if (!err) {
+            $("#" + pthis.id).val('');
+            $("#" + pthis.id + "_ul").next().removeClass("sno");
+            let errTxtFieldId = $("#" + pthis.id + "_ul").next()?.find('.icon-Error')?.next() ?? $('#dummyid');
+            errTxtFieldId?.text(`Please enter a valid mobile number`);
+        } else {
+            $("#" + pthis.id).removeClass("err");
+            $("#" + pthis.id + "_ul").next().addClass("sno");
+        }
+    }
+}
+apz.app.OtherInformation.fnLoadBankBasicDetails = function () {
+    let bankCurrIndex = !apz.isNull(inSessionStore.bankDetailsWrapperList) ? ApzCOB.getIndexforBankWrapper("Applicant") : 0;
+    var loadBasicBankDetails = inSessionStore?.bankDetailsWrapperList?.[bankCurrIndex]?.bankDetails?.payload;
+    if (!apz.isNull(loadBasicBankDetails)) {
+        if (loadBasicBankDetails?.primaryENachStatus == "true") {
+            $("#" + kmScrId + "validateENachbtn").addClass("sno");
+            $("#" + kmScrId + "eNachValidatedbtn").removeClass("sno");
+            $("#" + kmScrId + "pennyChackbtn").removeClass("sno");
+            othInforEditFlag.valEnach = "true"; //19th june changes
+        } else if (loadBasicBankDetails?.primaryENachStatus == "false") {
+            $("#" + kmScrId + "validateENachbtn").addClass("sno");
+            $("#" + kmScrId + "eNachInvalidbtn").removeClass("sno");
+            $("#" + kmScrId + "changeBankRadioBtn_option_no").attr("disabled", true)
+            $("#" + kmScrId + "changeBankRadioBtn_option_no").addClass('BankDetailsDisable');
+            $("#" + kmScrId + "changeBankRadioBtn_option_yes").attr("checked", true)
+            apz.app.OtherInformation.fnChangeAccountDetailsOnChange();
+            othInforEditFlag.valEnach = "false"; //19th june changes
+        }
+        if (loadBasicBankDetails?.primaryPennyCheckStatus == "true") {
+            $("#" + kmScrId + "pennyChackbtn").addClass("sno");
+            $("#" + kmScrId + "pennyCheckSuccessbtn").removeClass("sno");
+            $("#" + kmScrId + "uploadDocDiv").removeClass("sno");
+            othInforEditFlag.valPennyCheck = "true"; //19th june changes
+            if (!apz.isNull(loadBasicBankDetails?.bankdocumentType)) {
+                apz.setElmValue("KmSourc__OtherInformation__bankDetTypeOfDocument", loadBasicBankDetails?.bankdocumentType)
+            }
+            let docDDValuePriBank = $("#KmSourc__OtherInformation__bankDetTypeOfDocument").val();
+            if ((!apz.isNull(docDDValuePriBank)) && docDDValuePriBank !== "Please Select") {
+                ApzCOB.AddOrRemoveDisableFields([`${kmScrId}bankDetTypeOfDocument`], true);
+            } else {
+                ApzCOB.AddOrRemoveDisableFields([`${kmScrId}bankDetTypeOfDocument`], false);
+            }
+        } else if (loadBasicBankDetails?.primaryPennyCheckStatus == "false") {
+            $("#" + kmScrId + "pennyChackbtn").addClass("sno");
+            //$("#" + kmScrId + "pennyCheckFailurebtn").removeClass("sno");
+            $("#" + kmScrId + "changeBankRadioBtn_option_no").attr("disabled", true)
+            $("#" + kmScrId + "changeBankRadioBtn_option_no").addClass('BankDetailsDisable');
+            $("#" + kmScrId + "changeBankRadioBtn_option_yes").attr("checked", true)
+            apz.app.OtherInformation.fnChangeAccountDetailsOnChange();
+            othInforEditFlag.valPennyCheck = "false"; //19th june changes
+        }
+        if (loadBasicBankDetails?.editBankDetails == "Yes") {
+            $("#" + kmScrId + "changeBankRadioBtn_option_yes").attr("checked", true)
+            //apz.app.OtherInformation.fnChangeAccountDetailsOnChange(); //RPC impact 31st july
+            othInforEditFlag.valChangeBank = true;
+            apz.setElmValue(kmScrId + "changeBankAccountType", "Savings");
+            $("#" + kmScrId + "changedBankDetails").removeClass("sno");
+            $("#" + kmScrId + "changeBankeNachValidatedbtn").addClass("sno");
+            $("#" + kmScrId + "changeBankeNachInvalid").addClass("sno");
+            $("#" + kmScrId + "changeBankValidateENachbtn").addClass("sno");
+            // // for temp purpose (hiding all primary bank buttons if secondary bank is checked) 
+            // $("#" + kmScrId + "validateENachbtn").addClass("sno");
+            // $("#" + kmScrId + "eNachValidatedbtn").addClass("sno");
+            // $("#" + kmScrId + "eNachInvalidbtn").addClass("sno");
+            // $("#" + kmScrId + "pennyChackbtn").addClass("sno");
+            // $("#" + kmScrId + "pennyCheckSuccessbtn").addClass("sno");
+            // $("#" + kmScrId + "pennyCheckFailurebtn").addClass("sno");
+            // $("#" + kmScrId + "uploadDocDiv").addClass("sno");
+            // $("#KmSourc__OtherInformation__changeBankIFSCCode").val(loadBasicBankDetails?.secIfsc);
+            // $("#KmSourc__OtherInformation__changeBankBankName").val(loadBasicBankDetails?.secBankName);
+            // $("#KmSourc__OtherInformation__changeBankBranchName").val(loadBasicBankDetails?.secBranchName);
+            // $("#KmSourc__OtherInformation__changeBankAccountType").val(loadBasicBankDetails?.secAccountType);
+            // $("#KmSourc__OtherInformation__changeBankTypeOfDoc").val(loadBasicBankDetails?.secBankdocumentType);
+            //if (apz.isNull(loadBasicBankDetails.accountNumber) || gApzCOB.productCode === "1001" || !apz.isNull(loadBasicBankDetails.pennyResp)) { //23rd june changes - to avoid 1st bank painting in 2nd bank details
+            if (loadBasicBankDetails?.primaryPennyCheckStatus === "false") { //UAU-1686 fixes
+                $("#KmSourc__OtherInformation__pennyCheckFailurebtn").removeClass("sno");
+            }
+            $("#KmSourc__OtherInformation__changeBankIFSCCode").val(loadBasicBankDetails?.ifsc);
+            $("#KmSourc__OtherInformation__changeBankBankName").val(loadBasicBankDetails?.bankName);
+            $("#KmSourc__OtherInformation__changeBankBranchName").val(loadBasicBankDetails?.branchName);
+            $("#KmSourc__OtherInformation__changeBankAccountType").val(loadBasicBankDetails?.accountType);
+            if (!apz.isNull(loadBasicBankDetails?.bankdocumentType)) {
+                apz.setElmValue("KmSourc__OtherInformation__changeBankTypeOfDoc", loadBasicBankDetails?.bankdocumentType)
+            }
+            let docDDValueSecBank = $("#KmSourc__OtherInformation__changeBankTypeOfDoc").val();
+            if ((!apz.isNull(docDDValueSecBank)) && docDDValueSecBank !== "Please Select") {
+                ApzCOB.AddOrRemoveDisableFields([`${kmScrId}changeBankTypeOfDoc`], true);
+            } else {
+                ApzCOB.AddOrRemoveDisableFields([`${kmScrId}changeBankTypeOfDoc`], false);
+            }
+            //}
+            if (loadBasicBankDetails?.secondaryENachStatus == "true") {
+                $("#" + kmScrId + "changeBankValidateENachbtn").addClass("sno");
+                $("#" + kmScrId + "changeBankeNachValidatedbtn").removeClass("sno");
+                othInforEditFlag.newBankValEnach = "true"; //19th june changes
+            } else if (loadBasicBankDetails?.secondaryENachStatus == "false") {
+                $("#" + kmScrId + "changeBankValidateENachbtn").addClass("sno");
+                $("#" + kmScrId + "changeBankeNachInvalid").removeClass("sno");
+                othInforEditFlag.newBankValEnach = "false"; //19th june changes
+            } else {
+                $("#" + kmScrId + "changeBankValidateENachbtn").removeClass("sno");
+            }
+        }
+        if (gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1 === 'BM') { //UAU-1703
+            $("#KmSourc__OtherInformation__validateENachbtn").addClass("sno")
+            $("#KmSourc__OtherInformation__pennyChackbtn").addClass("sno")
+        }
+    }
+}
+apz.app.OtherInformation.sortAdditionalDocs = function (docs) {
+    // Filter only ADDITIONAL_DOCS
+    const additionalDocs = docs.filter(
+        (doc) => doc.documentType === "ADDITIONAL_DOCS"
+    );
+
+    return [...additionalDocs].sort((a, b) => {
+        const nameA = a.payload.documentFileName;
+        const nameB = b.payload.documentFileName;
+
+        const parseFileName = function (fileName) {
+            const match = fileName.match(/^(.+?)_(\d+)(\.\w+)?$/);
+            if (match) {
+                return { base: match[1], num: parseInt(match[2], 10) };
+            }
+            return { base: fileName, num: 0 };
+        };
+
+        const parsedA = parseFileName(nameA);
+        const parsedB = parseFileName(nameB);
+
+        // Primary sort: group by base name
+        if (parsedA.base < parsedB.base) return -1;
+        if (parsedA.base > parsedB.base) return 1;
+
+        // Secondary sort: numeric order within same base name
+        if (parsedA.num !== parsedB.num) return parsedA.num - parsedB.num;
+
+        // Tertiary sort: uploadedTs ascending
+        return (
+            new Date(a.payload.uploadedTs).getTime() -
+            new Date(b.payload.uploadedTs).getTime()
+        );
+    });
+};
+apz.app.OtherInformation.getUpdatedFileName = function (newFileName, existingDocs) {
+    // Extract base name and extension from incoming file
+    // "Aadhar.jpeg" → base: "Aadhar", ext: ".jpeg"
+    const extractParts = function (fileName) {
+        const dotIndex = fileName.lastIndexOf(".");
+        if (dotIndex !== -1) {
+            return {
+                base: fileName.substring(0, dotIndex),
+                ext: fileName.substring(dotIndex)  // includes the dot
+            };
+        }
+        return { base: fileName, ext: "" };
+    };
+
+    const { base, ext } = extractParts(newFileName);
+
+    // Filter only ADDITIONAL_DOCS
+    const additionalDocs = existingDocs.filter(
+        (doc) => doc.documentType === "ADDITIONAL_DOCS"
+    );
+
+    // Count how many existing docs match the same base name
+    // Matches both "Aadhar.jpeg" and "Aadhar_1.jpeg", "Aadhar_2.jpeg"
+    const matchCount = additionalDocs.filter(function (doc) {
+        const existingName = doc.payload.documentFileName;
+        const { base: existingBase } = extractParts(existingName);
+
+        // Strip trailing _number from existing base if present
+        // "Aadhar_1" → "Aadhar", "Aadhar" → "Aadhar"
+        const strippedBase = existingBase.replace(/_\d+$/, "");
+
+        return strippedBase === base;
+    }).length;
+
+    if (matchCount === 0) {
+        // No existing doc with same name → return as _1
+        return base + "_1" + ext;  // "Aadhar_1.jpeg"
+    } else {
+        // Existing docs found → return next counter
+        return base + "_" + (matchCount + 1) + ext;  // "Aadhar_3.jpeg"
+    }
+};
+function getInsurancePayload({
+    radioValue,          // "bothInsurance" | "applicant" | "noInsurance"
+    isNomineeRequired,   // boolean flag for Cust-Nominee
+    insData,
+    insAppNomData,
+    insCoAppNomData,
+    insCustomNomineeData,
+    gApzCOB,
+    gAppId,
+}) {
+    let loanAmount = inSessionStore?.cibilDetailsWrapperList?.find(item =>
+        item?.cibilDetails?.custDtlId === Number(gApzCOB?.userDetails?.CoApplicantCustomerId))?.cibilDetails?.eligibleAmt ?? 0;
+    var noInsCheckBoxResponse = $("#KmSourc__OtherInformation__noInsCheckBox").is(":checked");
+    var insNotOptingReason = $("#KmSourc__OtherInformation__insuranceNotOptingReasons").val();
+    insNotOptingReason = (insNotOptingReason === "Please Select") ? "" : insNotOptingReason;
+    var insNotOptingOtherReason = apz.getElmValue("KmSourc__OtherInformation__otherReasonInput");
+    var checkInsuranceType = "";
+    if (radioValue === 'bothInsurance') {
+        checkInsuranceType = 'Both'
+    }
+    if (radioValue === 'applicant') {
+        checkInsuranceType = 'Applicant'
+    }
+    var customNominee = "";
+    if (othInforEditFlag.customNominee === true) {
+        customNominee = 'Y'
+    }
+    if (othInforEditFlag.customNominee === false) {
+        customNominee = 'N'
+    }
+    const baseDetails = {
+        applicationId: gApzCOB.userDetails.applicationId,
+        versionNum: 1,
+        appId: gAppId
+    };
+    var customerData = inSessionStore.customerDetailsList
+    var applicantCustDtlId =
+        Array.isArray(customerData) && customerData.length > 0
+            ? customerData.find(
+                customer =>
+                    customer?.customerType &&
+                    customer.customerType === "Applicant"
+            )?.custDtlId ?? null
+            : null;
+
+    var coApplicantCustDtlId =
+        Array.isArray(customerData) && customerData.length > 0
+            ? customerData.find(
+                customer =>
+                    customer?.customerType &&
+                    customer.customerType === "Co-App"
+            )?.custDtlId ?? null
+            : null;
+    const applicantObj = {
+        insuranceDetails: {
+            ...baseDetails,
+            insuranceDtlId: "",
+            insuredCustType: "Applicant",
+            insuranceType: radioValue,
+            custDtlId: applicantCustDtlId,
+            payload: {
+                insuranceReqd: "Y",
+                insuredName: "Applicant",
+                nomineeName: insAppNomData.appNomineeForIns,
+                nomineeRelation: insAppNomData.appRelationWithNom,
+                nomineeDob: insAppNomData.appDob, //1999 - 10 - 31, //demo purpose
+                coApplicantInsurance: "Yes",
+                age: insAppNomData.appAgeOfNominee,
+                rpcEditCheck: false,
+                gender: insAppNomData.appGender,
+                loanAmount: loanAmount,
+                insurerName: insData.nameOfInsurerInput,
+                insurancePremium: insData.insurancePremiumInput,
+                insuranceOption: checkInsuranceType,
+                nomineeAdded: customNominee,
+                reason: insNotOptingReason,
+                otherReason: insNotOptingOtherReason,
+                insuranceConsent: noInsCheckBoxResponse
+
+            },
+        },
+    }
+
+    const coApplicantObj = {
+        insuranceDetails: {
+            ...baseDetails,
+            insuranceDtlId: "",
+            insuredCustType: "Co-App",
+            insuranceType: radioValue,
+            custDtlId: coApplicantCustDtlId,
+            payload: {
+                insuranceReqd: "Y",
+                insuredName: "Co-App",
+                nomineeName: insCoAppNomData.coAppNomineeForIns,
+                nomineeRelation: insCoAppNomData.coAppRelationWithNom,
+                nomineeDob: insCoAppNomData.coAppDob, //1990 - 12 - 12,// demo purpose
+                coApplicantInsurance: "Yes",
+                age: insCoAppNomData.coAppAgeOfNominee,
+                rpcEditCheck: false,
+                gender: insCoAppNomData.coAppGender,
+                loanAmount: loanAmount,
+                insurerName: insData.nameOfInsurerInput,
+                insurancePremium: insData.insurancePremiumInput,
+                insuranceOption: checkInsuranceType,
+                nomineeAdded: customNominee,
+                reason: "",
+                otherReason: "",
+                insuranceConsent: ""
+            },
+        },
+    };
+
+    const custNomineeObj = {
+        insuranceDetails: {
+            ...baseDetails,
+            insuranceDtlId: "",
+            insuredCustType: "Cust-Nominee",
+            insuranceType: radioValue,
+            custDtlId: "",
+            payload: {
+                insuranceReqd: "Y",
+                insuredName: "Cust-Nominee",
+                nomineeName: insCustomNomineeData.customNomineeForIns,
+                nomineeRelation: insCustomNomineeData.customRelationWithNom,
+                nomineeDob: insCustomNomineeData.customDob, //1990 - 11 - 11, //demo purpose
+                coApplicantInsurance: "Yes",
+                age: insCustomNomineeData.customAge,
+                rpcEditCheck: false,
+                gender: insCustomNomineeData.customGender,
+                loanAmount: loanAmount,
+                insurerName: insData.nameOfInsurerInput,
+                insurancePremium: insData.insurancePremiumInput,
+                insuranceOption: checkInsuranceType,
+                nomineeAdded: customNominee,
+                mobileNumber: insCustomNomineeData.customNomContactNumber,
+                reason: "",
+                otherReason: "",
+                insuranceConsent: ""
+            },
+        },
+    };
+
+    const noInsuranceObj = {
+        insuranceDetails: {
+            ...baseDetails,
+            insuranceDtlId: gApzCOB.userDetails.insuranceDtlsId,
+            insuredCustType: "Applicant",
+            insuranceType: radioValue,
+            custDtlId: applicantCustDtlId,
+            payload: {
+                insuranceReqd: "N",
+                insuredName: "No Insurance",
+                nomineeName: "",
+                nomineeRelation: "",
+                nomineeDob: "",
+                coApplicantInsurance: "",
+                age: "",
+                rpcEditCheck: false,
+                gender: "",
+                loanAmount: loanAmount,
+                insurerName: "",
+                insurancePremium: "",
+                insuranceOption: "No",
+                nomineeAdded: "N",
+                reason: insNotOptingReason,
+                otherReason: insNotOptingOtherReason,
+                insuranceConsent: noInsCheckBoxResponse
+            },
+        },
+    };
+    switch (radioValue) {
+        case "bothInsurance": {
+            const payload = [applicantObj, coApplicantObj];
+            if (isNomineeRequired) payload.push(custNomineeObj);
+            console.log(payload)
+            return payload;
+        }
+
+        case "applicant": {
+            const payload = [applicantObj];
+            if (isNomineeRequired) payload.push(custNomineeObj);
+            console.log(payload)
+            return payload;
+        }
+
+        case "noInsurance":
+            console.log(noInsuranceObj)
+            return [noInsuranceObj];
+
+        default:
+            console.warn("Unknown radio value:", radioValue);
+            return [];
+    }
+}
+apz.app.OtherInformation.formatDate = function (cbDate) {
+    if (!cbDate) return '';
+    const d = new Date(cbDate);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+apz.app.OtherInformation.getBankPayload = function (bankDetails, othInforEditFlag, changeBankDetails, docNamePrimaryBank, docNameSecondaryBank) {
+    const isEditBank = othInforEditFlag?.valChangeBank === true;
+    let bankCurrIndex = !apz.isNull(inSessionStore.bankDetailsWrapperList) ? ApzCOB.getIndexforBankWrapper("Applicant") : 0;
+    var payload = inSessionStore?.bankDetailsWrapperList?.[bankCurrIndex]?.bankDetails?.payload;
+    var bankDetailsResp =
+        payload?.editBankDetails === "Yes"
+            ? {
+                accountName: payload?.accountName || "",
+                accountNumber: payload?.accountNumber || "",
+                pennyResp: payload?.pennyResp || "",
+                pennyCheckStatus: payload?.pennyCheckStatus || "",
+                reEnterAccountNumber: payload?.reEnterAccountNumber || "",
+                accntVerified: payload?.accntVerified || ""
+            }
+            : {};
+    return {
+        editBankDetails:
+            othInforEditFlag?.valChangeBank === true
+                ? "Yes" : othInforEditFlag?.valChangeBank === false
+                    ? "No" : "No",
+        // Fields only when valChangeBank = true
+        ...(!isEditBank && {
+            accountName: bankDetails.accountName,
+            accountNumber: bankDetails.accountNumber,
+            accountType: bankDetails.accountType,
+            ifsc: bankDetails.ifsc,
+            bankName: bankDetails.bankName,
+            branchName: bankDetails.branchName,
+            pennyCheckStatus: bankDetails.pennyCheckStatus === "true" ? "PASS" : bankDetails.pennyCheckStatus === "false" ? "FAIL" : "",
+            eNachStatus: bankDetails.eNachStatus,
+            pennyResp: !apz.isNull(pennyResponse)
+                ? pennyResponse
+                : !apz.isNull(
+                    inSessionStore?.bankDetailsWrapperList?.[bankCurrIndex]?.bankDetails?.payload?.pennyResp
+                )
+                    ? inSessionStore.bankDetailsWrapperList[bankCurrIndex].bankDetails.payload.pennyResp
+                    : "",
+            primaryPennyCheckStatus: bankDetails.pennyCheckStatus,
+            primaryENachStatus: bankDetails.eNachStatus,
+            secondaryENachStatus: "",
+            accntVerified: bankDetails.accntVerified,
+            bankdocumentType: (docNamePrimaryBank == "Please Select" || !docNamePrimaryBank) ? "" : docNamePrimaryBank,
+        }),
+        // Fields only when valChangeBank = false
+        ...(isEditBank && {
+            accountName: bankDetailsResp.accountName,
+            accountNumber: bankDetailsResp.accountNumber,
+            accountType: changeBankDetails.accountType,
+            ifsc: changeBankDetails.ifsc,
+            bankName: changeBankDetails.bankName,
+            branchName: changeBankDetails.branchName,
+            pennyCheckStatus: bankDetailsResp.pennyCheckStatus,
+            eNachStatus: changeBankDetails.eNachStatus,
+            pennyResp: bankDetailsResp.pennyResp,
+            primaryPennyCheckStatus: bankDetails.pennyCheckStatus,
+            primaryENachStatus: bankDetails.eNachStatus,
+            secondaryENachStatus: changeBankDetails.eNachStatus,
+            accntVerified: bankDetailsResp.accntVerified,
+            reEnterAccountNumber: bankDetailsResp.reEnterAccountNumber,
+            bankdocumentType: (docNameSecondaryBank == "Please Select" || !docNameSecondaryBank) ? "" : docNameSecondaryBank,
+        })
+    };
+}
+apz.app.OtherInformation.paintSideBar = function () {
+    if (apz.childScr === "KMReviewConfirm" ? "OtherInformation" : "OtherInformation" === "OtherInformation") { // chinna updated this
+        try {
+            if (window.isVerified === "N") {
+                apz.app.Kmbase.updateSrcVerifiedStages(4, "A", "N");
+            } else {
+                apz.app.Kmbase.updateSrcVerifiedStages(4, "A", "Y");
+            }
+            apz.app.OtherInformation.fnSaveDraftOrNext(true); // navigation issue fixes 10th june
+            apz.app.Kmbase.paintSidebarStatus();
+        } catch (e) { 
+            ApzCOB.traceFrontEndError(e,"");
+        }
+    }
+}
+apz.app.OtherInformation.isAMLQuestionnaireAllYes = function () {
+    const questionRows = document.querySelectorAll(
+        '[id^="KmSourc__OtherInformation__amlQuestionList_row_"]'
+    );
+    if (!questionRows || questionRows.length === 0) return null;
+    for (let index = 0; index < questionRows.length; index++) {
+        const row = questionRows[index];
+        const applicantValue = row.querySelector(`input[name="KmSourc__OtherInformation__el_rdo_3_${index}_${index}"]:checked`)?.value;
+        const coApplicantValue = row.querySelector(`input[name="KmSourc__OtherInformation__el_rdo_6_${index}_${index}"]:checked`)?.value;
+        // If either applicant or co-applicant has not answered
+        if (applicantValue == null || coApplicantValue == null) {
+            return null;
+        }
+        // If any answer is No, return false immediately
+        if (applicantValue.toLowerCase() === "no" || coApplicantValue.toLowerCase() === "no") {
+            return false;
+        }
+    }
+    // All answers are Yes
+    return true;
+};
+apz.app.OtherInformation.deleteDocument = function (pthis, bankType) {
+    if (bankType === "Primary") {
+        bankSelected = "Primary";
+    } else if (bankType === "Secondary") {
+        bankSelected = "Secondary";
+    }
+    apz.app.Kmbase.deleteDocument(pthis);
+};
+apz.app.OtherInformation.validateMaxIFSCLength = function (pthis) {
+    let $input = $("#" + kmScrId + "changeBankIFSCCode");
+    let value = $input.val().trim().toUpperCase();
+    if (value.length > 11) {
+        $input.val(value.substring(0, 11));
+        ApzCOB.fnDisplayMsg("IFSC code cannot be longer than 11 characters", "E");
+    }
+};
+apz.app.OtherInformation.insuranceDetailsHideAndShow = function () {
+    let insuranceTypeSelectedHS = apz.getElmValue(kmScrId + "insuranceTypeRadioBtn");
+    if (insuranceTypeSelectedHS === "bothInsurance") {
+        if (othInforEditFlag.customNominee === true) {
+            $("#KmSourc__OtherInformation__nomineeApplicantDiv").addClass("sno");
+            $("#KmSourc__OtherInformation__nomineeCoApplicantDiv").addClass("sno");
+            $("#KmSourc__OtherInformation__coappdiffnomneRow").addClass("sno");
+        } else {
+            $("#KmSourc__OtherInformation__nomineeApplicantDiv").removeClass("sno");
+            $("#KmSourc__OtherInformation__nomineeCoApplicantDiv").removeClass("sno");
+            $("#KmSourc__OtherInformation__coappdiffnomneRow").removeClass("sno");
+        }
+    } else if (insuranceTypeSelectedHS === "applicant") {
+        if (othInforEditFlag.customNominee === true) {
+            $("#KmSourc__OtherInformation__nomineeApplicantDiv").addClass("sno");
+            $("#KmSourc__OtherInformation__coappdiffnomneRow").addClass("sno");
+        } else {
+            $("#KmSourc__OtherInformation__nomineeApplicantDiv").removeClass("sno");
+            $("#KmSourc__OtherInformation__coappdiffnomneRow").removeClass("sno");
+        }
+    }
+    $("#KmSourc__OtherInformation__coappdiffnomneRow").addClass("sno");
+};

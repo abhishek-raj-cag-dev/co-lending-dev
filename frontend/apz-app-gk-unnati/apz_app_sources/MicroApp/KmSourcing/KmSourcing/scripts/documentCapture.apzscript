@@ -1,0 +1,2105 @@
+window.docScrId = 'KmSourc__documentCapture__';
+window.VERIFIED_TICK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 52 52" style="vertical-align:middle;margin-left:0px;">
+  <circle cx="26" cy="26" r="26" fill="#66b45c"/>
+  <path d="M6.659,13.75a1.394,1.394,0,0,1-.986-.409L.407,8.074A1.395,1.395,0,1,1,2.38,6.1l4.28,4.28L16.224.817A1.395,1.395,0,0,1,18.2,2.79L7.646,13.34A1.394,1.394,0,0,1,6.659,13.75Z" transform="translate(16.698 19.335)" fill="#fff"/>
+</svg>`;
+window.voterOcrAttempt = 0;
+window.panOcrAttempt = 0;
+window.aadhaarOcrAttempt = 0;
+window.VERIFIED_PAN_VALUE = null;
+var panNumberTag = docScrId + 'ocrPanNumber';
+window.AADHAAR_DOC_CAPTURE_SUCCESS = false;
+window.documentCapture_Validate = {
+    required: function(fieldId, message) {
+        let $el = $("#" + fieldId);
+        if ($el.length === 0) return true;
+        // Skip disabled or hidden fields
+        if ($el.prop("disabled") || !$el.is(":visible")) return true;
+        let value = ($el.val() || "").trim();
+        if (!value || value === PleaseSelect) {
+            showFieldError(fieldId, message);
+            return false;
+        }
+        return true;
+    },
+    fnCheckMaxMinLengthOnBlur: function(pthis) {
+        let minlength = pthis.minLength;
+        let maxlength = pthis.maxLength;
+        if (minlength === -1 || maxlength === -1) return;
+        let value = pthis.value.trim();
+        let $field = $("#" + pthis.id);
+        if (!apz.isNull(value) && (value.length < minlength || value.length > maxlength)) {
+            window.gIsMinMaxErr = true;
+            $field.addClass("err");
+            $("#" + pthis.id + "_ul").next().removeClass("sno");
+            let errTxtFieldId = $("#" + pthis.id + "_ul").next()?.find('.icon-Error')?.next() ?? $('#dummyid');
+            errTxtFieldId?.text(`Please enter minimum:${minlength} and maximum:${maxlength} characters!`);
+            let wrapper;
+            if ($field.closest(".etb-slct").length) {
+                wrapper = $field.closest(".etb-slct").parent().parent();
+            } else if ($field.closest(".ett-inpt").length) {
+                wrapper = $field.closest(".ett-inpt").parent().parent();
+            } else if ($field.closest("ul").length) {
+                wrapper = $field.closest("ul").parent().parent();
+            }
+            wrapper?.addClass("error-inline");
+            return false;
+        }  else if( !apz.isNull(value) && pthis.id.startsWith(`${docScrId}ocrAddr`) && value.match(gALLOWFORADDRESS) != null){
+            const specialChars = gALLOWFORADDRESS.source.replace(/^\[\^a-zA-Z0-9/, '').replace(/\]$/, '');
+            errMsg = `Invalid characters (Allowed: a-z A-Z 0-9<br>special character ${specialChars})`;
+        } else {
+            window.gIsMinMaxErr = false;
+            let wrapper;
+            if ($field.closest(".etb-slct").length) {
+                wrapper = $field.closest(".etb-slct").parent().parent();
+            } else if ($field.closest(".ett-inpt").length) {
+                wrapper = $field.closest(".ett-inpt").parent().parent();
+            } else if ($field.closest("ul").length) {
+                wrapper = $field.closest("ul").parent().parent();
+            }
+            wrapper?.removeClass("error-inline");
+            ApzCOB.hideErrmsgBlockforString(pthis);
+            return true;
+        }
+        $field.addClass("err");
+        $("#" + pthis.id + "_ul").next().removeClass("sno");
+        let errTxtFieldId = $("#" + pthis.id + "_ul").next()?.find('.icon-Error')?.next() ?? $('#dummyid');
+        errTxtFieldId?.html(errMsg).css({
+            "text-align": "left",
+            "display": "block"
+        });
+        let wrapper;
+        if ($field.closest(".etb-slct").length) {
+            wrapper = $field.closest(".etb-slct").parent().parent();
+        } else if ($field.closest(".ett-inpt").length) {
+            wrapper = $field.closest(".ett-inpt").parent().parent();
+        } else if ($field.closest("ul").length) {
+            wrapper = $field.closest("ul").parent().parent();
+        }
+        wrapper?.addClass("error-inline");
+        return false;
+    },
+};
+window.ValfieldMap = {
+    ocrName: "Name",
+    "ocr-dob": "Dob",
+    ocrAadhaarNumber: "AadharNumber",
+    ocrVoterNumber: "VoterID",
+    ocrPanNumber: "PanNumber",
+    ocrAddr1: "AddressLine1",
+    ocrAddr2: "AddressLine2",
+    ocrAddr3: "AddressLine3",
+    "ocr-pincode": "Pincode"
+};
+apz.app.onLoad_documentCapture = function() {
+     $("#KmSourc__documentCapture__ocr_heading").addClass("sno");
+    $("#KmSourc__documentCapture__ocr_details").addClass("sno");
+    $("#KmSourc__documentCapture__ocrNote").addClass("sno");
+    $("#KmSourc__documentCapture__ocrEdit").addClass("sno");
+    if (apz.app.docType === 'Aadhaar') {
+        //$('.ocr-section').addClass('sno');
+        $(`#${kmbaseScr}nxtBtn`).prop('disabled', true);
+        apz.app.documentCapture.checkAndShowOcrSection();
+        window.aadhaarRedactAttempt = {
+            Front: 0,
+            Back: 0
+        };
+    } else {
+        // Voter ID / PAN card — OCR section visible but Next stays disabled until verify
+        $('.ocr-section').removeClass('sno');
+        $(`#${kmbaseScr}nxtBtn`).prop('disabled', true);
+    }
+    if (apz.app.docType === 'Aadhaar') {
+        $('.doc-upload-title').text('Upload front & back side of Aadhaar card');
+        apz.app.updateFieldLabel(docScrId, 'ocrNameSection', 'Name as per Aadhaar');
+        apz.app.updateFieldLabel(kmbaseScr, 'ocrNameSection', 'Name as per Aadhaar');
+        $('.ocrAadhaarSection,.ocr-dobSection,.ocr-addressLine1Section, .ocr-addressLine2Section, .ocr-addressLine3Section,.dob-row, .ocrAadhaar, .ocrAddressLine1, .ocrAddressLine2, .ocrAddressLine3, .ocrDob, .ocrPincode,.ocr-pincodeSection')
+            .show();
+        $('.ocr-verify-btn, .pan-row, .voter-row, .dummy-ocrrow ,.ocrVoterSection, .ocrPanSection').hide();
+        apz.app.documentCapture.onAadhaarSuccess();
+    } else if (apz.app.docType === 'Voter ID') {
+        $('.doc-upload-title').text('Upload front & back side of Voter ID');
+        apz.app.updateFieldLabel(docScrId, 'ocrNameSection', 'Name');
+        apz.app.updateFieldLabel(kmbaseScr, 'ocrNameSection', 'Name');
+        $('.ocr-dob, .aadhaar-row, .pan-row').hide();
+        $('.ocrPanSection, .ocrAadhaarSection, .ocr-dobSection').hide();
+        $('.ocr-verify-btn, .ocr-pincodeSection, .ocr-addressLine1Section, .ocr-addressLine2Section, .ocr-addressLine3Section, .ocrVoterSection, .dummy-ocrrow, .ocrAddressLine1, .ocrAddressLine2, .ocrAddressLine3, .ocrPincode')
+            .show();
+        $(`#${docScrId}verifyBtn`).off('click').on('click', function() {
+            apz.app.documentCapture.primaryKycVerification();
+        });
+        let voterTag = docScrId + "ocrVoterNumber";
+        apz.app.documentCapture.checkAndShowVoterIDOcrSection();
+    } else if (apz.app.docType === 'PAN card') {
+        $("#nxtBtn").prop("disabled", true);
+        let $btn = $("#" + docScrId + "verifyBtn");
+        $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
+        $('.doc-upload-title').text('Upload front & back side of PAN card');
+        apz.app.updateFieldLabel(docScrId, 'ocrNameSection', 'Name as per PAN');
+        apz.app.updateFieldLabel(kmbaseScr, 'ocrNameSection', 'Name as per PAN');
+        $('.ocr-note, .ocr-pincode, .ocr-addressLine3, .ocr-addressLine2, .ocr-addressLine1, .ocr-dob, .voter-row, .aadhaar-row').hide();
+        $('.ocr-pincodeSection, .ocr-addressLine1Section, .ocr-addressLine2Section, .ocr-addressLine3Section, .dob-row, .ocrVoterSection, .ocrAadhaarSection, .ocr-dobSection')
+            .hide();
+        $('.ocr-verify-btn, .ocrPanSection, .dummy-ocrrow').show();
+        $(`#${panNumberTag}`).off("input").on("input", function() {
+            let newVal = $(this).val().toUpperCase().trim();
+            $(this).val(newVal);
+            // Clear error UI completely
+            $(this).removeClass("err");
+            clearFieldError(panNumberTag);
+            // Enable field if previously disabled
+            // ApzCOB.AddOrRemoveDisableFields([panNumberTag], false);
+            // Reset verification state
+            window.VERIFIED_PAN_VALUE = null;
+            if (gApzCOB.currentApplicant > 1) {
+                window.coapplicant_pancheck = false;
+            } else {
+                window.applicant_pancheck = false;
+            }
+            // Reset Verify button
+            let $btn = $("#" + docScrId + "verifyBtn");
+            // $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
+            $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false).off('click').on('click', function() {
+                apz.app.documentCapture.PanVerification();
+            });
+            // Disable Next button again
+            $("#nxtBtn").prop("disabled", true);
+        });
+        // VERIFY BUTTON
+        $(`#${docScrId}verifyBtn`).off('click').on('click', function() {
+            apz.app.documentCapture.PanVerification();
+        });
+        apz.app.documentCapture.checkAndShowPanOcrSection();
+    }
+    apz.app.Kmbase.paintAllDocuments();
+    apz.app.documentCapture.restoreOcrFieldsFromSession();
+   
+    $(document).off("change", "#" + docScrId + "ocr-pincode").on("change", "#" + docScrId + "ocr-pincode", function() {
+        let val = $(this).val();
+        if (val && val.length === 6) {
+            apz.app.Kmbase.onchangepincode(this, "ocr");
+        }
+    });
+    apz.app.documentCapture.setMinMaxLength();
+    setTimeout(() => {
+        const el = $('.doc-upload-title');
+        el.attr('tabindex', '-1');
+        el[0]?.scrollIntoView({
+            behavior: 'auto',
+            block: 'center'
+        });
+    }, 100);
+};
+
+apz.app.documentCapture.setMinMaxLength = function () {
+    ApzCOB.setMinMaxLength(Object.entries(ValfieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: docScrId + fieldId
+    })));
+};
+apz.app.documentCapture.restoreOcrFieldsFromSession = function() {
+    var src = docScrId;
+    var isApplicant = gApzCOB.currentApplicant === 1;
+    var custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    // -- Restore name, aadhaar/voter number, DOB from customerDetailsList -----
+    if (inSessionStore.customerDetailsList) {
+        var custEntry = inSessionStore.customerDetailsList.find(function(c) {
+            return String(c.custDtlId) === String(custDtlId);
+        });
+        if (custEntry && custEntry.payload) {
+            var p = custEntry.payload;
+            // Name field (ocrName) -- same field for all doc types
+            if (p.secondaryKycName) $("#" + src + "ocrName").val(p.secondaryKycName);
+            // Aadhaar number
+            if (p.secondaryKycId && apz.app.docType === "Aadhaar") {
+                $("#" + src + "ocrAadhaarNumber").val(p.secondaryKycId);
+            }
+            // Voter ID number
+            // if (p.primaryKycId && apz.app.docType === "Voter ID") {
+            //     $("#" + src + "ocrVoterNumber").val(p.primaryKycId);
+            // }
+            // DOB
+            // if (p.dob) $("#" + src + "ocr-dob").val(ApzCOB.convertDateFormat(p.dob, 'dd/mm/yyyy'));
+        }
+    }
+    // -- Restore address fields from SecondaryKyc (Aadhaar) or Voter/Present --
+    var addrList = [];
+    if (inSessionStore.addressDetailsWrapperList) {
+        var addrDetailsList = inSessionStore.addressDetailsWrapperList[0]?.addressDetailsList || [];
+        var pw = addrDetailsList.find(function(w) {
+            return w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId);
+        });
+        addrList = pw?.payload?.addressList || [];
+    }
+    var addrEntry = null;
+    if (apz.app.docType === "Aadhaar") {
+        addrEntry = addrList.find(function(a) {
+            return a.addressType === "SecondaryKyc";
+        });
+    } else if (apz.app.docType === "Voter ID" || apz.app.docType === "PAN card") {
+        // Voter/PAN address was saved as "Voter" entry
+        addrEntry = addrList.find(function(a) {
+            return a.addressType === "Voter";
+        });
+    }
+    if (addrEntry) {
+        // Map session keys back to docScrId OCR field IDs
+        var addrMapping = [{
+            key: "addressLine1",
+            fieldId: "ocrAddr1"
+        }, {
+            key: "addressLine2",
+            fieldId: "ocrAddr2"
+        }, {
+            key: "addressLine3",
+            fieldId: "ocrAddr3"
+        }, {
+            key: "pinCode",
+            fieldId: "ocr-pincode"
+        }, {
+            key: "city",
+            fieldId: "ocrCity"
+        }, {
+            key: "district",
+            fieldId: "ocrDistrict"
+        }, {
+            key: "state",
+            fieldId: "ocrState"
+        }, {
+            key: "country",
+            fieldId: "ocrCountry"
+        }, {
+            key: "area",
+            fieldId: "ocrArea"
+        }, {
+            key: "landMark",
+            fieldId: "ocrLandmark"
+        }];
+        addrMapping.forEach(function(m) {
+            if (addrEntry[m.key]) {
+                // $("#" + src + m.fieldId).val(addrEntry[m.key]);
+                let $el = $("#" + src + m.fieldId);
+                $el.val(addrEntry[m.key]);
+                // Trigger pincode logic automatically
+                if (m.key === "pinCode") {
+                    apz.app.Kmbase.onchangepincode($el[0], "ocr");
+                }
+            }
+        });
+    }
+};
+apz.app.updateFieldLabel = function(screenPrefix, fieldName, newText) {
+    if (!screenPrefix || !fieldName || !newText) return;
+    var inputId = screenPrefix + fieldName;
+    var label = document.querySelector('label[for="' + inputId + '"]');
+    if (label) {
+        label.textContent = newText;
+        label.title = newText;
+    }
+};
+apz.app.documentCapture.formValidator = function() {
+    let isValid = true;
+
+    function check(result) {
+        if (!result) isValid = false;
+    }
+    const p = kmbaseScr;
+    let dobId = p + "ocrDob";
+    let voterId = p + "ocrVoter";
+    let panId = p + "ocrPan";
+    let aadhaarId = p + "ocrAadhaar";
+    let name = p + "ocrNameSection";
+    let address1Id = p + "ocrAddressLine1";
+    let pincodeId = p + "ocrPincode";
+    check(window.documentCapture_Validate.required(name, "Please enter Name"));
+    if (apz.app.docType === "Aadhaar") {
+        check(window.documentCapture_Validate.required(dobId, "Please select DOB"));
+        check(window.documentCapture_Validate.required(aadhaarId, "Please enter Aadhaar number"));
+        check(window.documentCapture_Validate.required(address1Id, "Please enter Address line 1"));
+        check(window.documentCapture_Validate.required(pincodeId, "Please enter Pincode"));
+    }
+    if (apz.app.docType === "Voter ID") {
+        check(window.documentCapture_Validate.required(voterId, "Please enter Voter ID"));
+        check(window.documentCapture_Validate.required(address1Id, "Please enter Address line 1"));
+        check(window.documentCapture_Validate.required(pincodeId, "Please enter Pincode"));
+    }
+    if (apz.app.docType === "PAN card") {
+        check(window.documentCapture_Validate.required(panId, "Please enter PAN number"));
+    }
+    return isValid;
+};
+apz.app.documentCapture.validateForm = function() {
+    let valid = apz.app.documentCapture.formValidator();
+    let errorElements = $(".modal .error-inline:visible");
+    if (!valid || errorElements.length > 0) {
+        let firstError = errorElements.first();
+        if (firstError.length) {
+            firstError[0].scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+        return false;
+    }
+    if (apz.app.docType === "Aadhaar") {
+        apz.app.documentCapture.aadhaarDedupe();
+        return;
+    }
+    apz.app.documentCapture.copyOcrValuesFromModal();
+    apz.app.documentCapture.clearModalFields();
+    ApzCOB.toggleModal('KmSourc__Kmbase__Edit_OCR_Modal');
+    apz.app.documentCapture.checkAndEnableNext();
+    return true;
+};
+apz.app.documentCapture.mapOcrToAadhaarFields = function() {
+    var src = docScrId;
+    var tgt = AadhaarScrId;
+    var isApplicant = gApzCOB.currentApplicant === 1;
+    var custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    var addressDtlsId = isApplicant ? gApzCOB.userDetails.addressDtlsId : gApzCOB.userDetails.CoApplicantAddressDtlsId;
+    var mapping = [{
+        from: "ocrAddr1",
+        to: "addline1",
+        key: "addressLine1"
+    }, {
+        from: "ocrAddr2",
+        to: "addline2",
+        key: "addressLine2"
+    }, {
+        from: "ocrAddr3",
+        to: "addline3",
+        key: "addressLine3"
+    }, {
+        from: "ocr-pincode",
+        to: "addpin",
+        key: "pinCode"
+    }, {
+        from: "ocrCity",
+        to: "aadCity",
+        key: "city"
+    }, {
+        from: "ocrDistrict",
+        to: "aadDistrict",
+        key: "district"
+    }, {
+        from: "ocrState",
+        to: "aadState",
+        key: "state"
+    }, {
+        from: "ocrCountry",
+        to: "aadCountry",
+        key: "country"
+    }, {
+        from: "ocrArea",
+        to: "aadArea",
+        key: "area"
+    }, {
+        from: "ocrLandmark",
+        to: "aadLandmark",
+        key: "landMark"
+    }];
+    // Read name, aadhaar number and DOB from OCR fields
+    var ocrName = ($("#" + src + "ocrName").val() || "").trim();
+    var ocrAadhaarNum = ($("#" + src + "ocrAadhaarNumber").val() || "").trim();
+    var ocrDob = ($("#" + src + "ocr-dob").val() || "").trim();
+    // Build SecondaryKyc object from OCR address values
+    var secondaryKyc = {
+        addressType: "SecondaryKyc"
+    };
+    mapping.forEach(function(pair) {
+        secondaryKyc[pair.key] = ($("#" + src + pair.from).val() || "").trim();
+    });
+    if (!inSessionStore.addressDetailsWrapperList) {
+        inSessionStore.addressDetailsWrapperList = [{
+            addressDetailsList: []
+        }];
+    }
+    if (!inSessionStore.addressDetailsWrapperList[0].addressDetailsList) {
+        inSessionStore.addressDetailsWrapperList[0].addressDetailsList = [];
+    }
+    var addrDetailsList = inSessionStore.addressDetailsWrapperList[0].addressDetailsList;
+    var personalWrapper = addrDetailsList.find(function(w) {
+        return w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId);
+    });
+    if (!personalWrapper) {
+        personalWrapper = {
+            addressDtlsId: addressDtlsId || "",
+            custDtlId: parseInt(custDtlId),
+            addressType: "Personal",
+            payload: {
+                addressList: []
+            }
+        };
+        addrDetailsList.push(personalWrapper);
+    }
+    if (!personalWrapper.payload) {
+        personalWrapper.payload = {
+            addressList: []
+        };
+    }
+    if (!personalWrapper.payload.addressList) {
+        personalWrapper.payload.addressList = [];
+    }
+    var addrList = personalWrapper.payload.addressList;
+    // Upsert ONLY SecondaryKyc — Voter and Present are untouched
+    var secKycIndex = addrList.findIndex(function(a) {
+        return a.addressType === "SecondaryKyc";
+    });
+    if (secKycIndex >= 0) {
+        addrList[secKycIndex] = secondaryKyc;
+    } else {
+        addrList.push(secondaryKyc);
+    }
+    if (!inSessionStore.customerDetailsList) inSessionStore.customerDetailsList = [];
+    var custList = inSessionStore.customerDetailsList;
+    var custIdx = custList.findIndex(function(c) {
+        return String(c.custDtlId) === String(custDtlId);
+    });
+    var existingPayload = custIdx >= 0 ? (custList[custIdx].payload || {}) : {};
+    var updatedPayload = Object.assign({}, existingPayload, {
+        secondaryKycName: ocrName,
+        secondaryKycId: ocrAadhaarNum,
+        secondaryKycDob:  ocrDob ? ApzCOB.convertDateFormat(ocrDob, 'yyyy-mm-dd') : existingPayload.secondaryKycDob || ""
+    });
+    if (custIdx >= 0) {
+        custList[custIdx].payload = updatedPayload;
+        custList[custIdx].customerName = custList[custIdx].customerName || ocrName;
+    } else {
+        custList.push({
+            custDtlId: custDtlId,
+            customerType: isApplicant ? "Applicant" : "Co-App",
+            customerName: ocrName,
+            mobileNumber: "",
+            payload: updatedPayload
+        });
+    }
+    var activeTabMatchesCaptured = (isApplicant && gApzCOB.currentApplicant === 1) || (!isApplicant && gApzCOB.currentApplicant === 2);
+    if (activeTabMatchesCaptured) {
+        // Aadhaar address fields (addline1 .. aadLandmark)
+        mapping.forEach(function(pair) {
+            var $field = $("#" + tgt + pair.to);
+            if ($field.length) {
+                $field.val(secondaryKyc[pair.key]).trigger("change");
+            }
+        });
+        // Name and Aadhaar number fields -- these are the two that were missing
+        if (ocrName) $("#" + tgt + "aadharname").val(ocrName);
+        if (ocrAadhaarNum) $("#" + tgt + "aadharnum").val(ocrAadhaarNum);
+        if (ocrDob) $("#" + tgt + "aadhardob").val(ocrDob);
+    }
+    if (typeof apz.app.AadhaarDetails.paintAddressTable === "function") {
+        apz.app.AadhaarDetails.paintAddressTable();
+    }
+    if (typeof apz.app.AadhaarDetails.toggleAddressRadios === "function") {
+        apz.app.AadhaarDetails.toggleAddressRadios();
+    }
+    window.AADHAAR_DOC_CAPTURE_SUCCESS = true;
+    $("#" + AadhaarScrId + "aadharDetails").removeClass('sno');
+    $("#" + AadhaarScrId + "captureAadhaar").removeClass('btm-seperator');
+};
+
+function clearFieldError(fieldId) {
+    let field = document.getElementById(fieldId);
+    if (!field) return;
+    let parent = field.parentElement;
+    while (parent) {
+        if (parent.classList.contains("error-inline")) {
+            parent.classList.remove("error-inline");
+            break;
+        }
+        parent = parent.parentElement;
+    }
+    let errorEl = document.getElementById(fieldId + "_error");
+    if (errorEl) {
+        errorEl.remove();
+    }
+}
+
+function showFieldError(fieldId, message) {
+    let field = document.getElementById(fieldId);
+    if (!field) return;
+    clearFieldError(fieldId);
+    let wrapper;
+    if (field.closest(".etb-slct")) {
+        wrapper = field.closest(".etb-slct").parentElement;
+    } else if (field.closest(".ett-inpt")) {
+        wrapper = field.closest(".ett-inpt").parentElement;
+    } else {
+        wrapper = field.parentElement;
+    }
+    if (wrapper) {
+        wrapper.classList.add("error-inline");
+    }
+    let error = document.createElement("div");
+    error.className = "cb-error-msg";
+    error.id = fieldId + "_error";
+    error.innerText = message;
+    wrapper.appendChild(error);
+}
+apz.app.documentCapture.updatePresentAddressInSession = function() {
+    var cb = CBcheckScr;
+    var isApplicant = gApzCOB.currentApplicant === 1;
+    var custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    var addressDtlsId = isApplicant ? gApzCOB.userDetails.addressDtlsId : gApzCOB.userDetails.CoApplicantAddressDtlsId;
+    // Read current screen values
+    var updatedPresent = {
+        addressType: "Present",
+        addressLine1: ($("#" + cb + "addressLine1").val() || "").trim(),
+        addressLine2: ($("#" + cb + "addressLine2").val() || "").trim(),
+        addressLine3: ($("#" + cb + "addressLine3").val() || "").trim(),
+        pinCode: ($("#" + cb + "pincode").val() || "").trim(),
+        city: ($("#" + cb + "addPreCity").val() || "").trim(),
+        district: ($("#" + cb + "addPreDistrict").val() || "").trim(),
+        state: ($("#" + cb + "addPreState").val() || "").trim(),
+        country: "INDIA",
+        area: ($("#" + cb + "area").val() || "").trim(),
+        landMark: ($("#" + cb + "landmark").val() || "").trim()
+    };
+    // Ensure session structure exists
+    if (!inSessionStore.addressDetailsWrapperList) {
+        inSessionStore.addressDetailsWrapperList = [{
+            addressDetailsList: []
+        }];
+    }
+    if (!inSessionStore.addressDetailsWrapperList[0].addressDetailsList) {
+        inSessionStore.addressDetailsWrapperList[0].addressDetailsList = [];
+    }
+    var addrDetailsList = inSessionStore.addressDetailsWrapperList[0].addressDetailsList;
+    var personalWrapper = addrDetailsList.find(function(w) {
+        return w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId);
+    });
+    if (!personalWrapper) {
+        personalWrapper = {
+            addressDtlsId: addressDtlsId || "",
+            custDtlId: parseInt(custDtlId),
+            addressType: "Personal",
+            payload: {
+                addressList: []
+            }
+        };
+        addrDetailsList.push(personalWrapper);
+    }
+    var addrList = personalWrapper.payload.addressList;
+    var presentIdx = addrList.findIndex(function(a) {
+        return a.addressType === "Present";
+    });
+    if (presentIdx >= 0) {
+        addrList[presentIdx] = updatedPresent;
+    } else {
+        addrList.push(updatedPresent);
+    }
+};
+apz.app.documentCapture.onAadhaarSuccess = function() {
+    window.AADHAAR_DOC_CAPTURE_SUCCESS = true;
+};
+apz.app.documentCapture.copyOcrValuesToModal = function() {
+    const src = docScrId;
+    const tgt = kmbaseScr;
+    const mapping = {
+        "ocrName": "ocrNameSection",
+        "ocr-dob": "ocrDob",
+        "ocrAadhaarNumber": "ocrAadhaar",
+        "ocrVoterNumber": "ocrVoter",
+        "ocrPanNumber": "ocrPan",
+        "ocrAddr1": "ocrAddressLine1",
+        "ocrAddr2": "ocrAddressLine2",
+        "ocrAddr3": "ocrAddressLine3",
+        "ocr-pincode": "ocrPincode",
+        "ocrCity": "ocrCity",
+        "ocrDistrict": "ocrDistrict",
+        "ocrState": "ocrState",
+        "ocrCountry": "ocrCountry",
+        "ocrArea": "ocrArea",
+        "ocrLandmark": "ocrLandmark"
+    };
+    Object.keys(mapping).forEach(srcKey => {
+        const srcId = src + srcKey;
+        const tgtId = tgt + mapping[srcKey];
+        const value = $("#" + srcId).val();
+        $("#" + tgtId).val(value);
+    });
+};
+apz.app.documentCapture.copyOcrValuesFromModal = function() {
+    const src = kmbaseScr;
+    const tgt = docScrId;
+    let voterTag = docScrId + "ocrVoterNumber";
+    const mapping = {
+        "ocrNameSection": "ocrName",
+        "ocrDob": "ocr-dob",
+        "ocrAadhaar": "ocrAadhaarNumber",
+        "ocrVoter": "ocrVoterNumber",
+        "ocrPan": "ocrPanNumber",
+        "ocrAddressLine1": "ocrAddr1",
+        "ocrAddressLine2": "ocrAddr2",
+        "ocrAddressLine3": "ocrAddr3",
+        "ocrPincode": "ocr-pincode",
+        "ocrCity": "ocrCity",
+        "ocrDistrict": "ocrDistrict",
+        "ocrState": "ocrState",
+        "ocrCountry": "ocrCountry",
+        "ocrArea": "ocrArea",
+        "ocrLandmark": "ocrLandmark"
+    };
+    Object.keys(mapping).forEach(srcKey => {
+        const srcId = src + srcKey;
+        const tgtId = tgt + mapping[srcKey];
+        // const value = $("#" + srcId).val();
+        const value = $("#" + srcId).val() || "";
+        let finalValue = value;
+        // Enforce uppercase ONLY for Voter & PAN
+        if (mapping[srcKey] === "ocrVoterNumber" || mapping[srcKey] === "ocrPanNumber") {
+            finalValue = (value || "").toUpperCase().trim();
+        }
+        // $("#" + tgtId).val(finalValue);
+        let $el = $("#" + tgtId);
+        $el.val(finalValue);
+        if (mapping[srcKey] === "ocr-pincode") {
+            $el.trigger("change");
+        }
+        // FIX 1: Always copy ALL fields including name — no guard blocking name
+        // $("#" + tgtId).val(value);
+        // Clear error UI after edit
+        $("#" + tgtId).removeClass("err");
+        clearFieldError(tgtId);
+        // PAN CHECK — reset if PAN number changed after verification
+        if (tgtId === panNumberTag) {
+            // let newPan = (value || "").toUpperCase().trim();
+            let newPan = (finalValue || "");
+            if (window.VERIFIED_PAN_VALUE && window.VERIFIED_PAN_VALUE !== newPan) {
+                window.VERIFIED_PAN_VALUE = null;
+                // $("#nxtBtn").prop("disabled", true);
+                $("#nxtBtn").prop("disabled", true);
+                $("#" + kmbaseScr + "nxtBtn").prop("disabled", true);
+                let $btn = $("#" + docScrId + "verifyBtn");
+                // $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
+                $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false).off('click').on('click', function() {
+                    apz.app.documentCapture.PanVerification();
+                });
+                if (gApzCOB.currentApplicant > 1) {
+                    window.coapplicant_pancheck = false;
+                } else {
+                    window.applicant_pancheck = false;
+                }
+            }
+        }
+    });
+    //  VOTER CHECK — only reset verification if voter NUMBER changed
+    // Name/address changes after verification should NOT reset Next button
+    let newVoter = $("#" + voterTag).val()?.toUpperCase().trim() || "";
+    let oldVoter = window.ORIGINAL_VOTER_VALUE || "";
+    if (newVoter !== oldVoter) {
+        // Voter number itself was changed — must re-verify
+        window.VERIFIED_VOTER_VALUE = null;
+        window.VERIFIED_VOTER_NAME = null;
+        $("#" + kmbaseScr + "nxtBtn").prop("disabled", true);
+        let $btn = $("#" + docScrId + "verifyBtn");
+        // $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
+        $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false).off('click').on('click', function() {
+            apz.app.documentCapture.primaryKycVerification();
+        });
+        if (gApzCOB.currentApplicant > 1) {
+            window.CO_APPLICANT_PRIMARY_KYC_VERIFICATION = false;
+            window.CO_APPLICANT_ALTERNATE_KYC_VERIFICATION = false;
+        } else {
+            window.PRIMARY_KYC_VERIFICATION = false;
+            window.ALTERNATE_KYC_VERIFICATION = false;
+        }
+    }
+    // If voter number unchanged, verification state and Next button remain intact
+};
+// apz.app.documentCapture.openEditModal = function() {
+//     window.ORIGINAL_VOTER_VALUE = $("#" + docScrId + "ocrVoterNumber").val()?.toUpperCase().trim();
+//     apz.app.documentCapture.copyOcrValuesToModal();
+//     ApzCOB.toggleModal('KmSourc__Kmbase__Edit_OCR_Modal');
+// };
+apz.app.documentCapture.openEditModal = function() {
+    window.ORIGINAL_VOTER_VALUE = $("#" + docScrId + "ocrVoterNumber").val()?.toUpperCase().trim();
+    apz.app.documentCapture.copyOcrValuesToModal();
+    ApzCOB.toggleModal('KmSourc__Kmbase__Edit_OCR_Modal');
+    const modal = $("#KmSourc__Kmbase__Edit_OCR_Modal");
+    modal.find(".error-inline").removeClass("error-inline");
+    modal.find(".err").removeClass("err");
+    modal.find(".err-msg").removeAttr("style").addClass("sno");
+    modal.find(".cb-error-msg").removeAttr("style").addClass("sno");
+    modal.find("input, textarea").off("input").on("input", function() {
+        let id = $(this).attr("id");
+        if (!id) return;
+        $("#" + id + "_li").removeClass("error-inline");
+        $(this).removeClass("err");
+    });
+};
+apz.app.documentCapture.clearModalFields = function() {
+    const p = kmbaseScr;
+    const fields = ["ocrNameSection", "ocrDob", "ocrAadhaar", "ocrVoter", "ocrPan", "ocrAddressLine1", "ocrAddressLine2", "ocrAddressLine3",
+        "ocrPincode"
+    ];
+    fields.forEach(f => {
+        $("#" + p + f).val('');
+    });
+};
+apz.app.documentCapture.ageCalculator = function(pthis) {
+    var $dob = pthis ? $(pthis) : $("#" + kmbaseScr + "ocrDob");
+    var dobVal = $dob.val();
+    if (dobVal.includes("-")) {
+        let parts = dobVal.split("-");
+        dobVal = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    var age = ApzCOB.getAge(dobVal);
+    if (!age || age < 0) {
+        ApzCOB.fnDisplayMsg("Please select a valid date of birth", "E");
+        $dob.val('');
+        return false;
+    } else {
+        minAge = apz.isNull(minAge) ? 22 : minAge;
+        maxAge = apz.isNull(maxAge) ? 60 : maxAge;
+        if (!(parseInt(age) >= minAge && parseInt(age) < maxAge)) {
+            let msg = `Please select valid age(min:${minAge},max:${maxAge})`;
+            hasDob = false;
+            $dob.addClass("err");
+            $("#" + $dob.attr('id') + "_ul").next().removeClass("sno");
+            let errTxtFieldId = $("#" + $dob.attr('id') + "_ul").next()?.find('.icon-Error')?.next() ?? $('#dummyid');
+            errTxtFieldId?.text(msg);
+            let wrapper;
+            if ($dob.closest(".etb-slct").length) {
+                wrapper = $dob.closest(".etb-slct").parent().parent();
+            } else if ($dob.closest(".ett-inpt").length) {
+                wrapper = $dob.closest(".ett-inpt").parent().parent();
+            } else if ($dob.closest("ul").length) {
+                wrapper = $$dob.closest("ul").parent().parent();
+    }
+            wrapper?.addClass("error-inline");
+            return false;
+        }
+    }
+    return true;
+};
+apz.app.documentCapture.PanVerification = function() {
+    let isValidPanType = ApzCOB.validateEachInputField(panNumberTag);
+    let isValidPanId = ApzCOB.validateEachInputField(panNumberTag);
+    let isValidNumber = apz.app.documentCapture.PannumberVerCheck();
+    if (isValidPanType && isValidPanId && isValidNumber) {
+        var PanObj = {};
+        PanObj.kycType = 'pan';
+        PanObj.kycId = $('#' + panNumberTag).val().toUpperCase().trim();
+        ApzCOB.PanVerificationCheck(PanObj, apz.app.documentCapture.panVerificationCallback);
+    } else {
+        console.log("PAN verification blocked due to validation failure");
+    }
+};
+apz.app.documentCapture.PannumberVerCheck = function() {
+    let isNotSame = true;
+    if (apz.isNull(inSessionStore.customerDetailsList)) {
+        isNotSame = true;
+    } else {
+        let currentType = gApzCOB.currentApplicant === 1 ? "Applicant" : "Co-App";
+        let otherCustomer = inSessionStore.customerDetailsList.find(c => c.customerType !== currentType);
+        let enteredPan = $('#' + panNumberTag).val().toUpperCase().trim();
+        let otherPan = otherCustomer?.payload?.panNumber?.toUpperCase().trim();
+        if (otherPan && enteredPan === otherPan) {
+            isNotSame = false;
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_PERDTLS_PANDTLS_ERR_TXT_SAMEPAN"), "E");
+        }
+    }
+    return isNotSame;
+};
+apz.app.documentCapture.panValidationCheck = function() {
+    let isValid = false;
+    let errmsg;
+    let verifyPanVisible = $(`#${docScrId}el_hpl_3`).is(':visible');
+    let inValidPanVisible = $(`#${docScrId}el_txt_142`).is(':visible');
+    if (verifyPanVisible || inValidPanVisible) {
+        window.applicant_pancheck = false;
+    } else {
+        window.applicant_pancheck = true;
+    }
+    if (gApzCOB.currentApplicant <= 1) {
+        if (window.applicant_pancheck === false) {
+            isValid = false;
+            errmsg = "LIT_PERDTLS_PANDTLS_ERR_TXT_VERIFYPAN";
+        } else {
+            isValid = true;
+        }
+    } else {
+        if (window.coapplicant_pancheck === false) {
+            isValid = false;
+            errmsg = "LIT_PERDTLS_PANDTLS_ERR_TXT_VERIFYPAN";
+        } else {
+            isValid = true;
+        }
+    }
+    if (!isValid) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode(errmsg), "E");
+    }
+    return isValid;
+};
+apz.app.documentCapture.paintpanDetails = function(params) {
+    if (!params || !params.payload) return;
+    let currentPan = $('#' + panNumberTag).val().toUpperCase().trim();
+    if (params.payload.panNumberStatus !== "Verified" || window.VERIFIED_PAN_VALUE !== currentPan) {
+        return;
+    }
+    // Keep field disabled
+    // ApzCOB.AddOrRemoveDisableFields([panNumberTag], true);
+    // $("#" + docScrId + "el_hpl_3_ul").addClass("sno");
+    // $("#" + docScrId + "el_txt_141_ul").removeClass("sno");
+    // $("#" + docScrId + "el_txt_142_ul").addClass("sno");
+    if (gApzCOB.currentApplicant > 1) {
+        window.coapplicant_pancheck = true;
+    } else {
+        window.applicant_pancheck = true;
+    }
+};
+apz.app.documentCapture.reinitiate_panstatus = function(data) {
+    if ((data.payload.panNumberStatus !== "Verified") && (window.IS_REINITIATE_APPLICATION || window.IS_REJECTED_APPLICATION)) {
+        window.REINITIATE_PAN_CHECKED = false;
+    } else {
+        window.REINITIATE_PAN_CHECKED = true;
+    }
+    if (window.IS_REJECTED_APPLICATION && window.REINITIATE_PAN_CHECKED) {
+        window.applicant_pancheck = false;
+        window.coapplicant_pancheck = false;
+        if (data.payload.panNumberStatus === 'Verified') {
+            $("#" + docScrId + "el_hpl_3_ul").removeClass("sno");
+            $("#" + docScrId + "el_txt_141_ul").addClass("sno");
+        } else {
+            $("#" + docScrId + "el_hpl_3_ul").addClass("sno");
+            $("#" + docScrId + "el_txt_141_ul").removeClass("sno");
+        }
+        $("#" + docScrId + "el_txt_142_ul").addClass("sno");
+        $("#" + panNumberTag).val((data.payload.panNumber || '').toUpperCase());
+        // ApzCOB.AddOrRemoveDisableFields([panNumberTag], false);
+    }
+};
+apz.app.documentCapture.panVerificationCallback = function(params) {
+    ApzCOB.hideLoader();
+    try {
+        if (!ApzCOB.handleServiceCallBacks(params)) return;
+        let responseObj = JSON.parse(params.res.APZCBO__ValidateVoterID_Res.apiResponse.ResponseBody.responseObj);
+        let $verifyBtn = $("#" + docScrId + "verifyBtn");
+        let $nextBtn = $('#' + kmbaseScr + 'nxtBtn');
+        if (responseObj.result_code === 101) {
+            let verifiedPan = (responseObj.result?.pan || "").toUpperCase().trim();
+            let verifiedName = (responseObj.result?.name || "").toUpperCase().trim();
+            window.VERIFIED_PAN_VALUE = verifiedPan;
+            $("#" + panNumberTag).removeClass("err");
+            clearFieldError(panNumberTag);
+            $("#" + panNumberTag).val(verifiedPan);
+            // ApzCOB.AddOrRemoveDisableFields([panNumberTag], true);
+            var screenId = 'KmSourc__CBcheck__';
+            $("#" + screenId + "panNum").val(verifiedPan);
+            $("#" + screenId + "panName").val(verifiedName);
+            $("#KmSourc__documentCapture__ocrName").val(verifiedName);
+            // $nextBtn.prop("disabled", false);
+            apz.app.documentCapture.checkAndEnableNext();
+            // Update Verify Button UI
+            $verifyBtn.addClass("pan-verified-btn").html(`<span>Verified</span>${window.VERIFIED_TICK_SVG}`).off('click').prop("disabled", false);
+            // Set flags
+            if (gApzCOB.currentApplicant > 1) {
+                window.coapplicant_pancheck = true;
+            } else {
+                window.applicant_pancheck = true;
+            }
+        } else {
+            window.VERIFIED_PAN_VALUE = null;
+            $nextBtn.prop("disabled", true);
+            $verifyBtn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
+            $("#" + panNumberTag).addClass("err");
+            showFieldError(panNumberTag, "PAN verification failed. Please enter a valid PAN.");
+            if (gApzCOB.currentApplicant > 1) {
+                window.coapplicant_pancheck = false;
+            } else {
+                window.applicant_pancheck = false;
+            }
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        console.log("PAN CALLBACK ERROR:", e);
+    }
+};
+apz.app.documentCapture.mapOcrToCBFields = function() {
+    var src = docScrId;
+    var tgt = CBcheckScr;
+    var isApplicant = gApzCOB.currentApplicant === 1;
+    var custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    var addressDtlsId = isApplicant ? gApzCOB.userDetails.addressDtlsId : gApzCOB.userDetails.CoApplicantAddressDtlsId;
+    var mapping = [{
+        from: "ocrAddr1",
+        to: "addressLine1",
+        key: "addressLine1"
+    }, {
+        from: "ocrAddr2",
+        to: "addressLine",
+        key: "addressLine2"
+    }, {
+        from: "ocrAddr3",
+        to: "addressLine3",
+        key: "addressLine3"
+    }, {
+        from: "ocr-pincode",
+        to: "pincode",
+        key: "pinCode"
+    }, {
+        from: "ocrCity",
+        to: "addPreCity",
+        key: "city"
+    }, {
+        from: "ocrDistrict",
+        to: "addPreDistrict",
+        key: "district"
+    }, {
+        from: "ocrState",
+        to: "addPreState",
+        key: "state"
+    }, {
+        from: "ocrCountry",
+        to: "addPreCountry",
+        key: "country"
+    }, {
+        from: "ocrArea",
+        to: "addPreArea",
+        key: "area"
+    }, {
+        from: "ocrLandmark",
+        to: "addPreLandmark",
+        key: "landMark"
+    }];
+    var ocrName = ($("#" + src + "ocrName").val() || "").trim();
+    var ocrVoterNumber = ($("#" + src + "ocrVoterNumber").val() || "").toUpperCase().trim();
+    var customerType = gApzCOB.currentApplicant == 1 ? 'Applicant' : 'Co-App';
+    var customerVoter = inSessionStore?.customerDetailsList?.find(cust => cust.customerType === customerType)?.payload?.primaryKycId;
+    var leadPrimaryKycId = (customerVoter || gApzCOB?.selLeadDtls?.primaryKyc || "").toUpperCase().trim();
+    var isMatchingPrimary = (ocrVoterNumber === leadPrimaryKycId);
+    if (gApzCOB.currentApplicant > 1 && 
+        (ApplicationType !== 'RENEWAL' || ApzCOB.getPayloadDatafromWrapper("isNewCustomer", "Co-App", "customerDetailsList") === "Create a new Co-Applicant") ) {
+        isMatchingPrimary = true;
+    }
+    var primaryKyc = {
+        addressType: "Voter"
+    };
+    mapping.forEach(function(pair) {
+        primaryKyc[pair.key] = ($("#" + src + pair.from).val() || "").trim();
+    });
+    if (!inSessionStore.addressDetailsWrapperList) {
+        inSessionStore.addressDetailsWrapperList = [{
+            addressDetailsList: []
+        }];
+    }
+    if (!inSessionStore.addressDetailsWrapperList[0].addressDetailsList) {
+        inSessionStore.addressDetailsWrapperList[0].addressDetailsList = [];
+    }
+    var addrDetailsList = inSessionStore.addressDetailsWrapperList[0].addressDetailsList;
+    var personalWrapper = addrDetailsList.find(function(w) {
+        return w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId);
+    });
+    if (!personalWrapper) {
+        personalWrapper = {
+            addressDtlsId: addressDtlsId || "",
+            custDtlId: parseInt(custDtlId),
+            addressType: "Personal",
+            payload: {
+                addressList: []
+            }
+        };
+        addrDetailsList.push(personalWrapper);
+    }
+    var addrList = personalWrapper.payload.addressList;
+    // Upsert Voter address
+    var voterIndex = addrList.findIndex(function(a) {
+        return a.addressType === "Voter";
+    });
+    if (voterIndex >= 0) {
+        addrList[voterIndex] = primaryKyc;
+    } else {
+        addrList.push(primaryKyc);
+    }
+    // Also mirror as Present address for applicant
+    if (isApplicant) {
+        var presentAddress = Object.assign({}, primaryKyc, {
+            addressType: "Present"
+        });
+        var presentIndex = addrList.findIndex(function(a) {
+            return a.addressType === "Present";
+        });
+        if (presentIndex >= 0) {
+            addrList[presentIndex] = presentAddress;
+        } else {
+            addrList.push(presentAddress);
+        }
+    }
+    if (!inSessionStore.customerDetailsList) inSessionStore.customerDetailsList = [];
+    var custList = inSessionStore.customerDetailsList;
+    var custIdx = custList.findIndex(function(c) {
+        return String(c.custDtlId) === String(custDtlId);
+    });
+    var existingPayload = custIdx >= 0 ? (custList[custIdx].payload || {}) : {};
+    var updatedPayload;
+    if (isMatchingPrimary) {
+        /* ── CASE 1: Matches lead primary → save as primaryKycId ─────── */
+        updatedPayload = Object.assign({}, existingPayload, {
+            namePerKyc: ocrName,
+            primaryKycId: ocrVoterNumber,
+            kycStatus: "Verified",
+            primaryKycIdValStatus: "Verified",
+        });
+        // Set primary verification flag
+        if (isApplicant) {
+            window.PRIMARY_KYC_VERIFICATION = true;
+            window.ALTERNATE_KYC_VERIFICATION = false;
+        } else {
+            window.CO_APPLICANT_PRIMARY_KYC_VERIFICATION = true;
+            window.CO_APPLICANT_ALTERNATE_KYC_VERIFICATION = false;
+        }
+        console.log("Voter matched lead primary — saved as primaryKycId");
+    } else {
+        /* ── CASE 2: Does NOT match → save as alternateVoterId ───────── */
+        updatedPayload = Object.assign({}, existingPayload, {
+            namePerKyc: ocrName,
+            alternateVoterId: ocrVoterNumber,
+            alternateVoterIdValStatus: "Verified",
+            kycStatus: "Pending",
+        });
+        // Set ALTERNATE verification flag
+        if (isApplicant) {
+            window.ALTERNATE_KYC_VERIFICATION = true;
+            window.PRIMARY_KYC_VERIFICATION = false;
+        } else {
+            window.CO_APPLICANT_ALTERNATE_KYC_VERIFICATION = true;
+            window.CO_APPLICANT_PRIMARY_KYC_VERIFICATION = false;
+        }
+        console.log("Voter did NOT match lead primary — saved as alternateVoterId");
+    }
+    /* ─── UPSERT customerDetailsList ─────────────────────────────────── */
+    if (custIdx >= 0) {
+        custList[custIdx].payload = updatedPayload;
+        custList[custIdx].customerName = custList[custIdx].customerName;
+        custList[custIdx].mobileNumber = custList[custIdx].mobileNumber;
+        if (!isApplicant) {
+            custList[custIdx].customerName = ocrName;
+        }
+    } else {
+        if (isApplicant) {
+        custList.push({
+            custDtlId: custDtlId,
+            customerType: isApplicant ? "Applicant" : "Co-App",
+            payload: updatedPayload
+        });
+        } else {
+            custList.push({
+                custDtlId: custDtlId,
+                customerType: isApplicant ? "Applicant" : "Co-App",
+                customerName: ocrName,
+                payload: updatedPayload
+            });
+        }
+    }
+    /* ─── DOM — paint CB screen fields (only for active tab) ─────────── */
+    // var activeTabMatchesCaptured = (isApplicant && gApzCOB.currentApplicant === 1) || (!isApplicant && gApzCOB.currentApplicant === 2);
+    // if (activeTabMatchesCaptured) {
+    //     mapping.forEach(function(pair) {
+    //         var $field = $("#" + tgt + pair.to);
+    //         if ($field.length) {
+    //             $field.val(secondaryKyc[pair.key]).trigger("change");
+    //         }
+    //     });
+    // }
+};
+apz.app.documentCapture.mapPanToSession = function() {
+    var src = docScrId;
+    var isApplicant = gApzCOB.currentApplicant === 1;
+    var custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    var panNumber = ($("#" + src + "ocrPanNumber").val() || "").toUpperCase().trim();
+    var panName = ($("#" + src + "ocrName").val() || "").trim();
+    var panStatus = (window.VERIFIED_PAN_VALUE && window.VERIFIED_PAN_VALUE === panNumber) ? "Verified" : "Pending";
+    if (!inSessionStore.customerDetailsList) inSessionStore.customerDetailsList = [];
+    var custList = inSessionStore.customerDetailsList;
+    var custIndex = custList.findIndex(function(c) {
+        return String(c.custDtlId) === String(custDtlId);
+    });
+    var existingPayload = custIndex >= 0 ? (custList[custIndex].payload || {}) : {};
+    var updatedPayload = Object.assign({}, existingPayload, {
+        panNumber: panNumber,
+        namePerPan: panName,
+        panNumberStatus: panStatus
+    });
+    if (custIndex >= 0) {
+        custList[custIndex].payload = updatedPayload;
+    } else {
+        custList.push({
+            custDtlId: custDtlId,
+            customerType: isApplicant ? "Applicant" : "Co-App",
+            payload: updatedPayload
+        });
+    }
+};
+apz.app.documentCapture.checkAndShowOcrSection = function() {
+    let custDtlId = (window.CAPTURE_FROM_APPLICANT != null) ? (window.CAPTURE_FROM_APPLICANT === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB
+        .userDetails.CoApplicantCustomerId) : (gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails
+        .CoApplicantCustomerId);
+    let allDocs = (inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || []).filter(d => d.payload.documentType ===
+        'SECONDARY_KYC' && parseInt(d.custDtlId) === parseInt(custDtlId));
+    let hasFront = allDocs.some(d => d.payload.docLevel == "1");
+    let hasBack = allDocs.some(d => d.payload.docLevel == "2");
+    window.isAadhaarRedactEnabled = allDocs.every(d => d.payload.manualUpload === false);
+    if(!window.isAadhaarRedactEnabled){
+        $('.ocr-section').removeClass('sno');
+        apz.app.documentCapture.manualEntry();
+    } else if ((hasFront && hasBack)) {
+        $('.ocr-section').removeClass('sno');
+    } else {
+        $('.ocr-section').addClass('sno');
+        $(`#${kmbaseScr}nxtBtn`).prop('disabled', true);
+    }
+    apz.app.documentCapture.checkAndEnableNext();
+};
+apz.app.documentCapture.checkAndEnableNext = function() {
+    function check(id, errMsg) {
+        let result = !!($("#" + id).val() || "").trim()
+        if (!result){
+            showFieldError(id, errMsg);
+            return false;
+        } else {
+            clearFieldError(id);
+            return true;
+        }
+    }
+    let custDtlId = gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    let isMinMaxVal = true;
+    if (apz.app.docType === 'Aadhaar') {
+        let allDocs = (inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || []).filter(d => d.payload
+            .documentType === 'SECONDARY_KYC' && parseInt(d.custDtlId) === parseInt(custDtlId));
+        let hasFront = allDocs.some(d => d.payload.docLevel == "1");
+        let hasBack = allDocs.some(d => d.payload.docLevel == "2");
+        if (!hasFront || !hasBack) {
+            $(`#${kmbaseScr}nxtBtn`).prop('disabled', true);
+            // Wipe stale OCR session data so user must re-confirm after re-capture
+            let custList = inSessionStore?.customerDetailsList || [];
+            let custEntry = custList.find(c => String(c.custDtlId) === String(custDtlId));
+            if (custEntry?.payload) {
+                custEntry.payload.secondaryKycName = '';
+                custEntry.payload.secondaryKycId = '';
+            }
+            let addrDetailsList = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList || [];
+            let personalWrapper = addrDetailsList.find(w => w.addressType === 'Personal' && String(w.custDtlId) === String(custDtlId));
+            let addrList = personalWrapper?.payload?.addressList || [];
+            let secKycIdx = addrList.findIndex(a => a.addressType === 'SecondaryKyc');
+            if (secKycIdx >= 0) addrList[secKycIdx].addressLine1 = '';
+            return;
+        }
+        let hasName = check(docScrId + "ocrName", "Please enter Name");
+        let hasAadNum = check(docScrId + "ocrAadhaarNumber", "Please enter Aadhaar number");
+        let hasAddr = check(docScrId + "ocrAddr1", "Please enter Address line 1");
+        let hasPincode = check(docScrId + "ocr-pincode","Please enter Pincode");
+        let hasDob = check(docScrId + "ocr-dob","Please select DOB");
+        Object.entries(window.ValfieldMap).forEach(([fieldId]) => {
+            isMinMaxVal = window.documentCapture_Validate.fnCheckMaxMinLengthOnBlur(
+                        document.getElementById(docScrId + fieldId)) && isMinMaxVal;
+        });
+        $(`#${kmbaseScr}nxtBtn`).prop('disabled', !(isMinMaxVal && hasName && hasAadNum && hasAddr && hasPincode && hasDob));
+        return;
+    }
+    if (apz.app.docType === 'PAN card') {
+        let allDocs = (inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || []).filter(d => d.payload
+            .documentType === 'PAN_NUMBER_PHOTO' && parseInt(d.custDtlId) === parseInt(custDtlId));
+        let hasFront = allDocs.some(d => d.payload.docLevel == "1");
+        let hasBack = allDocs.some(d => d.payload.docLevel == "2");
+        if (!hasFront || !hasBack) {
+            $(`#${kmbaseScr}nxtBtn`).prop('disabled', true);
+            return;
+        }
+        let hasName = !!($("#" +docScrId + "ocrName").val() || "").trim()
+        let hasPanNum = check(docScrId + "ocrPanNumber", "Please enter PAN number");
+        let currentPan = ($("#" + docScrId + "ocrPanNumber").val() || "").toUpperCase().trim();
+        let isVerified = !!(window.VERIFIED_PAN_VALUE && window.VERIFIED_PAN_VALUE === currentPan);
+        if(hasPanNum && !isVerified){
+            showFieldError(docScrId + "ocrPanNumber", "Please verify the Pan Number")
+        } else if (hasPanNum) {
+            clearFieldError(docScrId + "ocrPanNumber")
+        }
+        Object.entries(window.ValfieldMap).forEach(([fieldId]) => {
+            isMinMaxVal = window.documentCapture_Validate.fnCheckMaxMinLengthOnBlur(
+                        document.getElementById(docScrId + fieldId)) && isMinMaxVal;
+        });
+        $(`#${kmbaseScr}nxtBtn`).prop('disabled', !(isMinMaxVal &&hasName && hasPanNum && isVerified));
+        return;
+    }
+    if (apz.app.docType === 'Voter ID') {
+        let allDocs = (inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || []).filter(d => d.payload
+            .documentType === 'PRIMARY_KYC' && parseInt(d.custDtlId) === parseInt(custDtlId));
+        let hasFront = allDocs.some(d => d.payload.docLevel == "1");
+        let hasBack = allDocs.some(d => d.payload.docLevel == "2");
+        if (!hasFront || !hasBack) {
+            $(`#${kmbaseScr}nxtBtn`).prop('disabled', true);
+            return;
+        }
+        let hasName = !!($("#" +docScrId + "ocrName").val() || "").trim()
+        let hasVoterId = check(docScrId + "ocrVoterNumber", "Please enter Voter ID Number");
+        let hasAddr = check(docScrId + "ocrAddr1", "Please enter Address Line 1");
+        let hasPincode = check(docScrId + "ocr-pincode", "Please enter Pincode");;
+        let currentVoter = ($("#" + docScrId + "ocrVoterNumber").val() || "").toUpperCase().trim();
+        let isVerified = !!(window.VERIFIED_VOTER_VALUE && window.VERIFIED_VOTER_VALUE === currentVoter);
+        let isVerifybtnvisible = $("#KmSourc__documentCapture__verifyBtn").text().trim() == 'Verify';
+        if(hasVoterId && !isVerified){
+            showFieldError(docScrId + "ocrVoterNumber", "Please Verify the Voter ID")
+        } else if (hasVoterId) {
+            clearFieldError(docScrId + "ocrVoterNumber")
+        }
+        Object.entries(window.ValfieldMap).forEach(([fieldId]) => {
+            isMinMaxVal = window.documentCapture_Validate.fnCheckMaxMinLengthOnBlur(
+                        document.getElementById(docScrId + fieldId)) && isMinMaxVal;
+        });
+        $(`#${kmbaseScr}nxtBtn`).prop('disabled', !(isMinMaxVal && hasName && hasVoterId && hasAddr && hasPincode && isVerified));
+        if(isVerified && isVerifybtnvisible){
+             $(`#${kmbaseScr}nxtBtn`).prop('disabled',true)
+        }
+        return;
+    }
+};
+apz.app.documentCapture.checkAndShowPanOcrSection = function() {
+    let custDtlId = gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    let allDocs = (inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || []).filter(d => d.payload.documentType ===
+        'PAN_NUMBER_PHOTO' && parseInt(d.custDtlId) === parseInt(custDtlId));
+    let hasFront = allDocs.some(d => d.payload.docLevel == "1");
+    let hasBack = allDocs.some(d => d.payload.docLevel == "2");
+    if (hasFront && hasBack) {
+        $('.ocr-section').removeClass('sno');
+        $("#KmSourc__documentCapture__ocr_heading").addClass("sno");
+        $("#KmSourc__documentCapture__ocr_details").addClass("sno");
+        $("#KmSourc__documentCapture__ocrNote").addClass("sno");
+        $("#KmSourc__documentCapture__ocrEdit").addClass("sno");
+    } else {
+        $('.ocr-section').addClass('sno');
+        $(`#${kmbaseScr}nxtBtn`).prop('disabled', true);
+    }
+};
+apz.app.documentCapture.checkAndShowVoterIDOcrSection = function() {
+    let custDtlId = gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    let allDocs = (inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || []).filter(d => d.payload.documentType ===
+        'PRIMARY_KYC' && parseInt(d.custDtlId) === parseInt(custDtlId));
+    let hasFront = allDocs.some(d => d.payload.docLevel == "1");
+    let hasBack = allDocs.some(d => d.payload.docLevel == "2");
+    if (hasFront && hasBack) {
+        $('.ocr-section').removeClass('sno');
+        $("#KmSourc__documentCapture__ocr_heading").addClass("sno");
+        $("#KmSourc__documentCapture__ocr_details").addClass("sno");
+        $("#KmSourc__documentCapture__ocrNote").addClass("sno");
+        $("#KmSourc__documentCapture__ocrEdit").addClass("sno");
+    } else {
+        $('.ocr-section').addClass('sno');
+        $(`#${kmbaseScr}nxtBtn`).prop('disabled', true);
+    }
+};
+apz.app.documentCapture.primaryKycVerification = function() {
+    IS_CO_APPLICANT_PRIMARY_DEDUPE = false;
+    IS_CO_APPLICANT_SECONDARY_DEDUPE = false;
+    IS_CO_APPLICANT_ALTERNATE_DEDUPE = false;
+    IS_APPLICANT_PRIMARY_DEDUPE = false;
+    IS_ALTERNATE_DEDUPE = false;
+    window.IS_APP_PRIMARY_CHECK_FAILED = false;
+    window.IS_COAPP_PRIMARY_CHECK_FAILED = false;
+    primaryKycScrId  = kmbaseScr
+    ApzCOB.checkVoterExist($(`#${docScrId}ocrVoterNumber`), "primary")
+    let isValid = ApzCOB.validateEachInputField(docScrId + 'ocrVoterNumber');
+    if (isValid) {
+        window.kycVerificationType = "primary";
+        var kycObj = {};
+        kycObj.kycType = "voter";
+        kycObj.kycId = $('#' + docScrId + 'ocrVoterNumber').val().trim().toLocaleUpperCase();
+        if (gApzCOB.currentApplicant > 1) {
+            IS_CO_APPLICANT_PRIMARY_DEDUPE = true;
+        } else {
+            IS_APPLICANT_PRIMARY_DEDUPE = true;
+        }
+        ApzCOB.KycDedupeCheck(kycObj.kycId, apz.app.documentCapture.KycDedupeCheckCB);
+    }
+};
+apz.app.documentCapture.KycDedupeCheckCB = function(params) {
+    let voterTag = docScrId + "ocrVoterNumber";
+    let responseObj = {};
+    if (!apz.isNull(params.res.APZCBO__DedupeVoterID_Res.apiResponse)) {
+        responseObj = params.res.APZCBO__DedupeVoterID_Res.apiResponse.ResponseHeader;
+    }
+    try {
+        ApzCOB.hideLoader();
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            // Dedupe passed
+            if (gApzCOB.currentApplicant <= 1) {
+                if (IS_ALTERNATE_DEDUPE) {
+                    ALTERNATE_DEDUPE_STATUS = true;
+                } else {
+                    PRIMARY_DEDUPE_STATUS = true;
+                }
+            } else {
+                if (IS_CO_APPLICANT_ALTERNATE_DEDUPE) {
+                    CO_APPLICANT_ALTERNATE_DEDUPE_STATUS = true;
+                } else {
+                    CO_APPLICANT_PRIMARY_DEDUPE_STATUS = true;
+                }
+            }
+        } else {
+            // Dedupe failed
+            if (gApzCOB.currentApplicant <= 1) {
+                if (IS_ALTERNATE_DEDUPE) {
+                    ALTERNATE_DEDUPE_STATUS = false;
+                } else {
+                    PRIMARY_DEDUPE_STATUS = false;
+                }
+            } else {
+                if (IS_CO_APPLICANT_ALTERNATE_DEDUPE) {
+                    CO_APPLICANT_ALTERNATE_DEDUPE_STATUS = false;
+                } else {
+                    CO_APPLICANT_PRIMARY_DEDUPE_STATUS = false;
+                }
+            }
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        ApzCOB.hideLoader();
+        // ← same as original — show error message on catch
+        ApzCOB.fnDisplayMsg(responseObj.ResponseMessage, "E");
+        return;
+    }
+    if (gApzCOB.currentApplicant <= 1) {
+        // ── EXACT same rejectMsg pattern as original ─────────────────────
+        let rejectMsg = ". " + ApzCOB.getDescfromLitCode("LIT_COMM_APPLICANT_CONF_TXT_DEDUPE_FAILED_DO_WANT_TO_CONTINUE");
+        if (!IS_ALTERNATE_DEDUPE) {
+            if (!PRIMARY_DEDUPE_STATUS) {
+                // ← "C" type = confirm modal, same as original
+                ApzCOB.fnDisplayMsg(responseObj.ResponseMessage + rejectMsg, "C", apz.app.documentCapture.dedupeServiceConfirmApplicantCB);
+                return; // ← return after confirm, same as original
+            }
+        } else {
+            if (!ALTERNATE_DEDUPE_STATUS) {
+                // ← "C" type = confirm modal, no return — fall through
+                ApzCOB.fnDisplayMsg(responseObj.ResponseMessage + rejectMsg, "C", apz.app.documentCapture.dedupeServiceConfirmApplicantCB);
+            }
+        }
+        // Proceed to KYC validation after dedupe pass
+        if (IS_ALTERNATE_DEDUPE && ALTERNATE_DEDUPE_STATUS) {
+            let kycObj = {};
+            kycObj.kycType = "voter";
+            kycObj.kycId = $("#" + docScrId + "ocrVoterNumber").val().trim();
+            ApzCOB.kycVerificationCheck(kycObj, apz.app.documentCapture.kycVerificationCheckCB);
+        } else if (IS_APPLICANT_PRIMARY_DEDUPE && PRIMARY_DEDUPE_STATUS) {
+            let kycObj = {};
+            kycObj.kycType = "voter";
+            kycObj.kycId = $("#" + docScrId + "ocrVoterNumber").val().trim();
+            ApzCOB.kycVerificationCheck(kycObj, apz.app.documentCapture.kycVerificationCheckCB);
+        }
+    } else {
+        // ── Co-applicant dedupe logic — same as original ─────────────────
+        let coAppDedupeStatus = true;
+        if (!IS_CO_APPLICANT_ALTERNATE_DEDUPE) {
+            if (!CO_APPLICANT_PRIMARY_DEDUPE_STATUS) {
+                coAppDedupeStatus = false;
+            }
+        } else {
+            if (!CO_APPLICANT_ALTERNATE_DEDUPE_STATUS) {
+                coAppDedupeStatus = false;
+            }
+        }
+        if (!coAppDedupeStatus) {            
+            let rejectMsg = ". " + ApzCOB.getDescfromLitCode("LIT_COMM_APPLICANT_CONF_TXT_DEDUPE_FAILED_DO_WANT_TO_CONTINUE");
+            ApzCOB.fnDisplayMsg(responseObj.ResponseMessage + rejectMsg, "C", apz.app.documentCapture.dedupeServiceConfirmApplicantCB);
+            return;
+        }
+        if (IS_CO_APPLICANT_ALTERNATE_DEDUPE && CO_APPLICANT_ALTERNATE_DEDUPE_STATUS) {
+            let kycObj = {};
+            kycObj.kycType = "voter";
+            kycObj.kycId = $("#" + docScrId + "ocrVoterNumber").val().trim();
+            ApzCOB.kycVerificationCheck(kycObj, apz.app.documentCapture.kycVerificationCheckCB);
+        } else if (IS_CO_APPLICANT_PRIMARY_DEDUPE && CO_APPLICANT_PRIMARY_DEDUPE_STATUS) {
+            let kycObj = {};
+            kycObj.kycType = "voter";
+            kycObj.kycId = $("#" + docScrId + "ocrVoterNumber").val().trim();
+            ApzCOB.kycVerificationCheck(kycObj, apz.app.documentCapture.kycVerificationCheckCB);
+        }
+    }
+};
+
+apz.app.documentCapture.aadhaarDedupe = function() {
+    let aadhaarObj = {
+        applicationId: inSessionStore.applicationId,
+        customerId: gApzCOB.currentApplicant > 1 ? (gApzCOB.userDetails.CoApplicantCustomerId || "") : gApzCOB.userDetails.custDtlId,
+        kycType: 'aadhaar',
+        kycId: $(`#${kmbaseScr}ocrAadhaar`).val(),
+        customerName: $(`#${kmbaseScr}ocrNameSection`).val(),
+        dob:  $(`#${kmbaseScr}ocrDob`).val(),
+        productType: ApplicationType
+    }
+    ApzCOB.aadhaarDedupe(aadhaarObj);
+};
+
+apz.app.documentCapture.AadhaarDedupeCB = function(params) {
+    if(ApzCOB.handleServiceCallBacks(params)){
+        apz.app.documentCapture.copyOcrValuesFromModal();
+        apz.app.documentCapture.clearModalFields();
+        ApzCOB.toggleModal('KmSourc__Kmbase__Edit_OCR_Modal');
+        apz.app.documentCapture.checkAndEnableNext();
+    } else {
+         let errormsg = params.res?.APZCBO__DedupeVoterID_Res.apiResponse?.ResponseHeader?.ResponseMessage
+            ApzCOB.fnDisplayMsg(errormsg);
+    }
+    ApzCOB.hideLoader();
+}
+apz.app.documentCapture.dedupeServiceConfirmApplicantCB = function(params) {
+    if (params.choice === true) {
+        // User clicked OK — reject the application
+        window.RejectReason = "Applicant Dedupe Check Failed.";
+        ApzCOB.applicantKycFailedRejectService();
+    } else {
+        // User clicked No — clear the voter field so they enter a different one
+        $("#" + docScrId + "ocrVoterNumber").val('');
+        $("#" + docScrId + "ocrName").val('');
+        clearFieldError(docScrId + "ocrVoterNumber");
+        let $verifyBtn = $("#" + docScrId + "verifyBtn");
+        $verifyBtn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false).off('click').on('click', function() {
+            apz.app.documentCapture.primaryKycVerification();
+        });
+        $("#" + kmbaseScr + "nxtBtn").prop("disabled", true);
+    }
+};
+apz.app.documentCapture.kycVerificationCheckCB = function(params) {
+    ApzCOB.hideLoader();
+    let voterTag = docScrId + "ocrVoterNumber";
+    let $verifyBtn = $("#" + docScrId + "verifyBtn");
+    let $nextBtn = $('#' + kmbaseScr + 'nxtBtn');
+    clearFieldError(docScrId + "ocrName");
+    let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__ValidateVoterID_Res)) {
+        if (!apz.isNull(params.resFull.appzillonBody.APZCBO__ValidateVoterID_Res.apiResponse.ResponseHeader.ResponseMessage)) {
+            errMsg = ApzCOB.getDescfromLitCode("LIT_KYC_VERIFICATION_SERVICE_FAILED") + "<br/>" + params.resFull.appzillonBody
+                .APZCBO__ValidateVoterID_Res.apiResponse.ResponseHeader.ResponseMessage;
+        }
+    } else {
+        errMsg = ApzCOB.getDescfromLitCode("LIT_KYC_VERIFICATION_SERVICE_FAILED");
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            let responseObj = JSON.parse(params.res.APZCBO__ValidateVoterID_Res.apiResponse.ResponseBody.responseObj);
+            if (responseObj.hasOwnProperty("result_code") && responseObj.result_code === 101) {
+                // ── NAME UPDATE — direct assignment, no getSubstrValue ───
+                let verifiedName = responseObj.result?.name ?? "";
+                window.VERIFIED_VOTER_NAME = verifiedName;
+                // Paint name into both fields
+                $("#" + docScrId + "ocrName").val(verifiedName);
+                $("#" + kmbaseScr + "ocrNameSection").val(verifiedName);
+                $("#" + docScrId + "ocrName").removeClass("err");
+                clearFieldError(docScrId + "ocrName");
+                // ── VOTER ID FIELD ───────────────────────────────────────
+                let verifiedVoterId = ($("#" + voterTag).val() || "").toUpperCase().trim();
+                window.VERIFIED_VOTER_VALUE = verifiedVoterId;
+                $("#" + voterTag).removeClass("err");
+                clearFieldError(voterTag);
+                // ── VERIFY BUTTON → Verified state ───────────────────────
+                $verifyBtn.addClass("pan-verified-btn").html(`<span>Verified</span>${window.VERIFIED_TICK_SVG}`).off('click').prop("disabled",
+                    false);
+                // ── COMPARE WITH LEAD primaryKycId ───────────────────────
+                var customerType = gApzCOB.currentApplicant <= 1 ? 'Applicant' : 'Co-App';
+                var customerVoter = inSessionStore?.customerDetailsList?.find(cust => cust.customerType === customerType)?.payload?.primaryKycId;
+                var leadPrimaryKycId = (customerVoter || gApzCOB?.selLeadDtls?.primaryKyc || "").toUpperCase().trim();
+                var isMatchingPrimary = (verifiedVoterId === leadPrimaryKycId);
+                if (window.kycVerificationType === "primary") {
+                    if (isMatchingPrimary) {
+                        if (gApzCOB.currentApplicant <= 1) {
+                            window.PRIMARY_KYC_VERIFICATION = true;
+                            window.ALTERNATE_KYC_VERIFICATION = false;
+                        } else {
+                            window.CO_APPLICANT_PRIMARY_KYC_VERIFICATION = true;
+                            window.CO_APPLICANT_ALTERNATE_KYC_VERIFICATION = false;
+                        }
+                    } else {
+                        if (gApzCOB.currentApplicant <= 1) {
+                            window.ALTERNATE_KYC_VERIFICATION = true;
+                            window.PRIMARY_KYC_VERIFICATION = false;
+                        } else {
+                            window.CO_APPLICANT_ALTERNATE_KYC_VERIFICATION = true;
+                            window.CO_APPLICANT_PRIMARY_KYC_VERIFICATION = false;
+                        }
+                    }
+                }
+                // ── ENABLE NEXT ──────────────────────────────────────────
+                // $nextBtn.prop("disabled", false);
+                apz.app.documentCapture.checkAndEnableNext();
+                /// Check and update
+                // apz.app.documentCapture.mapOcrToCBFields();
+            } else {
+                // ── KYC VALIDATION FAILED ────────────────────────────────
+                let invalidKyc = false;
+                if (responseObj.hasOwnProperty("error")) {
+                    if (responseObj.error.message === ApzCOB.getDescfromLitCode("LIT_EPICNUMBER")) {
+                        invalidKyc = true;
+                    } else {
+                        invalidKyc = false;
+                    }
+                } else {
+                    invalidKyc = true;
+                }
+                if (invalidKyc) {
+                    // Clear name field on failure
+                    $("#" + docScrId + "ocrName").val("");
+                    $("#" + kmbaseScr + "ocrNameSection").val("");
+                    $("#" + voterTag).addClass("err");
+                    showFieldError(voterTag, ApzCOB.getDescfromLitCode("LIT_INVALID_KYC_ID") || "Invalid Voter ID.");
+                    $verifyBtn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false).off('click').on('click', function() {
+                        apz.app.documentCapture.primaryKycVerification();
+                    });
+                    $nextBtn.prop("disabled", true);
+                    if (gApzCOB.currentApplicant <= 1) {
+                        window.PRIMARY_KYC_VERIFICATION = false;
+                        window.IS_APP_PRIMARY_CHECK_FAILED = true;
+                        if (window.IS_APP_PRIMARY_CHECK_FAILED && window.IS_APP_ALTERNATE_CHECK_FAILED) {
+                            window.RejectReason = "Applicant KYC Verification Failed.";
+                            if (apz.isNull(gApzCOB.requestNodes.applicationId)) {
+                                ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_COMM_CONF_TXT_APP_KYC_VERIFICATION_FAILED_REJ_CONFRM"), "E",
+                                    ApzCOB.applicantKycFailedRejectService);
+                            } else {
+                                // ApzCOB.toggleModal(PerDetScrId + "rejectmodel");
+                                $("#" + kmbaseScr + "rejectLabel").text(ApzCOB.getDescfromLitCode(
+                                    "LIT_COMM_CONF_TXT_APP_KYC_VERIFICATION_FAILED_REJ_CONFRM"));
+                                ApzCOB.toggleModal(kmbaseScr + "rejectmodel");
+                            }
+                        } else {
+                            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_INVALID_KYC_ID"), "E");
+                        }
+                    } else {
+                        window.CO_APPLICANT_PRIMARY_KYC_VERIFICATION = false;
+                        window.IS_COAPP_PRIMARY_CHECK_FAILED = true;
+                        if (window.IS_COAPP_PRIMARY_CHECK_FAILED && window.IS_COAPP_ALTERNATE_CHECK_FAILED) {
+                            window.RejectReason = `Co-Applicant(C0${CO_APP_ADDED_COUNT}) KYC Verification Failed.`;
+                            if (CO_APP_ADDED_COUNT >= gApzCOB.noOfApplicants) {
+                                // ApzCOB.toggleModal(PerDetScrId + "rejectmodel");
+                                $("#" + kmbaseScr + "rejectLabel").text(ApzCOB.getDescfromLitCode(
+                                    "LIT_COMM_CONF_TXT_CO_APP_KYC_VERIFICATION_FAILED_REJ_CONFRM"));
+                                ApzCOB.toggleModal(kmbaseScr + "rejectmodel");
+                            } else {
+                                // ApzCOB.toggleModal(PerDetScrId + "dedupeRejectOrAddmodel");
+                                $("#" + kmbaseScr + "dedupeRejectLabel").text(ApzCOB.getDescfromLitCode(
+                                    "LIT_COMM_CONF_TXT_PRIMARY_ALTERNATE_VERIFICATION_FAILED"));
+                                ApzCOB.toggleModal(kmbaseScr + "dedupeRejectOrAddmodel");
+                            }
+                        } else {
+                            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_INVALID_KYC_ID"), "E");
+                        }
+                    }
+                } else {
+                    // Service error with description
+                    if (responseObj.hasOwnProperty("errorDescription")) {
+                        errMsg = errMsg + "<br>" + responseObj.errorDescription;
+                    } else if (responseObj.error?.hasOwnProperty("message")) {
+                        errMsg = errMsg + "<br>" + responseObj.error.message;
+                    }
+                    ApzCOB.fnDisplayMsg(errMsg, "E");
+                }
+            }
+        } else {
+            ApzCOB.hideLoader();
+            ApzCOB.fnDisplayMsg(errMsg, "E");
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        ApzCOB.hideLoader();
+        ApzCOB.fnDisplayMsg(errMsg, "E");
+    }
+};
+apz.app.documentCapture.initiateOCR = function() {
+    let docType = (apz.app.docType || "").toLowerCase().trim();
+    $("#KmSourc__documentCapture__sc_row_134").addClass("sno");
+    if (docType !== 'voter id') {
+        $("#KmSourc__documentCapture__el_icn_2").addClass("sno");
+        $("#KmSourc__documentCapture__el_icn_4").addClass("sno");
+    }
+    window.backMisMatch = false;
+    window.frontMisMatch = false;
+    window.invalidVoter = false;
+    window.invalidPan = false;
+    if (docType === 'aadhaar') {
+        let frontDocs = window.custimg.find(d => d.payload?.docLevel == "1");
+        let backDocs = window.custimg.find(d => d.payload?.docLevel == "2");
+        if (!OcrImageBaseValue['Aadhaar Front'] && frontDocs) {
+            window.currentOCRSide = "AadhaarFront";
+            // window.paintFileName = frontDocs?.payload?.documentFormat || (frontDocs?.payload?.documentFileName + ".jpg");
+            window.paintFileName = frontDocs?.payload?.documentFileName;
+            ApzCOB.downloadFileFromServer(paintFileName, apz.app.documentCapture.ocrDownloadCB);
+            return;
+        }
+        if (!OcrImageBaseValue['Aadhaar Back'] && backDocs) {
+            window.currentOCRSide = "AadhaarBack";
+            // window.paintFileName = backDocs?.payload?.documentFormat || (backDocs?.payload?.documentFileName + ".jpg");
+            window.paintFileName = backDocs?.payload?.documentFileName;
+            ApzCOB.downloadFileFromServer(paintFileName, apz.app.documentCapture.ocrDownloadCB);
+            return;
+        }
+        apz.app.documentCapture.initiateAadhaarOCR();
+        // $("#KmSourc__documentCapture__ocr_heading").removeClass("sno");
+        // $("#KmSourc__documentCapture__ocr_details").removeClass("sno");
+        // $("#KmSourc__documentCapture__ocrNote").removeClass("sno");
+        // $("#KmSourc__documentCapture__ocrEdit").removeClass("sno");
+        return;
+    }
+    let frontDocs = window.custimg.find(d => d.payload?.docLevel == "1");
+    if (docType === 'pan card') {
+        if (!OcrImageBaseValue['PAN Front'] && frontDocs) {
+            window.currentOCRSide = "PAN";
+            // window.paintFileName = frontDocs?.payload?.documentFormat || (frontDocs?.payload?.documentFileName + ".jpg");
+            window.paintFileName = frontDocs?.payload?.documentFileName;
+            ApzCOB.downloadFileFromServer(paintFileName, apz.app.documentCapture.ocrDownloadCB);
+            return;
+        }
+        apz.app.documentCapture.initiatePanOCR();
+        return;
+    }
+    let backDocs = window.custimg.find(d => d.payload?.docLevel == "2");
+    if (!OcrImageBaseValue['Voter Front'] && frontDocs) {
+        window.currentOCRSide = "Front";
+        // window.paintFileName = frontDocs?.payload?.documentFormat || (frontDocs?.payload?.documentFileName + ".jpg");
+        window.paintFileName = frontDocs?.payload?.documentFileName;
+        ApzCOB.downloadFileFromServer(paintFileName, apz.app.documentCapture.ocrDownloadCB);
+        return;
+    }
+    if (!OcrImageBaseValue['Voter Back'] && backDocs) {
+        window.currentOCRSide = "Back";
+        // window.paintFileName = backDocs?.payload?.documentFormat || (backDocs?.payload?.documentFileName + ".jpg");
+        window.paintFileName = backDocs?.payload?.documentFileName;
+        ApzCOB.downloadFileFromServer(paintFileName, apz.app.documentCapture.ocrDownloadCB);
+        return;
+    }
+    if (docType === 'voter id') {
+        apz.app.documentCapture.initiateVoterOCR();
+    }
+};
+apz.app.documentCapture.ocrDownloadCB = function(params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.base64)) {
+        OcrImageBaseValue = OcrImageBaseValue || {};
+        if (window.currentOCRSide === "Front") {
+            OcrImageBaseValue["Voter Front"] = params.base64;
+        }
+        if (window.currentOCRSide === "Back") {
+            OcrImageBaseValue["Voter Back"] = params.base64;
+        }
+        if (window.currentOCRSide === "PAN") {
+            OcrImageBaseValue["PAN Front"] = params.base64;
+        }
+        if (window.currentOCRSide === "AadhaarFront") OcrImageBaseValue["Aadhaar Front"] = params.base64;
+        if (window.currentOCRSide === "AadhaarBack") OcrImageBaseValue["Aadhaar Back"] = params.base64;
+        apz.app.documentCapture.initiateOCR();
+    }
+};
+apz.app.documentCapture.initiateVoterOCR = function() {
+    window.ocrFailed = false;
+    window.ocrResponseCount = 0;
+    let frontDocs = window.custimg.find(d => d.payload?.docLevel == "1");
+    let backDocs = window.custimg.find(d => d.payload?.docLevel == "2");
+    let voterFrontObj = {
+        imageUrl: OcrImageBaseValue['Voter Front'],
+        RequestID: frontDocs.documentId + "",
+        isBlackWhiteCheck: "yes",
+        confidence: "yes",
+        fraudCheck: "yes",
+        doctype: "Voter ID",
+        isCompleteImageCheck: "yes"
+    }
+    let voterBackObj = {
+        imageUrl: OcrImageBaseValue['Voter Back'],
+        RequestID: backDocs.documentId + "",
+        isBlackWhiteCheck: "yes",
+        confidence: "yes",
+        fraudCheck: "yes",
+        doctype: "Voter ID",
+        isCompleteImageCheck: "yes"
+    }
+    ApzCOB.voterFrontOcr(voterFrontObj, apz.app.documentCapture.voterFrontOcrCB);
+    ApzCOB.voterBackOcr(voterBackObj, apz.app.documentCapture.voterBackOcrCB);
+}
+apz.app.documentCapture.initiatePanOCR = function() {
+    apz.startLoader();
+    let frontDocs = window.custimg.find(d => d.payload?.docLevel == "1");
+    let panObj = {
+        imageUrl: OcrImageBaseValue['PAN Front'],
+        RequestID: frontDocs.documentId + "",
+        isBlackWhiteCheck: "yes",
+        confidence: "yes",
+        fraudCheck: "yes",
+        doctype: "PAN",
+        isCompleteImageCheck: "yes"
+    };
+    ApzCOB.panCheckOcr(panObj, apz.app.documentCapture.panOcrCB);
+};
+apz.app.documentCapture.voterFrontBackOcrCB = function(params) {
+    try {
+        let interfaceName = `APZCBO__${params.ifaceName}_Res`;
+        let responseStr = params.res[interfaceName].apiResponse.ResponseBody.responseObj;
+        let parsed = JSON.parse(responseStr);
+        let details = parsed.result?.[0]?.details;
+        if (parsed.status === "success" && details) {
+            if (parsed?.result?.length > 0) {
+                const type = parsed.result[0]?.type;
+                if (type === 'voterid_front_old') {
+                    $("#KmSourc__documentCapture__ocrVoterNumber").val(details?.voterid?.value || "");
+                    $("#KmSourc__documentCapture__ocrName").val(details?.name?.value || "");
+                } else if (type === 'voterid_back_old') {
+                    $("#KmSourc__documentCapture__ocrAddr1").val(details?.address?.line1 || "");
+                    $("#KmSourc__documentCapture__ocrAddr2").val(details?.address?.line2 || "");
+                    $("#KmSourc__documentCapture__ocrAddr3").val(details?.address?.district || "");
+                    $("#KmSourc__documentCapture__ocr-pincode").val(details?.address?.pin || "").change();
+                }
+            }
+        } else {
+            window.ocrFailed = true;
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        window.ocrFailed = true;
+    }
+    apz.app.documentCapture.finishOcrCheck();
+};
+apz.app.documentCapture.voterFrontOcrCB = function(params) {
+    try {
+        const resNode = params?.res?.APZCBO__VoterFrontOcr_Res;
+        if (!resNode?.apiResponse?.ResponseBody) {
+            window.ocrFailed = true;
+        } else {
+            let responseStr = resNode.apiResponse.ResponseBody.responseObj;
+            let parsed = JSON.parse(responseStr);
+            let details = parsed.result?.[0]?.details;
+            if(parsed.statusCode === "501"){
+                window.invalidVoter = true;
+            } else if (parsed.status === "success" && details) {
+                //  Check document type
+                if (parsed?.result?.[0]?.type === "voterid_back_new" || parsed?.result?.[0]?.type === "voterid_back_old" || parsed?.result?.[0]?.type === "voterid_pvc_back") {
+                    window.frontMisMatch = true;
+                } else if (!details.voterid?.value && !details.name?.value){
+                    window.ocrFailed = true;
+                } else {
+                    $("#KmSourc__documentCapture__ocrVoterNumber").val(details.voterid?.value || "");
+                    $("#KmSourc__documentCapture__ocrName").val(details.name?.value || "");
+                }
+            } else {
+                window.ocrFailed = true;
+            }
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        window.ocrFailed = true;
+    }
+    apz.app.documentCapture.finishOcrCheck();
+};
+
+apz.app.documentCapture.voterBackOcrCB = function(params) {
+    try {
+        const resNode = params?.res?.APZCBO__VoterBackOcr_Res;
+        if (!resNode?.apiResponse?.ResponseBody) {
+                window.ocrFailed = true;
+        } else {
+                let responseStr = resNode.apiResponse.ResponseBody.responseObj;
+                let parsed = JSON.parse(responseStr);
+                let details = parsed.result?.[0]?.details;
+                if(parsed.statusCode === "501") {
+                    window.invalidVoter = true;
+                } else if (parsed.status === "success" && details) {
+                    // Check document type
+                    if (parsed?.result?.[0]?.type === "voterid_front_new" || parsed?.result?.[0]?.type === "voterid_front_old" || parsed?.result?.[0]?.type === "voterid_pvc_front") {
+                        window.backMisMatch = true;
+                    } else if(!details.address?.line1 && !details.address?.line2 && !details.address?.district && !details.address?.pin){
+                        window.ocrFailed = true;
+                    } else {
+                        $("#KmSourc__documentCapture__ocrAddr1").val(details.address?.line1 || "");
+                        $("#KmSourc__documentCapture__ocrAddr2").val(details.address?.line2 || "");
+                        $("#KmSourc__documentCapture__ocrAddr3").val(details.address?.district || "");
+                        $("#KmSourc__documentCapture__ocr-pincode").val(details.address?.pin || "").change();
+                    }
+                } else {
+                    window.ocrFailed = true;
+                }
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        window.ocrFailed = true;
+    }
+    apz.app.documentCapture.finishOcrCheck();
+};
+apz.app.documentCapture.panOcrCB = function(params) {
+    apz.stopLoader();
+    try {
+        const resNode = params?.res?.APZCBO__PanCheckOcr_Res;
+        if (!resNode?.apiResponse?.ResponseBody) {
+            apz.app.documentCapture.handlePanOcrFailure();
+        } else {
+            let responseStr = resNode.apiResponse.ResponseBody.responseObj;
+            let parsed = JSON.parse(responseStr);
+            let details = parsed.result?.[0]?.details;
+            if(parsed.statusCode === "501"){
+                window.invalidPan = true;
+                apz.app.documentCapture.handlePanOcrFailure();
+            } else if (parsed.status === "success" && details) {
+                window.panOcrAttempt = 0;
+                $("#KmSourc__documentCapture__ocrPanNumber").val(details.pan_no?.value || "");
+                $("#KmSourc__documentCapture__ocrName").val(details.name?.value || "");
+                $("#KmSourc__documentCapture__ocr_heading").removeClass("sno");
+                $("#KmSourc__documentCapture__ocr_details").removeClass("sno");
+                $("#KmSourc__documentCapture__ocrNote").removeClass("sno");
+                $("#KmSourc__documentCapture__ocrEdit").removeClass("sno");
+                apz.app.documentCapture.checkAndEnableNext();
+            } else {
+                apz.app.documentCapture.handlePanOcrFailure();
+            }
+    }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.app.documentCapture.handlePanOcrFailure();
+    }
+};
+apz.app.documentCapture.finishOcrCheck = function() {
+    apz.stopLoader();
+    window.ocrResponseCount++;
+    $("#KmSourc__Kmbase__manual_button_ul").addClass("sno");
+    $("#KmSourc__Kmbase__button_form").addClass("suc-btns suc-btn1").removeClass("suc-btn-2 form-top mt2");
+    if (window.ocrResponseCount < 2) return;
+    if (window.frontMisMatch || window.backMisMatch) {
+            let errMsg = window.frontMisMatch ? "Please upload the front of the document" :
+            "Please upload the back of the document";
+            ApzCOB.fnDisplayMsg(errMsg, "E");
+            $("#KmSourc__documentCapture__sc_row_134").removeClass("sno");
+            $("#KmSourc__documentCapture__el_icn_2").removeClass("sno");
+            $("#KmSourc__documentCapture__el_icn_4").removeClass("sno");
+    } else if (window.invalidVoter) {
+            ApzCOB.fnDisplayMsg("No Voter ID Detected", "E");
+            $("#KmSourc__documentCapture__sc_row_134").removeClass("sno");
+            $("#KmSourc__documentCapture__el_icn_2").removeClass("sno");
+            $("#KmSourc__documentCapture__el_icn_4").removeClass("sno");
+    } else if (window.ocrFailed) {
+        window.voterOcrAttempt++;
+        let msg = `Failed to fetch OCR data (Attempt ${window.voterOcrAttempt}).<br>Please try again.`;
+        $("#KmSourc__Kmbase__ocr_failure_text").html(msg);
+        ApzCOB.toggleModal("KmSourc__Kmbase__OCR_failure_modal");
+        if (window.voterOcrAttempt >= 3) {
+            $("#KmSourc__Kmbase__manual_button_ul").removeClass("sno");
+            $("#KmSourc__Kmbase__button_form").removeClass("suc-btns suc-btn1").addClass("suc-btn-2 form-top mt2");
+            $("#KmSourc__Kmbase__ocr_failure_text").html(
+                `Failed to fetch OCR data (Attempt ${window.voterOcrAttempt}).<br>Please proceed with manual input.`);
+        }
+    } else {
+        $("#KmSourc__documentCapture__ocr_heading").removeClass("sno");
+        $("#KmSourc__documentCapture__ocr_details").removeClass("sno");
+        $("#KmSourc__documentCapture__ocrNote").removeClass("sno");
+        $("#KmSourc__documentCapture__ocrEdit").removeClass("sno");
+        window.voterOcrAttempt = 0;
+        apz.app.documentCapture.checkAndEnableNext();
+    }
+    window.ocrResponseCount = 0;
+    window.ocrFailed = false;
+    window.frontMisMatch = false;
+    window.backMisMatch = false;
+};
+apz.app.documentCapture.handlePanOcrFailure = function() {
+    if(window.invalidPan) {
+        ApzCOB.fnDisplayMsg("No PAN Card Detected", "E");
+        $("#KmSourc__documentCapture__sc_row_134").removeClass("sno");
+        $("#KmSourc__documentCapture__el_icn_2").removeClass("sno");
+        $("#KmSourc__documentCapture__el_icn_4").removeClass("sno");
+    } else {
+        window.panOcrAttempt = window.panOcrAttempt || 0;
+        window.panOcrAttempt++;
+        $("#KmSourc__Kmbase__manual_button_ul").addClass("sno");
+        $("#KmSourc__Kmbase__button_form").addClass("suc-btns suc-btn1").removeClass("suc-btn-2 form-top mt2");
+        let msg = `Failed to fetch OCR data (Attempt ${window.panOcrAttempt}).<br>Please try again.`;
+        $("#KmSourc__Kmbase__ocr_failure_text").html(msg);
+        ApzCOB.toggleModal("KmSourc__Kmbase__OCR_failure_modal");
+        if (window.panOcrAttempt >= 3) {
+            $("#KmSourc__Kmbase__manual_button_ul").removeClass("sno");
+            $("#KmSourc__Kmbase__button_form").removeClass("suc-btns suc-btn1").addClass("suc-btn-2 form-top mt2");
+            $("#KmSourc__Kmbase__ocr_failure_text").html(
+                `Failed to fetch OCR data (Attempt ${window.panOcrAttempt}).<br>Please proceed with manual input.`);
+            $("#KmSourc__documentCapture__el_btn_30_ul").removeClass("sno");
+            $("#KmSourc__Kmbase__ct_frm_20").removeClass("suc-btns suc-btn1").addClass("suc-btn-2 form-top mt2");
+            $("#KmSourc__documentCapture__el_txt_42").text("OCR failed 3 times. Please enter details manually.");
+        }
+    }
+};
+apz.app.documentCapture.retryOcr = function() {
+    ApzCOB.toggleModal("KmSourc__Kmbase__OCR_failure_modal");
+    if (apz.app.docType === 'Voter ID') {
+        apz.app.documentCapture.initiateVoterOCR();
+    } else if (apz.app.docType === 'Aadhaar') {
+        ApzCOB.ImageReCapture();
+    } else {
+        apz.app.documentCapture.initiatePanOCR();
+    }
+};
+apz.app.documentCapture.manualEntry = function() {
+    if ($('#KmSourc__Kmbase__OCR_failure_modal').is(':visible')) {
+        ApzCOB.toggleModal("KmSourc__Kmbase__OCR_failure_modal");
+    }
+    if(apz.app.docType === 'Aadhaar'){
+        $("#KmSourc__documentCapture__sc_row_134").addClass("sno");
+        $('.ocr-section').removeClass('sno');
+        isAadhaarRedactEnabled = false;
+    }
+    if(!($(`#${docScrId}ocrName`).val ||  $(`#${docScrId}ocrAadhaarNumber`).val)){
+        $(`#${docScrId}ocrVoterNumber, #${docScrId}ocrName, #${docScrId}ocrPanNumber, #${docScrId}ocrAadhaarNumber`).val(''); 
+    }
+    // $(`#${docScrId}ocrVoterNumber, #${docScrId}ocrName, #${docScrId}ocrPanNumber, #${docScrId}ocrAadhaarNumber`).val(''); //clearing fields if OCR/Redact fails
+    $("#KmSourc__documentCapture__ocr_heading").removeClass("sno");
+    $("#KmSourc__documentCapture__ocr_details").removeClass("sno");
+    $("#KmSourc__documentCapture__ocrNote").removeClass("sno");
+    $("#KmSourc__documentCapture__ocrEdit").removeClass("sno");
+};
+apz.app.documentCapture.validateVoterAddressBeforeNext = function() {
+    let isValid = true;
+
+    function check(result) {
+        if (!result) isValid = false;
+    }
+    let addr1Id = docScrId + "ocrAddr1";
+    let pincodeId = docScrId + "ocr-pincode";
+    clearFieldError(addr1Id);
+    clearFieldError(pincodeId);
+    // Address Line 1
+    let addr1Val = ($("#" + addr1Id).val() || "").trim();
+    if (!addr1Val) {
+        showFieldError(addr1Id, "Address Line 1 is required");
+        isValid = false;
+    }
+    // Pincode
+    let pincodeVal = ($("#" + pincodeId).val() || "").trim();
+    if (!pincodeVal) {
+        showFieldError(pincodeId, "Pincode is required");
+        isValid = false;
+    }
+    if (!isValid) {
+        // Scroll to first error
+        let firstError = $(".error-inline:visible").first();
+        if (firstError.length) {
+            firstError[0].scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        }
+    }
+    return isValid;
+};
+apz.app.documentCapture.initiateAadhaarOCR = function() {
+    let kycObj = {
+        fetchAadhaar: true
+    }
+    ApzCOB.aadhaarRedactOcr(kycObj, apz.app.documentCapture.aadhaarRedactOcrCB);
+};
+apz.app.documentCapture.aadhaarRedactOcrCB = function(params){
+    if(ApzCOB.handleServiceCallBacks(params)){
+        let reqObj = JSON.parse(params.res.APZCBO__AdharRedactOcr_Res.apiResponse.ResponseBody.responseObj);
+        let frontData = reqObj.front ? JSON.parse(reqObj.front) : {};
+        let backData = reqObj.back ? JSON.parse(reqObj.back) : {};
+        let combinedData = frontData;
+        for (key in backData){
+            if(backData[key].value && backData[key].value !== ""){
+                combinedData[key] = backData[key];
+            }
+        }
+
+
+        //Paint Data
+        let {aadhaar, name, address, dob} = combinedData;
+        let maskedAadhaar = aadhaar.value.slice(-4);
+        $("#KmSourc__documentCapture__ocrAadhaarNumber").val(maskedAadhaar);
+        $("#KmSourc__documentCapture__ocrName").val(name?.value || "");
+        $("#KmSourc__documentCapture__ocr-dob").val(dob?.value || "");
+        $("#KmSourc__documentCapture__ocrAddr1").val(address?.line1 || "");
+        $("#KmSourc__documentCapture__ocrAddr2").val(address?.line2 || "");
+        $("#KmSourc__documentCapture__ocrAddr3").val(address?.line3 || "");
+        $("#KmSourc__documentCapture__ocr-pincode").val(address?.pin || "").change();
+
+        //Display section
+        $("#KmSourc__documentCapture__ocr_heading").removeClass("sno");
+        $("#KmSourc__documentCapture__ocr_details").removeClass("sno");
+        $("#KmSourc__documentCapture__ocrNote").removeClass("sno");
+        $("#KmSourc__documentCapture__ocrEdit").removeClass("sno");
+        apz.app.documentCapture.checkAndEnableNext();
+
+    } else{
+        ApzCOB.fnDisplayMsg("Couldn't Fetch Aaadhaar Data");
+    }
+    ApzCOB.hideLoader();
+
+};
+
+apz.app.documentCapture.aadhaarFrontOcrCB = function(params) {
+    try {
+        let responseStr = params.res.APZCBO__AdharRedactOcr_Res.apiResponse.ResponseBody.responseObj;
+        let parsed = JSON.parse(responseStr);
+        let details = parsed.result?.[0]?.details;
+        if (parsed.status === "success" && details) {
+            let maskedAadhaar = details.aadhaar?.value || "";
+            let last4 = maskedAadhaar.slice(-4);
+            $("#KmSourc__documentCapture__ocrAadhaarNumber").val(last4);
+            $("#KmSourc__documentCapture__ocrName").val(details.name?.value || "");
+            $("#KmSourc__documentCapture__ocr-dob").val(details.dob?.value || "");
+        } else {
+            window.ocrFailed = true;
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        window.ocrFailed = true;
+    }
+    apz.app.documentCapture.finishAadhaarOcrCheck();
+};
+apz.app.documentCapture.aadhaarBackOcrCB = function(params) {
+    try {
+        let responseStr = params.res.APZCBO__AdharRedactOcr_Res.apiResponse.ResponseBody.responseObj;
+        let parsed = JSON.parse(responseStr);
+        let details = parsed.result?.[0]?.details;
+        if (parsed.status === "success" && details) {
+            $("#KmSourc__documentCapture__ocrAddr1").val(details.address?.line1 || "");
+            $("#KmSourc__documentCapture__ocrAddr2").val(details.address?.line2 || "");
+            $("#KmSourc__documentCapture__ocrAddr3").val(details.address?.district || "");
+            $("#KmSourc__documentCapture__ocr-pincode").val(details.address?.pin || "").change();
+        } else {
+            window.ocrFailed = true;
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        window.ocrFailed = true;
+    }
+    apz.app.documentCapture.finishAadhaarOcrCheck();
+};
+apz.app.documentCapture.finishAadhaarOcrCheck = function() {
+    apz.stopLoader();
+    window.ocrResponseCount++;
+    $("#KmSourc__Kmbase__manual_button_ul").addClass("sno");
+    $("#KmSourc__Kmbase__button_form").addClass("suc-btns suc-btn1").removeClass("suc-btn-2 form-top mt2");
+    if (window.ocrResponseCount < 2) return;
+    if (window.ocrFailed) {
+        window.aadhaarOcrAttempt = (window.aadhaarOcrAttempt || 0) + 1;
+        let msg = `Failed to fetch OCR data (Attempt ${window.aadhaarOcrAttempt}).<br>Please try again.`;
+        $("#KmSourc__Kmbase__ocr_failure_text").html(msg);
+        ApzCOB.toggleModal("KmSourc__Kmbase__OCR_failure_modal");
+        if (window.aadhaarOcrAttempt >= 3) {
+            $("#KmSourc__Kmbase__manual_button_ul").removeClass("sno");
+            $("#KmSourc__Kmbase__button_form").removeClass("suc-btns suc-btn1").addClass("suc-btn-2 form-top mt2");
+            $("#KmSourc__Kmbase__ocr_failure_text").html(
+                `Failed to fetch OCR data (Attempt ${window.aadhaarOcrAttempt}).<br>Please proceed with manual input.`);
+        }
+    } else {
+        $("#KmSourc__documentCapture__ocr_heading").removeClass("sno");
+        $("#KmSourc__documentCapture__ocr_details").removeClass("sno");
+        $("#KmSourc__documentCapture__ocrNote").removeClass("sno");
+        $("#KmSourc__documentCapture__ocrEdit").removeClass("sno");
+        window.aadhaarOcrAttempt = 0;
+        apz.app.documentCapture.checkAndEnableNext();
+    }
+    window.ocrResponseCount = 0;
+    window.ocrFailed = false;
+};
+apz.app.documentCapture.addCoAppConfirmation = function(ptype) {
+    let obj = {};
+    obj.remarks = '';
+    if (ptype === 'KYC') {
+        obj.reason = 'KYCVerificationFailed';
+    }
+    ApzCOB.discardCoApplicant(obj);
+};
+apz.app.documentCapture.dedupeServiceConfirmCoApplicantCB = function(params) {
+    if (IS_CO_APPLICANT_ALTERNATE_DEDUPE) {
+        $('#' + docScrId + "ocrVoterNumber").val('');
+    }
+    ApzCOB.toggleModal(kmbaseScr + 'dedupeCheckReject');
+};

@@ -1,0 +1,137 @@
+RPC_CURRENT_STAGE = 'BusinessPhotoRPC';
+var businessPhotoScrId = `RPC__${RPC_CURRENT_STAGE}__`;
+var loanPurposeTagId = `${businessPhotoScrId}loanPurposeInput`;
+var loanSubPurposeTagId = `${businessPhotoScrId}subCategoryInput`;
+var typeOfBusinessTagId = `${businessPhotoScrId}typeofbusinessInput`;
+var natureOfBusinessTagId = `${businessPhotoScrId}natureOfOccupationInput`;
+var bussEmpActivityTagId = `${businessPhotoScrId}employeeActivityInput`;
+var bussAddrProofTagId = `${businessPhotoScrId}businessAddressProofInput`;
+var empProofTagId = `${businessPhotoScrId}employmentProofInput`;
+var bussPremOwnerTagId = `${businessPhotoScrId}businessPremiseOwnerShipInput`;
+var freqOfIncomeTagId = `${businessPhotoScrId}freqOfIncomeInput`;
+var othSrcIncomeTagId = `${businessPhotoScrId}otherSourceIncomeInput`;
+var loanDtlsArr = ["loanPurpose","subCategory"];
+var selfEmployed = ["loanPurpose", "subCategory", "typeofbusiness", "natureOfOccupation", "employeeActivity","businessEmpStartDate", "businessEmpVintageYear", "organisationName", "businessPremiseOwnerShip", "freqOfIncome", "annualIncome", "otherSourceIncome", "otherSourceAnnualIncome", "streetVendor"];
+var salaried = ["typeofbusiness", "natureOfOccupation", "employeeActivity","businessEmpStartDate", "businessEmpVintageYear",  "organisationName","employmentProof", "freqOfIncome", "annualIncome", "otherSourceIncome", "otherSourceAnnualIncome"];
+var wageEarner = ["freqOfIncome", "annualIncome"];
+var labelChangeFields = {
+        "typeofbusiness": "Employer Entity",
+        "natureOfOccupation": "Nature of Employer",
+        "employeeActivity": "Employment Activity",
+        "businessEmpStartDate": "Employment Start date",
+        "businessEmpVintageYear": "Employment Vintage (Years)",
+        "organisationName": "Name of Employer",
+        "employmentProof": "Employment Proof"
+    };
+var dropdownMappings = [
+    { id: loanPurposeTagId, data: loanPurpose },
+    { id: typeOfBusinessTagId, data: typeOfEmp },
+    { id: natureOfBusinessTagId, data: natureOfEmp },
+    { id: bussEmpActivityTagId, data: businessActivity },
+    { id: bussAddrProofTagId, data: bssAddrProof },
+    { id: bussPremOwnerTagId, data: resOwnership },
+    { id: freqOfIncomeTagId, data: freqOfInc },
+    { id: othSrcIncomeTagId, data: othSrcInc },
+    { id: empProofTagId, data: empProof }
+];
+apz.app.onLoad_BusinessPhotoRPC = function() {
+    currApplOccupation = '';
+    dropdownMappings.forEach(({ id, data }) => {
+        apz.populateDropdown(document.getElementById(id), ApzCOB.formatDropDownforArray(data));
+    });
+    ApzCOB.fetchRpcOccupationTabs();
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+};
+apz.app.onShown_BusinessPhotoRPC = function() {
+    apz.app.BusinessPhotoRPC.setMinMaxLength();
+       if (!$('.rpcStageSubmenuRow').hasClass('sno')) {
+        if ($(`#RPC__${RPC_CURRENT_STAGE}__rpcStageSubmenuItem_1`).length > 0) {
+            $(`#RPC__${RPC_CURRENT_STAGE}__rpcStageSubmenuItem_1`).click();
+        }
+        const visibleChildCount = $(
+            `[id^="RPC__RPCSidebar__menuBarList_row_-1_${RPC_CURRENT_STAGE_NO}"] .ttl-chld:visible`
+        ).length;
+        if (
+            $(`#RPC__${RPC_CURRENT_STAGE}__rpcStageSubmenuItem_2`).length > 0 &&
+            [6, 7].includes(RPC_CURRENT_STAGE_NO) &&
+            visibleChildCount === 1 &&
+            !isAppCoAppOccTagYes
+        ) {
+            $(`#RPC__${RPC_CURRENT_STAGE}__rpcStageSubmenuItem_2`).click();
+        }
+    }
+};
+apz.app.BusinessPhotoRPC.setMinMaxLength = function() {
+    const fieldMap = {
+        organisationNameInput: "Name",
+        annualIncomeInput: "annualIncome",
+        otherSourceAnnualIncomeInput: "annualIncome"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: businessPhotoScrId + fieldId
+    })));
+};
+apz.app.BusinessPhotoRPC.onchangeloanPurpose = function() {
+    var tempArr = [];
+    var temp_loanpurpose = $(`#${loanPurposeTagId}`).val();
+    if (temp_loanpurpose === PleaseSelect) {
+        $(`#${loanSubPurposeTagId}`).val(PleaseSelect);
+        ApzCOB.addDisableToInput(loanSubPurposeTagId);
+    } else {
+        tempArr = [...loanSubPurpose[0][temp_loanpurpose]];
+        if (!tempArr.includes(PleaseSelect)) {
+            tempArr.unshift(PleaseSelect);
+        }
+        apz.populateDropdown(document.getElementById(loanSubPurposeTagId), ApzCOB.formatDropDownforArray(tempArr));
+        ApzCOB.removeDisableToInput(loanSubPurposeTagId);
+    }
+}
+apz.app.BusinessPhotoRPC.onchangeNatureOfBusiness = function() {
+    var tempArr = [];
+    var natureOfBusiness = $(`#${natureOfBusinessTagId}`).val();
+    if (natureOfBusiness === PleaseSelect || natureOfBusiness === "") {
+        $(`#${bussEmpActivityTagId}`).val(PleaseSelect);
+        ApzCOB.addDisableToInput(bussEmpActivityTagId);
+    } else {
+        tempArr = [...businessActivity[0][natureOfBusiness]];
+        if (!tempArr.includes(PleaseSelect)) {
+            tempArr.unshift(PleaseSelect);
+        }
+        apz.populateDropdown(document.getElementById(bussEmpActivityTagId), ApzCOB.formatDropDownforArray(tempArr));
+        ApzCOB.removeDisableToInput(bussEmpActivityTagId);
+    }
+};
+apz.app.BusinessPhotoRPC.onFocusBusinessActivity = function(pthis) {
+    $(`#${bussEmpActivityTagId}`).attr('title', pthis?.value);
+}
+apz.app.BusinessPhotoRPC.configFieldsBasedOnConditions = function() {
+    currApplOccupation = ApzCOB.getPayloadData('occupation', custType);
+    apz.app.BusinessPhotoRPC.hideNshowFields(currApplOccupation);
+    ApzCOB.checkFieldVisibility(loanDtlsArr) ? ['loanDetailsForm', 'loanDetailsFieldsForm'].show() : ['loanDetailsForm', 'loanDetailsFieldsForm'].hide();
+};
+apz.app.BusinessPhotoRPC.hideNshowFields = function(occType) {
+    let fieldsArr = [];
+    ['loanDetailsForm', 'loanDetailsFieldsForm'].hide();
+    if(occType === "Salaried") {
+        ['loanDetailsForm', 'loanDetailsFieldsForm'].hide();
+        fieldsArr = [...salaried];
+        $(`#${businessPhotoScrId}businessEmploymentHeader`).html('Employment Details')
+    } else if (occType === "Self Employed"){
+        ['loanDetailsForm', 'loanDetailsFieldsForm'].show();
+        fieldsArr = [...selfEmployed];
+        $(`#${businessPhotoScrId}businessEmploymentHeader`).html('Business Details');
+    } else if(occType === "Wage earner") {
+        fieldsArr = [...wageEarner];
+        $(`#${businessPhotoScrId}businessEmploymentHeader`).html('Wage Earning Details');
+    }
+    currentTypeFields.forEach(({fieldId, label}) => {
+        if (apz.isNull(fieldId) || apz.isNull(label)) return;
+        const fieldSelector = `#RPC__${RPC_CURRENT_STAGE}__${fieldId}`;
+        $(fieldSelector).toggleClass('sno', !fieldsArr.includes(fieldId));
+        if (occType === "Salaried" && labelChangeFields[fieldId]) {
+            $(`#RPC__${RPC_CURRENT_STAGE}__${fieldId} .ett-labl`).text(labelChangeFields[fieldId]);
+        }
+    });
+}

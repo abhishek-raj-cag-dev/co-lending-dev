@@ -1,0 +1,87 @@
+var scrId = "DBkitG__WelcomeKit__";
+window.DB_CURRENT_STAGE = "Disbursement";
+dashBoardtitle = '';
+window.specificLang = false;
+apz.app.onLoad_WelcomeKit = function() {
+    $('#APZCBO__BaseScreens__baseScroll').removeClass('custom-form-launch var2');
+    $('#APZCBO__BaseScreens__landingRowHeader').addClass('sno');
+    $(`#${DbbaseScrId}rejectBtn,#${DbbaseScrId}disburseBtn`).addClass('sno');
+    $(`#${DbbaseScrId}submitBtn`).attr('onClick', 'apz.app.WelcomeKit.welcomeKitSubmit()')
+    $(`#${DbbaseScrId}submitBtn,.welcome_kit_menu`).removeClass('sno');
+    $('.mainMenu a').attr('onclick', '');
+    apz.app.DBbase.addCompleteStatus(`${DbbaseScrId}Disbursement_hyp`);
+    if (window.SkipNetoffProducts.includes(inSessionStore?.applicationMaster?.productCode)) {
+        $('#DBkitG__DBbase__WelcomeKit_hyp_txtcnt').text('Repayment schedule');
+        $('#DBkitG__WelcomeKit__welcomeKitHeader_txtcnt').text('Repayment schedule documents');
+        $('#DBkitG__WelcomeKit__welcomeKitRemarks_grp_lbl').text('Repayment schedule remarks');
+    }
+}
+apz.app.onShown_WelcomeKit = function() {
+    window.IS_WELCOMEKIT_VIEW = true;
+    ApzCOB.DBDocGenerateAndDownload("", 'WelcomeKit', "", 'English', 'Y', ApzCOB.welcomeKitGenrateCB, "");
+}
+apz.app.WelcomeKit.viewWelcomeKitDoc = function(base64) {
+    if(IS_WELCOMEKIT_VIEW){
+    CBBASE64 = base64;
+    $(`${scrId}welcomeKit_ul iframe`).remove();
+    const iframe = document.createElement('iframe');
+    iframe.width = "700";
+    iframe.height = "600";
+    iframe.src = "data:application/pdf;base64," + base64;
+    document.getElementById(`${scrId}welcomeKit_ul`).appendChild(iframe);
+    $(`#${scrId}welcomeKit_li`).addClass('sno');
+    if(HTMLDOCARRAY.includes(leadLanguage)) {
+        bytes = atob(base64);
+        arr = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) {
+            arr[i] = bytes.charCodeAt(i);
+        }
+        blob = new Blob([arr], {
+            type: 'application/pdf'
+        });
+        url = URL.createObjectURL(blob);
+        document.querySelector('iframe').src = url;
+        specificLang = true;
+        ApzCOB.DBDocGenerateAndDownload(base64, 'SINGLE_DOC', 'WELCOMEKIT', 'English', 'Y', '', '');
+    }
+    } else {
+         ApzCOB.convertBase64ToPDF(base64,`WelcomeKit_${gApzCOB.userDetails.applicationId}`);
+    }
+    apz.stopLoader();
+}
+apz.app.WelcomeKit.welcomeKitSubmit = function() {
+    let disbursementFinalComment = $(`#${scrId}welcomeKitRemarks`).val();
+    if(!apz.isNull(disbursementFinalComment)){
+         let confrmTxt = `Do you wants to submit the application to the LUC stage?`;
+        let popUpObj = {};
+        popUpObj.text = confrmTxt;
+        popUpObj.Btn1 = {
+            "text": "Yes",
+            "onClick": `apz.app.WelcomeKit.downloadWelcomeKitCnfm('${disbursementFinalComment}')`
+        }
+        popUpObj.Btn2 = {
+            "text": "No",
+            "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`)"
+        }
+        ApzCOB.showNewCommonConfirmationModal(popUpObj);
+    } else{
+        let popUpObj = {
+            text: "Please enter Welcome kit remarks",
+            Btn: {
+                text: "OK",
+                onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`)"
+            }
+        }
+        ApzCOB.showNewCommonErrorModal(popUpObj);
+    }
+}
+apz.app.WelcomeKit.downloadWelcomeKitCnfm = function(remarks){
+    statusObject.lAction = "SUBMIT";
+    statusObject.remarks = remarks;
+    statusObject.nextStatus = "LUC";
+    apz.app.DBbase.DisbursementStageMovementCall();    
+}
+apz.app.WelcomeKit.downloadWelcomeKit = function() {
+    window.IS_WELCOMEKIT_VIEW = false;
+    ApzCOB.DBDocGenerateAndDownload("", 'WelcomeKit', "", 'English', 'Y', ApzCOB.welcomeKitGenrateCB, "");
+}

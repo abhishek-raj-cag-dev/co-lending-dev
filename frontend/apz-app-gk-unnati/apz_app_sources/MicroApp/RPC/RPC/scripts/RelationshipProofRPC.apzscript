@@ -1,0 +1,30 @@
+RPC_CURRENT_STAGE = 'RelationshipProofRPC';
+custType = 'Co-App';
+apz.app.onLoad_RelationshipProofRPC = function() {
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+    // apz.app.onShown_RelationshipProofRPC = function() {}
+}
+apz.app.onShown_RelationshipProofRPC = function() {
+    apz.populateDropdown(document.getElementById("RPC__RelationshipProofRPC__relationShipWithApplicantInput"), ApzCOB.formatDropDownforArray(relations));
+    let preSelectedValue = $("#RPC__RelationshipProofRPC__relationShipWithApplicantInput").val();
+    let selectedVal = ApzCOB.getPayloadDatafromWrapper('relationShipWithApplicant', 'Co-App', 'customerDetailsList');
+    let custData = !apz.isObjectEmpty(inSessionStore) ? ApzCOB.getApplicantCustData() : null;
+    let AppmaritalStatus = custData?.[0]?.payload?.maritalStatus || gApzCOB.selLeadDtls.maritalStatus;
+    let allowedValues = AppmaritalStatus === "Married" ? ["Spouse", "Son", "Daughter-in-law"] : ["Father", "Mother"];
+    if (["Widow", "Separated"].includes(AppmaritalStatus)) {
+        allowedValues = ["Father", "Mother", "Son", "Daughter-in-law"];
+    }
+    $("#RPC__RelationshipProofRPC__relationShipWithApplicantInput_div li").each(function() {
+        const value = $(this).attr("data-value");
+        if (!allowedValues.includes(value) && value !== PleaseSelect) {
+            if (value === preSelectedValue) {
+                $("#RPC__RelationshipProofRPC__relationShipWithApplicantInput").val(PleaseSelect).change();
+            }
+            $(this).remove();
+        }
+    });
+    if (allowedValues.includes(selectedVal)) {
+        $("#RPC__RelationshipProofRPC__relationShipWithApplicantInput").val(selectedVal).change();
+    }
+}

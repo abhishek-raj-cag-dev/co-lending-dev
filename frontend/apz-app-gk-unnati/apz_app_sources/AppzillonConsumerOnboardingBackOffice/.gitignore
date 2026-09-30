@@ -1,0 +1,11 @@
+/.metadata/
+#ignore Folder named `build`
+**build/
+build/
+**bin/
+bin/
+microapps.apzmicroapps
+**microapps.apzmicroapps
+
+**Simulator/
+

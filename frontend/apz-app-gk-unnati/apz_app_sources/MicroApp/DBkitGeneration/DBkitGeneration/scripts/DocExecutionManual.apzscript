@@ -1,0 +1,287 @@
+var scrId = "DBkitG__DocExecutionManual__",
+    filesIntfId = "DBkitG__IpaintFilesList__o__DBkitG__IpaintFilesList_Res__",
+    queryFilesIntfId = "DBkitG__IpaintQueryFiles__o__DBkitG__IpaintQueryFiles_Res__";
+window.documentList = [];
+window.APPROVED_DOCS = [];
+window.uploadDocType = '';
+window.selectedReuploadDoc = {};
+window.paintQueries = [];
+apz.app.onLoad_DocExecutionManual = function() {
+};
+apz.app.onShown_DocExecutionManual = function() {
+    if (typeof currApplLanguage === "undefined" || apz.isNull(currApplLanguage)) {
+        currApplLanguage = ApzCOB.getPayloadDatafromWrapper("language", "Applicant", "loanDetails");
+    }
+    if (!apz.isNull(inSessionStore.documentList) && inSessionStore.documentList?.length > 0) {
+        inSessionStore.documentList = inSessionStore.documentList.filter(el => el.uploadType === 'MANUAL');
+        window.documentList = JSON.parse(JSON.stringify(inSessionStore.documentList));
+    }
+    if (applicationStatus === 'SANCTIONED' || (applicationStatus === "DBPUSHBACK" && !(inSessionStore?.dbVerificationQueries?.length > 0 || inSessionStore?.approvedDocs?.length > 0))) {
+        apz.app.DocExecutionManual.showDbKitData();
+    } else if (applicationStatus === "DBPUSHBACK" && !apz.isNull(inSessionStore?.documentList) && inSessionStore?.documentList?.length > 0) {
+        window.formatted = {};
+        inSessionStore.dbVerificationQueries?.forEach(entry => {
+            let [doc, q] = entry.split('^');
+            if (!formatted[doc]) {
+                formatted[doc] = [];
+            }
+            formatted[doc].push(q);
+        });
+        apz.app.DocExecutionManual.showDbKitPushbackData();
+    }
+    $('.extDocument').removeClass('sno');
+    $(`#${DbbaseScrId}excutedDocsHyp_txtcnt`).text('Re-Generate Documents');
+    $('#DBkitG__DBbase__excutedDocsHyp').attr('onclick', 'apz.app.DBbase.downloadFiles("REGENERATE", "");');
+};
+apz.app.DocExecutionManual.showDbKitData = function(){
+    DisbursementDocs.forEach(doc => {
+        if (doc.size /*&& doc.size.endsWith('kb')*/ ) {
+            const sizeInbyte = parseInt(doc.size.replace('kb', '').trim());
+            if (!isNaN(sizeInbyte)) {
+                const sizeInKb = (sizeInbyte / 1024).toFixed(0);
+                doc.size = sizeInKb + 'kb';
+            }
+        }
+    });
+    apz.app.DocExecutionManual.paintDocumentList(DisbursementDocs);  
+    $(`#${scrId}sendBackQueryRow`).addClass('sno');
+}
+apz.app.DocExecutionManual.showDbKitPushbackData = function() {
+    ['approvedDocHeaderRow'].show();
+    ['additionalDocsHeaderRow'].hide();
+    window.APPROVED_DOCS = apz.app.DocExecutionManual.getApprovedDocs();
+    let nonMandFiles = nonMandDBDocs[inSessionStore?.applicationMaster?.productCode] || ['OTHER_DBDOCS','AML'];
+    let apprType = new Set(APPROVED_DOCS.map(appDoc => appDoc.docType));
+    nonMandFiles = new Set(nonMandFiles.filter(doc => !apprType.has(doc)))
+    DisbursementDocs.filter(doc => nonMandFiles.has(doc.docType)).forEach(doc => {
+        if(apz.isNull(formatted[doc.displayName])) {
+            APPROVED_DOCS.push(doc)
+        }
+    });
+    APPROVED_DOCS.sort((a, b) => a.id - b.id);
+    if (APPROVED_DOCS?.length > 0) {
+        apz.app.DocExecutionManual.paintDocumentList(APPROVED_DOCS);
+    } else {
+        ['approvedDocHeaderRow', 'mainDocsUploadRow'].hide();
+    }
+    $(`#${scrId}sendBackQueryRow`).removeClass('sno');
+    apz.app.DocExecutionManual.paintQueryDocs();
+};
+apz.app.DocExecutionManual.getApprovedDocs = function(){
+    let docs = [];
+    let {approvedDocs} = inSessionStore;
+    if(apz.isNull(approvedDocs) || approvedDocs?.length === 0) {
+        inSessionStore.approvedDocs = [];
+        return [];
+    }
+    approvedDocs.map(appDoc =>  {
+       let curDocs = DisbursementDocs.filter(disbDoc => disbDoc.displayName === appDoc) || [];
+        if (curDocs.length > 0) {
+            curDocs[0].size = inSessionStore.documentList?.find(el => el.order === curDocs[0].id)?.size
+            curDocs[0].size = Math.floor(curDocs[0]?.size || '') + 'kb';
+            docs.push(curDocs[0]);
+        }
+    })
+    return docs;
+}
+apz.app.DocExecutionManual.paintDocumentList = function(docData) {
+    apz.app.DocExecutionManual.convertDocSize(docData);
+    apz.data.scrdata.DBkitG__IpaintFilesList_Res = [];
+    apz.data.scrdata.DBkitG__IpaintFilesList_Res = docData;
+    apz.data.loadData("IpaintFilesList", apz.currAppId);
+    $(".imgupload ").height($("#DBkitG__DocExecutionManual__docsList.list-main-sec").outerHeight()+ 27);// adjust height for upload doc section
+    $(".imgupload ").css({'display': 'flex', 'justify-content': 'center','align-items': 'center'}); // center alignment
+    let nonMandFiles = new Set(nonMandDBDocs[inSessionStore?.applicationMaster?.productCode] || ['OTHER_DBDOCS','AML']);
+    //Uncomment to Mand approved docs on DB pushback
+    //let apprTypes = APPROVED_DOCS.filter(doc => inSessionStore.approvedDocs.includes(doc.displayName)).map(app => app.docType);
+    //nonMandFiles = new Set ([...nonMandFiles].filter(doc => !apprTypes.includes(doc)))
+    apz.data.scrdata.DBkitG__IpaintFilesList_Res.forEach((el,indx) => {
+        if(nonMandFiles.has(el.docType)) {
+            $(`#${filesIntfId}displayName_${indx}`).removeClass('mand'); 
+    }
+    });
+    let loanAppIndexId = apz.data.scrdata.DBkitG__IpaintFilesList_Res.findIndex(el => el.id === 1);
+    $(`#${scrId}radioDeselect_${loanAppIndexId}`).click();
+    if (Array.isArray(inSessionStore.documentList) && inSessionStore?.documentList?.length > 0) {
+        window.documentList = JSON.parse(JSON.stringify(inSessionStore.documentList));
+        inSessionStore.documentList.forEach(doc => {
+            if (doc.base64.length > 10) {
+                let indexval = apz.data.scrdata.DBkitG__IpaintFilesList_Res.findIndex(el => el.id === doc.order);
+                $(`#${scrId}docsList_row_${indexval}`).removeClass('active');
+                $(`#${scrId}docsList_row_${indexval}`).addClass('uploaded');
+            }
+        });
+    }
+    if (!Array.isArray(inSessionStore.documentList)) {
+        inSessionStore.documentList = [];
+    }
+    $(`#${scrId}docsList .srb.pri.wrapped`).each((index, item) => {
+        if (!$(`#${item.id}`).hasClass('uploaded')) {
+            $(`#${scrId}docsList .active`).removeClass('active');
+            $(`#${item.id}`).addClass('active');
+            return false;
+        }
+    });
+}
+apz.app.DocExecutionManual.onClickDocRadio = function(pthis, pvalue) {
+    let growNo = $(pthis).attr("rowno");
+    if (pvalue === 'deselect') {
+        $(`#${scrId}docsList .active`).removeClass('active');
+        $(`#${scrId}docsList_row_${growNo}`).addClass('active');
+    }
+};
+apz.app.DocExecutionManual.viewDocument = function(pthis) {
+    let documentName = $(pthis).parents('.uploaded').find('p.mand span').text();
+    if (apz.isNull(documentName)) {
+        documentName = $(pthis).parents('.uploaded').find('p span').first().text();
+    }
+    if(!apz.isNull(documentName)){
+        let curDoc = DisbursementDocs.find(disbDoc => disbDoc.displayName === documentName);
+        if (!apz.isObjectEmpty(curDoc)) {
+            let recordID = parseInt(curDoc.id);
+            let documentData = documentList.find(el => el.order === recordID);
+            if (!apz.isNull(documentData) && documentData?.hasOwnProperty('base64')) {
+                apz.app.DBbase.viewPDFDocument(documentData.base64);
+            }
+        }
+    }
+}
+apz.app.DocExecutionManual.onClickDocumentName = function(pthis){
+    $(pthis).parents('.uploaded').find('.icon-ca-link').click();
+};
+apz.app.DocExecutionManual.deleteDocument = function(pthis, queryDoc) {
+    let rowNo= parseInt($('#'+pthis.id).attr('rowno'));
+    window.docType = DisbursementDocs.filter(el => el.id === rowNo+ 1)[0].docType;
+    window.isqueryDoc = queryDoc;
+    if (queryDoc) {
+        window.docType = DisbursementDocs.find(el => el.displayName === paintQueries[rowNo].displayName).docType;
+    } else if (applicationStatus === 'DBPUSHBACK' && APPROVED_DOCS.length > 0) {
+        window.docType = DisbursementDocs.find(el => el.displayName === APPROVED_DOCS[rowNo].displayName).docType;
+    }
+    if (!apz.isNull(docType)) {
+        let popUpObj = {};
+        popUpObj.text = "Do you want to delete this document?";
+        popUpObj.Btn1 = {
+            "text": "Yes",
+            "onClick": `ApzCOB.DBDocGenerateAndDownload('', 'Delete','${docType}', 'English', '')`
+        }
+        popUpObj.Btn2 = {
+            "text": "No",
+            "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`)"
+        }
+        ApzCOB.showNewCommonConfirmationModal(popUpObj);
+    }
+};
+apz.app.DocExecutionManual.viewQueryDescModal = function(pthis) {
+    let rowNo = parseInt($(`#${pthis.id}`).attr('rowno'))
+    let selectedQueryDoc = paintQueries[rowNo].displayName
+    apz.app.DocExecutionManual.paintDocQueries(selectedQueryDoc);
+}
+apz.app.DocExecutionManual.reUploadDoc = function(pthis) {
+    let rowNo = parseInt($(`#${pthis.id}`).attr('rowno'));
+    let selectedQueryDoc = paintQueries[rowNo].displayName;
+    window.uploadDocType = "ReUpload";
+    window.selectedReuploadDoc = DisbursementDocs.find(el => el.displayName === selectedQueryDoc);
+    apz.app.DBbase.onClickUploadDoc("DBkitG__DocExecutionManual__browseDBKITDOCS");
+    //browsefile for selected doc
+};
+apz.app.DocExecutionManual.paintDocQueries = function(selectedQueryDoc) {
+    const sendBackQueries = JSON.parse(DBKIT_MASTERDATA.find(el => el.id === 11).queries).sendbackReason;
+    const queryIds = [];
+    const matchingValues = [];
+    formatted[selectedQueryDoc]?.forEach(q => {
+        if (q.startsWith("oth?")) {
+            let customValue = q.split('?')[1];
+            matchingValues.push({
+                queryDesc: customValue
+            });
+        } else {
+            queryIds.push(q.includes('?') ? q.split('?')[0] : q);
+        }
+    });
+    matchingValues.push(...sendBackQueries.filter(item => queryIds.includes(item.id)).map(item => ({
+        queryDesc: item.value
+    })));
+    let finalQueries = matchingValues.map((item, index) => {
+        return {
+            queryDesc: (index + 1) + '. ' + item.queryDesc
+        };
+    });
+    if (finalQueries.length > 0) {
+        apz.data.scrdata.DBkitG__IpaintQueryDesc_Res = [];
+        apz.data.scrdata.DBkitG__IpaintQueryDesc_Res = finalQueries;
+        apz.data.loadData("IpaintQueryDesc", apz.currAppId);
+        let tmData = inSessionStore.applicationTimelineDtl[inSessionStore.applicationTimelineDtl.length - 1];
+        let queryuserId = tmData?.userId
+        let formatTM = tmData.timeStamp;
+        $(`#DBkitG__DBbase__queryRaisedById_txtcnt`).text(`(${queryuserId})`);
+        $(`#DBkitG__DBbase__queryTandM_txtcnt`).text(`${formatTM}`);
+        ApzCOB.toggleModal(`${DbbaseScrId}paintQueryDescModal`);
+    }
+};
+apz.app.DocExecutionManual.paintQueryDocs = function() {
+    window.paintQueries = [];
+    Object.entries(formatted).forEach(function(key) {
+        let currDocData = DisbursementDocs.find(docT => docT.displayName === key[0]);
+        let docSize = inSessionStore.documentList.find(el => el.order === currDocData.id)?.size;
+        let docReuploaded = inSessionStore.documentList.find(el => el.order === currDocData.id)?.isReupload;
+        let obj = {
+            displayName: currDocData.displayName,
+            size: docSize,
+            isReupload: docReuploaded,
+            docType: currDocData.docType,
+            order: currDocData.id
+        }
+        paintQueries.push(obj);
+    })
+    if (paintQueries.length > 0) {
+        apz.data.scrdata.DBkitG__IpaintQueryFiles_Res = [];
+        apz.app.DocExecutionManual.convertDocSize(paintQueries);
+        apz.data.scrdata.DBkitG__IpaintQueryFiles_Res = paintQueries;
+        apz.data.loadData("IpaintQueryFiles", apz.currAppId);
+        paintQueries.forEach(function(el, index) {
+            $(`#${queryFilesIntfId}displayName_${index}`).addClass('mand');
+            $(`#${scrId}queryDocumentsList_row_${index}`).addClass('uploaded');
+            $(`#${scrId}tickMarkIcn_${index}`).parent().addClass('sno');
+            if (el?.isReupload === 'Y') {
+                $(`#DBkitG__DocExecutionManual__reUploadDoc_${index}`).parent().addClass('sno');
+                $(`#${scrId}tickMarkIcn_${index}`).parent().removeClass('sno');
+            }
+        });
+    } else if (paintQueries.length === 0) {
+        ['sendBackQueryRow'].hide();
+    }
+};
+apz.app.DocExecutionManual.convertDocSize = function(ArrayVal){
+    ArrayVal.forEach(doc => {
+        if (doc.size /*&& doc.size.endsWith('kb')*/ ) {
+            const sizeInbyte = parseInt(doc.size.replace('kb', '').trim());
+            if (!isNaN(sizeInbyte)) {
+                const sizeInKb = (sizeInbyte / 1024).toFixed(0);
+                doc.size = sizeInKb + 'kb';
+            }
+        }
+    });
+};
+apz.app.DocExecutionManual.getQueryDocResp = function() {
+    let queriesResponses = [];
+    paintQueries.forEach((el, index) => {
+        const responseValue = $(`#DBkitG__DocExecutionManual__responseInput_${index}`).val();
+        inSessionStore.dbVerificationQueries.filter(q => {
+            if (q.startsWith(el.displayName + '^')) {
+                queriesResponses.push(q.split('$')?.[0] + '$' + responseValue);
+            }
+        });
+    });
+    return queriesResponses;
+};
+apz.app.DocExecutionManual.getReuploadedDocs = function() {
+    let ReuploadedDocs = [];
+    inSessionStore.documentList?.filter((el) => {
+        if (el?.isReupload === 'Y') {
+            let dispName = DisbursementDocs.find(u => u.docType === el?.docType)?.displayName;
+            ReuploadedDocs.push(dispName);
+        }
+    })
+    return ReuploadedDocs;
+};

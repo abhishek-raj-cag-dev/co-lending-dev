@@ -1,0 +1,33 @@
+{
+  "keysForContent": {
+    "applicationName": "<font face='Tunga'><b>ಮರುಪಾವತಿ ಪತ್ರ</b></font>",
+    "customerID": "<font face='Tunga'>ಗ್ರಾಹಕರ ಸಂಖ್ಯೆ</font>",
+    "customerName": "<font face='Tunga'>ಗ್ರಾಹಕರ ಹೆಸರು</font>",
+    "scan": "<font face='Arial Unicode MS'>UPI</font> <font face='Tunga'>ಪಾವತಿಗಾಗಿ</font> <font face='Arial Unicode MS'>QR</font> <font face='Tunga'>ಕೋಡ್ ಅನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ</font>",
+    "spouseName": "<font face='Tunga'>ಸಹ ಅರ್ಜಿದಾರರ ಹೆಸರು</font>",
+    "kendraName": "<font face='Tunga'>ಕೇಂದ್ರ ಹೆಸರು</font>",
+    "loanAccount": "<font face='Tunga'>ಸಾಲದ  ಸಂಖ್ಯೆ</font>",
+    "loanAmount": "<font face='Tunga'>ಸಾಲ <font face='Arial Unicode MS'>ಮೊ</font>ತ್ತ</font>",
+    "productName": "<font face='Tunga'>ಉತ್ಪನ್ನ</font>",
+    "moratorium": "<font face='Tunga'><font face='Arial Unicode MS'>ಮೊ</font>ರಟೋರಿಯಂ</font>",
+    "moratoriumValue": "<font face='Arial Unicode MS'>1 - Installment For Principal</font>",
+
+    "roi": "<font face='Tunga'>ಬಡ್ಡಿ ದರ</font>",
+    "loanPurpose": "<font face='Tunga'>ಸಾಲದ ಉದ್ದೇಶ</font>",
+    "disbursementDate": "<font face='Tunga'>ಸಾಲ ವಿತರಣೆ ದಿನಾಂಕ</font>",
+    "loanTerm": "<font face='Tunga'>ಸಾಲದ ಅವಧಿ</font>",
+    "insurancePremium": "<font face='Tunga'>ವಿಮಾ ಕಂತು</font>",
+    "phoneNumber": "<font face='Tunga'>ದೂರವಾಣಿ ಸಂಖ್ಯೆ</font>",
+    "processingFee": "<font face='Tunga'>ಸಂಸ್ಕರಣಾ ಶುಲ್ಕ(<font face='Arial Unicode MS'>PF</font>) ಮುಂಗಡ ಸಂಗ್ರಹ</font>",
+    "slno": "<b><font face='Tunga'>ಕ್ರಮ ಸಂಖ್ಯೆ</font></b>",
+    "date": "<b><font face='Tunga'>ದಿನಾಂಕ</font></b>",
+    "instalment": "<b><font face='Tunga'>ಕಂತುಗಳು</font></b>",
+    "balance": "<b><font face='Tunga'>ಬಾಕಿ / <font face='Arial Unicode MS'>ಮೊ</font>ತ್ತ</font></b>",
+    "KMSignature": "<b><font face='Arial Unicode MS'>KM</font> <font face='Tunga'>ಸಹಿ</font></b>",
+    "Principal": "<b><font face='Tunga'>ಅಸಲು</font></b>",
+    "interest": "<b><font face='Tunga'>ಬಡ್ಡಿ</font></b>",
+    "total": "<b><font face='Tunga'>ಒಟ್ಟು</font></b>",
+    "closureLine1": "<font face='Tunga'>* ಯಾವುದೇ ಪ್ರಶ್ನೆಗಳು ಅಥವಾ ದೂರುಗಳಿದ್ದರೆ, ದಯವಿಟ್ಟು ನಮ್ಮ ಟೋಲ್-ಫ್ರೀ ಸಂಖ್ಯೆಗೆ 1800-123-153-153 ಕೆಲಸದ ಸಮಯದಲ್ಲಿ ಕರೆಮಾಡಿ ಅಥವಾ <font face='Arial Unicode MS'>yourvoice@cagrameen.in</font> ಇಮೇಲ್ ಕಳಿಸಿ. ಎಲ್ಲಾ ಸಂವಹನಗಳಲ್ಲಿ, ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಾಲ <font face='Arial Unicode MS'>ID</font> ಮತ್ತು ಗ್ರಾಹಕ <font face='Arial Unicode MS'>ID</font> ಅನ್ನು ಉಲ್ಲೇಖಿಸುವುದನ್ನು ಮರೆಯದಿರಿ, ಅದು ಈ ಪತ್ರದ ಮೇಲ್ಭಾಗದಲ್ಲಿನಮೂದಿಸಲಾಗಿದೆ.ನಾವು ನೀಡಿದ ಪರಿಹಾರದಿಂದ ನೀವು ತೃಪ್ತರಾಗದಿದ್ದರೆ, ಅದನ್ನು <font face='Arial Unicode MS'>MFIN</font> ಟೋಲ್-ಫ್ರೀ ಸಂಖ್ಯೆಗೆ (ಇತರ ರಾಜ್ಯದ ಗ್ರಾಹಕರಿಗಾಗಿ) 1800-102-1080 ಗೆ ದೂರು ನೀಡುವ ಆಯ್ಕೆಯಿದೆ.</font>",
+    "closureLine2": "<font face='Tunga'>* ಇತರ ನಿಯಮಗಳು ಮಂಜೂರಾತಿ ಪತ್ರದ ಪ್ರಕಾರ ಇವೆ.</font>"
+  }
+}

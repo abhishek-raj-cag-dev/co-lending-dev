@@ -1,0 +1,53 @@
+{
+  "typeclass": "ENVIRONMENTVARIABLE",
+  "name": "DEV",
+  "type": "ENVIRONMENTVARIABLE",
+  "environmentvariablefile": [
+    {
+      "keyname": "SERVERIP",
+      "value": "localhost"
+    },
+    {
+      "keyname": "SERVERPORT",
+      "value": "8082"
+    },
+    {
+      "keyname": "SERVERIPPORT",
+      "value": "http://localhost:8082"
+    },
+    {
+      "keyname": "SERVICEIPPORT",
+      "value": "apz-ms-appzillonbankingcob:8081"
+    },
+    {
+      "keyname": "OCRSERVICEIPPORT"
+    },
+    {
+      "keyname": "SERVICEIPPORT2"
+    },
+    {
+      "keyname": "SERVERURL",
+      "value": "https://caglunnatie2euat.grameenkoota.in"
+    },
+    {
+      "keyname": "TRANSFERSERVICEIPPORT",
+      "value": "http://localhost:8080"
+    },
+    {
+      "keyname": "ONBOARDINGSERVICEIPPORT",
+      "value": "http://localhost:8080"
+    },
+    {
+      "keyname": "NOTIFSERVICEIPPORT",
+      "value": "http://localhost:8080"
+    },
+    {
+      "keyname": "PAYMENTSERVICEIPPORT",
+      "value": "http://localhost:8080"
+    },
+    {
+      "keyname": "ONBOARDINGSERVERIPPORT",
+      "value": "http://localhost:8080"
+    }
+  ]
+}

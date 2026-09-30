@@ -1,0 +1,49 @@
+.rcblk {
+    background: #fff;
+    border-radius: 18px;
+    padding: 24px 32px;
+    margin-top: 24px;
+}
+
+.hdr-rc {
+    background: #DDE7F2; 
+    gap: 4px;
+    padding-top: 4px;
+    padding-right: 8px;
+    padding-bottom: 4px;
+    padding-left: 8px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.hdr-rc .ett-para {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    line-height:24px;
+}
+
+.crt-form.hor.pri .rcblk .flb {margin-bottom: 0px;}
+.reviewlbl p.ett-para{     
+font-weight: 600;
+font-size: 14px;
+line-height: 20px;
+letter-spacing: 0.4px;
+
+}
+.seperator{border-top: 1px solid #d4d4d4;margin-top: 24px;}
+.careviewconf .uploadimg{margin:0px;}
+// CAGL Chinna changes
+.marginBottom {
+    margin-bottom: 10px !important;
+}
+//RPC - Income Summary CSS
+.incboxshadow {
+    box-shadow: none !important;
+}
+
+.rcblk.incboxshadow {
+    padding: 0px 0px;
+    margin-top: 0px;
+}

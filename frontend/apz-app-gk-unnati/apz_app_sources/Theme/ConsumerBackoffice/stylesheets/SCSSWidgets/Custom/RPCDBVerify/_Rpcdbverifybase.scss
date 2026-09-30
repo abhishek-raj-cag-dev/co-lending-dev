@@ -1,0 +1,158 @@
+.rpcdbvmain-sec > div {
+    display: flex;
+    // width: 100%;
+    flex-direction: column;
+}
+
+.rpcdbvmain-sec {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.cabasediv.dbkitmain.rpcdbvmain .cabody {
+    width: 100%;
+}
+
+.crdas.dbkit .rpcdbvmain .lon-hdr {
+    width: calc(100% - 252px);
+}
+
+.crdas.dbkit .rpcdbvmain .lon-hdr.semi {
+    width: 100%;
+    margin: 0;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+}
+
+.rpcdbvmain .srb.sidebarclose {
+    margin-bottom: 0;
+    margin-top: 24px;
+}
+
+.unati.crdas.dbkit .rpcdbvmain .launch-area {
+    padding: 24px 28px 32px 32px;
+}
+.unati.crdas.dbkit .nodoc .launch-area {
+    padding-right: 16px;
+    padding-bottom: 45px;
+    padding-top: 0px;
+}
+@media screen and (min-width:1812px){
+.rpcdbvmain .caloandtl.threecol .crt-form > .srb {
+    width: calc(33% - 11px);
+}
+}
+@media screen and (max-width:1366px){
+.rpcdbvmain .caloandtl.threecol .crt-form > .srb {
+    width: calc(33% - 13px);
+}
+}
+.rpcdbvmain  .caloandtl .crt-form .srb:first-child{
+width:100%
+}
+.sagap {
+    justify-content: space-between;
+}
+.aprrej .srb span.no-fw p {
+    font-weight: 600;
+    font-size: 14px;
+}
+.rpcdbvmain .caloandtl.threecol.crt-form{
+    display:flex;
+    flex-direction:row;
+    gap:24px;
+    flex-wrap:wrap
+}
+.rpcdbvmain .caloandtl.threecol.crt-form > .srb {
+    width: calc(33% - 13px);
+}
+.rpcdbvmain .crt-form.ver.pri .srb.eoc {
+    margin-bottom: 0;
+}
+.kyc-view .pst-simp > div .tool-hdr .img-tools {
+    gap: 0px;
+}
+.pst-simp.pa0 > div.lmvalues.sanc-lst ul.pri, 
+.pst-simp.pa0 > div.lmvalues.sanc-lst ul.pri li {
+    background: transparent;
+}
+
+.crt-list.sanc-lst > ul.pri > li > span.san-apr {
+    display: flex;
+    flex-direction: column;
+}
+
+.crt-list.sanc-lst > ul.pri > li > span.san-apr p:last-child { 
+    font-weight: 400;
+    font-size: 11px;
+    line-height: 16px;
+    color: #737373;
+}
+.rpcdbvmain-sec > div.mainsubsec {
+    width: 55%;
+    position: relative;
+}
+
+.rpcdbvmain-sec > div.kyc-view {
+    width: 45%;
+}
+.dbkit .cabasediv .casidebarwrap {
+    height: calc(100vh - 80px);
+}
+.rpcdbvmain-sec.nodoc > div.mainsubsec {
+    width: 100%;
+}
+.unati.modal-open .modal.rpcdbvviewlondtl .modal-cnt {
+    height: 79vh;
+    max-height: 100vh;
+}
+.dbkit.crdas .lon-hdr {
+    padding-top: 32px;
+}
+.dbkit .kyc-view .pst-simp > div .tool-hdr .img-tools span {
+    width: auto;
+}
+.dbkit .tool-hdr .scb-col60 {
+    width: 75%;
+}
+
+.dbkit .tool-hdr .scb-col40 {
+    width: 25%;
+}
+.caloandtl .crt-form .srb.hdrsec {
+    width: 100%;
+}
+
+.rpcdbvmain-sec.nodoc {
+    overflow: hidden;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

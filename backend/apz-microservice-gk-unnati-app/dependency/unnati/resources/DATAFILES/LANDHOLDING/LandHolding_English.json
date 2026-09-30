@@ -1,0 +1,45 @@
+{
+"keysForContent":{
+    "applicationName":"SELF DECLARATION FOR LAND HOLDING DETAILS",
+
+    "date":"Date : ",
+    "customerId":"Customer ID : ",
+
+    "declarationIntro":"I/We, (1) {APPLICANT_NAME} (Applicant Name) {APPLICANT_RELATION} {APPLICANT_GUARDIAN_NAME} aged {APPLICANT_AGE} years, (2) {COAPPLICANT_NAME} (Co-Applicant Name) {COAPPLICANT_RELATION} {COAPPLICANT_GUARDIAN_NAME} aged {COAPPLICANT_AGE} years, all residing at {RESIDENTIAL_ADDRESS} (Complete Address), do hereby solemnly declare and affirm as follows:",
+
+    "clause1":"That I/We or my/our family member(s) residing with me/us hold agricultural/non-agricultural land as mentioned below",
+
+    "landTypeHeader":"Type of Land",
+    "landUnitsHeader":"Units",
+    "landQuantityHeader":"Quantity",
+    "landOwnerNameHeader":"Name of Landowner",
+    "landRelationshipHeader":"Applicant Relationship with landowner",
+    "landAddressHeader":"Address",
+
+    "agriLandLabel":"Agriculture Land",
+    "nonAgriLandLabel":"Non – Agricultural Land",
+    "landUnitAcres":"Acres",
+    "landTotalLabel":"Total",
+    "landTotalUnitLabel":"Total Acres",
+
+    "clause2":"That I/We or my/our family member(s) are in possession of the said land and utilize it for agricultural/commercial/residential purposes.",
+    "clause3":"That I/We do not possess any documentary evidence such as property documents, land title deeds, or tax receipts for the above-mentioned landholding; or",
+    "clause4":"Wherever the property documents/property extract could be made available, I/We have submitted the duly attested copies of the same to Credit Access Grameen Limited.",
+    "clause5":"That in the absence of documentary proof, I/We am/are submitting this self-declaration to confirm the details of the landholding as required for Grameen Unnati loan application process.",
+    "clause6":"That I/We understand and acknowledge that any misrepresentation or incorrect declaration may lead to rejection of the loan application, and this information may be relied on by Credit Access Grameen for any reporting purposes, regulatory or otherwise",
+    "clause7":"That this declaration is made in good faith and is true and correct to the best of my/our knowledge and belief.",
+
+    "affirmation":"I/We further affirm that the information provided herein is correct and binding upon me/us.",
+
+    "signedBy":"Signed and declared by:",
+    "signTypeHeader":"Type of Applicant",
+    "signNameHeader":"Name",
+    "signSignatureHeader":"Signature",
+    "signApplicantLabel":"Applicant",
+    "signCoApplicantLabel":"Co-Applicant 1",
+    "relationMale":"S/o",
+    "relationFemaleMarried":"W/o",
+    "relationFemale":"D/o",
+    "relationDefault":"S/o, D/o, W/o"
+}
+}

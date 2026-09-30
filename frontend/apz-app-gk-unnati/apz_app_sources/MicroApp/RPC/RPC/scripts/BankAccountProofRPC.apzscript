@@ -1,0 +1,138 @@
+RPC_CURRENT_STAGE = 'BankAccountProofRPC';
+var bankScrnId = `RPC__${RPC_CURRENT_STAGE}__`;
+window.validAccNum = false, window.validIFSC = false, window.acclengthErr = false, window.ifsclengthErr = false;
+var reEnterInputId = `${bankScrnId}reEnterAccountNumberInput`;
+var ifscInputId = `${bankScrnId}ifscInput`;
+apz.app.onLoad_BankAccountProofRPC = function() {
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+    toggleBankAccountPrrofSection();
+};
+apz.app.onShown_BankAccountProofRPC = function() {
+    apz.app.BankAccountProofRPC.setMinMaxLength();
+    apz.populateDropdown(document.getElementById(`${bankScrnId}accountTypeInput`),ApzCOB.formatDropDownforArray(accTypes));
+    //Disable cut,copy,paste
+    $(`#${bankScrnId}reEnterAccountNumberInput,#${bankScrnId}accountNumberInput`).on('copy paste cut', function(e) {
+        e.preventDefault();
+    });
+    $("input").attr("autocomplete", "off");
+    $(`#${bankScrnId}rpcverifyAccount`).addClass('sno'); 
+};
+apz.app.BankAccountProofRPC.setMinMaxLength = function() {
+    window.fieldMap = {
+        accountNameInput: "Name",
+        ifscInput: "IFSC",
+        bankNameInput: "BankName",
+        branchNameInput: "BankName",
+        accountNumberInput: "AccountNumberRPC",
+        reEnterAccountNumberInput: "AccountNumberRPC"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: bankScrnId + fieldId
+    })));
+    if (ProductData[0].productCode === '1001') {
+        $(`#${bankScrnId}accountNameInput`).attr('maxlength', 35); //UAU-933
+    }
+};
+apz.app.BankAccountProofRPC.subStrValue = function() {
+    Object.entries(fieldMap).forEach(([fieldId, fieldName]) => {
+        let fId = `#${bankScrnId + fieldId}`;
+        let fVal = $(fId).val();
+        $(fId).val(ApzCOB.getSubstrValue(fId, fVal));
+    });
+};
+apz.app.BankAccountProofRPC.validateAccountNum = function(pthis) {
+    $(`#${bankScrnId}reEnterAccountNumberInput`).blur();
+};
+apz.app.BankAccountProofRPC.validateAccountNumReEnter = function(pthis) {
+    validAccNum = true;
+    if(!acclengthErr) return;
+    accNumberVal = $(`#${bankScrnId}accountNumberInput`).val();
+    reAccNumberVal = pthis.value;
+    $(pthis).next(".err").remove();
+    $(`#${pthis.id}_li .err`).remove();
+    $(pthis).closest('span.srb.pri.err-inpt').removeClass("err-inpt");
+    if(!apz.isNull(reAccNumberVal) && !apz.isNull(accNumberVal) && accNumberVal !== reAccNumberVal) {
+        validAccNum = false;
+        $(`#${bankScrnId}reEnterAccountNumber`).addClass('err-inpt');
+        let accNumErrMsg = "<span class='err' style='color: red; font-size: 12px;'>Account number does not match</span>";
+        $(accNumErrMsg).insertAfter($(pthis));
+    }
+};
+function toggleBankAccountPrrofSection() {
+    if (gApzCOB.selectedRole === 'RPC_Checker') {
+        $('.rpcEditBtn').addClass('sno');
+    } else {
+        $('.rpcEditBtn').removeClass('sno');
+    }
+}
+apz.app.BankAccountProofRPC.onChangeAccNumber = function() {
+    $(`#${bankScrnId}reEnterAccountNumberInput`).val('');
+    let accNo = $(`#${bankScrnId}accountNumberInput`).val()
+    let accVerified = $(`#RPC__${RPC_CURRENT_STAGE}__verifiedAcc_txtcnt`).is(':visible')
+    let accInvalid = $(`#RPC__${RPC_CURRENT_STAGE}__invalidAcc_txtcnt`).is(':visible')
+    if (apz.isNull(accNo)) {
+        $(`#${bankScrnId}rpcverifyAccount`).removeClass('sno');
+    }
+    if (!apz.isNull(accNo) && (!accVerified || !accInvalid)) {
+        $(`#${bankScrnId}rpcverifyAccount`).removeClass('sno');
+    }
+    if (accVerified && !apz.isNull(accNo)) {
+        $(`#RPC__${RPC_CURRENT_STAGE}__rpcaccountVerified`).addClass('sno');
+        $("#" + bankScrnId + "verifiedAcc").addClass('sno');
+        $("#" + bankScrnId + "verifiedAcc").removeClass('suc');
+        $(`#${bankScrnId}rpcverifyAccount`).removeClass('sno');
+    }
+    if (accInvalid && !apz.isNull(accNo)) {
+        $(`#RPC__${RPC_CURRENT_STAGE}__rpcinvaildAccount`).addClass('sno');
+        $("#" + bankScrnId + "invalidAcc").addClass('sno');
+        $("#" + bankScrnId + "invalidAcc").removeClass('failed');
+        $(`#${bankScrnId}rpcverifyAccount`).removeClass('sno');
+    }
+    if (accNo.length < 6) {
+        ApzCOB.fnDisplayMsg("Please Enter Valid Account number", "E");
+        $(`#${bankScrnId}rpcverifyAccount`).addClass('sno');
+        $(`#${bankScrnId}accountNumberInput`).val("");
+        return;
+    }
+}
+apz.app.BankAccountProofRPC.onfocusAccNo = function() {
+    let isaccDisable = $("#" + bankScrnId + "accountNumberInput").hasClass("disabled");
+    if (!isaccDisable) {
+        $(`#${bankScrnId}rpcverifyAccount`).removeClass('sno');
+    }
+}
+apz.app.BankAccountProofRPC.checkPennyCheckStatus = function () {
+  let currIndex = ApzCOB.getIndexforBankWrapper("Applicant");
+  const pennyCheckStatus =
+    inSessionStore?.bankDetailsWrapperList?.[currIndex]?.bankDetails?.payload
+      ?.pennyCheckStatus;
+  const editBankDetails =
+    inSessionStore?.bankDetailsWrapperList?.[currIndex]?.bankDetails?.payload
+      ?.editBankDetails;
+  const payLoad =
+    inSessionStore?.bankDetailsWrapperList?.[currIndex]?.bankDetails?.payload;
+  $(`#${bankScrnId}pennyCheckBtnForm`).removeClass("sno");
+  if (editBankDetails === "NO") {
+    $(`#${bankScrnId}editIconLbl`).addClass("sno");
+  }
+  let accNum = $("#RPC__BankAccountProofRPC__accountNumberInput").val();
+  if (pennyCheckStatus && pennyCheckStatus !== "Fail") {
+    ApzCOB.addDisableToInput("RPC__BankAccountProofRPC__pennyCheckBtnId");
+    if (accNum === "") {
+      ApzCOB.addDisableToInput("RPC__BankAccountProofRPC__pennyCheckBtnId");
+    } else {
+        ApzCOB.handlePennyCheckPass();
+    }  
+  } else {
+    ApzCOB.getPennyCheckData();
+    if (accNum === "") {
+        ApzCOB.addDisableToInput("RPC__BankAccountProofRPC__pennyCheckBtnId");
+    } else if (pennyCheckStatus === ""){
+        ApzCOB.removeDisableToInput("RPC__BankAccountProofRPC__pennyCheckBtnId");     
+    } else if ((exceptionDoc?.length ?? 0) < 1) {
+        ApzCOB.handlePennyCheckFail();
+    }
+  }
+};

@@ -1,0 +1,71 @@
+RPC_CURRENT_STAGE = 'SecondaryKYCRPC';
+window.secondaryKycAddress = [];
+window.isSecKycExist = false, window.validPinCode = false, window.pinlengthErr = false;
+var secKycScrId = `RPC__${RPC_CURRENT_STAGE}__`;
+var addrType = 'Personal', subAddrType = 'SecondaryKyc';
+apz.app.onLoad_SecondaryKYCRPC = function() {
+    // isSecKycExist = apz.app.SecondaryKYCRPC.checkRpcSecKycDataExist();
+    $(`#${secKycScrId}StageNameTag`).text("Aadhaar details for Udyam");
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+    let editedFields = ApzCOB.getStageEditedFields();
+    ApzCOB.updateEditedTags(editedFields);
+};
+apz.app.onShown_SecondaryKYCRPC = function() {
+    $("#" + rpcftrScrId + "Previous").prop("disabled", false);
+    apz.app.SecondaryKYCRPC.setMinMaxLength();
+    $('.extraInput').remove();
+    $('input.hasDatepicker').datepicker("option", {maxDate: Date.parse(DATE_TODAY), yearRange: "-100:+0"});
+    $("input").attr("autocomplete", "off");
+}
+apz.app.SecondaryKYCRPC.setMinMaxLength = function() {
+    const fieldMap = {
+        // secondaryKycIdInput: "AddressLine1",
+        secondaryKycDobInput: "Dob",
+        secondaryKycNameInput: "Name",
+        addressLine1Input: "AddressLine1",
+        addressLine2Input: "AddressLine2",
+        addressLine3Input: "AddressLine3",
+        pinCodeInput: "Pincode",
+        cityInput: "City",
+        districtInput: "District",
+        stateInput: "State",
+        areaInput: "Area",
+        secondaryKycIdInput: "AadharNumber"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: secKycScrId + fieldId
+    })));
+};
+apz.app.SecondaryKYCRPC.checkRpcSecKycDataExist = function() {
+    if (ApzCOB.isObjEmpty(inSessionStore) || apz.isNull(window.custType)) return false;
+    let addressWrapper = inSessionStore.addressDetailsWrapperList?.[0]?.addressDetailsList;
+    if (!addressWrapper || addressWrapper.length === 0) return false;
+    let custDetailID = ApzCOB.getCustDetailID(custType);
+    let personalAddress = addressWrapper.find(address => address.addressType.toLowerCase() === addrType.toLowerCase() && address.custDtlId === custDetailID);
+    if (!personalAddress?.payload) return false;
+    let addressPayload = personalAddress.payload;
+    let addressPayloadArray = addressPayload.addressList;
+    return addressPayloadArray.some(secAddress => secAddress.addressType.toLowerCase() === subAddrType.toLowerCase());
+};
+apz.app.SecondaryKYCRPC.onchangepincode = function(pthis, addressType) {
+    let { value: pincodeVal } = pthis;
+    if (apz.isNull(pincodeVal) || !pinlengthErr) {
+        validPinCode = false;
+        ["areaInput", "cityInput", "districtInput", "stateInput"].forEach(el => {
+            $(`#RPC__${RPC_CURRENT_STAGE}__${el}`).val('');
+        })
+        return;
+    }
+    window.pincodeAddresstype = addressType;
+    ApzCOB.fetchpincodeDtls(pincodeVal, RPC_CURRENT_STAGE);
+};
+apz.app.SecondaryKYCRPC.paint_pincode = function(params) {
+    const prefix = `#RPC__${RPC_CURRENT_STAGE}__`;
+    $(`${prefix}cityInput`).val(params.city).blur();
+    $(`${prefix}districtInput`).val(params.district).blur();
+    $(`${prefix}stateInput`).val(params.state).blur();
+    $(`${prefix}countryInput`).val(params.country).blur();
+    $(`${prefix}areaInput`).val(params.area).blur();
+};

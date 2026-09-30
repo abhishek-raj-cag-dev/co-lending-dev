@@ -1,0 +1,13 @@
+window.kmcommonScr = 'KmSourc__Kmcommon__';
+var Kmcommon = function() {
+    // ApzCOB Function declaration
+};
+Kmcommon = {
+    // Kmcommon.formValidator(KM_CURR_STAGE_NO);
+    formValidator: function(stageId) {
+        
+    },
+    lengthValidate: function(pthis) {
+        
+    }
+};

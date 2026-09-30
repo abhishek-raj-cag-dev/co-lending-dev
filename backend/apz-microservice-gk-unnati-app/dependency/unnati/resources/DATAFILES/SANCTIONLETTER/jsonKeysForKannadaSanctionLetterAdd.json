@@ -1,0 +1,182 @@
+{
+  "keysForContent": {
+    "applicationNameSUPPLEMENTARYLOAN": "<font face='Tunga'><b>ಗ್ರಾಮೀಣ್ ಉನ್ನತಿ ಸಪ್ಲಿಮೆಂಟರಿ ಸಾಲಕ್ಕೆ ಮಂಜೂರಾತಿ ಪತ್ರ</b></font>",
+    "applicationNameFAMILYWELFARELOAN": "<font face='Tunga'><b>ಗ್ರಾಮೀಣ್ ಉನ್ನತಿ ಸಾಲ ಮಂಜೂರಾತಿ ಪತ್ರ- ಫ್ಯಾಮಿಲಿ ವೆಲ್ ಫೇರ್ ಲೋನ್</b></font>",
+    "applicationNameEMERGENCYLOAN": "<font face='Tunga'><b>ಗ್ರಾಮೀಣ್ ಉನ್ನತಿ ಸಾಲ ಮಂಜೂರಾತಿ ಪತ್ರ- ಎಮರ್ಜೆನ್ಸಿ ಲೋನ್</b></font>",
+
+    "customerId": "<font face='Tunga'>ಗ್ರಾಹಕ ಐಡಿ:</font>",
+    "date": "<font face='Tunga'>ದಿನಾಂಕ:</font>",
+
+    "borrowerType": "<font face='Tunga'>ಸಾಲಗಾರರ ಪ್ರಕಾರ</font>",
+    "applicantName": "<font face='Tunga'>ಅರ್ಜಿದಾರರ ಹೆಸರು</font>",
+    "residingAt": "<font face='Tunga'>ಅರ್ಜಿದಾರರ ವಾಸಸ್ಥಳ</font>",
+
+    "applicant": "<font face='Tunga'>ಅರ್ಜಿದಾರರು</font>",
+    "coApplicant": "<font face='Tunga'>ಸಹ-ಅರ್ಜಿದಾರರು</font>",
+
+    "letter": "<font face='Tunga'>ಆತ್ಮೀಯ ಸರ್/ಮೇಡಂ,</font>",
+
+    "subjectSanction": "<font face='Tunga'><b>ವಿಷಯ: ಮಂಜೂರಾತಿ ಪತ್ರ</b></font>",
+    "subjectLoanSanction": "<font face='Tunga'><b>ವಿಷಯ: ಸಾಲದ ಮಂಜೂರಾತಿ ಪತ್ರ</b></font>",
+
+    "letter1": "<font face='Tunga'>ಕ್ರೆಡಿಟ್‌ ಆಕ್ಸೆಸ್‌ ಗ್ರಾಮೀಣ್‌ ಲಿಮಿಟೆಡ್ (ಸಿಎ ಗ್ರಾಮೀಣ್) ಒದಗಿಸುವ ಔದ್ಯಮಿಕ ಸಾಲ ಸೌಲಭ್ಯಕ್ಕಾಗಿ ನೀವು ಹಣಕಾಸು ನೆರವು ಅರ್ಜಿಯನ್ನು ಪರಿಶೀಲಿಸಿ. ಅರ್ಜಿಗೆ ಸಂಬಂಧಿಸಿದಂತೆ ನಿಮಗೆ ರೂ. <font face='Arial Unicode MS'><sanctionedAmount></font>/- ಮೊತ್ತದ ಹಣ ಮಂಜೂರು ಮಾಡುತ್ತಿದ್ದೇವೆ ಎಂದು ಈ ಮೂಲಕ ತಿಳಿಸಲು ಸಂತಸವಾಗುತ್ತಿದೆ. ಹಣಕಾಸು ನೆರವಿಗೆ ಸಂಬಂಧಪಟ್ಟ ನಿಯಮ ಮತ್ತು ನಿಬಂಧನೆಗಳು ಕೆಳಕಂಡಂತಿವೆ:</font>",
+
+    "grameenUnnatiSupplementaryLoan": "Grameen Unnati Supplementary Loan",
+    "grameenUnnatiEmergencyLoan": "Grameen Unnati - Emergency Loan",
+    "grameenUnnatiFamilyWelfareLoan": "Grameen Unnati - Family Welfare Loan",
+
+    "natureOfFacility": "<font face='Tunga'>1) ಸೌಲಭ್ಯದ ವಿಧಾನ</font>",
+    "purpose": "<font face='Tunga'>2) ಉದ್ದೇಶ</font>",
+    "interestRate": "<font face='Tunga'>3) ಬಡ್ಡಿದರ</font>",
+
+    "interestRateValuePair": "% p.a.,<font face='Tunga'>ಮಾಸಿಕವಾಗಿ ಪಾವತಿಸಬೇಕು. ಬಡ್ಡಿದರವು ಕಾಲಕಾಲಕ್ಕೆ ಬದಲಾಗಬಹುದು.</font>",
+
+    "loanAmount": "<font face='Tunga'>4) ಸಾಲದ ಮೊತ್ತ</font>",
+    "loanAmountValue": "<font face='Tunga'>ರೂ. <sanctionedAmount>/- (<sanctionedAmountInWords> ಮಾತ್ರ)</font>",
+
+    "instalment": "<font face='Tunga'>5) ಕಂತು</font>",
+    "rs": "<font face='Tunga'>ರೂ. </font>",
+
+    "numberOfInstallments": "<font face='Tunga'>6) ಕಂತುಗಳ ಸಂಖ್ಯೆ</font>",
+
+    "repaymentFrequency": "<font face='Tunga'>7) ಮರುಪಾವತಿಯ ಆವರ್ತನೆ</font>",
+
+    "tenureInMonths": "<font face='Tunga'>8) ಅವಧಿ (ತಿಂಗಳು)</font>",
+
+    "repayment": "<font face='Tunga'>9) ಮರುಪಾವತಿ</font>",
+
+    "repaymentValuePair": "<font face='Tunga'>ಸಾಲ ವಿತರಣೆಯ ದಿನಾಂಕದಿಂದ, ಮರುಪಾವತಿ ವೇಳಾಪಟ್ಟಿಯ ಪ್ರಕಾರ ನಿಗದಿತ ಸಭೆಯ ದಿನದಂದು ಕಂತು ಪಾವತಿಸಬೇಕಾಗುತ್ತದೆ.</font>",
+
+    "incidentalFinancialChargesPayable": "<font face='Tunga'>10) ಪಾವತಿಸಬೇಕಾದ ಅನುಗತ ಮತ್ತು ಹಣಕಾಸು ಶುಲ್ಕಗಳು</font>",
+
+    "processingFee": "<font face='Tunga'>ಸಾಲದ ಮೊತ್ತದ 1.27% ಪ್ರೊಸೆಸಿಂಗ್ ಶುಲ್ಕ + ಅನ್ವಯವಾಗುವ </font>GST,<font face='Tunga'> ಇದು ಮರುಪಾವತಿಸಲಾಗುವುದಿಲ್ಲ.</font>",
+
+    "applicantInsuranceOpted": "<font face='Tunga'>ಅರ್ಜಿದಾರರು ವಿಮೆಯನ್ನು ಆಯ್ಕೆ ಮಾಡಿಕೊಂಡಿದ್ದಾರೆಯೇ (ಹೌದು/ಇಲ್ಲ)</font>",
+
+    "applicantInsurancePremium": "<font face='Tunga'>ಅರ್ಜಿದಾರರ ವಿಮೆಯ ಪ್ರೀಮಿಯಂ</font>",
+
+    "coApplicantInsuranceOpted": "<font face='Tunga'>ಸಹ-ಅರ್ಜಿದಾರರು ವಿಮೆಯನ್ನು ಆಯ್ಕೆ ಮಾಡಿಕೊಂಡಿದ್ದಾರೆಯೇ (ಹೌದು/ಇಲ್ಲ)</font>",
+
+    "coApplicantInsurancePremium": "<font face='Tunga'>ಸಹ-ಅರ್ಜಿದಾರರ ವಿಮೆಯ ಪ್ರೀಮಿಯಂ</font>",
+
+    "sumAssured": "<font face='Tunga'>ನಿಗದಿತ ವಿಮಾ ಮೊತ್ತ</font>",
+
+    "insuranceTenure": "<font face='Tunga'>ವಿಮೆಯ ಅವಧಿ</font>",
+
+    "otherCharges": "<font face='Tunga'>11) ಇತರೆ ಶುಲ್ಕಗಳು (ಅನಿಶ್ಚಿತ)</font>",
+
+    "otherChargesValuePair": "<font face='Tunga'>ಮರುಪಾವತಿ ವಿಳಂಬ ಶುಲ್ಕ: ಪ್ರತಿ ಕಂತಿಗೆ ರೂ.</font> NIL/- (GST <font face='Tunga'>ಸೇರಿದಂತೆ)</font>",
+
+    "disbursement": "<font face='Tunga'>12) ವಿತರಣೆ</font>",
+
+    "disbursementValuePair": "<font face='Tunga'>ವಿತರಣೆ </font>(NEFT/<font face='Tunga'>ಇತರ ಎಲೆಕ್ಟ್ರಾನಿಕ್ ನಿಧಿ ವರ್ಗಾವಣೆ ವಿಧಾನಗಳ ಮೂಲಕ) ಕೆಳಗಿನ ಹೆಚ್ಚುವರಿ ದಾಖಲೆಗಳನ್ನು ಸಲ್ಲಿಸಿದ ನಂತರ ಬಿಡುಗಡೆ ಮಾಡಲಾಗುತ್ತದೆ:</font>",
+
+    "disbursementValuePairA": "a)<font face='Tunga'> ಕರಾರುಗಳು ಮತ್ತು ಷರತ್ತುಗಳು ಹಾಗೂ ಮರುಪಾವತಿ ವೇಳಾಪಟ್ಟಿಯನ್ನು ಅಂಗೀಕರಿಸಿ ಸರಿಯಾಗಿ ಸಹಿ ಮಾಡಿದ ಮಂಜೂರಾತಿ ಪತ್ರ.</font>",
+
+    "disbursementValuePairB": "b)<font face='Tunga'> ಸಾಲದ ಒಪ್ಪಂದಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ಎಲ್ಲಾ ಪಕ್ಷಗಳಿಂದ ಸರಿಯಾಗಿ ಸಹಿ ಮಾಡಲಾದ ಡಿಮ್ಯಾಂಡ್ ಪ್ರಾಮಿಸರಿ ನೋಟ್‌ನ ಕಾರ್ಯಗತಗೊಳಿಸುವಿಕೆ.</font>",
+
+    "disbursementValuePairC": "c)<font face='Tunga'> ಸಾಲದ ಒಪ್ಪಂದದ ಕಾರ್ಯಗತಗೊಳಿಸುವಿಕೆ (ರಾಜ್ಯ ಮುದ್ರಾಂಕ ಕಾಯ್ದೆಯ ಪ್ರಕಾರ ಅನ್ವಯಿಸುವಂತೆ ನ್ಯಾಯಾಂಗೇತರ ಮುದ್ರಾಂಕ ಪತ್ರದಲ್ಲಿ).</font>",
+
+    "disbursementValuePairD": "d)<font face='Tunga'> ಎಂಎಸ್‌ಎಂಇ ಘೋಷಣಾ ಪತ್ರ</font>",
+
+    "disbursementValuePairE": "e)<font face='Tunga'> ವಿಮಾ ಸಮ್ಮತಿ ಪತ್ರ</font>",
+
+    "disbursementValuePairF": "f)<font face='Tunga'> ಸಮ್ಮತಿ ಪತ್ರ</font>",
+
+    "disbursementValuePairG": "g)<font face='Tunga'> ಪ್ರಮುಖ ಅಂಶಗಳ ಹಾಳೆಯ ಅಂಗೀಕೃತ ಪ್ರತಿ</font>",
+
+    "addendum": "<font face='Tunga'>ಅನುಬಂಧ</font>",
+
+    "sanctionValidity": "<font face='Tunga'>13) ಮಂಜೂರಾತಿ ಸಿಂಧುತ್ವ</font>",
+
+    "sanctionValidityValuePair": "<font face='Tunga'>ಸಾಲ ಮಂಜೂರಾದ ದಿನಾಂಕದಿಂದ 30 ದಿನಗಳು</font>",
+
+    "termsAndConditions": "<font face='Tunga'><b>ಕರಾರುಗಳು ಮತ್ತು ಷರತ್ತುಗಳು</b></font>",
+
+    "termsAndConditions1": "<font face='Tunga'>1. ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು ಸಾಲವನ್ನು ನಿಯಂತ್ರಿಸುವ ಎಲ್ಲಾ ಪ್ರಮುಖ ಮಾಹಿತಿ ಮತ್ತು ಕರಾರುಗಳು ಮತ್ತು ಷರತ್ತುಗಳನ್ನು ಒಳಗೊಂಡಿರುವ ಪ್ರಮುಖ ಅಂಶಗಳ ಹಾಳೆಯ ಸ್ವೀಕೃತಿಯನ್ನು ಅಂಗೀಕರಿಸುತ್ತಾರೆ ಮತ್ತು ಅದನ್ನು ಸಾಲದ ವಹಿವಾಟಿನ ದಾಖಲೆಗಳೊಂದಿಗೆ ಓದಬೇಕು.</font>",
+
+    "termsAndConditions2": "<font face='Tunga'>2. ಸಾಲಕ್ಕೆ ಅರ್ಜಿ ಸಲ್ಲಿಸುವ ಸಮಯದಲ್ಲಿ ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರ ವಯಸ್ಸು 22-60 ವರ್ಷಗಳ ನಡುವೆ ಇರಬೇಕು.</font>",
+
+    "termsAndConditions3": "<font face='Tunga'>3. ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು ಸಿಎ ಗ್ರಾಮೀಣ್ ಸೇರಿದಂತೆ ಯಾವುದೇ ಎಂಎಫ್ಐಗಳು/ಬ್ಯಾಂಕ್‌ಗಳು/ಎಸ್ಎಚ್‌ಜಿ/ಜೆಎಲ್‌ಜಿ/ಹಣಕಾಸು ಸಂಸ್ಥೆಗಳಲ್ಲಿ ಬಾಕಿ ಸಾಲ ಹೊಂದಿರಬಾರದು.</font>",
+
+    "termsAndConditions4": "<font face='Tunga'>4. ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು ಮಾನ್ಯವಾದ ಕೆವೈಸಿ ದಾಖಲೆಗಳನ್ನು ಹೊಂದಿರಬೇಕು.</font>",
+
+    "termsAndConditions5": "<font face='Tunga'>5. ನೀಡಿರುವ ಎಲ್ಲಾ ವಿವರಗಳು ನಿಜ ಮತ್ತು ಸರಿಯಾಗಿವೆ ಹಾಗೂ ಯಾವುದೇ ಮಾಹಿತಿಯನ್ನು ಮುಚ್ಚಿಡಲಾಗಿಲ್ಲ/ತಡೆಹಿಡಿಯಲಾಗಿಲ್ಲ ಎಂದು ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು ಒಪ್ಪಿಕೊಳ್ಳುತ್ತಾರೆ.</font>",
+
+    "termsAndConditions6": "<font face='Tunga'>6. ಸಾಲದ ಮೊತ್ತವನ್ನು ಮರುಪಾವತಿಯ ಅವಧಿ ಮತ್ತು ಆವರ್ತನೆಯ ಪ್ರಕಾರ ಬಡ್ಡಿಯೊಂದಿಗೆ ಕಂತುಗಳಲ್ಲಿ ಮರುಪಾವತಿಸಬೇಕು.</font>",
+
+    "termsAndConditions7": "<font face='Tunga'>7. ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು ಒಪ್ಪಿಕೊಂಡ ಉದ್ದೇಶಕ್ಕಾಗಿ ಮಾತ್ರ ಸಾಲವನ್ನು ಬಳಸಬೇಕು, ಸಾಲದ ಕಂತುಗಳನ್ನು ತಪ್ಪದೆ ಸಮಯಕ್ಕೆ ಮರುಪಾವತಿಸಬೇಕು ಮತ್ತು ಅವರ ಮರುಪಾವತಿ ಸಾಮರ್ಥ್ಯಕ್ಕಿಂತ ಹೆಚ್ಚಿನ ಸಾಲವನ್ನು ಪಡೆಯಬಾರದು.</font>",
+
+    "termsAndConditions8": "<font face='Tunga'>8. ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರಿಗೆ ತಿಳಿಸುವ ಮೂಲಕ ಕಾಲಕಾಲಕ್ಕೆ ಬಡ್ಡಿದರವನ್ನು ಮರುಹೊಂದಿಸುವ ವಿವೇಚನೆಯನ್ನು </font>CA <font face='Tunga'>ಗ್ರಾಮೀಣ್ ಹೊಂದಿರುತ್ತದೆ. ಪರಿಷ್ಕೃತ ಬಡ್ಡಿದರವನ್ನು ಮುಂದಿನ ಅವಧಿಗೆ ಪಾವತಿಸಲು ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು ಒಪ್ಪಿಕೊಳ್ಳುತ್ತಾರೆ.</font>",
+
+    "termsAndConditions9": "<font face='Tunga'>9. ಸಾಲದ ದುರ್ಬಳಕೆ ಅಥವಾ ಯಾವುದೇ ಸಾಲದ ಷರತ್ತುಗಳ ಉಲ್ಲಂಘನೆಯ ಸಂದರ್ಭದಲ್ಲಿ ಬಾಕಿ ವಸೂಲಿಗಾಗಿ ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರ ವಿರುದ್ಧ</font> CA <font face='Tunga'>ಗ್ರಾಮೀಣ್ ಸೂಕ್ತ ಕಾನೂನು ಕ್ರಮ ಕೈಗೊಳ್ಳಬಹುದು ಮತ್ತು ಸಾಲವನ್ನು ಹಿಂಪಡೆಯುವ ಹಕ್ಕನ್ನು ಹೊಂದಿರುತ್ತದೆ.</font>",
+
+    "termsAndConditions10": "10. CA <font face='Tunga'>ಗ್ರಾಮೀಣ್ ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರ ಡೇಟಾದ ಗೌಪ್ಯತೆಯನ್ನು ಗೌರವಿಸುತ್ತದೆ. ಆದಾಗ್ಯೂ, ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರಿಗೆ ಸಂಬಂಧಿಸಿದ ಯಾವುದೇ ಮಾಹಿತಿ ಮತ್ತು ಡೇಟಾವನ್ನು ಬಹಿರಂಗಪಡಿಸುವ ಹಕ್ಕು </font>CA <font face='Tunga'>ಗ್ರಾಮೀಣ್‌ಗೆ ಇರುತ್ತದೆ. ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು ಅಂತಹ ಮಾಹಿತಿಯನ್ನು ಯಾವುದೇ ಹಣಕಾಸು ಸಂಸ್ಥೆ/ಬ್ಯಾಂಕ್/ಕ್ರೆಡಿಟ್ ಮಾಹಿತಿ ಕಂಪನಿ</font>/RBI/SRO/<font face='Tunga'>ಸೇವಾ ಪೂರೈಕೆದಾರರೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳಲು</font> CA <font face='Tunga'>್ಗರಾಮೀಣ್‌ಗೆ ಸಂಪೂರ್ಣ ಹಕ್ಕಿದೆ ಎಂದು ಒಪ್ಪುತ್ತಾರೆ.</font>",
+
+    "termsAndConditions11": "<font face='Tunga'>11. ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು</font> CA <font face='Tunga'>ಗ್ರಾಮೀಣ್ ಬೇಡಿಕೆಯ ಮೇರೆಗೆ </font>ECS, NACH <font face='Tunga'>ಮತ್ತು </font>UPI AutoPay <font face='Tunga'>ಸೇರಿದಂತೆ ಎಲ್ಲಾ ಪಾವತಿ ಆದೇಶಗಳನ್ನು ಒದಗಿಸಬೇಕು. ಅನ್ವಯವಾಗುವ ಸ್ಟ್ಯಾಂಪ್ ಡ್ಯೂಟಿ ಸೇರಿದಂತೆ </font>CA <font face='Tunga'>ಗ್ರಾಮೀಣ್ ಮಾಡುವ ಎಲ್ಲಾ ವೆಚ್ಚಗಳು ಮತ್ತು ಖರ್ಚುಗಳನ್ನು ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು ಮಾತ್ರ ಭರಿಸಬೇಕು. ಎಲ್ಲಾ ಪಾವತಿ ಆದೇಶಗಳನ್ನು ಗೌರವಿಸಲಾಗುತ್ತದೆ ಮತ್ತು </font>CA<font face='Tunga'>ಗ್ರಾಮೀಣ್‌ನ ಪೂರ್ವಾನುಮತಿಯಿಲ್ಲದೆ ಬದಲಾಯಿಸಲಾಗುವುದಿಲ್ಲ ಎಂದು ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಬೇಕು.</font>",
+
+    "termsAndConditions12": "<font face='Tunga'>12. ಅರ್ಜಿದಾರರು ಮತ್ತು ಸಹ-ಅರ್ಜಿದಾರರ ಎಲ್ಲಾ ಸಾಲಗಳು ಕ್ರೆಡಿಟ್ ಬ್ಯೂರೋ ಪರಿಶೀಲನೆಗೆ ಒಳಪಟ್ಟಿರುತ್ತವೆ ಮತ್ತು ಆದ್ದರಿಂದ ಡೇಟಾವನ್ನು ಕ್ರೆಡಿಟ್ ಬ್ಯೂರೋ ಏಜೆನ್ಸಿಗಳೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳಲಾಗುತ್ತದೆ.</font>",
+
+    "termsAndConditions13": "<font face='Tunga'>13. ಗ್ರಾಹಕರು ಎಲ್ಲಾ ಕೇಂದ್ರ ಸಭೆಗಳಿಗೆ ಹಾಜರಾಗಬೇಕು, ಒಪ್ಪಿಕೊಂಡ ಉದ್ದೇಶಕ್ಕಾಗಿ ಮಾತ್ರ ಸಾಲವನ್ನು ಬಳಸಬೇಕು ಮತ್ತು ಸಾಲದ ಕಂತುಗಳನ್ನು ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಮರುಪಾವತಿಸಬೇಕು.</font>",
+
+    "termsAndConditions14": "<font face='Tunga'>14. ಸಾಲವನ್ನು ಅವಧಿಪೂರ್ವವಾಗಿ ಮುಕ್ತಾಯಗೊಳಿಸಲು ಯಾವುದೇ ಶುಲ್ಕ ವಿಧಿಸಲಾಗುವುದಿಲ್ಲ.</font>",
+
+    "termsAndConditions15": "<font face='Tunga'>15. ಒಂದು ಕಂತಿನ ಮೊರಟೋರಿಯಂ (ಅಸಲು ಮಾತ್ರ) ನೀಡಲಾಗುವುದು.</font>",
+
+    "termsAndConditions16": "<font face='Tunga'>16. ಸಾಲದ ಮಂಜೂರಾತಿಯು </font>CA<font face='Tunga'> ಗ್ರಾಮೀಣ್/ಮೂರನೇ ವ್ಯಕ್ತಿಗಳು ನೀಡುವ ಯಾವುದೇ ಇತರ ಉತ್ಪನ್ನ/ಸೇವೆಗೆ ಸಂಬಂಧಿಸಿರುವುದಿಲ್ಲ.</font>",
+
+    "termsAndConditions17": "17. CA<font face='Tunga'> ಗ್ರಾಮೀಣ್ ಸಾಲದ ವಿರುದ್ಧ ಯಾವುದೇ ಭದ್ರತಾ ಠೇವಣಿ ಅಥವಾ ಮಾರ್ಜಿನಲ್ ಹಣವನ್ನು ಸಂಗ್ರಹಿಸುವುದಿಲ್ಲ.</font>",
+
+    "termsAndConditions18": "<font face='Tunga'>18. ಡೀಫಾಲ್ಟ್ ಸಂದರ್ಭದಲ್ಲಿ, ಬಾಕಿ ಇರುವ ಮೊತ್ತದ ಮೇಲೆ ಒಪ್ಪಂದದ ದರದಲ್ಲಿ ವಿಳಂಬ ಪಾವತಿ ಶುಲ್ಕಗಳು/ದಂಡ ಶುಲ್ಕಗಳನ್ನು ವಿಧಿಸಲಾಗುತ್ತದೆ.</font>",
+
+    "termsAndConditions19": "<font face='Tunga'>19. ಅರ್ಜಿ ಸಲ್ಲಿಸಿದ ದಿನಾಂಕದಿಂದ 15 ದಿನಗಳೊಳಗೆ ಸಾಲ ವಿತರಣೆ ಆಗದಿದ್ದಲ್ಲಿ,</font> CA<font face='Tunga'> ಗ್ರಾಮೀಣ್ ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರ ಕ್ರೆಡಿಟ್ ಬ್ಯೂರೋ ಸ್ಥಿತಿಯನ್ನು ಮರುಪರಿಶೀಲಿಸಬಹುದು.</font>",
+
+    "termsAndConditions20": "<font face='Tunga'>20. ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು ಆಯ್ಕೆ ಮಾಡಿಕೊಂಡ ಮರುಪಾವತಿ ಅವಧಿಗೆ ಅನುಗುಣವಾಗಿ ವಾರಕ್ಕೊಮ್ಮೆ/ಎರಡು ವಾರಗಳಿಗೊಮ್ಮೆ/ನಾಲ್ಕು ವಾರಗಳಿಗೊಮ್ಮೆ ಕಡಿಮೆಯಾಗುತ್ತಿರುವ ಬಾಕಿ ಮೊತ್ತದ ಮೇಲೆ ಬಡ್ಡಿಯನ್ನು ಲೆಕ್ಕಹಾಕಲಾಗುತ್ತದೆ.</font>",
+
+    "termsAndConditions21": "<font face='Tunga'>21. ಸಾಲದ ಕಂತಿನ ಮರುಪಾವತಿ ದಿನಾಂಕ, ಆವರ್ತನೆ ಮತ್ತು ಅಸಲು ಹಾಗೂ ಬಡ್ಡಿಯ ವಿಭಜನೆಯ ವಿವರಗಳನ್ನು ಸಾಲದ ಪಾಸ್‌ಬುಕ್‌ನಲ್ಲಿ ನೀಡಲಾಗುತ್ತದೆ. ಸಾಲದ ಮರುಪಾವತಿ ವೇಳಾಪಟ್ಟಿಗಾಗಿ ಸಾಲದ ಪಾಸ್‌ಬುಕ್ ಪರಿಶೀಲಿಸಿ.</font>",
+
+    "termsAndConditions22": "<font face='Tunga'>22. ಸಾಲದ ಖಾತೆಯು ಡೀಫಾಲ್ಟ್‌ನಲ್ಲಿದ್ದರೆ, ಅಂತಹ ಖಾತೆಯನ್ನು ಕ್ರೆಡಿಟ್ ಬ್ಯೂರೋಗೆ ವರದಿ ಮಾಡಲಾಗುತ್ತದೆ.</font>",
+
+    "termsAndConditions23": "<font face='Tunga'>23. ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರ ಸಂವಹನ ವಿಳಾಸ, ಸಂಪರ್ಕ ಸಂಖ್ಯೆ ಅಥವಾ ಉದ್ಯೋಗ/ವೃತ್ತಿಯಲ್ಲಿ ಯಾವುದೇ ಬದಲಾವಣೆ ಉಂಟಾದಲ್ಲಿ, ಭವಿಷ್ಯದ ಎಲ್ಲಾ ಸಂವಹನಕ್ಕಾಗಿ ಅದನ್ನು ತಕ್ಷಣವೇ </font>CA <font face='Tunga'>ಗ್ರಾಮೀಣ್‌ಗೆ ತಿಳಿಸಬೇಕು.</font>",
+
+    "termsAndConditions24": "<font face='Tunga'>24. ಅಗತ್ಯ ದಾಖಲೆಗಳ ಕಾರ್ಯಗತಗೊಳಿಸುವಿಕೆ ಮತ್ತು ಸಲ್ಲಿಕೆಗೆ ಒಳಪಟ್ಟಂತೆ ಸಾಲದ ವಿತರಣೆ ಮಾಡಲಾಗುತ್ತದೆ. ಇದು </font>CA<font face='Tunga'> ಗ್ರಾಮೀಣ್‌ನ ಒಟ್ಟಾರೆ ಮಂಜೂರಾತಿ ಸಂವಹನದ ಭಾಗವಾಗಿರುತ್ತದೆ.</font>",
+
+    "termsAndConditions25": "<font face='Tunga'>25. ಯಾವುದೇ ಅನುಚಿತ ಸಿಬ್ಬಂದಿ ವರ್ತನೆಯನ್ನು ತಡೆಗಟ್ಟುವುದು ಮತ್ತು ಸಮಯೋಚಿತ ಕುಂದುಕೊರತೆ ಪರಿಹಾರವನ್ನು ಒದಗಿಸುವ ಜವಾಬ್ದಾರಿ </font>CA <font face='Tunga'>ಗ್ರಾಮೀಣ್‌ನದ್ದಾಗಿದೆ.</font>",
+
+    "termsAndConditions26": "<font face='Tunga'>26. ಸಾಲ ಸೌಲಭ್ಯವನ್ನು ಮಂಜೂರು ಮಾಡುವ ನಿರ್ಧಾರವು ಸಂಪೂರ್ಣವಾಗಿ </font>CA<font face='Tunga'> ಗ್ರಾಮೀಣ್‌ನ ವಿವೇಚನೆಗೆ ಒಳಪಟ್ಟಿರುತ್ತದೆ.</font>",
+
+    "termsAndConditions27": "<font face='Tunga'>27. ಈ ಮಂಜೂರಾತಿ ಪತ್ರವು ಮಂಜೂರಾತಿ ದಿನಾಂಕದಿಂದ ಈ ಮಂಜೂರಾತಿ ಪತ್ರದಲ್ಲಿ ಉಲ್ಲೇಖಿಸಿರುವ ಮಾನ್ಯತಾ ಅವಧಿಯವರೆಗೆ ಜಾರಿಯಲ್ಲಿರುತ್ತದೆ. ಆದಾಗ್ಯೂ, ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರ ಅರ್ಜಿಯ ಮೇರೆಗೆ ಮರುಮಾನ್ಯತೆ ನೀಡುವುದು </font>CA<font face='Tunga'> ಗ್ರಾಮೀಣ್‌ನ ಏಕೈಕ ವಿವೇಚನೆಗೆ ಒಳಪಟ್ಟಿರುತ್ತದೆ.</font>",
+
+    "termsAndConditions28": "<font face='Tunga'>28. ನೀಡಲಾದ ಪ್ರಮುಖ ಅಂಶಗಳ ಹೇಳಿಕೆ</font> (KFS)<font face='Tunga'> ಪ್ರಕಾರ ಸಾಲದ ಮೊತ್ತ ಮತ್ತು ಅನ್ವಯಿಸುವ ಬಡ್ಡಿಯನ್ನು ಮರುಪಾವತಿಸುವ ಜವಾಬ್ದಾರಿ ಸಾಲಗಾರರದ್ದಾಗಿದೆ.</font>",
+
+    "termsAndConditions29": "<font face='Tunga'>29. ಸಾಲದ ದರ (ಪ್ರೈಸಿಂಗ್) ಕುರಿತ ಪ್ರಮುಖ ಅಂಶಗಳ ಹೇಳಿಕೆ </font>(Key Fact Statement)<font face='Tunga'> ಅನ್ನು ಈ ಮಂಜೂರಾತಿ ಪತ್ರದೊಂದಿಗೆ ಒದಗಿಸಲಾಗಿದೆ.</font>",
+
+    "termsAndConditions30": "<font face='Tunga'>30. ಪ್ರತಿಯೊಬ್ಬ ಸಾಲಗಾರರ ಕ್ರೆಡಿಟ್ ಪ್ರೊಫೈಲ್, ಆದಾಯದ ಸ್ವರೂಪ,</font> CA<font face='Tunga'> ಗ್ರಾಮೀಣ್‌ನೊಂದಿಗೆ ಸಾಲಗಾರರ ಸಂಬಂಧದ ಅವಧಿ ಮತ್ತು ಭೌಗೋಳಿಕ ಪ್ರದೇಶದ ಕ್ರೆಡಿಟ್ ಅಪಾಯದ ಮೌಲ್ಯಮಾಪನವನ್ನು ಅವಲಂಬಿಸಿ ಬಡ್ಡಿದರವು ಬದಲಾಗಬಹುದು.</font>",
+
+    "termsAndConditions31": "<font face='Tunga'>31. ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು </font>CA<font face='Tunga'> ಗ್ರಾಮೀಣ್‌ನಿಂದ ಸಾಲದ ದರ (ಪ್ರೈಸಿಂಗ್) ಕುರಿತ ಮರುಪಾವತಿ ಹಾಳೆ ಮತ್ತು ಪ್ರಮುಖ ಅಂಶಗಳ ಹೇಳಿಕೆಯನ್ನು ಸ್ವೀಕರಿಸಿದ್ದಾರೆ. ಪ್ರಮುಖ ಅಂಶಗಳ ಹೇಳಿಕೆಯ ವಿವರಗಳನ್ನು ಅವರಿಗೆ ವಿವರಿಸಲಾಗಿದೆ ಮತ್ತು ಅವರು ಅದನ್ನು ಅರ್ಥಮಾಡಿಕೊಂಡಿದ್ದಾರೆ ಎಂದು ಅವರು ದೃಢೀಕರಿಸುತ್ತಾರೆ.</font>",
+
+    "acceptedTerms": "<font face='Tunga'>ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರು ಈ ಮಂಜೂರಾತಿ ಪತ್ರಕ್ಕೆ ಸಹಿ ಮಾಡಿ ಮೇಲಿನ ಕರಾರುಗಳು ಮತ್ತು ಷರತ್ತುಗಳನ್ನು ಅಂಗೀಕರಿಸಬಹುದು.</font>",
+
+    "mutualRelationship": "<font face='Tunga'>ನಿಮ್ಮೊಂದಿಗೆ ಪರಸ್ಪರ ಪ್ರಯೋಜನಕಾರಿ ಮತ್ತು ದೀರ್ಘಾವಧಿಯ ಸಂಬಂಧವನ್ನು ಹೊಂದಲು ನಾವು ಎದುರುನೋಡುತ್ತೇವೆ.</font>",
+
+    "thankingYou": "<font face='Tunga'>ಧನ್ಯವಾದಗಳು,</font>",
+
+    "forCreditAccessGrameenLimited": "<font face='Tunga'>ಕ್ರೆಡಿಟ್ ಆಕ್ಸೆಸ್ ಗ್ರಾಮೀಣ್ ಲಿಮಿಟೆಡ್ ಪರವಾಗಿ</font>",
+
+    "authorization": "<font face='Tunga'>ಅಧಿಕೃತಗೊಳಿಸುವಿಕೆ</font>",
+
+    "name": "<font face='Tunga'>ಹೆಸರು</font>",
+
+    "designation": "<font face='Tunga'>ಹುದ್ದೆ</font>",
+
+    "employeeId": "<font face='Tunga'>ಎಂಪ್ಲೋಯೀ ಐಡಿ</font>",
+
+    "signature": "<font face='Tunga'>ಸಹಿ</font>",
+
+    "acceptedBy": "<font face='Tunga'>ಅರ್ಜಿದಾರರು/ಸಹ-ಅರ್ಜಿದಾರರಿಂದ ಅಂಗೀಕರಿಸಲಾಗಿದೆ</font>",
+
+    "borrowerName": "<font face='Tunga'>ಹೆಸರು</font>",
+
+    "borrowerSignature": "<font face='Tunga'>ಸಹಿ</font>"
+  }
+}

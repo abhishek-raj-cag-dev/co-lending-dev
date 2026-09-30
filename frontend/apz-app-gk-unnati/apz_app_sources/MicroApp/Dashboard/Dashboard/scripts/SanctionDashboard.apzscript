@@ -1,0 +1,41 @@
+var gAllowedFileTypes = {};
+apz.app.onLoad_SanctionDashboard = function() {}
+apz.app.onShown_SanctionDashboard = function() {
+    $('body').removeClass('sanction-suc-scr crdas');
+    ApzCOB.fetchSubProduct();
+};
+apz.app.SanctionDashboard.fetchSanctionApplication = function(){
+    gApzCOB.userDetails.applicationId = '17402073364574421';
+    gApzCOB.userDetails.versionNum = 1;
+    let callBackFn = apz.app.SanctionDashboard.fetchSanctionApplicationCB;
+    ApzCOB.FetchApplication("",callBackFn);
+}
+apz.app.SanctionDashboard.fetchSanctionApplicationCB = function(params){
+    apz.stopLoader();
+     let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchApplication_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }  
+    try {
+     if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            gApzCOB.rpcStages = [];
+            gApzCOB.rpcStages = Object.values(RPC_STAGES);
+            ApzCOB.updateInsessionData(params);
+            ApzCOB.launchMicroApp('Sanct', 'DeviationSanctBase', `${gAppId}__BaseScreens__BaseDIV`, window.dashTaskData);
+     }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.toggleModal(scrId + 'lockModal');
+        $(`#${scrId}locktxt_txtcnt`).html(technicalErrMsg);
+    }
+}

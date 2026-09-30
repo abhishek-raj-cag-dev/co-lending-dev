@@ -1,0 +1,618 @@
+body.pri.unati {background-image: none;}
+.prog-flow {
+    position: fixed;
+    width: 233px;
+    overflow: auto;
+    height: 100%;
+    padding-bottom: 90px;
+    z-index: 1;
+    background: #fff;
+    padding:32px;
+    
+}
+body.unati .ett-slct.pri[disabled] {
+    background: rgba(15, 33, 88, 0.0784313725);
+}
+.un-form {
+    padding: 32px;
+    background-color: #EFF8FF;
+}
+.kyc-view {
+    padding: 32px;
+    background-color:#fff;
+}
+.kyc-view .pst-simp.pri {
+    background: none;
+    box-shadow: none;
+}
+
+.img-tools {display: flex;flex-direction: row;}
+
+
+.un-form .pst-simp.pri {background: none;box-shadow: none;}
+
+.mt24 {
+    margin-top: 24px;
+}
+
+.frm-edit {
+    margin-top: 24px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: row;
+}
+
+.fill-frm {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.tab-label-lists .ett-bttn {
+   background: none;
+    color: #231F20;
+    position: relative;
+    // width: 158px;
+    font-weight: 400;
+    font-size: 16px;
+    text-wrap: auto;
+    max-height: 100px;
+    line-height: 19px;
+    height: auto;
+    padding-bottom: 15px;
+    word-wrap: break-word;
+    max-width: 250px;
+    min-width: 120px;
+}
+
+.tab-label-lists .ett-bttn::before {
+    content: '';
+    position: absolute;
+    border-bottom: 4px solid #E5E5E5;
+    width: 100%;
+    height: 4px;
+    border-radius: 4px 4px 0 0;
+    bottom: 0;
+    left: 0;
+}
+
+.tab-label-lists ul li {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+.tab-label-lists .ett-bttn.active::before {
+    border-bottom: 4px solid #527D24;
+}
+
+.tab-label-lists .ett-bttn.active {
+    font-weight: 600;
+}
+
+.fill-frm.crt-form.hor.pri .flb {
+    color: #525252;
+}
+
+.frm-edit svg.ett-icon.pri.px16 {
+    color: #292D32;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+.frm-edit .scb-col90 .ett-labl.flb.sec{font-size: 1rem;line-height: 20px;color: #231F20;}
+
+.frm-edit >.srb {
+    display: flex;
+    flex-direction: row;
+} 
+.frm-edit .scb-col10 .ett-labl.flb { cursor: pointer;font-weight:600;font-size: 14px !important;color: #231F20;margin-bottom:0px;}
+.frm-edit .scb-col10 ul li:last-child{display:flex;flex-direction:row;align-items: center;justify-content: flex-end;}
+
+.frm-edit .scb-col10 ul li:last-child svg {
+    margin-left: 8px;
+}
+ 
+
+.unati .ett-inpt.pri {
+    height: 44px;
+    border: 1px solid #d4d4d4;
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 16px;
+}
+
+.unati .ett-inpt.pri.disabled {
+    // background-color: #0F215814);
+    opacity: 0.8;
+    color: #171717;
+    font-weight: 600;
+    border: 1px solid transparent;
+    background: #0F215814;
+}
+body.unati .ett-slct.pri{
+    background:#fff;
+}
+body.unati .ett-slct.pri.select-disabled{
+   background: #0F215814;
+   color: #231F20;
+   font-weight: 600;
+   border:1px solid transparent;
+}
+.rpc-ftr.crt-navb.pri {
+    position: fixed;
+    bottom: 0;
+    background-color: #fff; 
+    right: 0;
+    box-shadow: 0px 0px 10px 0px #1018281A;
+
+}
+
+.sec-pad-btm {
+    padding-bottom: 55px;
+}
+
+
+.kyc-view .pst-simp > div {
+    padding: 0;
+}
+
+.kyc-view .pst-simp > div .tool-hdr {
+    display: flex;
+    flex-direction: row;
+}
+
+.kyc-view .pst-simp > div .tool-hdr .img-tools {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.kyc-view .pst-simp > div .tool-hdr .img-tools > span {
+    // width: auto;
+    display: flex;
+    align-items: center;
+    // position: relative;
+}
+
+.kyc-view .pst-simp > div .tool-hdr .img-tools > span > ul.eoc.srb {
+    width: auto;
+}
+
+.kyc-view .pst-simp > div .tool-hdr .img-tools .comp .ett-bttn.sec {
+    height: 28px;
+    background: #E9EEFB;
+    border: none;
+    padding: 0 16px; 
+    background-clip: unset;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+    border-radius: 48px;
+    line-height: 14px;
+}
+
+.kyc-view .pst-simp > div .tool-hdr .img-tools .comp .ett-bttn.sec span {
+    font-size: 12px;
+    color: #525252;
+}
+
+.tool-hdr .tols {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    justify-content:flex-end;
+    align-items: flex-start;
+}
+
+.rvwCnfmSection.srb{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; 
+}
+
+.rvwCnfmSection .pri.scb-col100{
+    
+}
+
+.sec-pad-btm .un-form.revConfrmDiv{
+ width: 82%;   
+}
+
+.frnt-back > .scb-col50 {
+    width: 32px;
+    height: 32px;
+}
+
+.srb.frnt-back {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+.frnt-back .ett-bttn.tsp {
+    width: 32px;
+    height: 32px;
+    padding: 0px;
+    background: #fff; 
+    box-shadow: 0px 0.75px 2.25px 0px #1018281A;
+    border-radius: 9px;
+}
+
+.frnt-back .ett-bttn.icl > svg {
+    margin: 0px;
+}
+
+.frnt-back .ett-bttn.tsp.disabled  svg{
+    fill:#D4D4D4;
+}
+
+.frnt-back .ett-bttn.tsp.disabled {
+}
+
+.crt-form.hor.pri .srb.eoc.img-wrap.mb8 {
+    margin-bottom: 8px;
+} 
+
+// .img-preview img {
+//     width: 300px;
+//     // height: 465px;
+//     height: 55vh;
+// }
+.unati.mak-chk .ecn > .syl span.err {
+    position: absolute;
+    top: 48px;
+}
+
+.srb.img-wrap li {
+    display: flex;
+    justify-content: center;
+}
+.tool-hdr .scb-col40 > .srb {
+    width:24px;
+    height:24px;
+}
+
+.kyc-view .pst-simp > div .tool-hdr .img-tools .ett-labl.sec {
+    color: #231F20;
+    font-size: 16px;
+}
+
+.frm-edit.crt-form.hor.pri .flb {
+    font-size: 16px;
+}
+
+.frm-edit.crt-form.hor.pri .ett-labl.pri {
+    font-size: 14px !important;
+    font-weight: 600;
+    color: #231F20;
+    opacity: 1;
+}
+
+.fill-frm > .srb.pri > span,
+.lst-vert ul.eoc.srb > li > span {
+    display: flex;
+    flex-direction: column;
+}
+
+body.unati .fill-frm .ett-hypl.pri {
+    font-size: 11px;
+    color: #004886 !important;
+    text-decoration: none !important;
+}
+
+.pny-chck-btn .ett-bttn.sec {
+    height: 36px;
+    border: 1px solid #004886;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    -webkit-text-fill-color: #004886;
+    font-weight: 500;
+}
+
+.frm-edit.crt-form.hor.pri .rpcEditBtn .ett-labl.pri.flb {
+    cursor: pointer;
+}
+
+.unati .modal.in .var1 .crt-list.qry-lst > ul.tsp > li.ssp {
+    display: none;
+}
+
+
+#RPC__RPCDocumentSection__RPC_ImageView_ul .guillotine-canvas{
+ overflow: auto!important;   
+}
+
+#RPC__RPCDocumentSection__RPC_ImageView_ul .guillotine-canvas img{
+  object-fit: cover!important; 
+  height: auto!important;
+}
+
+@media screen and (max-width:1540px){
+    .gcb-col6.un-form{
+        width: 574px;
+    }
+    .gcb-col4.kyc-view{
+         width: 554px;
+    }
+
+}
+.compare-active{
+    border: 3px solid #4f7823;
+    padding: 5px;
+    border-radius: 5px;
+    transform: scale(1) rotate(0deg);
+}
+
+.primaryCustomerPhoto img{
+     height: 200px;
+    width: 200px;
+    object-fit: contain;
+    object-position: left;  
+}
+
+.img-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-bottom: 50px;
+}
+.mob-num .ecn > .syl > span {
+    font-size: 0.875rem;
+    top: 0.751rem;
+    font-weight: 600;
+}
+.unati.mak-chk .ecn > .syl span.err {
+    position: absolute;
+    top: 48px;
+}
+
+.aml-ques-col {
+    background: #EFF8FF;
+}
+ 
+.aml-opt-row {
+  font-size: 14.5px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #E5E5E5
+ 
+}
+.opt-col .ett-labl {
+    font-weight: 500;
+    line-height: 20px;
+}
+.aml-opt-row .scb-col35 .srb {
+    padding: 1rem 1.5rem ;
+}
+ 
+/* ====== SCOPE: Whole widget ====== */
+.aml-lst {
+  --radius: 12px;
+  --line: #E5E5E5;               /* divider color */
+  --bg: #FFFFFF;
+  --pad-cell: 16px 0px;
+ 
+  background: var(--bg);
+  border-radius: var(--radius);
+  overflow: hidden;               /* keeps rounded corners clean */
+  box-shadow: 0 0 0 1px var(--line) inset;  /* subtle outer hairline */
+}
+ 
+/* Clean UL/LI spacing in this block */
+.aml-lst ul,
+.aml-lst li {
+  margin: 0;
+  padding: 0;
+  list-style: inside;
+}
+ 
+/* ====== Row container (Applicant / Co‑applicant) ====== */
+ 
+ 
+/* Row divider: add top 1px line to every row except the first */
+.aml-lst .aml-opt-row + .aml-opt-row {
+  box-shadow: 0 1px 0 0 var(--line) inset;
+}
+ 
+/* ====== Left label cell ====== */
+.aml-lst .aml-opt-row .scb-col35.opt-col {
+  padding: var(--pad-cell);
+  border-right: 1px solid #E5E5E5;        
+}
+ 
+/* Label typography */
+.aml-lst .aml-opt-row .opt-col .ett-labl {
+  font-weight: 600;
+  font-size: 18px;
+  color: #1D1D1F;
+  line-height: 1.2;
+  margin: 0;
+}
+/* ====== Inside radio group: two equal columns (Yes | No) with center divider ====== */
+.aml-lst .aml-opt-row .etb-rdio {
+  display: grid !important;        /* overrule any framework layout */
+  grid-template-columns: 1fr 1fr;  /* Yes | No */
+  justify-items: center;
+  /*column-gap: 1rem;*/
+  width: 100%;
+  min-height: 40px;
+  padding: 0.5rem 1rem;
+}
+ 
+/* Middle vertical divider between Yes & No */
+.aml-lst .aml-opt-row .etb-rdio::after {
+    content: "";
+    position: absolute;
+    top: -15px;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: var(--line);
+    height: 74px;
+}
+ 
+/* Keep radio + its label together and centered */
+.aml-lst .aml-opt-row .etb-rdio > span {
+  display: inline-flex;
+  align-items: center;  /* centers radio circle to label */
+  gap: 10px;
+}
+ 
+/* ====== Custom radio (blue selected, grey unselected) ====== */
+.aml-lst .aml-opt-row .etb-rdio input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid #CFCFCF;   /* unselected ring */
+  background: #FFF;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+ 
+.aml-lst .aml-opt-row .etb-rdio input[type="radio"]::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: transparent;     /* unselected fill */
+  transition: background-color .16s ease;
+}
+ 
+.aml-lst .aml-opt-row .etb-rdio input[type="radio"]:checked {
+  border-color: #0A4A84;       /* blue ring */
+}
+.aml-lst .aml-opt-row .etb-rdio input[type="radio"]:checked::before {
+  background: #0A4A84;         /* blue fill */
+}
+ 
+/* Radio labels (Yes/No) */
+.aml-lst .aml-opt-row .etb-rdio .rlb {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1D1D1F;
+  line-height: 1.2;
+  margin: 0;
+}
+/* ====== Optional (from your earlier code) ====== */
+.aml-lst .aml-ques-col {
+  background: #EFF8FF;
+}
+.aml-opt-row .opt-col .btmsep {
+    border-bottom: 1px solid #E5E5E5;
+}
+.icon-trash-circle-cagl{
+    width: 42px !important;
+    height: 36px !important;
+}
+/* Target radio group inside your custom row */
+.custom-radio-row [apztype="radiogroup"] {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+/* Target each radio option */
+.custom-radio-row [apztype="radiogroup"] > span {
+    flex: 1;
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start;
+}
+/* Label spacing */
+.custom-radio-row label {
+    margin-left: 6px;
+}
+
+
+.applicant-data .subMenuHeader, {
+    margin: 0!important;
+    padding: 0!important;
+    width: 100%!important;
+}
+
+.subMenuHeader label.pri{
+    margin: 0 !important;
+    color: #231F20!important;
+    font-size: 14px!important;
+    font-weight: 700!important;
+}
+.alignCenter{
+   text-align: center!important; 
+}
+#RPC__ReviewConfirm__other_info_sec1.applicant-data,
+#cmnPre__PreviewApplicantDetails__other_info_sec1.applicant-data{
+    margin-bottom:0;
+}
+
+#additionalDocContainer .rcImgClass img.ett-imge{
+    width: 192px;
+    height: 309px;
+}
+
+#additionalDocContainer{
+    justify-content: center;
+    text-align: center;
+    display: flex;
+    margin: 0;
+    flex-flow: column;
+}
+
+#additionalDocContainer span.srb.pri.addtionalDocPanel:not(:last-child){
+    margin-bottom: 2rem;
+}
+
+#additionalDocContainer .additionalDocLeft{
+    display: flex;
+    flex-flow: column;
+    text-align: left;
+    padding-left: 30px;
+}
+
+.addDocSecHeader{
+       text-align: left;
+    display: block;
+    margin-bottom: 15px;
+    color: #231F20;
+    font-size: 14px;
+    font-weight: 700; 
+}
+
+#additionalDocContainer .additionalDocLeft .additoanlDocvalue label.pri{
+      color: #231F20;
+    font-size: 0.875rem !important;
+    padding-top: 3px;  
+}
+
+#additionalDocContainer .queryClass{
+       text-align: left; 
+}
+
+#RPC__ReviewConfirm__AML_QUESTIONS_RevCnf div.crt-list.aml-lst.pri{
+  padding: 0 1em;
+  box-shadow : none!important;
+}
+
+#RPC__ReviewConfirm__AML_QUESTIONS_RevCnf .aml-lst .aml-ques-col{
+      background: none;  
+}
+
+#RPC__ReviewConfirm__AML_QUESTIONS_RevCnf .aml-lst .aml-ques-col p{
+    font-size : 13px;
+}
+
+.hothcheck .custom-radio-row [apztype=radiogroup] > span:last-child {
+    display: none !important;
+}
+
+#RPC__OtherInformationRPC__mobileNumberInput_li .ecn > .syl > span {
+    top: 0.8rem !important;
+}

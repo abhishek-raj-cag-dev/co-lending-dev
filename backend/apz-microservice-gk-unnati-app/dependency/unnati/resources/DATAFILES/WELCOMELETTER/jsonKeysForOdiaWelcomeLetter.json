@@ -1,0 +1,57 @@
+{
+  "keysForContent": {
+    "applicationName": "<font face='Kalinga'>ସ୍ୱାଗତ ପତ୍ର</font>",
+    "customerId": "ଗ୍ରାହକ ଆଇଡି ",
+    "date": "ତାରିଖ ",
+    "loanId": "ଋଣ ଆଇଡି ",
+    "disbursedAmount": "ବିତରଣ ହୋଇଥିବା ଋଣ ରାଶି ",
+    "branch": "<font face='Arial Unicode MS'>ଶାଖା ନାମ ଏବଂ ଆଇଡି</font>",
+
+    "applicantType": "ଆବେଦନକାରୀଙ୍କ ପ୍ରକାର",
+    "applicant": "ଆବେଦନକାରୀ",
+    "coApplicant": "ସହ-ଆବେଦନକାରୀ",
+    "name": "ନାମ",
+    "residingAt": "ବାସସ୍ଥାନ",
+
+    "greetingLine": "ପ୍ରିୟ ",
+    "congratulationsParagraph": "ଅଭିନନ୍ଦନ! ଆପଣଙ୍କର ଗ୍ରାମୀଣ ଉନ୍ନତି ଋଣ ସଫଳତାର ସହ ବଣ୍ଟନ କରାଯାଇଛି।",
+	"congratulationsParagraphRenewal": "ଅଭିନନ୍ଦନ! ଆପଣଙ୍କର ଗ୍ରାମୀଣ ଉନ୍ନତି ରିନ୍ୟୁଆଲ୍ ଋଣ ସଫଳତାର ସହ ବଣ୍ଟନ କରାଯାଇଛି।",
+    "congratulationsParagraphOpenMarket": "ଅଭିନନ୍ଦନ! ଆପଣଙ୍କ ଗ୍ରାମୀଣ ଉନ୍ନତି ଓପନ୍ ମାର୍କେଟ୍ ଋଣ ସଫଳତାର ସହ ବିତରଣ କରାଯାଇଛି।",
+	"congratulationsParagraphUnnatiLite": "ଅଭିନନ୍ଦନ! ଆପଣଙ୍କର ଗ୍ରାମୀଣ ଉନ୍ନତି ଋଣ ସଫଳତାର ସହ ବଣ୍ଟନ କରାଯାଇଛି।",
+	"congratulationsParagraphUnnatiRestart": "ଅଭିନନ୍ଦନ! ଆପଣଙ୍କର ଗ୍ରାମୀଣ ଉନ୍ନତି ଋଣ ସଫଳତାର ସହ ବଣ୍ଟନ କରାଯାଇଛି।",
+	"congratulationsParagraphUnnatiSupplementary	": "ଅଭିନନ୍ଦନ! ଆପଣଙ୍କର ଗ୍ରାମୀଣ ଉନ୍ନତି ଋଣ ସଫଳତାର ସହ ବଣ୍ଟନ କରାଯାଇଛି।",
+	"congratulationsParagraphUnnatiFamilyWelFare": "ଅଭିନନ୍ଦନ! ଆପଣଙ୍କର ଗ୍ରାମୀଣ ଉନ୍ନତି ଋଣ ସଫଳତାର ସହ ବଣ୍ଟନ କରାଯାଇଛି।",
+	"congratulationsParagraphUnnatiEmergency": "ଅଭିନନ୍ଦନ! ଆପଣଙ୍କର ଗ୍ରାମୀଣ ଉନ୍ନତି ଋଣ ସଫଳତାର ସହ ବଣ୍ଟନ କରାଯାଇଛି।",
+	
+    "missionParagraph": "<br><font face='Kalinga'>କ୍ରେଡିଟ୍ଆକ୍ସେସ୍‌ ଗ୍ରାମୀଣ ଲିମିଟେଡ୍ (ସିଏ ଗ୍ରାମୀଣ)ରେ, ଆମେ ଆମର ଆର୍ଥିକ ଉତ୍ପାଦ ଏବଂ ସେବା ମାଧ୍ୟମରେ ଆର୍ଥିକ ଏବଂ ସାମାଜିକ ପ୍ରଗତିକୁ ପ୍ରୋତ୍ସାହିତ କରିବା ପାଇଁ ପ୍ରତିଶୃତିବଦ୍ଧ। ଆମ ଉପରେ ବିଶ୍ୱାସ ପାଇଁ ଆମେ ଆପଣଙ୍କର ପ୍ରଶଂସା କରୁଛୁ ଏବଂ ସୁନିଶ୍ଚିତ ଯେ ଏହି ଋଣ ଆପଣଙ୍କୁ ଆପଣଙ୍କର ଆର୍ଥିକ ଲକ୍ଷ୍ୟ ହାସଲ କରିବାରେ ସାହାଯ୍ୟ କରିବ।</font>",
+
+    "repaymentScheduleNotice": "<br>ଏହି ଚିଠି ସହିତ ଆପଣଙ୍କ ଋଣର ପରିଶୋଧ ସୂଚୀ ସଂଲଗ୍ନ କରାଯାଇଛି। ଆପଣଙ୍କ ସୂଚନା ପାଇଁ, ଦୟାକରି ନିମ୍ନରେ ଆପଣଙ୍କର ଗ୍ରାମୀଣ ଉନ୍ନତି ଋଣର ବିବରଣୀ ପାଆନ୍ତୁ:",
+	
+	"repaymentScheduleNoticeSup": "",
+	  
+	  "repaymentScheduleNoticeRESTR": "",
+	  
+	  "repaymentScheduleNoticeEMER": "",
+	  
+	  "repaymentScheduleNoticeFWl": "",
+	
+    "loanRepaymentDetailsHeading": "ଋଣ ଏବଂ ପରିଶୋଧ ବିବରଣୀ:",
+    "sanctionedDate": "ମଞ୍ଜୁର ହେବାର ତାରିଖ",
+    "loanTenure": "ଋଣର ଅବଧି",
+    "loanAmountDisbursed": "ବିତରଣ ହୋଇଥିବା ଋଣ ରାଶି",
+    "dateOfDisbursement": "ବିତରଣର ତାରିଖ",
+    "repaymentFrequency": "ପରିଶୋଧର ବାରମ୍ବାରତା",
+    "noOfInstallments": "କିସ୍ତିର #",
+    "repaymentStartDate": "ପରିଶୋଧ ଆରମ୍ଭ ତାରିଖ",
+    "interestRate": "ସୁଧ ହାର",
+    "installmentAmount": "କିସ୍ତି ରାଶି",
+    "repaymentEndDate": "ପରିଶୋଧ ଶେଷ ତାରିଖ",
+
+    "termsParagraph": "<font face='Kalinga'>ମଞ୍ଜୁରୀ ପତ୍ର, ଋଣ ଚୁକ୍ତିନାମା ଏବଂ ଅନ୍ୟାନ୍ୟ ସହାୟକ ଡକ୍ୟୁମେଣ୍ଟରେ ଉଲ୍ଲେଖିତ ସର୍ତ୍ତାବଳୀ ଅନୁସାରେ ଆପଣଙ୍କର ଋଣ ମଞ୍ଜୁର ଏବଂ ବଣ୍ଟନ କରାଯାଇଛି। ଦୟାକରି ଆପଣଙ୍କର ଆକାଉଣ୍ଟ ବିବରଣୀ ସମୀକ୍ଷା କରନ୍ତୁ, ଏବଂ ଯଦି ଆପଣଙ୍କର କୌଣସି ପ୍ରଶ୍ନ କିମ୍ବା ଚିନ୍ତା ଅଛି, ତେବେ ଆମର ଟୋଲ୍-ଫ୍ରି ନମ୍ବର 1800-123-153-153ରେ ଆମ ସହିତ ନିଃସଙ୍କୋଚରେ ଯୋଗାଯୋଗ କରିବାକୁ କିମ୍ବା yourvoice@cagrameen.inରେ ଆମକୁ ଇମେଲ୍ କରନ୍ତୁ। <br><br>ଯଦି ଆପଣ ଆମ ଦ୍ୱାରା ପ୍ରଦାନ କରାଯାଇଥିବା ସମାଧାନରେ ସନ୍ତୁଷ୍ଟ ନୁହଁନ୍ତି, ତେବେ ଆପଣଙ୍କ ପାଖରେ ଏହାକୁ ଏକେଏମଆଇ ଟୋଲ୍ ଫ୍ରି ନମ୍ବର (କର୍ଣ୍ଣାଟକର ଗ୍ରାହକଙ୍କ ପାଇଁ) 1800-425-5654 କିମ୍ବା ଏମଏଫଆଇଏନ୍‌ ଟୋଲ୍ ଫ୍ରି ନମ୍ବର (ଅନ୍ୟ ରାଜ୍ୟ ଗ୍ରାହକଙ୍କ ପାଇଁ) 1800-2700-317ରେ ବୃଦ୍ଧି କରିବାର ବିକଳ୍ପ ରହିବ।</font>",
+
+    "closingParagraph": "<br>ଆମେ ଆପଣଙ୍କ ସହିତ ଆମର ସମ୍ପର୍କକୁ ମୂଲ୍ୟ ଦେଉଛୁ ଏବଂ ଏକ ଦୀର୍ଘ ଏବଂ ଫଳପ୍ରଦ ସମ୍ପର୍କ ପାଇଁ ଅପେକ୍ଷା କରୁଛୁ।",
+    "feedbackCallNotice": "<br>ବିତରଣ ତାରିଖରୁ 2 ଧ ସପ୍ତାହ ମଧ୍ୟବର ଆପଣ ଏକ ସେବାମତାମତ କଲ୍ ପାଇବେ। ଦୟାକରିଆପଣଙ୍କ ମତାମତ ଜଣାଇବାକୁ ଅନୁରୋଧ ଅଟେ।",
+    "signoffLine": "<b><font face='Kalinga'>ଆପଣଙ୍କର ବିଶ୍ୱସ୍ତ,</font></b>",
+    "organizationName": "କ୍ରେଡିଟଆକ୍ସେସ୍‌ ଗ୍ରାମୀଣ ଲିମିଟେଡ୍‌"
+  }
+}

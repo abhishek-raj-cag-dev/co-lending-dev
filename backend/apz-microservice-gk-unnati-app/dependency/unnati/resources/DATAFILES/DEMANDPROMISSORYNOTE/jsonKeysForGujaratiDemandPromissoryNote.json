@@ -1,0 +1,15 @@
+{
+  "keysForContent": {
+    "applicationName": "ડિમાન્ડ પ્રોમિસરી નોટ",
+    "rs": "રૂ.",
+    "date": "તારીખ:",
+    "place": "સ્થળ:",
+    "note": "મંગાય ત્યારે, હું <applicantName> વય <applicantAge> વર્ષ, <applicantAddress> ખાતે રહેવાસી અને <coApplicantName> વય <coApplicantAge> વર્ષ, <coApplicantAddress> ખાતે રહેવાસી, સંયુક્ત રીતે અને અલગ રીતે ક્રેડિટએક્સેસ ગ્રામીણ લિમિટેડ (CA ગ્રામીણ)ને રૂ. <sanctionedAmount> (<sanctionedAmountInWords> ફક્ત) પર વાર્ષિક <rateOfInterest> ટકા વ્યાજ સાથે મંજૂર થયેલ રકમ ચૂકવવાનું વચન આપું છું.",
+	"note": "મંગાય ત્યારે, હું <applicantName> વય <applicantAge> વર્ષ, <applicantAddress> ખાતે રહેવાસી અને <coApplicantName> વય <coApplicantAge> વર્ષ, <coApplicantAddress> ખાતે રહેવાસી, સંયુક્ત રીતે અને અલગ રીતે ક્રેડિટએક્સેસ ગ્રામીણ લિમિટેડ (CA ગ્રામીણ)ને રૂ. <sanctionedAmount> (<sanctionedAmountInWords> ફક્ત) પર વાર્ષિક <rateOfInterest> ટકા વ્યાજ સાથે મંજૂર થયેલ રકમ ચૂકવવાનું વચન આપું છું.",
+	"noteNew": "મંગાય ત્યારે, હું <applicantName> વય <applicantAge> વર્ષ, <applicantAddress> ખાતે રહેવાસી અને <coApplicantName> વય <coApplicantAge> વર્ષ, <coApplicantAddress> ખાતે રહેવાસી, સંયુક્ત રીતે અને અલગ રીતે ક્રેડિટએક્સેસ ગ્રામીણ લિમિટેડ (CA ગ્રામીણ)ને રૂ. <sanctionedAmount> (<sanctionedAmountInWords> ફક્ત) પર વાર્ષિક <rateOfInterest> ટકા વ્યાજ સાથે મંજૂર થયેલ રકમ ચૂકવવાનું વચન આપું છું.",
+    "loanAccount": "ધીરાણનો ખાતા નંબર:",
+    "applicantName": "1. અરજદારનું નામ:",
+    "signature": "સહી:",
+    "coApplicantName": "2. સહ-અરજદારનું નામ:"
+  }
+}

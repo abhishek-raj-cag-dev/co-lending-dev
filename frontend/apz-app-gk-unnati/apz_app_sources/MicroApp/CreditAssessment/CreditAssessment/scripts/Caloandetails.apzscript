@@ -1,0 +1,177 @@
+var scrId = "CrdAss__Caloandetails__",
+    sourcingDate = "",
+    loanPurposeval = "",
+    loansubPurposeval = "";
+window.CA_CURRENT_STAGE = "LoanDetails";
+apz.app.onLoad_Caloandetails = function() {
+    try {
+        apz.populateDropdown(document.getElementById(scrId + 'Purposeofloan_dpd'), ApzCOB.formatDropDownforArray(loanPurpose));
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        ApzCOB.fnDisplayMsg("Loan purpose details not available. Kindly retry again.", "I");
+    }
+};
+apz.app.onShown_Caloandetails = function() {
+    apz.app.Cabase.hideShowBtnBasedOnScreen();
+    apz.app.Caloandetails.paintCAloandetailsData();
+    window.CA_CURRENT_STAGE_NO = CA_ALL_STAGE_FIELDS.find(stage => stage.stageName === CA_CURRENT_STAGE)?.id;
+};
+apz.app.Caloandetails.paintCAloandetailsData = function() {
+    /*sourcingDate = window.applicationMaster?.createTs?.date?.day + '/' + String(window.applicationMaster?.createTs?.date?.month).padStart(2, '0') +
+        '/' + window.applicationMaster?.createTs?.date?.year;*/
+    sourcingDate = inSessionStore.applicationTimelineDtl?.findLast(el => el.actionTaken == 'Submitted By' && el.stage == 'KM Sourcing')?.timeStamp;
+    let amount = window.CAloandetails?.loanAmount || 0;
+    let formattedAmount = amount.toLocaleString('en-IN');
+    $(`#${scrId}Appliedamount`).val(formattedAmount);
+    $(`#${scrId}Repaymentfrequency`).val(window.CAloandetails?.payload?.frequencyOfRepayment);
+    $(`#${scrId}Loantenure`).val(window.CAloandetails?.tenure + ' Months');
+    $(`#${scrId}Sourcingdate`).val(sourcingDate);
+    if (inSessionStore.hasOwnProperty('leadDetails')) {
+        $(`#${scrId}Kendrameetingfrequency`).val(window.CAleadetails.kendraMeetingFreq);
+        $(`#${scrId}Kendrameetingday`).val(KendraMeetingDays.filter(el => el?.slice(0, 3)?.toUpperCase() === window.CAleadetails?.kendraMeetingDay
+            ?.toUpperCase())?.[0]);
+        $(`#${scrId}KendramanagerID`).val(window.applicationMaster.createdBy);
+    } else if (inSessionStore.hasOwnProperty('renewalLeadDetails')) {
+        $(`#${scrId}Kendrameetingfrequency`).val(window.CArenewalLeadDetails.kendraMeetingFreq);
+        $(`#${scrId}Kendrameetingday`).val(KendraMeetingDays.filter(el => el?.slice(0, 3)?.toUpperCase() === window.CArenewalLeadDetails
+            ?.kendraMeetingDay?.toUpperCase())?.[0]);
+        $(`#${scrId}KendramanagerID`).val(window.applicationMaster.createdBy);
+    } else if (inSessionStore.hasOwnProperty('cdhLeadDetails')) {
+        $(`#${scrId}Kendrameetingfrequency`).val(window.CAcdhLeadDetails.kendraMeetingFreq);
+        $(`#${scrId}Kendrameetingday`).val(KendraMeetingDays.filter(el => el?.slice(0, 3)?.toUpperCase() === window.CAcdhLeadDetails
+            ?.kendraMeetingDay?.toUpperCase())?.[0]);
+        $(`#${scrId}KendramanagerID`).val(window.applicationMaster.createdBy);
+    }
+    if (!apz.isNull(CAloandetails.payload.loanPurpose)) {
+        $(`#${scrId}Purposeofloan_dpd`).val(window.CAloandetails?.payload?.loanPurpose).change();
+        apz.app.Caloandetails.onchangeloanPurpose();
+        $(`#${scrId}Subpurpose_dpd`).val(window.CAloandetails?.payload?.subCategory).change();
+    }
+};
+apz.app.Caloandetails.onchangeloanPurpose = function() {
+    let tempArr = [];
+    let temp_loanpurpose = $("#CrdAss__Caloandetails__Purposeofloan_dpd").val();
+    if (temp_loanpurpose == PleaseSelect) {
+        $("#CrdAss__Caloandetails__Subpurpose_dpd").val(PleaseSelect);
+        $("#CrdAss__Caloandetails__Subpurpose_dpd").attr('disabled', true);
+    } else {
+        tempArr = [...loanSubPurpose[0][temp_loanpurpose]];
+        if (!tempArr.includes(PleaseSelect)) {
+            tempArr.unshift(ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT"));
+        }
+        apz.populateDropdown(document.getElementById(scrId + 'Subpurpose_dpd'), ApzCOB.formatDropDownforArray(tempArr));
+        $("#CrdAss__Caloandetails__Subpurpose_dpd").attr('disabled', false);
+    }
+};
+apz.app.Caloandetails.submitLoan = function(args) {
+    if (apz.app.Caloandetails.validateLoandetails()) {
+        apz.app.Caloandetails.submitLoanService(args);
+    }
+};
+apz.app.Caloandetails.editLoandetails = function() {
+    $(`#${scrId}loanDtls_Edit`).addClass('sno');
+    $("#CrdAss__Caloandetails__Purposeofloan_dpd").attr('disabled', false);
+    $("#CrdAss__Caloandetails__Subpurpose_dpd").attr('disabled', false);
+    ApzCOB.removeDisableToInput('CrdAss__Caloandetails__Purposeofloan_dpd');
+    ApzCOB.removeDisableToInput('CrdAss__Caloandetails__Subpurpose_dpd');
+    $(`#${CabaseScrId}reject_btn`).addClass('sno');
+    $(`#${CabaseScrId}sendback_btn`).addClass('sno');
+    $(`#${CabaseScrId}bckBtn`).addClass('sno');
+    $(`#${CabaseScrId}nxtBtn`).addClass('sno');
+    $(`#${CabaseScrId}cancel_btn`).removeClass('sno');
+    $(`#${CabaseScrId}save_btn`).removeClass('sno');
+};
+apz.app.Caloandetails.submitLoanService = function(larg) {
+    loanPurposeval = $("#CrdAss__Caloandetails__Purposeofloan_dpd").val();
+    loansubPurposeval = $("#CrdAss__Caloandetails__Subpurpose_dpd").val();
+    let loandetailslist = inSessionStore.loanDetails;
+    let req = {
+        "apiRequest": {
+            "requestObj": {
+                "appId": gAppId,
+                "applicationId": gApzCOB.userDetails.applicationId,
+                "versionNum": 1,
+                "stageId": "1",
+                "requestType": larg,
+                "customerType": "Applicant",
+                "editedFields": ["Purposeofloan_dpd", "Subpurpose_dpd"],
+                "loanDetails": {}
+            },
+            "userId": LoggedInUserDetails.loginResponse.userDet.id,
+            "appId": gAppId,
+            "interfaceName": "UploadCALoanData"
+        }
+    }
+    req.apiRequest.requestObj.loanDetails = loandetailslist;
+    //req.apiRequest.requestObj.loanDetails.payload.loanPurpose
+    req.apiRequest.requestObj.loanDetails.payload.loanPurpose = loanPurposeval;
+    req.apiRequest.requestObj.loanDetails.payload.subCategory = loansubPurposeval;
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.Caloandetails.submitLoanServiceCB);
+    }, 1000)
+};
+apz.app.Caloandetails.submitLoanServiceCB = function(params) {
+    let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            apz.app.Cabase.storeWindowData();
+            $(`#${scrId}loanDtls_Edit`).removeClass('sno');
+            $("#CrdAss__Caloandetails__Purposeofloan_dpd").attr('disabled', true);
+            $("#CrdAss__Caloandetails__Subpurpose_dpd").attr('disabled', true);
+            ApzCOB.addDisableToInput('CrdAss__Caloandetails__Purposeofloan_dpd');
+            ApzCOB.addDisableToInput('CrdAss__Caloandetails__Subpurpose_dpd');
+            $(`#${CabaseScrId}reject_btn`).removeClass('sno');
+            if (apz.childScr === "photokyc" && isApplicantVerified && isCoAppVerified && isRelationshipVerified) {
+                $(`#${CabaseScrId}sendback_btn`).addClass('sno');
+            } else {
+                $(`#${CabaseScrId}sendback_btn`).removeClass('sno');
+            }
+            $(`#${CabaseScrId}bckBtn`).removeClass('sno');
+            $(`#${CabaseScrId}nxtBtn`).removeClass('sno');
+            $(`#${CabaseScrId}cancel_btn`).addClass('sno');
+            $(`#${CabaseScrId}save_btn`).addClass('sno');
+            if (params.req.apiRequest.requestObj.requestType === 'VERIFY') {
+                ApzCOB.launchSubScreen("photokyc", "CrdAss__Cabase__caLaunchCol", "");
+            }
+            if (params.req.apiRequest.requestObj.requestType !== 'Edit') {
+                apz.app.Cabase.SidebarSelect.moveToNextStep();
+            }
+        } else {
+            apz.stopLoader();
+            $(`#${scrId}locktxt_txtcnt`).text(errMsg);
+            ApzCOB.toggleModal(scrId + 'lockModal');
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.toggleModal(scrId + 'lockModal');
+        $(`#${scrId}locktxt_txtcnt`).html(technicalErrMsg);
+    }
+};
+apz.app.Caloandetails.validateLoandetails = function() {
+    let lvalid = true;
+    if ($("#CrdAss__Caloandetails__Purposeofloan_dpd").val() == 'Please Select' || apz.isNull($("#CrdAss__Caloandetails__Purposeofloan_dpd")
+        .val())) {
+        lvalid = false;
+        $("#CrdAss__Caloandetails__purposeErr_row").removeClass('sno');
+    }
+    if ($("#CrdAss__Caloandetails__Subpurpose_dpd").val() == 'Please Select' || apz.isNull($("#CrdAss__Caloandetails__Subpurpose_dpd").val())) {
+        lvalid = false;
+        $("#CrdAss__Caloandetails__subpurposeErr_row").removeClass('sno');
+    }
+    return lvalid;
+};

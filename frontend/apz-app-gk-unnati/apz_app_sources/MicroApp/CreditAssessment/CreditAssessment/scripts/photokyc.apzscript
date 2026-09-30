@@ -1,0 +1,372 @@
+var scrId = "CrdAss__photokyc__",
+    checkedQueriesForPhotoKyc = [],
+    updtdChckdQueriesStringForPhotoKyc = "",
+    custTypePhotoKyc = "",
+    queriesAppl = [],
+    queriesCoApp = [],
+    queriesRelnship = [],
+    queriesAddrContact = [],
+    photoKycQueriesForNextStage = [],
+    isApplicantVerified = false,
+    isCoAppVerified = false,
+    isRelationshipVerified = false,
+    pattern = /^\d{2}\/\d{2}\/\d{4}$/,
+    pictureIds = ['#CrdAss__photokyc__A__PRIMARY_KYC', '#CrdAss__photokyc__C__PRIMARY_KYC', '#CrdAss__photokyc__A__RELATIONSHIP_PROOF'],
+    picture = '';
+window.CURRENTSCREEN = "photokyc"
+window.CA_CURRENT_STAGE = "PhotoKYC";
+apz.app.onLoad_photokyc = function() {
+    apz.app.paintKYCFieldsData();
+};
+apz.app.onShown_photokyc = function() {
+    window.CA_CURRENT_STAGE_NO = CA_ALL_STAGE_FIELDS.find(stage => stage.stageName === CA_CURRENT_STAGE)?.id;
+    apz.app.commonca.fetchImageIds();
+    apz.app.Cabase.hideShowBtnBasedOnScreen();
+    apz.app.photokyc.preCheckedFields();
+    apz.app.photokyc.paintingQueries();
+    apz.app.Cabase.paintingDateTimeForQueries();
+    apz.app.photokyc.paintingQueryLabels();
+    pictureIds.forEach(id => {
+        picture = $(id);
+        ApzCOB.intializeGuillotine(picture);
+    });
+};
+apz.app.paintKYCFieldsData = function() {
+    if (inSessionStore.customerDetailsList.length > 0) {
+        inSessionStore.customerDetailsList.map(custId => {
+            if (custId.custDtlId === gApzCOB.userDetails.custDtlId) {
+                $(`#${scrId}nameInput`).val(custId.customerName);
+                $(`#${scrId}nameAsPerKYCInput`).val(custId.payload.namePerKyc);
+                let kycId = (!apz.isNull(custId?.payload?.alternateVoterId) && custId?.payload?.alternateVoterIdValStatus === "Verified") ? custId?.payload?.alternateVoterId : custId?.payload?.primaryKycIdValStatus === "Verified" ? custId?.payload?.primaryKycId : "";
+                $(`#${scrId}kycNumberInput`).val(kycId);
+                $(`#${scrId}dobInput`).val(!pattern.test(custId.payload.dob) ? ApzCOB.confDateFormatter(custId.payload.dob,
+                    'dd/mm/yyyy') : custId.payload.dob);
+                $(`#${scrId}genderInput`).val(custId.payload.gender);
+                $(`#${scrId}mobileNumberInput`).val(custId.mobileNumber);
+                $(`#${scrId}maritialStatusInput`).val(custId.payload.maritalStatus);
+                $(`#${scrId}occupationInput`).val(custId.payload.occupation);
+            } else if (custId.custDtlId === gApzCOB.userDetails.CoApplicantCustomerId) {
+                $(`#${scrId}c_nameInput`).val(custId.customerName);
+                $(`#${scrId}c_nameAsPerKYCInput`).val(custId.payload.namePerKyc);
+                let kycId = (!apz.isNull(custId?.payload?.alternateVoterId) && custId?.payload?.alternateVoterIdValStatus === "Verified") ? custId?.payload?.alternateVoterId : custId?.payload?.primaryKycIdValStatus === "Verified" ? custId?.payload?.primaryKycId : "";
+                $(`#${scrId}c_kycNumberInput`).val(kycId);
+                $(`#${scrId}c_dobInput`).val(!pattern.test(custId.payload.dob) ? ApzCOB.confDateFormatter(custId.payload.dob,
+                    'dd/mm/yyyy') : custId.payload.dob);
+                $(`#${scrId}c_genderInput`).val(custId.payload.gender);
+                $(`#${scrId}c_mobileNumberInput`).val(custId.mobileNumber);
+                $(`#${scrId}c_maritialStatusInput`).val(custId.payload.maritalStatus);
+                $(`#${scrId}c_occupationInput`).val(custId.payload.occupation);
+                $(`#${scrId}a_relationshipInput`).val(custId.payload.relationShipWithApplicant);
+            }
+        })
+    }
+}
+apz.app.showKYCDetails = function(pthis) {
+    if (pthis.id === `${scrId}showDetails`) {
+        $(`#${scrId}fielddatarow`).removeClass("sno");
+        $(`#${scrId}showDetails`).addClass("sno");
+        $(`#${scrId}hideDetails_ul`).removeClass("sno");
+        $(`#${scrId}hideDetails`).removeClass("sno");
+    } else if (pthis.id === `${scrId}c_showDetails`) {
+        $(`#${scrId}c_fielddatarow`).removeClass("sno");
+        $(`#${scrId}c_showDetails`).addClass("sno");
+        $(`#${scrId}c_hideDetails_ul`).removeClass("sno");
+        $(`#${scrId}c_hideDetails`).removeClass("sno");
+    } else if (pthis.id === `${scrId}a_r_showDetails`) {
+        $(`#${scrId}a_r_fielddatarow`).removeClass("sno");
+        $(`#${scrId}a_r_showDetails`).addClass("sno");
+        $(`#${scrId}a_r_hideDetails_ul`).removeClass("sno");
+        $(`#${scrId}a_r_hideDetails`).removeClass("sno");
+    }
+}
+apz.app.hideKYCDetails = function(pthis) {
+    if (pthis.id === `${scrId}hideDetails`) {
+        $(`#${scrId}fielddatarow`).addClass("sno");
+        $(`#${scrId}showDetails`).removeClass("sno");
+        $(`#${scrId}hideDetails`).addClass("sno");
+    } else if (pthis.id === `${scrId}c_hideDetails`) {
+        $(`#${scrId}c_fielddatarow`).addClass("sno");
+        $(`#${scrId}c_showDetails`).removeClass("sno");
+        $(`#${scrId}c_hideDetails`).addClass("sno");
+    } else if (pthis.id === `${scrId}a_r_hideDetails`) {
+        $(`#${scrId}a_r_fielddatarow`).addClass("sno");
+        $(`#${scrId}a_r_showDetails`).removeClass("sno");
+        $(`#${scrId}a_r_hideDetails`).addClass("sno");
+    }
+}
+apz.app.verifyKYC = function(pthis) {
+    if (pthis.id === `${scrId}A_VERIFY_BTN` && $("#CrdAss__photokyc__A_QUERIED_BTN_ul").hasClass("sno")) {
+        isApplicantVerified = true;
+        $(`#${scrId}A_VERIFY_BTN`).addClass("sno");
+        $(`#${scrId}A_VERIFIED_BTN_ul`).removeClass("sno");
+    } else if (pthis.id === `${scrId}C_VERIFY_BTN` && $("#CrdAss__photokyc__C_QUERIED_BTN_ul").hasClass("sno")) {
+        isCoAppVerified = true;
+        $(`#${scrId}C_VERIFY_BTN`).addClass("sno");
+        $(`#${scrId}C_VERIFIED_BTN_ul`).removeClass("sno");
+    } else if (pthis.id === `${scrId}A_R_VERIFY_BTN` && $("#CrdAss__photokyc__R_QUERIED_BTN_ul").hasClass("sno")) {
+        isRelationshipVerified = true;
+        $(`#${scrId}A_R_VERIFY_BTN`).addClass("sno");
+        $(`#${scrId}A_R_VERIFIED_BTN_ul`).removeClass("sno");
+    } else {
+        ApzCOB.showCaModals({
+            text: "Please resolve the query",
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.photokyc.launchNextStage = function() {
+    if (isApplicantVerified && isCoAppVerified && isRelationshipVerified) {
+        let req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": gAppId,
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "versionNum": 1,
+                    "stageId": "2",
+                    "requestType": "Verify",
+                    "customerType": "Applicant",
+                    "editedFields": []
+                },
+                "userId": LoggedInUserDetails.loginResponse.userDet.id,
+                "appId": gAppId,
+                "interfaceName": "UploadCALoanData"
+            }
+        }
+        apz.startLoader();
+        setTimeout(() => {
+            ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.photokyc.launchNextStageCB);
+        }, 1000)
+    } else if ((isApplicantVerified || queriesAppl.length > 0) && (isCoAppVerified || queriesCoApp.length > 0) && (isRelationshipVerified ||
+            queriesRelnship.length > 0) && !(isApplicantVerified && isCoAppVerified && isRelationshipVerified)) {
+        let req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": gAppId,
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "versionNum": 1,
+                    "stageId": "2",
+                    "requestType": "Query",
+                    "customerType": "Applicant",
+                    "editedFields": [],
+                    "queries": photoKycQueriesForNextStage
+                },
+                "userId": LoggedInUserDetails.loginResponse.userDet.id,
+                "appId": gAppId,
+                "interfaceName": "UploadCALoanData"
+            }
+        }
+        apz.startLoader();
+        setTimeout(() => {
+            ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.photokyc.launchNextStageCB);
+        }, 1000)
+    } else {
+        ApzCOB.showCaModals({
+            text: "Verify All the Data",
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.photokyc.launchNextStageCB = function(params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            ApzCOB.launchSubScreen('AddressContactus', "CrdAss__Cabase__caLaunchCol", "");
+            apz.app.Cabase.SidebarSelect.moveToNextStep();
+        } else {
+            apz.stopLoader();
+            ApzCOB.showCaModals({
+                text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.Cabase.closeCaErrMdl()"
+                }
+            }, "Error");
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showCaModals({
+            text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.photokyc.preCheckedFields = function() {
+    const queryDtls = inSessionStore?.bcmpiStatDetails?.find(
+        (item) => item.stageID === CA_CURRENT_STAGE_NO);
+    if (queryDtls) {
+        let preSelectedQueryData = queryDtls.query;
+        let applicantQueries = preSelectedQueryData.filter(q => q.startsWith("A_"));
+        let coApplicantQueries = preSelectedQueryData.filter(q => q.startsWith("C_"));
+        let relationshipQueries = preSelectedQueryData.filter(q => q.startsWith("R_"));
+        queriesAppl = applicantQueries;
+        queriesCoApp = coApplicantQueries;
+        queriesRelnship = relationshipQueries;
+        photoKycQueriesForNextStage = [...queriesAppl, ...queriesCoApp, ...queriesRelnship];
+    } else {
+        return;
+    }
+}
+apz.app.photokyc.paintingQueries = function() {
+    const allQueries = JSON.parse(CA_ALL_STAGE_FIELDS.filter(item => item.id === 2 && item.queries)[0]?.queries || '{}').sendbackReason
+    if (queriesAppl.length > 0) {
+        const applMatchedValues = allQueries.filter(query => queriesAppl.includes(query.id)).map(query => query.value);
+        const othEntry = queriesAppl.find((item) => item.startsWith("A_oth?"));
+        if (othEntry) {
+            //const [othId, othValue] = othEntry.split("?");
+            const othValue = othEntry.split("?")[1];
+            if (othValue && othValue.trim() !== "") {
+                applMatchedValues.push(othValue);
+            }
+        }
+        $(`#${scrId}sc_row_14`).removeClass("sno");
+        $(`#${scrId}AppQueriesRow`).removeClass("sno");
+        $(`#${scrId}AppQueriesRow`).addClass("qry-pnt");
+        $(`#${scrId}AppQueryData_`).html('')
+        const queryRow = $(`#${scrId}AppQueriesRow`);
+        queryRow.html('');
+        queryRow.find("[id^='CrdAss__photokyc__AppQueryData_']").remove();
+        applMatchedValues.forEach((queryValue, index) => {
+            queryRow.append(`<div id="CrdAss__photokyc__AppQueryData_${index + 1} "><p>${index + 1}.&nbsp;&nbsp;${queryValue}</p></div>`);
+        });
+    } else {
+        $(`#${scrId}sc_row_14`).addClass("sno");
+        $(`#${scrId}AppQueriesRow`).addClass("sno");
+    }
+    if (queriesCoApp.length > 0) {
+        const coApplMatchedValues = allQueries.filter(query => queriesCoApp.includes(query.id)).map(query => query.value);
+        const othEntry = queriesCoApp.find((item) => item.startsWith("C_oth?"));
+        if (othEntry) {
+            const othValue = othEntry.split("?")[1];
+            if (othValue && othValue.trim() !== "") {
+                coApplMatchedValues.push(othValue);
+            }
+        }
+        $(`#${scrId}sc_row_81`).removeClass("sno");
+        $(`#${scrId}CoAppQueriesRow`).removeClass("sno");
+        $(`#${scrId}CoAppQueriesRow`).addClass("qry-pnt");
+        $(`#${scrId}CoAppQueryData_`).html('')
+        const queryRow = $(`#${scrId}CoAppQueriesRow`);
+        queryRow.html('');
+        queryRow.find("[id^='CrdAss__photokyc__CoAppQueryData_']").remove();
+        coApplMatchedValues.forEach((queryValue, index) => {
+            queryRow.append(
+            `<div id="CrdAss__photokyc__CoAppQueryData_${index + 1}"><p>${index + 1}.&nbsp;&nbsp;${queryValue}</p></div>`);
+        });
+    } else {
+        $(`#${scrId}sc_row_81`).addClass("sno");
+        $(`#${scrId}CoAppQueriesRow`).addClass("sno");
+    }
+    if (queriesRelnship.length > 0) {
+        const relnMatchedValues = allQueries.filter(query => queriesRelnship.includes(query.id)).map(query => query.value);
+        const othEntry = queriesRelnship.find((item) => item.startsWith("R_oth?"));
+        if (othEntry) {
+            const othValue = othEntry.split("?")[1];
+            if (othValue && othValue.trim() !== "") {
+                relnMatchedValues.push(othValue);
+            }
+        }
+        $(`#${scrId}sc_row_57`).removeClass("sno");
+        $(`#${scrId}RelnQueriesRow`).removeClass("sno");
+        $(`#${scrId}RelnQueriesRow`).addClass("qry-pnt");
+        $(`#${scrId}RelnQueryData_`).html('')
+        const queryRow = $(`#${scrId}RelnQueriesRow`);
+        queryRow.html('');
+        queryRow.find("[id^='CrdAss__photokyc__RelnQueryData_']").remove();
+        relnMatchedValues.forEach((queryValue, index) => {
+            queryRow.append(`<div id="CrdAss__photokyc__RelnQueryData_${index + 1}"><p>${index + 1}.&nbsp;&nbsp;${queryValue}</p></div>`);
+        });
+    } else {
+        $(`#${scrId}sc_row_57`).addClass("sno");
+        $(`#${scrId}RelnQueriesRow`).addClass("sno");
+    }
+}
+apz.app.photokyc.paintingQueryLabels = function() {
+    const matchedItem = inSessionStore?.bcmpiVerifiedStage?.some(item => item.startsWith(`${CA_CURRENT_STAGE_NO}_`));
+    if (matchedItem) {
+        isApplicantVerified = true;
+        isCoAppVerified = true;
+        isRelationshipVerified = true;
+        $(`#${scrId}A_QUERY_BTN`).removeClass("sno");
+        $(`#${scrId}A_QUERIED_BTN_ul`).addClass("sno");
+        $(`#${scrId}A_VERIFY_BTN`).addClass("sno");
+        $(`#${scrId}A_VERIFIED_BTN_ul`).removeClass("sno");
+        $(`#${scrId}C_QUERY_BTN`).removeClass("sno");
+        $(`#${scrId}C_QUERIED_BTN_ul`).addClass("sno");
+        $(`#${scrId}C_VERIFY_BTN`).addClass("sno");
+        $(`#${scrId}C_VERIFIED_BTN_ul`).removeClass("sno");
+        $(`#${scrId}R_QUERY_BTN`).removeClass("sno");
+        $(`#${scrId}R_QUERIED_BTN_ul`).addClass("sno");
+        $(`#${scrId}A_R_VERIFY_BTN`).addClass("sno");
+        $(`#${scrId}A_R_VERIFIED_BTN_ul`).removeClass("sno");
+        $(`#${CabaseScrId}sendback_btn`).addClass("sno");
+        return;
+    }
+    const queryDtls = inSessionStore?.bcmpiStatDetails?.find(
+        (item) => item.stageID === CA_CURRENT_STAGE_NO);
+    if (!matchedItem && queryDtls) {
+        if (queriesAppl.length > 0) {
+            $(`#${scrId}A_VERIFY_BTN`).removeClass("sno");
+            $(`#${scrId}A_VERIFIED_BTN_ul`).addClass("sno");
+            $(`#${scrId}A_QUERY_BTN`).addClass("sno");
+            $(`#${scrId}A_QUERIED_BTN_ul`).removeClass("sno");
+            isApplicantVerified = false;
+        } else {
+            isApplicantVerified = true;
+            $(`#${scrId}A_VERIFY_BTN`).addClass("sno");
+            $(`#${scrId}A_VERIFIED_BTN_ul`).removeClass("sno");
+            $(`#${scrId}A_QUERY_BTN`).removeClass("sno");
+            $(`#${scrId}A_QUERIED_BTN_ul`).addClass("sno");
+        }
+        if (queriesCoApp.length > 0) {
+            $(`#${scrId}C_VERIFY_BTN`).removeClass("sno");
+            $(`#${scrId}C_VERIFIED_BTN_ul`).addClass("sno");
+            $(`#${scrId}C_QUERY_BTN`).addClass("sno");
+            $(`#${scrId}C_QUERIED_BTN_ul`).removeClass("sno");
+            isCoAppVerified = false;
+        } else {
+            isCoAppVerified = true;
+            $(`#${scrId}C_VERIFY_BTN`).addClass("sno");
+            $(`#${scrId}C_VERIFIED_BTN_ul`).removeClass("sno");
+            $(`#${scrId}C_QUERY_BTN`).removeClass("sno");
+            $(`#${scrId}C_QUERIED_BTN_ul`).addClass("sno");
+        }
+        if (queriesRelnship.length > 0) {
+            $(`#${scrId}A_R_VERIFY_BTN`).removeClass("sno");
+            $(`#${scrId}A_R_VERIFIED_BTN_ul`).addClass("sno");
+            $(`#${scrId}R_QUERY_BTN`).addClass("sno");
+            $(`#${scrId}R_QUERIED_BTN_ul`).removeClass("sno");
+            isRelationshipVerified = false;
+        } else {
+            isRelationshipVerified = true;
+            $(`#${scrId}A_R_VERIFY_BTN`).addClass("sno");
+            $(`#${scrId}A_R_VERIFIED_BTN_ul`).removeClass("sno");
+            $(`#${scrId}R_QUERY_BTN`).removeClass("sno");
+            $(`#${scrId}R_QUERIED_BTN_ul`).addClass("sno");
+        }
+    } else {
+        $(`#${CabaseScrId}sendback_btn`).addClass("sno");
+    }
+}

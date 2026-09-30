@@ -1,0 +1,56 @@
+{"keysForContent": {
+    "applicationName":"WELCOME LETTER",
+  "customerId": "Customer ID",
+  "date": "Date",
+  "loanId": "Loan ID",
+  "disbursedAmount": "Disbursed Loan Amount",
+  "branch": "<font face='Arial Unicode MS'>Branch Name & ID</font>",
+
+  "applicantType": "Applicant Type",
+  "applicant": "Applicant",
+  "coApplicant": "Co Applicant",
+ "name":"Name",
+ "residingAt":"Residing at",
+
+  "greetingLine": "Dear",
+  "congratulationsParagraph": "Congratulations! Your Grameen Unnati Loan has been successfully disbursed.",
+  "congratulationsParagraphRenewal": "Congratulations! Your Grameen Unnati Renewal Loan has been successfully disbursed.",
+  "congratulationsParagraphOpenMarket": "Congratulations! Your Grameen Unnati Open Market Loan has been successfully disbursed.",
+  "congratulationsParagraphUnnatiLite": "Congratulations! Your Grameen Unnati Loan has been successfully disbursed.",
+  "congratulationsParagraphUnnatiRestart": "Congratulations! Your Grameen Unnati Loan has been successfully disbursed.",
+  "congratulationsParagraphUnnatiSupplementary": "Congratulations! Your Grameen Unnati Loan has been successfully disbursed.",
+  "congratulationsParagraphUnnatiFamilyWelFare": "Congratulations! Your Grameen Unnati Loan has been successfully disbursed.",
+  "congratulationsParagraphUnnatiEmergency": "Congratulations! Your Grameen Unnati Loan has been successfully disbursed.",
+  "missionParagraph": "<br>At CreditAccess Grameen Limited (CA Grameen), we are committed to fostering economic and social progress through our financial products and services. We appreciate your trust in us and are confident that this loan will help you achieve your financial goals.",
+  
+  "repaymentScheduleNotice": "<br>Enclosed with this letter is the repayment schedule for your loan. For your reference, please find the details of your Grameen Unnati Loan below:",
+  
+  "repaymentScheduleNoticeSup": "",
+	  
+	  "repaymentScheduleNoticeRESTR": "",
+	  
+	  "repaymentScheduleNoticeEMER": "",
+	  
+	  "repaymentScheduleNoticeFWl": "",
+
+  "loanRepaymentDetailsHeading": "Loan and Repayment Details:",
+  "sanctionedDate": "Sanctioned Date",
+  "loanTenure": "Loan Tenure",
+  "loanAmountDisbursed": "Loan Amount Disbursed",
+  "dateOfDisbursement": "Date of Disbursement",
+  "repaymentFrequency": "Frequency of Repayment",
+  "noOfInstallments": "# of Instalments",
+  "repaymentStartDate": "Repayment Start Date",
+  "interestRate": "Interest Rate",
+  "installmentAmount": "Instalment Amount",
+  "repaymentEndDate": "Repayment End Date",
+
+  "termsParagraph": "<font face='Arial Unicode MS'>Your loan has been sanctioned and disbursed as per the terms and conditions outlined in the sanction letter, loan agreement, and other supporting documents. Please review your account details, and if you have any queries or concerns, feel free to contact us at our toll-free number 1800-123-153-153 or email us at yourvoice@cagrameen.in. <br><br>If you are not satisfied with the resolution provided by us, you will have the option of escalating it to AKMI toll free number (for customers in Karnataka) at 1800-425-5654 or MFIN toll free number (for other state customers) at 1800-2700-317.</font>",
+
+  "closingParagraph": "<br>We value our relationship with you and look forward to a long and fruitful association.",
+  "feedbackCallNotice": "<br>You will be receiving a service feedback call in 2 weeks time from the date of disbursement. Request to kindly share your feedback.",
+  "signoffLine": "<font face='Arial Unicode MS'><b>Sincerely,</b></font>",
+  "organizationName": "<font face='Arial Unicode MS'><b>CreditAccess Grameen Limited</b></font>"
+	
+}
+}

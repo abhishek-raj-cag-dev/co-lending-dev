@@ -1,0 +1,335 @@
+var LUCBasescreenId = "Luc__LUCBase__";
+window.checkedQueries = [];
+window.updatedCheckedQueriesString = [];
+window.finalCheckedQueries = "";
+var queriesIntfId = "Luc__LUCQueries__o__Luc__LUCQueries_Res__";
+var othReasonId = "";
+window.othReasonSelected = false;
+var searchVal = "";
+apz.app.onLoad_LUCBase = function() {
+    console.log("LUC Base MicroApp Loaded");
+    $('body').addClass(' unati crdas dbkit ');
+    $(`#${LUCBasescreenId}loggedInUserName_txtcnt`).text(`${LoggedInUserDetails.loginResponse.userDet.name} (${LoggedInUserDetails.loginResponse.userDet.id})`);
+    $(`#${LUCBasescreenId}loggedInRole_txtcnt`).text(`Role:`+ gApzCOB.LoggedInUserDetails.loginResponse.addInfo1);
+    window.applicationStatus =  inSessionStore?.applicationMaster?.applicationStatus 
+
+};
+apz.app.onShown_LUCBase = function() {
+     ApzCOB.addApplicationTag();
+    ApzCOB.launchSubScreen("LUCDetails", `${LUCBasescreenId}luc_launch_div`);
+    if (!($("body").hasClass("unati"))) {
+        $("body").addClass("unati");
+    }
+    if (!($("body").hasClass("crdas"))) {
+        $("body").addClass("crdas");
+    }
+    apz.app.LUCBase.storeWindowData();
+    const custId = (ApplicationType === 'OpenMarket') ? inSessionStore?.cdhLeadDetails?.t24CustId : inSessionStore?.applicationMaster?.memberId;
+    $(`#${LUCBasescreenId}Cust_Name_txtcnt`).text(`${window.customerName} / ${custId}`);
+    //$(`#${LUCBasescreenId}Cust_Name_txtcnt`).text(`${window.customerName}/ ${inSessionStore?.cdhLeadDetails?.t24CustId}`);
+    $(`#${LUCBasescreenId}application_ID_txtcnt`).text(`${window.applicationId}`);
+    if (inSessionStore.hasOwnProperty('leadDetails')) {
+        // $(`#${LUCBasescreenId}cust_ID_txtcnt`).text(window.customerId);
+        $(`#${LUCBasescreenId}kendraID_Nameval_txtcnt`).text(window.LUCleadetails.kendraId + " " + '/' + " " + window.LUCleadetails.kendraName);
+        $(`#${LUCBasescreenId}BranchInfo_Val_txtcnt`).text(window.LUCleadetails.glBranchId + " " + '/' + " " + window.LUCleadetails.glBranchName);
+    } else if (inSessionStore.hasOwnProperty('renewalLeadDetails')) {
+        $(`#${LUCBasescreenId}kendraID_Nameval_txtcnt`).text(window.LUCrenewalLeadDetails.kendraId + " " + '/' + " " + window.LUCrenewalLeadDetails.kendraName);
+        $(`#${LUCBasescreenId}BranchInfo_Val_txtcnt`).text(window.LUCrenewalLeadDetails.glBranchId + " " + '/' + " " + window.LUCrenewalLeadDetails
+            .glBranchName);
+    } else if (inSessionStore.hasOwnProperty('cdhLeadDetails')) {
+        $(`#${LUCBasescreenId}kendraID_Nameval_txtcnt`).text(window.LUCcdhLeadDetails.kendraId + " " + '/' + " " + window.LUCcdhLeadDetails.kendraName);
+        $(`#${LUCBasescreenId}BranchInfo_Val_txtcnt`).text(window.LUCcdhLeadDetails.glBranchId + " " + '/' + " " + window.LUCcdhLeadDetails
+            .glBranchName);
+    }
+    $(`#${LUCBasescreenId}loand_id_txtcnt`).text(ApzCOB.getPayloadDatafromWrapper('t24LoanId', 'Applicant', 'loanDetails') ?? '');
+    $(".downloadRow").removeClass('sno')
+    $(".CamDoc").removeClass('sno');
+    $(".KfsDOC").removeClass('sno');
+    $(".extDocument").removeClass('sno')
+    $(".welcomeKit").removeClass('sno');
+};
+apz.app.LUCBase.toggleSidebar = function () {
+    $("#Luc__LUCBase__gr_col_1").toggleClass("sideon");
+};
+apz.app.LUCBase.showApplicationDetails = function(params) {
+    window.previousScreenId = apz.childScr;
+    window.previousMicroAppId = apz.currAppId;
+    apz.app.LUCBase.toggleSidebar();
+    if (params === "ApplicationDetails") {
+        ApzCOB.toggleModal("APZCBO__BaseScreens__preview_modal")
+        ApzCOB.launchMicroApp("cmnPre", "PreviewApplicantDetails", "APZCBO__BaseScreens__preview_modal_content", "");
+    }
+    if (params === "CreditAssessmentDetails") {
+        ApzCOB.toggleModal("APZCBO__BaseScreens__preview_modal")
+        ApzCOB.launchMicroApp("cmnPre", "PreviewCA", "APZCBO__BaseScreens__preview_modal_content", "");
+    }
+    if (params === "SanctionDetails") {
+        ApzCOB.toggleModal("APZCBO__BaseScreens__preview_modal")
+        ApzCOB.launchMicroApp("cmnPre", "PreviewSanction", "APZCBO__BaseScreens__preview_modal_content", "");
+    }
+    if (params === "RpcDBVerifyDetails") {
+        ApzCOB.toggleModal("APZCBO__BaseScreens__preview_modal")
+        ApzCOB.launchMicroApp("cmnPre", "PreviewDBveriification", "APZCBO__BaseScreens__preview_modal_content", "");
+    }
+};
+apz.app.LUCBase.storeWindowData = function() {
+    window.LUCloandetails = inSessionStore.loanDetails.loanDtlId;
+    window.LUCapplicationMaster = inSessionStore.applicationMaster;
+    window.LUCleadetails = inSessionStore.leadDetails;
+    window.LUCrenewalLeadDetails = inSessionStore.renewalLeadDetails;
+    window.LUCcdhLeadDetails = inSessionStore.cdhLeadDetails;
+    window.applicationId = inSessionStore.applicationMaster.applicationId;
+    window.customerId = inSessionStore.applicationMaster.customerId;
+    window.customerName = inSessionStore.customerDetailsList.find(el => el.customerType === "Applicant")?.customerName || "";
+    window.productName = subProductResponse?.filter(el => el.productCode === inSessionStore.applicationMaster.productCode)?.[0]?.productName;
+};
+apz.app.LUCBase.cancel = function() {
+    apz.app.Login.OnClickMakerChecker('');
+};
+
+apz.app.LUCBase.downloadFiles = function(pdoctype, pcusttype) {
+    window.docSelectedType = pdoctype;
+    window.CB_LOAN_ID = '';
+    apz.startLoader();
+    if (pdoctype === 'CB') {
+        let custType = (pcusttype === "1") ? 'Applicant' : 'Co-App';
+        let custDetailID = ApzCOB.getCustDetailID(custType);
+        CB_LOAN_ID = ApzCOB.getPayloadDatafromWrapper('cbLoanId', custType, 'cibilDetailsWrapperList');
+        ApzCOB.downloadBRECbReport(custDetailID);
+    } else if (pdoctype === 'EXECUTED') {
+        let currLanguage = ApzCOB.getPayloadDatafromWrapper('language', 'Applicant', 'loanDetails');
+        CB_LOAN_ID = `${pdoctype}_${gApzCOB.userDetails.applicationId}`
+        ApzCOB.DBDocGenerateAndDownload('', 'FETCH_MANUAL', 'LOAN_APPLICATION', currLanguage, 'Y', apz.app.LUCBase.downloadFilesCB, '');
+    } else if (pdoctype === 'REGENERATE') {
+        let currLanguage = '';
+        if (!apz.isNull(inSessionStore.documentRecordDetails) && inSessionStore.documentRecordDetails.length > 0) {
+            currLanguage = inSessionStore?.documentRecordDetails?.[0]?.language;
+        }
+	if (apz.isNull(currLanguage)){
+            currLanguage = ApzCOB.getPayloadDatafromWrapper('language', 'Applicant', 'loanDetails');
+        }
+        CB_LOAN_ID = `${pdoctype}_${gApzCOB.userDetails.applicationId}`;
+        ApzCOB.DBDocGenerateAndDownload('', 'REGENERATE', 'LOAN_APPLICATION', currLanguage, 'Y', apz.app.LUCBase.downloadFilesCB, '');
+    } else {
+        CB_LOAN_ID = `${pdoctype}_${gApzCOB.userDetails.applicationId}`
+        req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": "APZCBO",
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "reportType": pdoctype,
+                    "generateReport": false
+                },
+                "interfaceName": "GenerateAndDownloadReport"
+            }
+        }
+        apz.startLoader();
+        ApzCOB.serverBuildParam(gAppId, "GenerateAndDownloadReport", "N", "N", req, false, apz.app.LUCBase.downloadFilesCB);
+    }
+};
+apz.app.LUCBase.downloadFilesCB = function(params) {
+    let b64Data = "",
+        errMsg = "File download failed.!";
+    let interface = ApzCOB.GetInterfaceResMap(params);
+    const apiResponse = params?.res?.[interface]?.apiResponse;
+    if (apz.isObjectEmpty(apiResponse)) return;
+    errMsg = apiResponse?.ResponseHeader?.ResponseMessage ?? errMsg;
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            const responseStr = apiResponse?.ResponseBody?.responseObj;
+            const response = responseStr ? JSON.parse(responseStr) : {};
+            let State = inSessionStore.leadDetails?.glBranchState || inSessionStore.renewalLeadDetails?.glBranchState || inSessionStore.cdhLeadDetails?.glBranchState || '';
+            let match = language.find(item => item.key.toLowerCase().includes(State.toLowerCase()));
+            window.leadLanguage = match ? match.value : '';
+            function proceedAfterPDFReady() {
+                if (['CB'].includes(docSelectedType)) {
+                   ApzCOB.convertBase64ToPDF(b64Data, CB_LOAN_ID);
+                } else if (docSelectedType === 'WelcomeLetter' && IS_WELCOMEKIT_VIEW) {
+                    apz.app.LUCBase.viewWelcomeKitDoc(response.base64);
+                } else {
+                    ApzCOB.convertBase64ToPDF(b64Data, CB_LOAN_ID);
+                }
+            }
+            if (response?.base64) {
+                if (HTMLDOCARRAY.includes(leadLanguage) && !['CamSheetReport', 'CB', 'EXECUTED'].includes(docSelectedType)) {
+                    let convertedBase64 = response.base64;
+                    convertedBase64 = convertedBase64.replace(/\n/g, "");
+                    convertedBase64 = convertedBase64.replace(/\r/g, "");
+                    let decodedHtml = convertedBase64;
+                    let dialog = `<div id="pdfDialog" style="position:absolute; left:-9999px; visibility:visible;"></div>`;
+                    $("div[id=pdfDialog]").remove();
+                    $(document.body).append(dialog);
+                    $("#pdfDialog").html(decodedHtml);
+                    (async () => {
+                        apz.startLoader();
+                        const pages = document.querySelectorAll(".jrPage");
+                        if (pages.length === 0) {
+                            CBBASE64 = b64Data = response.base64;
+                            console.log("No '.jrPage' elements found");
+                            apz.stopLoader();
+                            return;
+                        }
+                        const opt = {
+                            margin: [5, 5, 5, 5],
+                            filename: "download.pdf",
+                            image: {
+                                type: "jpeg",
+                                quality: 1.0
+                            },
+                            html2canvas: {
+                                scale: 1.5,
+                                useCORS: true,
+                                logging: false,
+                            },
+                            jsPDF: {
+                                unit: "mm",
+                                format: "a4",
+                                orientation: "portrait",
+                                compress: true,
+                            },
+                        };
+                        const {
+                            jsPDF
+                        } = window.jspdf;
+                        const pdf = new jsPDF(opt.jsPDF);
+                        for (let i = 0; i < pages.length; i++) {
+                            if (i !== 0) pdf.addPage();
+                            const canvas = await html2canvas(pages[i], opt.html2canvas);
+                            const imgData = canvas.toDataURL("image/jpeg", 1.0);
+                            const pageWidth = pdf.internal.pageSize.getWidth();
+                            const pageHeight = pdf.internal.pageSize.getHeight();
+                            pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, pageHeight);
+                        }
+                        const pdfBase64 = pdf.output("datauristring");
+                        CBBASE64 = b64Data = pdfBase64.split(",")[1];
+                        proceedAfterPDFReady();
+                        apz.stopLoader();
+                    })();
+                } else {
+                    CBBASE64 = b64Data = response.base64;
+                    proceedAfterPDFReady();
+                }
+            } else if (response.mergedBase64) {
+                if (HTMLDOCARRAY.includes(leadLanguage) && !['CamSheetReport', 'CB', 'EXECUTED'].includes(docSelectedType)) {
+                    apz.startLoader();
+                    mergedBase64 = response.mergedBase64;
+                    let trimmed = mergedBase64.trim();
+                    if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html") || trimmed.startsWith("<body")) {
+                        mergedBase64 = mergedBase64.replace(/\n/g, "");
+                        mergedBase64 = mergedBase64.replace(/\r/g, "");
+                        mergedBase64 = mergedBase64.replace(/<hr\b[^>]*>/gi, '');
+                        mergedBase64 = mergedBase64.replace(/<hr\s*\/>/gi, '');
+                        mergedBase64 = mergedBase64.replace(/\swidth\s*=\s*["']50%["']/gi, '');
+                        mergedBase64 = mergedBase64.replace(/(<td[^>]*style=["'][^"']*)width\s*:\s*50%[;]?([^"']*["'][^>]*>)/gi,
+                            (_, before, after) => before + after);
+                        let customStyle = `<style>
+                                                                    .jrPage {
+                                                                                page-break-after: always !important;
+                                                                                width: 100% !important;
+                                                                            }
+                                                                    .jrPage tbody tr td > img {
+                                                                                width: 100% !important;
+                                                                            }
+                                                            </style>`;
+                        if (mergedBase64.includes("</head>")) {
+                            mergedBase64 = mergedBase64.replace("</head>", `${customStyle}</head>`);
+                        } else if (mergedBase64.includes("</body>")) {
+                            mergedBase64 = mergedBase64.replace("</body>", `${customStyle}</body>`);
+                        } else {
+                            mergedBase64 = customStyle + mergedBase64;
+                        }
+                        const blob = new Blob([mergedBase64], {
+                            type: "text/html"
+                        });
+                        const url = URL.createObjectURL(blob);
+                        let btn = document.getElementById('openInTabBtn');
+                        if (!btn) {
+                            btn = document.createElement('button');
+                            btn.id = 'openInTabBtn';
+                        }
+                        btn.onclick = () => window.open(url, '_blank');
+                        apz.stopLoader();
+                        btn.click();
+                    }
+                } else {
+                    apz.stopLoader();
+                    ApzCOB.convertBase64ToPDF(response.mergedBase64, CB_LOAN_ID);
+                }
+            } else {
+                apz.stopLoader();
+                ApzCOB.showNewCommonErrorModal("File Not Found.!");
+            }
+        } else {
+            apz.stopLoader();
+            ApzCOB.showNewCommonErrorModal(errMsg);
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showNewCommonErrorModal(errMsg);
+    }
+};
+
+apz.app.LUCBase.viewDocumentCB = function(params, pdocType) {
+    apz.stopLoader();
+    if (!apz.isNull(params.base64)) {
+        if (pdocType === 'pdf') {
+            apz.app.LUCBase.viewPDFDocument(params.base64);
+        } else {
+            $(`#${LUCBasescreenId}imgView_ul`).removeClass('sno');
+            $(`#${LUCBasescreenId}imgView`).attr('src', 'data:image/png;base64,' + params.base64);
+            $(`#${LUCBasescreenId}docViewModal .tool-hdr`).removeClass('sno');
+            $('iframe').remove();
+            $(`#${LUCBasescreenId}imgView_li`).removeClass('sno');
+            ApzCOB.toggleModal(`${LUCBasescreenId}docViewModal`);
+        }
+    } else {
+        ApzCOB.showNewCommonErrorModal("Failed to fetch Document.");
+    }
+};
+
+apz.app.LUCBase.viewPDFDocument = function(base64) {
+    $('iframe').remove();
+    const iframe = document.createElement('iframe');
+    Object.assign(iframe, { src: (ApplicationPDFbase64 + base64), width: "700", height: "400"});
+    document.getElementById(`${LUCBasescreenId}imgView_ul`).appendChild(iframe);
+    $(`#${LUCBasescreenId}docViewModal .tool-hdr`).addClass('sno');
+    ApzCOB.toggleModal(`${LUCBasescreenId}docViewModal`);
+    $(`#${LUCBasescreenId}imgView_li`).addClass('sno');
+};
+
+apz.app.WelcomeKit.viewWelcomeKitDoc = function(base64) {
+    if(IS_WELCOMEKIT_VIEW){
+    CBBASE64 = base64;
+    $(`${scrId}welcomeKit_ul iframe`).remove();
+    const iframe = document.createElement('iframe');
+    iframe.width = "700";
+    iframe.height = "600";
+    iframe.src = "data:application/pdf;base64," + base64;
+    document.getElementById(`${scrId}welcomeKit_ul`).appendChild(iframe);
+    $(`#${scrId}welcomeKit_li`).addClass('sno');
+    if(HTMLDOCARRAY.includes(leadLanguage)) {
+        bytes = atob(base64);
+        arr = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) {
+            arr[i] = bytes.charCodeAt(i);
+        }
+        blob = new Blob([arr], {
+            type: 'application/pdf'
+        });
+        url = URL.createObjectURL(blob);
+        document.querySelector('iframe').src = url;
+        specificLang = true;
+        ApzCOB.DBDocGenerateAndDownload(base64, 'SINGLE_DOC', 'WELCOMEKIT', 'English', 'Y', '', '');
+    }
+    } else {
+         ApzCOB.convertBase64ToPDF(base64,`WelcomeKit_${gApzCOB.userDetails.applicationId}`);
+    }
+    apz.stopLoader();
+}
+
+apz.app.LUCBase.downloadWelcomeKit = function() {
+    window.IS_WELCOMEKIT_VIEW = false;
+    ApzCOB.DBDocGenerateAndDownload("", 'WelcomeKit', "", 'English', 'Y', ApzCOB.welcomeKitGenrateCB, "");
+}

@@ -1,0 +1,1200 @@
+var screenId = "Luc__LUCDetails__";
+var TempImageObject = {};
+var lobj = {};
+var queriesIntfId = "Luc__LUCQueries__o__Luc__LUCQueries_Res__";
+window.totalTransferedAmount = 0;
+var rMarks = '';
+window.gcurrStage = "";
+apz.app.LUCDetails._docQueue = [];
+apz.app.LUCDetails._docQueueIndex = 0;
+apz.app.onLoad_LUCDetails = function() {
+    console.log("LUC Details MicroApp Loaded");
+    if (DBKIT_MASTERDATA?.length === 0) {
+        ApzCOB.FetchDBKITMasterData("ALL");
+    }
+
+    // for (let i = 1; i <= 3; i++) {a
+    // let img1 = $(`#Luc__LUCDetails__PURPOSE_${i}_IMG1`);
+    // let img2 = $(`#Luc__LUCDetails__PURPOSE_${i}_IMG2`);
+
+    // ApzCOB.intializeGuillotine(img1);
+    // ApzCOB.intializeGuillotine(img2);
+// }
+};
+apz.app.onShown_LUCDetails = function() {
+    $('#Luc__LUCDetails__additionalDetail1').attr('type', 'text');
+    $('#Luc__LUCDetails__additionalDetail2').attr('type', 'text');
+    $('#Luc__LUCDetails__additionalDetail3').attr('type', 'text');
+    $('#Luc__LUCDetails__additionalDetail1').off('blur');
+    $('#Luc__LUCDetails__additionalDetail2').off('blur');
+    $('#Luc__LUCDetails__additionalDetail3').off('blur');
+    window.AppcustomerId = ApzCOB.getCustDetailID("Applicant");
+    AppCustCibilData = inSessionStore.cibilDetailsWrapperList.filter(
+        (item) => item.cibilDetails?.custDtlId == AppcustomerId);
+    let totalInsuranceCharge = Number(AppCustCibilData[0]?.cibilDetails?.payload?.insuranceChargeJoint) + Number(AppCustCibilData[0]?.cibilDetails
+        ?.payload?.insuranceChargeMember) + Number(AppCustCibilData[0]?.cibilDetails?.payload?.insuranceChargeSpouse)
+    let totalCharges = Number(AppCustCibilData[0]?.cibilDetails?.payload?.processingFees || 0) + Number(totalInsuranceCharge || 0) + Number(AppCustCibilData[0]?.cibilDetails?.payload?.stampDutyCharge || 0) + Number(inSessionStore.leadDetails?.caglOs || inSessionStore.renewalLeadDetails?.caglOs || inSessionStore.cdhLeadDetails?.caglOs || 0);
+    window.totalTransferedAmount = parseFloat((inSessionStore.loanDetails?.sanctionedLoanAmount || "0").toString().replace(/,/g, "")) - parseInt(totalCharges || 0);
+    if (!apz.isNull(inSessionStore.loanDetails?.payload?.remittanceAmount)) {
+        window.totalTransferedAmount = inSessionStore.loanDetails?.payload?.remittanceAmount;
+    }
+$(`#${screenId}DisbursmentDate`).text((() => { const t = inSessionStore.applicationTimelineDtl?.find(i => i.stage === "Disbursement")?.timeStamp; if (!t) return ""; const d = new Date(t); return isNaN(d.getTime()) ? "" : `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}`; })());
+    $(`#${screenId}DisbusmentAmout_txtcnt`).text(` ${inSessionStore.loanDetails?.sanctionedLoanAmount}`);
+    $(`#${screenId}NetAmout_txtcnt`).text(` ${inSessionStore.loanDetails?.sanctionedLoanAmount- window.totalTransferedAmount}`);
+    $(`#${screenId}amoutTrasferToCust_txtcnt`).text(`${window.totalTransferedAmount}`);
+    apz.app.LUCDetails.previewAddressContact();
+    $("#Luc__LUCBase__submitBtn").attr("disabled", true);
+    gcurrStage = inSessionStore.applnWfDefinitionList.filter(item => item.action == "SUBMIT")[0]?.workFlowId;
+    $(`#${screenId}res_checboxFrm`).removeClass("sno");
+    if (gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 === "BM") {
+        apz.app.LUCDetails.populatePorposeDropdowns();
+        apz.app.LUCDetails.paintDocumentName("purpose1 Doc")
+        apz.app.LUCDetails.paintDocumentName("purpose2 Doc")
+        apz.app.LUCDetails.paintDocumentName("purpose3 Doc")
+        $(".imageViewRow").addClass("sno");
+        $("#Luc__LUCBase__sendback_btn").addClass("sno");
+        $("#Luc__LUCBase__cancel_btn").removeClass("sno");
+        $(`#${screenId}checkboxBM`).removeClass("sno");
+        $(`#${screenId}checkboxBCM`).addClass("sno");
+        $(`#${screenId}isLoanUtilsedRadio`).removeClass("sno");
+        $("#Luc__LUCBase__submitBtn_txtcnt").text("Save")
+    } else {
+        apz.setElmValue("Luc__LUCDetails__isLonUtilised", "Yes")
+        $("#Luc__LUCDetails__isAmountUtilisedRow").addClass('sno');
+        $("#Luc__LUCBase__cancel_btn").addClass("sno");
+        $("#Luc__LUCBase__sendback_btn").removeClass("sno");
+        $(".imgupload").addClass('sno')
+        $(".imageViewRow").removeClass("sno");
+        apz.app.LUCDetails.paintDocuments();
+        $(`#${screenId}checkboxBM`).addClass("sno");
+        $(`#${screenId}checkboxBCM`).removeClass("sno");
+        $(`#${screenId}isLoanUtilsedRadio`).addClass("sno");
+        $(`#${screenId}purposerow`).removeClass("sno");
+    }
+    $(`#${screenId}No_LucRemarks_row`).addClass('sno');
+    $('.typeOfbusiness3, .typeOfbusiness2, .typeOfbusiness1, .purposeImgSec1, .purposeImgSec2, .purposeImgSec3').addClass('sno');
+    if (gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 === "BM") {
+        // $(".purposeImgSec1").removeClass('sno');  UAU-234
+        if (apz.getElmValue(`${screenId}isLonUtilised`) == 'No') {
+            apz.app.LUCDetails.onChangeLoanUtilised();
+            $(`#${screenId}No_LucRemarks_row`).removeClass("sno");
+            let p = {};
+            if (inSessionStore?.lucDetails?.payload) {
+                p = JSON.parse(inSessionStore.lucDetails.payload);
+            }
+            if (p.isAmountUtilised === "No") {
+                $(`#${screenId}LucRemarks_No`).val(p.lucRemarks || "");
+            }
+        }
+    }
+    apz.app.LUCDetails.paintLucDetails();
+    apz.app.LUCDetails.onChangeLoanUtilised();
+
+};
+apz.app.LUCDetails.validateMaxDocs = function(parentSelector, childClass, pthis) {
+    if (/business/i.test(parentSelector)) {
+        const indexToInsert = pthis?.id.split("__")[2].split("_")[0]; // e.g., "1"
+        const parts = parentSelector.split("__");
+        parentSelector = parts.slice(0, 2).join("__") + "__" + indexToInsert + "_" + parts.slice(2).join("__");
+    }
+    let fileCount = $(`#${parentSelector}`).find(`.${childClass}`).length;
+    if (fileCount >= 2) {
+        ApzCOB.fnDisplayMsg("User allowed to upload maximum of 2 documents")
+    } else {
+        TempImageObject.Type = childClass;
+        TempImageObject.index = "Applicant";
+        apz.app.LUCDetails.camera(pthis);
+    }
+};
+apz.app.LUCDetails.camera = function(pthis) {
+    var cameraObj = {
+        "zoomLevel": "20",
+        "targetWidth": "950",
+        "targetHeight": "950",
+        "crop": "Y",
+        "cropBox": "rectangle",
+        "flash": "N",
+        "action": "base64_Save",
+        "fileName": 'b',
+        "quality": "75",
+        "encodingType": "JPG",
+        "sourceType": "camera"
+    };
+    cameraObj.id = "CAMERA_ID";
+    cameraObj.callBack = apz.app.LUCDetails.cameraCallback;
+    apz.ns.openCamera(cameraObj);
+    ApzCOB.getGeoCordinatesMobile();
+};
+apz.app.LUCDetails.cameraCallback = function(params) {
+    cameracallbackres = params;
+    let fileName = params.path.split('/').pop();
+    apz.app.LUCDetails.saveDocument(fileName, params.encodedImage);
+};
+apz.app.LUCDetails.saveDocument = function(fileName, base64) {
+    let docLevel = "1";
+    let ActiveCustType = "Applicant";
+    docLevel = ApzCOB.getNextDocLevel(`${TempImageObject?.Type} Doc`, ApzCOB.getCustDetailID(ActiveCustType));
+    let req = {
+        apiRequest: {
+            "requestObj": {
+                "appId": gApzCOB.userDetails.appId,
+                "applicationId": gApzCOB.userDetails.applicationId,
+                "versionNum": 1,
+                "stageId": "UPLOADDOCS",
+                "requestType": "Edit",
+                "customerType": "Applicant",
+                "uploadDocumentRequestFields": {
+                    "versionNum": 1,
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "appId": gApzCOB.userDetails.appId,
+                    "srcScreen": "UPLOADDOCS",
+                    "filePath": gApzCOB.userDetails.appId + /LOAN/ + gApzCOB.userDetails.applicationId,
+                    "fileName": fileName,
+                    "base64Value": base64,
+                    "productGroupCode": "LOAN",
+                    "isExistingCustomer": "N"
+                },
+                "applicationDocumentsWrapperList": [{
+                    "applicationDocumentsList": [{
+                        "appDocId": "",
+                        "applicationId": gApzCOB.userDetails.applicationId,
+                        "versionNum": 1,
+                        "appId": gApzCOB.userDetails.appId,
+                        "custDtlId": gApzCOB.userDetails.custDtlId,
+                        "documentId": "",
+                        "status": "A",
+                        "payload": {
+                            "docLevel": docLevel,
+                            "documentType": `${TempImageObject?.Type} Doc`,
+                            "documentDesc": "",
+                            "documentLoc": gApzCOB.userDetails.appId + /LOAN/ + gApzCOB.userDetails.applicationId,
+                            "screenId": "UploadDocuments",
+                            "issueDate": "",
+                            "expiryDate": "",
+                            "docStatus": "A",
+                            "docSide": "Front",
+                            "docSize": ApzCOB.getBase64FileSizeInBytes(base64),
+                            "documentFileName": fileName,
+                            "documentFormat": fileName,
+                            "isAdiDoc": "N",
+                            "uploadedBy": "BM",
+                            "latitude": window.currentGeoCords?.latitude,
+                            "longitude": window.currentGeoCords?.longitude,
+                            "uploadedTs": new Date().toISOString(),
+                        }
+                    }]
+                }]
+            },
+            "userId": gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+            "appId": gApzCOB.userDetails.appId,
+            "interfaceName": "UploadRPCLoanData"
+        }
+    }
+    req.apiRequest.requestObj.applicationDocumentsWrapperList[0].applicationDocumentsList[0].custDtlId = ApzCOB.getCustDetailID("Applicant");
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "UploadRPCLoanData", "N", "N", req, false, apz.app.LUCDetails.saveDocumentCB);
+    }, 1000)
+};
+apz.app.LUCDetails.saveDocumentCB = function(params) {
+    const docType = params.req.apiRequest.requestObj.applicationDocumentsWrapperList[0].applicationDocumentsList[0].payload.documentType;
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            apz.app.LUCDetails.paintDocumentName(docType);
+        } else {
+            apz.stopLoader();
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.fnDisplayMsg("failed to save the data")
+    }
+};
+apz.app.LUCDetails.paintDocumentName = function(docType) {
+    let cloneDiv;
+    let parentDiv;
+    if (apz.isObjectEmpty(inSessionStore) || !inSessionStore.hasOwnProperty('applicationDocumentsWrapperList')) return;
+    let documentResp = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList
+    if (documentResp.length > 0) {
+        window.purpose = documentResp.filter(docs => docs.payload.documentType === docType && parseInt(docs.custDtlId) === parseInt(gApzCOB
+            .userDetails.custDtlId));
+        if (purpose.length >= 0) {
+            if (docType === "purpose1 Doc") {
+                cloneDiv = `${screenId}purpose1_0`;
+                parentDiv = $(`#${screenId}purposeParentRow1`);
+                $(".purposeImgSec1").removeClass('sno');
+                parentDiv.html('');
+            } else if (docType === "purpose2 Doc") {
+                cloneDiv = `${screenId}purpose2_0`;
+                parentDiv = $(`#${screenId}purposeParentRow2`);
+                $(".purposeImgSec2").removeClass('sno');
+                parentDiv.html('');
+            } else if (docType === "purpose3 Doc") {
+                cloneDiv = `${screenId}purpose3_0`;
+                parentDiv = $(`#${screenId}purposeParentRow3`);
+                $(".purposeImgSec3").removeClass('sno');
+                parentDiv.html('');
+            }
+            purpose.forEach((doc, index) => {
+                let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
+                let baseName = doc.payload.documentFileName.match(/^[^\d]+/)[0];
+                $(`#${newId} .docName a.ett-hypl span`).text(`${baseName}_${index + 1}.jpg`);
+                $(`#${newId}`).attr('data-id', doc.appDocId);
+                $(`#${newId}`).attr('data-doc-type', docType);
+                $(`#${newId}`).removeClass('sno');
+                // Luc__LUCDetails__purpose_img_name_2_txtcnt
+            })
+        }
+    }
+};
+apz.app.LUCDetails.viewIncomeDoc = function(pthis) {
+    let documentId = $(pthis).parents('.uploadimg').attr('data-id');
+    let docDetails = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.find(doc => parseInt(doc.appDocId) === parseInt(
+        documentId));
+    if (!apz.isObjectEmpty(docDetails)) {
+        let fileName = docDetails?.payload?.documentFileName;
+        let callBackFn = apz.app.LUCDetails.viewIncomeDocCB;
+        window.ImageLocationDetails = {
+            latitude: docDetails?.payload?.latitude || "",
+            longitude: docDetails?.payload?.longitude || "",
+            uploadedTs: docDetails?.payload?.uploadedTs || "",
+            documentFileName: docDetails?.payload?.documentFileName || ""
+        };
+        lobj.fileName = fileName;
+        lobj.documentType = docDetails?.payload?.documentType || "";
+        lobj.docLevel = docDetails?.payload?.docLevel || "";
+        ApzCOB.downloadFileFromServer(fileName, callBackFn);
+    }
+};
+apz.app.LUCDetails.viewIncomeDocCB = function(params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.base64)) {
+        $(`#${screenId}imgView`).attr('src', 'data:image/png;base64,' + params.base64);
+        let id = `#${screenId}imgView`;
+        if (Object.keys(window.ImageLocationDetails).length > 0) {
+            apz.app.BaseScreens.paintImageLocationDetails(id, window.ImageLocationDetails);
+        }
+        ApzCOB.toggleModal(`${screenId}viewUploadedModal`);
+    } else {
+        ApzCOB.fnDisplayMsg("Document is not available")
+    }
+};
+apz.app.LUCDetails.validateUtilised = function(i) {
+    $(`#${screenId}unUtilisedLoanAmount`).val(totalTransferedAmount - [1, 2, 3].reduce((s, x) => s + (parseFloat($(
+        `#${screenId}utilisedAmout${x}`).val().replace(/,/g, "")) || 0), 0));
+};
+apz.app.LUCDetails.totalUnutilisedAmount = function() {
+    let unUtilised = '';
+    let utilisedAmounts = [1, 2, 3].map(i => parseFloat(($(`#${screenId}utilisedAmout${i}`).val() || "").replace(/,/g, "")) || 0);
+    let checkUtilisingloanVal = apz.getElmValue(`${screenId}isLonUtilised`);
+    window.totalUtilisedVal = utilisedAmounts.reduce((sum, val) => sum + val, 0);
+    // Condition 1: If total < 0 ? Clear all utilised fields
+    if (checkUtilisingloanVal === 'No') {
+        // If loan is not utilized at all
+        if (totalUtilisedVal === 0) {
+            unUtilised = totalTransferedAmount;
+        }
+    } else if (checkUtilisingloanVal === 'Yes') {
+        if (totalUtilisedVal < 0) {
+            [1, 2, 3].forEach(i => $(`#${screenId}utilisedAmout${i}`).val(""));
+            ApzCOB.fnDisplayMsg("This value cannot go below zero. Please validate your data", "E");
+            return false;
+        }
+        // Condition 2: Total cannot exceed transferred amount
+        if (totalUtilisedVal > totalTransferedAmount) {
+            ApzCOB.fnDisplayMsg("Total utilisedAmount should not be greater than amount transferred to customer. Please enter a valid amount.",
+                "E");
+            return false;
+        }
+        unUtilised = totalTransferedAmount - totalUtilisedVal;
+    }
+    return unUtilised;
+};
+apz.app.LUCDetails.onChangeLoanUtilised = function(pthis) {
+    let totalUnutilisedAmount = apz.app.LUCDetails.totalUnutilisedAmount();
+    $(`#${screenId}unUtilisedLoanAmount`).val(totalUnutilisedAmount);
+    if (totalUnutilisedAmount > 0) {
+        $("#Luc__LUCBase__submitBtn_txtcnt").text("Save")
+    } else {
+        $("#Luc__LUCBase__submitBtn_txtcnt").text("Submit")
+    }
+};
+apz.app.LUCDetails.previewAddressContact = function() {
+    let addressDetails;
+    let permanentDetails;
+    const applicant = inSessionStore.customerDetailsList.find(el => el.customerType === "Applicant");
+    const coapp = inSessionStore.customerDetailsList.find(el => el.customerType === "Co-App");
+    if (inSessionStore.addressDetailsWrapperList[0].addressDetailsList.length > 0 && inSessionStore.customerDetailsList.length > 0) {
+        inSessionStore.addressDetailsWrapperList[0].addressDetailsList.forEach(type => {
+            if (type.addressType === "Personal" && type.custDtlId === gApzCOB.userDetails.custDtlId) {
+                type.payload.addressList.forEach(address => {
+                    if (address.addressType === "Present") {
+                        addressDetails = address;
+                        $(`#${screenId}prestAdress`).text(
+                            `${addressDetails.addressLine1}, ${addressDetails.area}, ${addressDetails.city} - ${addressDetails.pinCode}, ${addressDetails.country}`
+                        );
+                    } else if (address.addressType === "Permanent") {
+                        permanentDetails = address;
+                        if (address.addressSameAs === 'Y') {
+                            $(`#${screenId}permanentAdres`).text("Same as Present Address");
+                        } else {
+                            permanentDetails = address;
+                            $(`#${screenId}permanentAdres`).text(
+                                `${address.addressLine1}, ${address.area}, ${address.city} - ${address.pinCode}, ${address.country}`
+                            );
+                        }
+                    }
+                });
+            }
+        });
+        $(`#${screenId}appNameMobileNo`).text(`${applicant?.customerName || ""} / ${applicant?.mobileNumber || ""}`);
+        $(`#${screenId}coappNameMobileNo`).text(`${coapp?.customerName || ""} / ${coapp?.mobileNumber || ""}`);
+        $(`#${screenId}productName`).text(window.productName);
+        // $(`#${screenId}A_residence_stabilit_present_city_txtcnt`).text(addressDetails.residenceCitySince);
+    }
+};
+apz.app.LUCDetails.onChangeIsLoanUtilised = function() {
+    let isUtilised = apz.getElmValue(`${screenId}isLonUtilised`);
+    $(`#${screenId}res_checboxFrm`).removeClass("sno");
+    let setEmptyYval = [1, 2, 3].forEach(i => {
+        $(`#${screenId}utilisedAmout${i}`).val('');
+    });
+    if (isUtilised === "No") {
+        $(`#${screenId}purposerow`).addClass("sno");
+        $(`#${screenId}unUtilisedLoanAmount`).val(totalTransferedAmount);
+        $(`#${screenId}No_LucRemarks_row`).removeClass('sno')
+        $(`#${screenId}responseTextarea_row`).addClass("sno");
+    } else {
+        $(`#${screenId}purposerow`).removeClass("sno");
+        $(`#${screenId}unUtilisedLoanAmount`).val(totalTransferedAmount);
+        $(`#${screenId}No_LucRemarks_row`).addClass('sno')
+        if (inSessionStore?.lucDetails?.LucDetailsWrapper?.purposes?.some(p => !p.purpose)) {
+            ["1", "2", "3"].forEach(n => $(`#${screenId}mainPurposeDropdown${n}`).val("Please Select"));
+        }
+        if (!apz.isNull(inSessionStore?.lucDetails?.queries)) {
+            $(`#${screenId}responseTextarea_row`).removeClass("sno");
+        }
+    }
+    if ($(`#${screenId}checkbox`).is(":checked")) {
+        $(`#${screenId}checkbox`).prop("checked", false);
+        $("#Luc__LUCBase__submitBtn").attr('disabled', true);
+    }
+};
+apz.app.LUCDetails.handleCheckboxChange = function(pthis, targetId) {
+    if ($("#" + pthis.id).is(":checked")) {
+        $(`#${targetId}`).attr('disabled', false);
+    } else {
+        $(`#${targetId}`).attr('disabled', true);
+    }
+};
+apz.app.LUCDetails.deleteIncomeDoc = function(pthis) {
+    let documentId = $(pthis).parents('.uploadimg').attr('data-id');
+    docDeleteType = $(pthis).parents('.uploadimg').attr('data-doc-type');
+    if (!apz.isNull(documentId)) {
+        let popUpObj = {};
+        popUpObj.text = "Do you want to delete this document?";
+        popUpObj.Btn1 = {
+            "text": "Yes",
+            "onClick": `apz.app.LUCDetails.deleteDocumentCnfm(${documentId})`
+        }
+        popUpObj.Btn2 = {
+            "text": "No",
+            "onClick": "apz.app.LUCDetails.closeDeleteCnfmModal()"
+        }
+        ApzCOB.showRpcModals(popUpObj, "confirmation");
+    }
+};
+apz.app.LUCDetails.closeDeleteCnfmModal = function() {
+    ApzCOB.toggleModal(`${screenId}conFormation_mdl`);
+};
+apz.app.LUCDetails.closeDeleteSuccModal = function() {
+    ApzCOB.toggleModal(`${screenId}Succ_modal`);
+};
+apz.app.LUCDetails.closeDeleteErrModal = function() {
+    ApzCOB.toggleModal(`${screenId}CA_Error_modal`);
+};
+apz.app.LUCDetails.deleteDocumentCnfm = function(docId) {
+    let callBackFn = apz.app.LUCDetails.deleteDocumentCnfmCB;
+    ApzCOB.deleteDocument('', '', '', docId, callBackFn)
+};
+apz.app.LUCDetails.deleteDocumentCnfmCB = function(params) {
+    apz.stopLoader();
+    try {
+        const isSuccess = ApzCOB.handleServiceCallBacks(params);
+        const modalOptions = {
+            text: isSuccess ? "Document Deleted.!" : "Document Delete Failed.!",
+            Btn1: {
+                text: "OK",
+                onClick: isSuccess ? "apz.app.LUCDetails.closeDeleteSuccModal()" : "apz.app.LUCDetails.closeDeleteErrModal()"
+            }
+        };
+        apz.app.LUCDetails.closeDeleteCnfmModal();
+        if (isSuccess && params.res.APZCBO__DeleteDocument_Res.apiResponse.ResponseBody.responseObj === 'Success') {
+            let deletedDocId = params?.req?.apiRequest?.requestObj?.appDocId || "";
+            let documentArray = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+            if (!apz.isNull(deletedDocId) && documentArray.length > 0) {
+                let updatedDocs = documentArray.filter(item => Number(item.appDocId) !== Number(deletedDocId));
+                inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = [];
+                inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = structuredClone(updatedDocs);
+            }
+        }
+        apz.app.LUCDetails.paintDocumentName(docDeleteType);
+        ApzCOB.showRpcModals(modalOptions, isSuccess ? "Success" : "Error");
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        ApzCOB.showRpcModals({
+            text: technicalErrMsg,
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.LUCDetails.closeDeleteErrModal()"
+            }
+        }, "Error");
+    }
+};
+apz.app.LUCDetails.populatePorposeDropdowns = function() {
+    let businessPurposeData = [];
+    let PleaseSelect = ["Please Select"];
+    let businessArray = [];
+    let matchedItem = gLovs.find(item => item.lovName === "LUC_PURPOSE");
+    let Bussines = gLovs.find(item => item.lovName === "LUC_BUSINESS");
+    if (matchedItem) {
+        businessPurposeData = JSON.parse(matchedItem.lovDtls);
+    }
+    if (Bussines) {
+        businessArray = JSON.parse(Bussines.lovDtls)
+    }
+    apz.app.LUCDetails.populateDropdown([...PleaseSelect, ...businessPurposeData], screenId + "mainPurposeDropdown1");
+    apz.app.LUCDetails.populateDropdown([...PleaseSelect, ...businessPurposeData], screenId + "mainPurposeDropdown2");
+    apz.app.LUCDetails.populateDropdown([...PleaseSelect, ...businessPurposeData], screenId + "mainPurposeDropdown3");
+    apz.app.LUCDetails.populateDropdown([...PleaseSelect, ...businessArray], screenId + "subpurposedorpdown1");
+    apz.app.LUCDetails.populateDropdown([...PleaseSelect, ...businessArray], screenId + "subpurposedorpdown2");
+    apz.app.LUCDetails.populateDropdown([...PleaseSelect, ...businessArray], screenId + "subpurposedorpdown3");
+    // document.getElementById(CaIncomeDetailsScrId + "O_Bus_Pre_option_Yes").checked = true;
+};
+apz.app.LUCDetails.populateDropdown = function(allOptions, Id) {
+    let TempArr = [];
+    for (i = 0; i < allOptions.length; i++) {
+        let obj = {
+            "desc": allOptions[i],
+            "val": allOptions[i]
+        };
+        TempArr.push(obj);
+    }
+    apz.populateDropdown(document.getElementById(Id), TempArr);
+};
+apz.app.LUCDetails.paintLucDetails = function() {
+    let payload = inSessionStore?.lucDetails?.LucDetailsWrapper;
+    if (!payload) {
+        return;
+    }
+    window.isBM = gApzCOB.LoggedInUserDetails?.loginResponse?.addInfo1 === "BM";
+    if (payload.isAmountUtilised == 'Yes') {
+        apz.setElmValue("Luc__LUCDetails__isLonUtilised", "Yes")
+        $(`#${screenId}purposerow`).removeClass("sno");
+        apz.app.LUCDetails.populatePorposeDropdowns();
+        $(`#${screenId}No_LucRemarks_row`).addClass('sno');
+    } else {
+        apz.setElmValue("Luc__LUCDetails__isLonUtilised", "No")
+        $(`#${screenId}purposerow`).addClass("sno");
+        $(`#${screenId}No_LucRemarks_row`).removeClass('sno');
+    }
+    $(`#${screenId}LucRemarks`).val(payload?.lucRemarks || "");
+    $(`#${screenId}unUtilisedLoanAmount`).val(payload?.totalUnutilisedAmount)
+    if (Array.isArray(payload.purposes) && payload.purposes.length > 0) {
+        payload.purposes.forEach((item, index) => {
+            let idx = index + 1;
+            let purpose = item.purpose || "";
+            let subPurpose = item.subPurpose || "";
+            let additionalDetails = item.additionalDetails || "";
+            let utilisedAmount = item.utilisedAmount ?? "";
+            $(`#${screenId}mainPurposeDropdown${idx}`).val(purpose).change();
+            if (purpose === "Business") {
+                $(`.purposeImgSec${idx}, .typeOfbusiness${idx}`).removeClass("sno");
+            } else {
+                $(`.purposeImgSec${idx}, .typeOfbusiness${idx}`).addClass("sno");
+            }
+            // $(".purposeImgSec1").removeClass('sno'); UAU-234
+            $(`#${screenId}subpurposedorpdown${idx}`).val(subPurpose).change();
+            $(`#${screenId}additionalDetail${idx}`).val(additionalDetails);
+            $(`#${screenId}utilisedAmout${idx}`).val(utilisedAmount);
+            if (!isBM) {
+                $(`#${screenId}mainPurposeDropdown${idx}`).attr("disabled", true);
+                $(`#${screenId}subpurposedorpdown${idx}`).attr("disabled", true);
+                $(`#${screenId}additionalDetail${idx}`).attr("disabled", true);
+                $(`#${screenId}utilisedAmout${idx}`).attr("disabled", true);
+                $(`#${screenId}LucRemarks`).attr("disabled", true);
+                $(`#${screenId}response`).attr("disabled", true);
+                $(`#${screenId}mainPurposeDropdown${idx}_ext`).addClass('disabled');
+                $(`#${screenId}subpurposedorpdown${idx}_ext`).addClass('disabled');
+                $(`#${screenId}additionalDetail${idx}`).addClass('disabled');
+                $(`#${screenId}utilisedAmout${idx}`).addClass('disabled');
+                $(`#${screenId}LucRemarks`).addClass('disabled');
+                $(`#${screenId}response`).addClass('disabled');
+            }else{
+                $(`#${screenId}mainPurposeDropdown${idx}`).attr("disabled", false);
+                $(`#${screenId}subpurposedorpdown${idx}`).attr("disabled", false);
+                $(`#${screenId}additionalDetail${idx}`).attr("disabled", false);
+                $(`#${screenId}utilisedAmout${idx}`).attr("disabled", false);
+                $(`#${screenId}LucRemarks`).attr("disabled", false);
+                $(`#${screenId}response`).attr("disabled", false);
+                $(`#${screenId}mainPurposeDropdown${idx}_ext`).removeClass('disabled');
+                $(`#${screenId}subpurposedorpdown${idx}_ext`).removeClass('disabled');
+                $(`#${screenId}additionalDetail${idx}`).removeClass('disabled');
+                $(`#${screenId}utilisedAmout${idx}`).removeClass('disabled');
+                $(`#${screenId}LucRemarks`).removeClass('disabled');
+                 $(`#${screenId}response`).removeClass('disabled');
+            }
+            if(!apz.isNull(inSessionStore?.lucDetails?.queries)){
+            apz.app.LUCDetails.paintQueries();
+            apz.app.LUCDetails.getmappedQueryresponseData();
+            }
+        });
+    }
+};
+apz.app.LUCDetails.formatUpdateTs = function(updateTs) {
+    let {
+        date,
+        time
+    } = updateTs;
+    let day = String(date.day).padStart(2, "0");
+    let month = String(date.month).padStart(2, "0");
+    let year = date.year;
+    let hour = String(time.hour).padStart(2, "0");
+    let minute = String(time.minute).padStart(2, "0");
+    let second = String(time.second).padStart(2, "0");
+    return `Sent back reasons (${day}/${month}/${year} - ${hour}:${minute}:${second})`;
+};
+apz.app.LUCDetails.paintQueries = function() {
+    if (!apz.isNull(inSessionStore?.lucDetails?.queries)) {
+        apz.app.LUCDetails.getmappedQueryData();
+        // Show UI blocks
+        $(`#${screenId}queryRow`).removeClass("sno");
+        $(`#${screenId}responseTextarea_row`).removeClass("sno");
+        let queryContainer = $(`span#Luc__LUCDetails__selectedQuerydata`);
+        queryContainer.html(""); // reset UI
+        // Timestamp update
+        let updateTs = inSessionStore?.lucDetails?.updateTs;
+        if (updateTs) {
+            let formattedTS = apz.app.LUCDetails.formatUpdateTs(updateTs);
+            $(`#${screenId}queryDisplay_txtcnt`).text(formattedTS);
+        }
+        // Build all reasons in one string
+        let htmlString = "";
+        checkedQueries.forEach((q, index) => {
+            let reasonText = q;
+            if (q.includes("_")) {
+                reasonText = q.split("_")[1];
+            }
+            if (q.startsWith("oth_Other?")) {
+                reasonText = q.split("?")[1];
+            }
+            htmlString += `${index + 1}. ${reasonText}<br/>`;
+        });
+        // Paint once ✔
+        queryContainer.html(htmlString);
+    }
+};
+apz.app.LUCDetails.getmappedQueryresponseData = function() {
+    let timeline = inSessionStore.applicationTimelineDtl;
+    if (!Array.isArray(timeline)) return;
+    let filteredLUCdata = timeline.filter(item => item.stage === "LUC" || item.stage === "LUC Verification");
+    let lucSubmittedList = filteredLUCdata.filter(item => item.stage === "LUC" && item.actionTaken === "Submitted By" && item.remarks);
+    if (!lucSubmittedList.length) return;
+    lucSubmittedList.sort((a, b) => new Date(b.timeStamp) - new Date(a.timeStamp));
+    window.latestRecord = lucSubmittedList[0];
+    $(`#${screenId}response`).val(latestRecord.remarks);
+    if (!apz.isNull(inSessionStore?.lucDetails?.queries)) {
+        $(`#${screenId}responseTextarea_row`).removeClass('sno');
+    } else {
+        $(`#${screenId}responseTextarea_row`).addClass('sno');
+    }
+};
+
+apz.app.LUCDetails.getmappedQueryData = function() {
+    window.LUC_QUERIES = DBKIT_MASTERDATA.filter(item => item.stageName === "LUC" && item.queries && item.queries !== "{}").flatMap(item => JSON
+        .parse(item.queries));
+    let storedQueries = [];
+    if (inSessionStore.lucDetails?.queries) {
+        let queryList = inSessionStore.lucDetails.queries.split(",");
+        queryList.forEach(q => {
+            if (q.startsWith("OTH?")) {
+                let otherText = q.split("?")[1];
+                storedQueries.push(`oth_Other?${otherText}`);
+            } else {
+                let master = LUC_QUERIES.find(item => item.id === q);
+                if (master) {
+                    storedQueries.push(`${master.id}_${master.value}`);
+                }
+            }
+        });
+    }
+    storedQueries = [...new Set(storedQueries)];
+    window.checkedQueries = storedQueries; // if needed globally
+}
+
+apz.app.LUCDetails.paintDocuments = function() {
+    const allowedTypes = ["purpose1 Doc", "purpose2 Doc", "purpose3 Doc"];
+    const docs = inSessionStore.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || [];
+    const purposeDocs = docs.filter(doc => allowedTypes.includes(doc.documentType) || allowedTypes.includes(doc.payload?.documentType));
+    apz.app.LUCDetails._docQueue = purposeDocs.map(doc => ({
+        docType: doc.payload?.documentType || doc.documentType,
+        docLevel: doc.payload?.docLevel || "",
+        fileName: doc.payload?.documentFileName || "",
+        latitude: doc.payload?.latitude || "",
+        longitude: doc.payload?.longitude || "",
+        uploadedTs: doc.payload?.uploadedTs || ""
+    }));
+    apz.app.LUCDetails._docQueueIndex = 0;
+    apz.app.LUCDetails._processNextDocument();
+};
+apz.app.LUCDetails._processNextDocument = function() {
+    const queue = apz.app.LUCDetails._docQueue;
+    let index = apz.app.LUCDetails._docQueueIndex;
+    if (index < queue.length) {
+        const currentDoc = queue[index];
+        apz.app.LUCDetails._docQueueIndex++;
+        lobj.documentType = currentDoc.docType;
+        lobj.docLevel = currentDoc.docLevel;
+        lobj.fileName = currentDoc.fileName;
+         window.ImageLocationDetails = {
+             latitude: currentDoc.latitude || "",
+             longitude: currentDoc.longitude || "",
+             uploadedTs: currentDoc.uploadedTs || "",
+             documentFileName: currentDoc.documentFileName || ""
+         };
+        ApzCOB.downloadFileFromServer(currentDoc.fileName, apz.app.LUCDetails.paintDocumentsCB);
+    }
+};
+apz.app.LUCDetails.paintDocumentsCB = function(params) {
+    apz.stopLoader();
+    const docType = lobj.documentType;
+    const docLevel = lobj.docLevel;
+    const fileName = lobj.fileName;
+    let typeNum = docType.replace("purpose", "").replace(" Doc", "");
+    let imgId = `#${screenId}PURPOSE_${typeNum}_IMG${docLevel}`;
+    window.picture = $(`#${screenId}PURPOSE_${typeNum}_IMG${docLevel}`);
+    ApzCOB.intializeGuillotine(picture);
+    let titleId = `#${screenId}purpose${typeNum}_img${docLevel}_title_ul`;
+    let optionsId = `#${screenId}purpose${typeNum}_img${docLevel}_options`;
+    if (!apz.isNull(params.base64)) {
+        $(imgId).attr('src', 'data:image/png;base64,' + params.base64);
+        let id = imgId;
+        if (Object.keys(window.ImageLocationDetails).length > 0) {
+            apz.app.BaseScreens.paintImageLocationDetails(id, window.ImageLocationDetails);
+        }
+        $(imgId).attr('data-filename', fileName);
+        $(titleId).removeClass('sno');
+        $(optionsId).removeClass('sno');
+    }
+    apz.app.LUCDetails._processNextDocument();
+};
+apz.app.LUCDetails.onClickDownloadPurposeDoc = function(pthis, id) {
+    let fileName = $(`#${id}`).attr('data-filename');
+    let b64Data = $(`#${id}`).attr('src').split(',')[1];
+    ApzCOB.convertBase64ToPNG(b64Data, fileName);
+}
+apz.app.LUCDetails.onChangeUtilisedPurpose = function (pthis) {
+    let mainPorpose1 = $(`#${screenId}mainPurposeDropdown1`).val();
+    let mainPorpose2 = $(`#${screenId}mainPurposeDropdown2`).val();
+    let mainPorpose3 = $(`#${screenId}mainPurposeDropdown3`).val();
+
+    // show/hide image + type sections
+    if (mainPorpose1 === "Business") {
+        $('.purposeImgSec1, .typeOfbusiness1').removeClass('sno');
+    } else {
+        $('.purposeImgSec1, .typeOfbusiness1').addClass('sno');
+        // $('.typeOfbusiness1').addClass('sno');  UAU-234
+    }
+    if (mainPorpose2 === "Business") {
+        $('.purposeImgSec2, .typeOfbusiness2').removeClass('sno');
+    } else {
+        $('.purposeImgSec2, .typeOfbusiness2').addClass('sno');
+    }
+    if (mainPorpose3 === "Business") {
+        $('.purposeImgSec3, .typeOfbusiness3').removeClass('sno');
+    } else {
+        $('.purposeImgSec3, .typeOfbusiness3').addClass('sno');
+    }
+    let num = pthis.id.replace("Luc__LUCDetails__mainPurposeDropdown", "");
+    if (pthis.value === "Please Select") {
+        $(`#Luc__LUCDetails__additionalDetail${num}`).val("");
+        $(`#Luc__LUCDetails__utilisedAmout${num}`).val("");
+        $(`#Luc__LUCDetails__subpurposedorpdown${num}`).val("");
+    }
+};
+apz.app.LUCDetails.launchLucQueriesModal = function() {
+    apz.app.LUCDetails.loadQueryModal();
+};
+apz.app.LUCDetails.onClickQueryMdlCancel = function() {
+    checkedQueries = [];
+    $(`#${BaseScrId}queryList`).addClass("pb-70");
+    apz.app.LUCDetails.uncheckOthercheckbox();
+};
+apz.app.LUCDetails.submitLUCSentBack = function() {
+    let lvalidate = true;
+    let queries = finalCheckedQueries; // code to check queries selected.
+    if (!queries) {
+        lvalidate = false;
+        $(`#${screenId}Query_Err_Row`).removeClass('sno');
+    } else {
+        lvalidate = true;
+        $(`#${screenId}Query_Err_Row`).addClass('sno');
+        ApzCOB.toggleModal(screenId + "queryModal");
+    }
+    if (lvalidate) {
+        let confrmTxt = `Are you sure you want to send back the LUC Verification?`;
+        let popUpObj = {};
+        popUpObj.text = confrmTxt;
+        popUpObj.Btn1 = {
+            "text": "Yes",
+            "onClick": "apz.app.LUCDetails.confirmSubmitLUCDetails('PUSHBACK')"
+        }
+        popUpObj.Btn2 = {
+            "text": "No",
+            "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`)"
+        }
+        ApzCOB.showNewCommonConfirmationModal(popUpObj);
+    }
+};
+apz.app.LUCDetails.submitLUCDetails = function() {
+if(apz.getElmValue(`${screenId}isLonUtilised`) === 'Yes' ){
+   if (apz.app.LUCDetails.totalUnutilisedAmount() === false) {
+        return;
+    }
+    if (apz.app.LUCDetails.validatePurposes() === false) {
+        return;
+    }
+}
+    let utilLoan = apz.getElmValue(`${screenId}isLonUtilised`);
+    let unutilamnt = $(`#${screenId}unUtilisedLoanAmount`).val();
+    let contenttext = '';
+    if(unutilamnt > 0){
+      contenttext =  `Are you sure you want to Save `
+    }else{
+        contenttext =  `Are you sure you want to submit `
+    }
+    let remarks = utilLoan === 'Yes' ? $(`#${screenId}LucRemarks`).val() : $(`#${screenId}LucRemarks_No`).val();
+    if (apz.isNull(remarks)) {
+        ApzCOB.fnDisplayMsg("Please Enter LUC Remarks", "E");
+        return;
+    }
+    let lstage = gcurrStage === "LUC" ? "the LUC Verification" : (gcurrStage === "PENDINGLUCVERIFICATION" ? "the LUC verification" : "");
+    let confrmTxt = contenttext + lstage + `?`
+    let popUpObj = {};
+    popUpObj.text = confrmTxt;
+    popUpObj.Btn1 = {
+        "text": "Yes",
+        "onClick": "apz.app.LUCDetails.confirmSubmitLUCDetails('SUBMIT');"
+    }
+    popUpObj.Btn2 = {
+        "text": "No",
+        "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`);"
+    }
+    ApzCOB.showNewCommonConfirmationModal(popUpObj);
+};
+apz.app.LUCDetails.validatePurposes = function () {
+    let docsList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList || [];
+    for (let i = 1; i <= 3; i++) {
+        let purpose = $(`#${screenId}mainPurposeDropdown${i}`).val();
+        purpose = (purpose === "Please Select") ? "" : purpose;
+        let subPurpose = $(`#${screenId}subpurposedorpdown${i}`).val();
+        subPurpose = (subPurpose === "Please Select") ? "" : subPurpose;
+        let additionalDetails = $(`#${screenId}additionalDetail${i}`).val() || "";
+        let utilisedAmount = parseFloat(($(`#${screenId}utilisedAmout${i}`).val() || "").replace(/,/g, "")) || 0;
+        let isAnyFieldFilled = purpose || additionalDetails || utilisedAmount > 0 || subPurpose;
+        if (i !== 1 && !isAnyFieldFilled) {
+            continue;
+        }
+        if (!purpose) {
+            ApzCOB.fnDisplayMsg(`Please select purpose ${i}`);
+            return false;
+        }
+        // let purpose1Docs = docsList.filter(d =>  UAU-234
+        //     d.documentType === `purpose1 Doc` &&
+        //     (d.docLevel === "1" || d.docLevel === "2")
+        // );
+        // if (purpose1Docs.length < 1) {
+        //     ApzCOB.fnDisplayMsg(`Please upload documents for porpose 1`);
+        //     return false;
+        // }
+        if(!apz.isNull(inSessionStore?.lucDetails?.queries)){
+            if( apz.getElmValue("Luc__LUCDetails__response").trim() === ""){
+                ApzCOB.fnDisplayMsg(`Please enter response for queries`);
+                return false;
+            }
+        } 
+        if (utilisedAmount <= 0) {
+            ApzCOB.fnDisplayMsg(`Please enter utilised amount for purpose ${i}`);
+            return false;
+        }
+        if (!additionalDetails.trim()) {
+            ApzCOB.fnDisplayMsg(`Please enter additional details for purpose ${i}`);
+            return false;
+        }
+        if (purpose === "Business" && !subPurpose) {
+            ApzCOB.fnDisplayMsg(`Please select sub purpose for business purpose ${i}`);
+            return false;
+        }
+        if (purpose === "Business") {
+            let purposeDocs = docsList.filter(d =>
+                d.documentType === `purpose${i} Doc` &&
+                (d.docLevel === "1" || d.docLevel === "2")
+            );
+            if (purposeDocs.length < 1) {
+                ApzCOB.fnDisplayMsg(`Please upload documents for business purpose ${i}`);
+                return false;
+            }
+        }
+    }
+    return true;
+};
+
+apz.app.LUCDetails.confirmSubmitLUCDetails = function(laction) {
+    currentApplicationData = structuredClone ? structuredClone(inSessionStore) : JSON.parse(JSON.stringify(inSessionStore));
+    let {
+        updatedBy,
+        ...filteredData
+    } = currentApplicationData.applicationMaster;
+    gApzCOB.workflow.currentRole = window.currentRole;
+    gApzCOB.workflow.action = laction;
+    gApzCOB.workflow.workflowId = gcurrStage.toUpperCase();
+    gApzCOB.workflow.stage = gcurrStage.toUpperCase();
+    if (gcurrStage === "LUC") {
+        gApzCOB.workflow.status = "PENDINGLUCVERIFICATION";
+    } else if (gcurrStage === "PENDINGLUCVERIFICATION") {
+        if (gApzCOB.workflow.action === 'PUSHBACK') {
+            gApzCOB.workflow.status = "LUC";
+        } else {
+            gApzCOB.workflow.status = "LUCVERIFIED";
+        }
+    }
+    apz.startLoader();
+    let queryData = '';
+    if(!apz.isNull(finalCheckedQueries)) {
+        queryData = finalCheckedQueries.toString();
+    } else if(!apz.isNull(inSessionStore?.lucDetails?.queries)){
+        queryData = inSessionStore?.lucDetails?.queries;
+    }
+    let reMarks = apz.getElmValue(`${screenId}isLonUtilised`) === 'Yes' ? $(`#${screenId}LucRemarks`).val() : $(`#${screenId}LucRemarks_No`).val();
+    let LucDetailsWrapper = {
+        appId: gApzCOB.userDetails.appId,
+        interfaceName: "",
+        userId: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+        requestObj: {
+            appId: gApzCOB.userDetails.appId,
+            applicationId: gApzCOB.userDetails.applicationId,
+            versionNum: gApzCOB.userDetails.versionNum,
+            stageId: gApzCOB.workflow.stage,
+            payload: {
+                totalTransferedAmount: window.totalTransferedAmount,
+                totalUnutilisedAmount: apz.app.LUCDetails.totalUnutilisedAmount(),
+                isAmountUtilised: apz.getElmValue(`${screenId}isLonUtilised`),
+                lucRemarks: reMarks || "",
+                purposes: [{
+                    purpose: ($(`#${screenId}mainPurposeDropdown1`).val() === "Please Select") ? "" : $(
+                        `#${screenId}mainPurposeDropdown1`).val(),
+                    subPurpose: ($(`#${screenId}subpurposedorpdown1`).val() === "Please Select") ? "" : $(
+                        `#${screenId}subpurposedorpdown1`).val(),
+                    additionalDetails: $(`#${screenId}additionalDetail1`).val() || "",
+                    utilisedAmount: parseFloat($(`#${screenId}utilisedAmout1`).val().replace(/,/g, "")) || 0
+                }, {
+                    purpose: ($(`#${screenId}mainPurposeDropdown2`).val() === "Please Select") ? "" : $(
+                        `#${screenId}mainPurposeDropdown2`).val(),
+                    subPurpose: ($(`#${screenId}subpurposedorpdown2`).val() === "Please Select") ? "" : $(
+                        `#${screenId}subpurposedorpdown2`).val(),
+                    additionalDetails: $(`#${screenId}additionalDetail2`).val() || "",
+                    utilisedAmount: parseFloat($(`#${screenId}utilisedAmout2`).val().replace(/,/g, "")) || 0
+                }, {
+                    purpose: ($(`#${screenId}mainPurposeDropdown3`).val() === "Please Select") ? "" : $(
+                        `#${screenId}mainPurposeDropdown3`).val(),
+                    subPurpose: ($(`#${screenId}subpurposedorpdown3`).val() === "Please Select") ? "" : $(
+                        `#${screenId}subpurposedorpdown3`).val(),
+                    additionalDetails: $(`#${screenId}additionalDetail3`).val() || "",
+                    utilisedAmount: parseFloat($(`#${screenId}utilisedAmout3`).val().replace(/,/g, "")) || 0
+                }]
+            },
+            queries: queryData,
+            createdBy: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id, // insession store <->if not null else current user 
+            updatedBy: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id
+        },
+        userId: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+        appId: gApzCOB.userDetails.appId,
+        interfaceName: ""
+    };
+    let req = {
+        apiRequest: {
+            interfaceName: "",
+            appId: gAppId,
+            requestObj: {
+                appId: gApzCOB.userDetails.appId,
+                status: gApzCOB.workflow.status,
+                userId: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                applicationId: gApzCOB.userDetails.applicationId,
+                versionNum: gApzCOB.userDetails.versionNum,
+                custDtlId: gApzCOB.userDetails.custDtlId,
+                remarks: $(`#${screenId}response`).val(),
+                workflow: {
+                    currentRole: gApzCOB.workflow.currentRole,
+                    action: gApzCOB.workflow.action,
+                    workflowId: gApzCOB.workflow.workflowId,
+                    stage: gApzCOB.workflow.stage,
+                    currentStage: gApzCOB.workflow.stage
+                },
+                LUCRequest: LucDetailsWrapper
+            }
+        }
+    };
+    ApzCOB.serverBuildParam(gAppId, "Stagemoment", "N", "N", req, false, apz.app.LUCDetails.confirmSubmitLUCDetailsCB);
+};
+apz.app.LUCDetails.confirmSubmitLUCDetailsCB = function(params) {
+    ApzCOB.closeCommonModal(`newCommonConfModal`);
+    apz.stopLoader();
+    let errMsg = "";
+    let apiResponse = params?.res?.APZCBO__Stagemoment_Res?.apiResponse;
+    let responseMessage = apiResponse?.ResponseBody?.responseObj;
+    let ResponseCode = apiResponse?.ResponseHeader?.ResponseCode;
+    if (!apz.isNull(responseMessage)) {
+        errMsg = responseMessage;
+    }
+    if (ApzCOB.handleServiceCallBacks(params)) {
+        // PUSHBACK SUCCESS
+        if (gApzCOB.workflow.action === "PUSHBACK") {
+            let propObj = {};
+            if (gApzCOB.workflow.status === "LUC") {
+                propObj = {
+                    text1: `LUC verification sent back successfully to LUC`,
+                    text2: `Application No: ${gApzCOB.userDetails.applicationId}`,
+                    text3: `Member Name / ID: ${window.customerName}/${inSessionStore?.applicationMaster?.memberId}`,
+                    Btn: {
+                        text: "OK",
+                        onClick: "apz.app.LUCDetails.closeSuccessModalAndProceed()"
+                    }
+                };
+            } else if (gApzCOB.workflow.status === "LUCVERIFIED") {
+                propObj = {
+                    text1: `LUC verification submitted successfully`,
+                    text2: "",
+                    text3: "",
+                    Btn: {
+                        text: "OK",
+                        onClick: "apz.app.LUCDetails.closeSuccessModalAndProceed()"
+                    }
+                };
+                // Hide fields not needed for this success
+                $(`#${BaseScrId}LUCSuccModal #${BaseScrId}LUCApplicationID`).addClass("sno");
+                $(`#${BaseScrId}LUCSuccModal #${BaseScrId}LUCMemberID`).addClass("sno");
+            }
+            return ApzCOB.LucSuccessModal(propObj);
+        }
+        // SUBMIT OR SAVE SUCCESS
+        let totalUnutil = params?.req?.apiRequest?.requestObj?.LUCRequest?.requestObj?.payload?.totalUnutilisedAmount || 0;
+        let propObj = {
+            text1: totalUnutil > 0 ?
+                `LUC application saved successfully.` : `LUC submitted successfully for LUC verification.`,
+            text2: `Application no:  ${gApzCOB.userDetails.applicationId}`,
+            text3: `Member name / ID: ${window.customerName}/${inSessionStore?.applicationMaster?.memberId}`,
+            Btn: {
+                text: "OK",
+                onClick: "apz.app.LUCDetails.closeSuccessModalAndProceed()"
+            }
+        };
+        ApzCOB.LucSuccessModal(propObj);
+    } else {
+        // FAILURE MODE
+        if (gApzCOB.workflow.action === 'PUSHBACK') {
+            errMsg = "Application SendBack Failed! " + errMsg;
+        } else if (gApzCOB.workflow.action === 'SUBMIT') {
+            errMsg = "Failed to Submit! " + errMsg;
+        }
+        let popUpObj = {
+            text: errMsg || technicalErrMsg,
+            Btn: {
+                text: "OK",
+                onClick: `ApzCOB.closeCommonModal("newCommonErrModal")`
+            }
+        };
+        ApzCOB.showNewCommonErrorModal(popUpObj);
+    }
+};
+apz.app.LUCDetails.closeSuccessModalAndProceed = function() {
+    ApzCOB.toggleModal(`${BaseScrId}LUCSuccModal`);
+    apz.app.Login.OnClickMakerChecker('');
+};
+apz.app.LUCDetails.QueriesToBeSendback = function() {
+    let checkedSet = new Set(); // avoid duplicates
+    let otherReason = "";
+    let otherSelected = false;
+    QueriesPainted.forEach((item, index) => {
+        let isChecked = $(`#${queriesIntfId}id_${index}`).prop("checked");
+        if (!isChecked) return;
+        let queryId = item.id;
+        if (othReasonId === `#${queriesIntfId}id_${index}`) {
+            otherSelected = true;
+        let othText = $(`#${screenId}otherQueryReasonInp`).val()?.trim() || "";
+        if (othText === "") {
+            $(`#${screenId}otherQueryReasonErrBlock`).removeClass('sno');
+            return false;
+        }
+        $(`#${screenId}otherQueryReasonErrBlock`).addClass('sno');
+            otherReason = `${queryId}?${othText}`;
+        } else {
+            checkedSet.add(queryId);
+        }
+    });
+    // If Other has valid message
+    if (otherReason) checkedSet.add(otherReason);
+    checkedQueries = Array.from(checkedSet);
+    window.finalCheckedQueries = [...checkedQueries];
+    if (finalCheckedQueries.length === 0) {
+        ApzCOB.toggleModal(screenId + "queryModal");
+        return;
+    }
+    // Send blank if nothing selected
+    apz.app.LUCDetails.submitLUCSentBack(finalCheckedQueries.length ? finalCheckedQueries : [""]);
+};
+apz.app.LUCDetails.loadQueryModal = function() {
+    ApzCOB.removeErrMessgae(`${screenId}otherQueryReasonInp`, "element");
+    let currentStageQueries = DBKIT_MASTERDATA.filter(item => item.stageName === "LUC");
+    let queryArray = [];
+    window.lucQueries = [];
+    lucQueries = DBKIT_MASTERDATA.filter(item => item.stageName === "LUC" && item.queries && item.queries !== "{}").flatMap(item => JSON.parse(
+        item.queries));
+    queryArray = [...lucQueries];
+    if (queryArray.length > 0) {
+        apz.data.scrdata.Luc__LUCQueries_Res = [];
+        apz.data.scrdata.Luc__LUCQueries_Res = structuredClone(queryArray);
+        window.QueriesPainted = structuredClone(queryArray);
+        apz.data.loadData("LUCQueries", "Luc");
+        $(".crt-list li").attr("onClick", "");
+        $(`#${screenId}otherQueryReasonInp`).val("");
+        $(`#${screenId}otherQueryReasonInp`).attr('maxlength', 100);
+        $('#Luc__LUCDetails__queryModal_content').scrollTop(0, 0);
+        $(`#${screenId}otherQueryReasonForm`).addClass("sno");
+        $(`#${screenId}queryList`).find("p").filter(function(el, item) {
+            if ($(`#${queriesIntfId}value_${el}_txtcnt`)[0]?.textContent === "Other") {
+                othReasonId = `#${queriesIntfId}id_${el}`;
+                $(`#${queriesIntfId}id_${el}`).attr("onchange", "apz.app.LUCDetails.onSelectOtherReason();");
+            }
+        });
+        $(`#${screenId}queryList`).addClass("pb-70");
+        if (queryArray.length === 0) {
+            $(`#${screenId}search_row`).addClass('sno');
+            $('#Luc__LUCQueries__o__Luc__LUCQueries_Res__id_0').prop('checked', true).change()
+        } else {
+            $(`#${screenId}search_row`).removeClass('sno');
+        }
+        if (!apz.isNull(inSessionStore?.lucDetails?.queries)) {
+            apz.app.LUCDetails.mapCheckedQuerys()
+        }
+        ApzCOB.toggleModal(screenId + "queryModal");
+    }
+};
+apz.app.LUCDetails.mapCheckedQuerys = function() {
+    $("#Luc__LUCDetails__queryList > ul > li input").prop("checked", false);
+    window.lucCheckedQueries = checkedQueries.map(q => q.replace(/^Q\d+_/, "") // remove Q#_ prefix
+    );
+    let othId = apz.data.scrdata.Luc__LUCQueries_Res.findIndex(el => el.id === "OTH");
+    for (let i = 0; i < lucCheckedQueries.length; i++) {
+        let query = lucCheckedQueries[i];
+        let othId = apz.data.scrdata.Luc__LUCQueries_Res.findIndex(el => el.id === "OTH");
+        for (let j = 0; j < $("#Luc__LUCDetails__queryList li").length; j++) {
+            if ($("#Luc__LUCQueries__o__Luc__LUCQueries_Res__value_" + j + "_txtcnt").text() === query) {
+                $("#Luc__LUCQueries__o__Luc__LUCQueries_Res__id_" + j).prop("checked", "checked");
+            } else if (lucCheckedQueries[i].split("?")[0] == "oth_Other") {
+                query = lucCheckedQueries[i]?.split("?")[1];
+                if (othId >= 0) {
+                    $("#Luc__LUCQueries__o__Luc__LUCQueries_Res__id_" + othId).prop("checked", "checked");
+                }
+                $("#Luc__LUCDetails__otherQueryReasonInp").val(query);
+                $(`#${screenId}otherQueryReasonForm`).removeClass("sno");
+            }
+        }
+    }
+}
+apz.app.LUCDetails.onClickQueryMdlCancel = function() {
+    BtnClicked = "";
+    $(`#${screenId}queryList`).addClass("pb-70");
+    $(`#${screenId}queryModal_close`).click();
+}
+apz.app.LUCDetails.onSelectOtherReason = function() {
+    let othVal = $(othReasonId).prop("checked");
+    if (othVal) {
+        $(`#${screenId}queryList`).removeClass("pb-70")
+        othReasonSelected = true;
+        $(`#${screenId}otherQueryReasonForm`).removeClass("sno");
+    } else {
+        $(`#${screenId}queryList`).addClass("pb-70")
+        othReasonSelected = false;
+        $(`#${screenId}otherQueryReasonForm`).addClass("sno");
+        $(`#${screenId}otherQueryReasonInp`).val("");
+        ApzCOB.removeErrMessgae(`${screenId}otherQueryReasonInp`, "element");
+    }
+};
+apz.app.LUCDetails.searchInQueryMdl = function() {
+    var query = $(`#${screenId}searchQueryInput`).val();
+    window.searchresults = QueriesPainted.filter((lead) => Object.values(lead).some((value) => String(value).toLowerCase().includes(query
+        .toLowerCase())));
+    if (searchresults?.length > 0) {
+        apz.data.scrdata.Luc__LUCQueries_Res = [];
+        apz.data.scrdata.Luc__LUCQueries_Res = searchresults;
+        apz.data.loadData("LUCQueries", "Luc");
+        $(`#${screenId}queryList .wrapped.undefined.ssp`).remove();
+        $(`#${screenId}queryList`).find("p").filter(function(el, item) {
+            if ($(`#${queriesIntfId}value_${el}_txtcnt`)[0]?.textContent === "Other") {
+                othReasonId = `#${queriesIntfId}id_${el}`;
+                $(`#${queriesIntfId}id_${el}`).attr("onchange", "apz.app.LUCDetails.onSelectOtherReason();");
+            }
+        });
+        // $(`#${BaseScrId}otherQueryReasonForm`).addClass("sno");
+        $(`#${screenId}noResult_row`).addClass("sno");
+        $(`#${screenId}queryList`).removeClass("sno");
+        // $(`#${BaseScrId}otherQueryReasonForm`).removeClass("sno");
+    } else {
+        $(`#${screenId}noResult_row`).removeClass("sno");
+        $(`#${screenId}queryList`).addClass("sno");
+        $(`#${screenId}otherQueryReasonForm`).addClass("sno");
+    }
+};
+apz.app.LUCDetails.uncheckOthercheckbox = function() {
+    window.othReasonSelected = false;
+    $(othReasonId).prop("checked", false)
+    $(`#${screenId}otherQueryReasonForm`).addClass("sno");
+    $(`#${screenId}otherQueryReasonInp`).val("");
+    ApzCOB.removeErrMessgae(`${screenId}otherQueryReasonInp`, "element");
+    ApzCOB.toggleModal(screenId + "queryModal");
+}
+apz.app.LUCDetails.queryCheckBoxCount = function() {
+    let checkedCount = 0;
+    for (let i = 0; i < window.QueriesPainted.length; i++) {
+        const isChecked = $(`#CrdAss__CAQueries__o__CrdAss__CAQueries_Res__id_${i}`).prop("checked");
+        if (isChecked) {
+            checkedCount++;
+        }
+    }
+    if (checkedCount > 0) {
+        $("#Luc__LUCDetails__Query_Err_Row").addClass("sno");
+    }
+};
+apz.app.LUCDetails.mandatorycheckfields = function() {
+    for (let i = 2; i <= 3; i++) {
+        let purpose = $(`#${screenId}mainPurposeDropdown${i}`).val();
+        purpose = (purpose === "Please Select") ? "" : purpose;
+        let subPurpose = $(`#${screenId}subpurposedorpdown${i}`).val();
+        subPurpose = (subPurpose === "Please Select") ? "" : subPurpose;
+        let additionalDetails = $(`#${screenId}additionalDetail${i}`).val() || "";
+        let utilisedAmount = Number($(`#${screenId}utilisedAmout${i}`).val()) || 0;
+        // If any field in row is filled
+        if (purpose || subPurpose || additionalDetails || utilisedAmount) {
+            // Business type mandatory only for Business purpose
+            $(`#${screenId}businessTyp${i}`).toggleClass('req', purpose === 'Business');
+            // Other mandatory fields
+            $(`#${screenId}amtUtlize${i}, 
+               #${screenId}addDtls${i}, 
+               #${screenId}amtutlizd${i}`).addClass('req');
+        } else {
+            $(`#${screenId}amtUtlize${i},#${screenId}addDtls${i},#${screenId}amtutlizd${i}`).removeClass('req');
+        }
+    }
+}

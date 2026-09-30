@@ -1,0 +1,1085 @@
+var screenMainId = "Sanct__Saloandetails__",
+    reAssesmentResponseRiv = $(`#${screenMainId}reassessmentResponse`),
+    applicationStatus = inSessionStore?.applicationMaster?.applicationStatus,
+    RE_ASSESMENT_DOCS = [],
+    CURRENT_SANCTION_INFO = [],
+    currentDeviationID = '',
+    DEVIATION_DATA = {
+        "deviation": [],
+        "reAssesment": []
+    },
+    RE_ASSES_DOC_COUNT = {
+        'MAX': 2,
+        'MIN': 1
+    };
+window.isAdditionalProduct = window.AdditionalProducts.includes(inSessionStore?.applicationMaster?.productCode) || false;
+window.pendingReAssesmentCount = 0;
+window.BREloanAmount = 0;
+var skipNetOffCal = window.SkipNetoffProducts.includes(inSessionStore?.applicationMaster?.productCode);
+apz.app.onLoad_Saloandetails = function() {
+    $('body').addClass("unati crdas sanction-dev");
+    $('.headerLogo img').removeClass('sno');
+    $(`#${screenMainId}btn__RLD`).click();
+    apz.app.Saloandetails.paintFieldDataDetails();
+    apz.app.Saloandetails.prepareDeviationData();
+    apz.app.Saloandetails.sanctionMasterData();
+    $("input").attr("autocomplete", "off");
+};
+apz.app.onShown_Saloandetails = function() {
+    const isResanction = inSessionStore.applicationMaster.applicationStatus === 'RESANCTION';
+    const row421 = $("#" + screenMainId + "sc_row_421");
+    if (isResanction) {
+        row421.removeClass("sno");
+        let formattedLoanAmount = ApzCOB.formatamountVal(inSessionStore.loanDetails.sanctionedLoanAmount);
+        let lindex = inSessionStore.applicationTimelineDtl?.findLastIndex(el => (el.stage === 'Resanction' || el.stage === 'Sanction') && (el.actionTaken === "Sanctioned By" || el.actionTaken === "Resanctioned By"))
+        if (lindex >= 0) {
+            let sanctRem = inSessionStore.applicationTimelineDtl[lindex]?.['remarks'];
+            if (!apz.isNull(sanctRem)) {
+                sanctRem = sanctRem?.split(' | ')?.[0];
+                formattedLoanAmount = ApzCOB.formatamountVal(parseInt(sanctRem) ?? inSessionStore?.loanDetails?.sanctionedLoanAmount);
+            }
+        }
+        $("#" + screenMainId + "el_txt_444_txtcnt").text("₹" + formattedLoanAmount);
+        $("#" + screenMainId + "el_txt_300_txtcnt").text("Eligible Loan Amount as per BRE Re-Hit -");
+        let loanAmt = typeof BREloanAmount !== 'undefined' ? BREloanAmount : '';
+        $("#" + screenMainId + "BMloanAmount").text(loanAmt);
+    } else {
+        row421.addClass("sno");
+    }
+    apz.app.Saloandetails.paintDeviationReAssesment('deviation');
+    apz.app.Saloandetails.paintDeviationReAssesment('reAssesment');
+    let isPendingPreSanction = applicationStatus === 'PENDINGPRESANCTION' && ['ACM','AM'].includes(gApzCOB.LoggedInUserDetails.loginResponse.addInfo1);
+    if (applicationStatus === 'CACOMPLETED' || applicationStatus === 'RESANCTION' || isPendingPreSanction) {
+        $('.reAssesmentModules.imgupload').addClass('sno');
+        reAssesmentResponseRiv.removeClass('sno');
+        $(`#${screenMainId}sanctionMainRow`).removeClass('sno');
+        $(`#${sancBaseElemID}reject_btn`).removeClass('sno');
+        $('#Sanct__Saloandetails__AMheading p.ett-para.pri span').text(`${gApzCOB.LoggedInUserDetails.loginResponse.addInfo1} Sanction`);
+        // apz.app.Saloandetails.getSanctionMatrixBasedOnRole();
+        apz.app.Saloandetails.showSanctionAmtDetails();
+        let sancloanAmt = Number(inSessionStore.loanDetails?.sanctionedLoanAmount ?? inSessionStore.loanDetails?.bmRecommendedLoanAmount ?? 0);
+        let breEligibleAmt = ApzCOB.getPayloadDatafromWrapper('eligibleAmt', 'Co-App', 'cibilDetailsWrapperList');
+        if (breEligibleAmt !== 'null' && sancloanAmt > breEligibleAmt) {
+            $(`#${screenMainId}sanLoanInput`).val(breEligibleAmt);
+        }
+        if( inSessionStore?.applicationMaster?.productCode == '1004'){
+            $(`#${screenMainId}sanLoanInput`).prop('disabled', true).addClass('disabled');
+        }
+        if (applicationStatus === 'CACOMPLETED') {
+            const loanAmount =
+                !apz.isNull(inSessionStore?.loanDetails?.presactionLoanAmount)
+                    ? inSessionStore.loanDetails.presactionLoanAmount
+                    : inSessionStore?.loanDetails?.bmRecommendedLoanAmount;
+
+            $(`#${screenMainId}sanLoanInput`).val(loanAmount);
+        }
+        if(applicationStatus === 'RESANCTION' && !apz.isNull(inSessionStore.loanDetails.sanctionedLoanAmount)) {
+            // $(`#${screenMainId}sanLoanInput`).val(inSessionStore.loanDetails.sanctionedLoanAmount);
+            $(`#${screenMainId}sanLoanInput`).val(breEligibleAmt);
+        }
+        if (applicationStatus === 'PENDINGPRESANCTION') {
+            $(`#${screenMainId}preSanctionMainRow`).removeClass('sno');
+            $(`#${screenMainId}AMcommentsSection`).addClass('sno');
+            $(`#${sancBaseElemID}reject_btn`).addClass('sno');
+        }
+        // apz.app.Saloandetails.changeSanctionLoanAmt();
+        apz.app.Saloandetails.BRECBService();
+    } else if (applicationStatus === 'PENDINGPRESANCTION') {
+        $(`#${screenMainId}preSanctionMainRow`).removeClass('sno');
+        $('.reAssesmentModules.imgupload').addClass('sno');
+        reAssesmentResponseRiv.removeClass('sno');
+    }
+   
+    if (!apz.isNull(inSessionStore.loanDetails.presactionLoanAmount)) {
+        $(`#${screenMainId}preSanLoanRow`).removeClass('sno');
+        $(`#${screenMainId}preSanLoanValue_txtcnt`).text( ApzCOB.formatamountVal(inSessionStore.loanDetails.presactionLoanAmount));
+       
+    } else{
+        $(`#${screenMainId}preSanLoanRow`).addClass('sno');
+    }
+};
+apz.app.Saloandetails.getSanctionMatrixBasedOnRole = function(){
+  if(SANCTION_MATRIX.length === 0) return;
+  CURRENT_SANCTION_INFO = SANCTION_MATRIX.filter(sanInfo => sanInfo.role === gApzCOB.LoggedInUserDetails.loginResponse.addInfo1);
+}
+apz.app.Saloandetails.paintFieldDataDetails = function() {
+    if (apz.isObjectEmpty(inSessionStore)) return;
+    apz.app.Saloandetails.paintLoanDetails();
+    apz.app.Saloandetails.paintBMLoanDetals();
+}
+apz.app.Saloandetails.prepareReAssesDocs = function(){
+    if(apz.isObjectEmpty(inSessionStore) || !inSessionStore.hasOwnProperty('applicationDocumentsWrapperList')) return;
+    let documentResp = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList
+    if(documentResp.length > 0){
+      RE_ASSESMENT_DOCS =   documentResp.filter(docs => docs.payload.documentType === 'ReAssesmentDoc' && parseInt(docs.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId));
+    //   && docs.payload.uploadedBy === gApzCOB.LoggedInUserDetails.loginResponse.addInfo1
+       let parentDiv = $(`#${screenMainId}reAssesDoc_cloneRow`);
+         parentDiv.html('');
+      if(RE_ASSESMENT_DOCS.length > 0){
+         let selectElementID =  `${screenMainId}reassesDoctItem_0`;
+         RE_ASSESMENT_DOCS.forEach((doc, index) => {
+        let newId = ApzCOB.cloneDashboardDivs(selectElementID, parentDiv, index + 1);
+        $(`#${newId} .docName a.ett-hypl span`).text(doc.payload.documentFileName);
+        if(!apz.isNull(doc.payload.uploadedBy)){
+         $(`#${newId} .docUploadedBy label`).html(`Uploaded By : <span>${doc.payload.uploadedBy}</span>`);   
+        }else {
+          $(`#${newId} .docUploadedBy`).addClass('sno');  
+        }
+        if(doc.payload.uploadedBy !== gApzCOB.LoggedInUserDetails.loginResponse.addInfo1){
+           $(`#${newId}.uploadimg .dltIcon`).addClass('sno'); 
+        }  else {
+          $(`#${newId}.uploadimg .dltIcon`).removeClass('sno');   
+         }
+         $(`#${newId}`).attr('data-id',doc.appDocId);
+        $(`#${newId}`).removeClass('sno');
+         })
+      }
+    }
+}
+apz.app.Saloandetails.paintLoanDetails = function() {
+    let {
+        applicationMaster: applicationData,
+        loanDetails,
+        leadDetails,
+        cdhLeadDetails,
+    } = inSessionStore || {};
+    let applicationDate = ApzCOB.converApplicationDate(applicationData?.applicationDate);//
+    if(window.isAdditionalProduct && !apz.isNull(cdhLeadDetails?.leadInitiationDate)) {
+        applicationDate = ApzCOB.converApplicationDate(cdhLeadDetails?.leadInitiationDate?.date);
+    }
+    let formattedDate = !apz.isNull(applicationDate) ? ApzCOB.dateformatter(applicationDate, "d/m/Y") : '-';
+    const fieldMappings = {
+        loanAmountInput: ApzCOB.formatamountVal(loanDetails?.loanAmount),
+        frequencyOfRepaymentInput: loanDetails?.payload?.frequencyOfRepayment,
+        tenureInput: loanDetails?.tenure ? `${loanDetails.tenure} months` : ' ',
+        kendraMeetingFreqInput: leadDetails?.kendraMeetingFreq || cdhLeadDetails?.kendraMeetingFreq,
+        kendraMeetingDayInput: leadDetails?.kendraMeetingDay || cdhLeadDetails?.kendraMeetingDay,
+        createdByInput: cdhLeadDetails?.kmId,
+        applicationDateInput: formattedDate,
+        loanPurposeInput: loanDetails?.payload?.loanPurpose,
+        subCategoryInput: loanDetails?.payload?.subCategory
+    };
+    Object.entries(fieldMappings).forEach(([key, value]) => {
+        $(`#${screenMainId}${key}`).val(value);
+    });
+}
+apz.app.Saloandetails.paintBMLoanDetals = function(){
+    if (window.isAdditionalProduct) {
+        $(`#${screenMainId}InitialEligibleAmtRow, #${screenMainId}gr_row_5, #${screenMainId}loanMetricRow, #${screenMainId}sc_col_378`).addClass('sno');
+        return;
+    }
+    let applicantCBDetails;
+    let coApplicantCBDetails;
+    let {cibilDetailsWrapperList,loanDetails,leadDetails,cdhLeadDetails} = inSessionStore || {};
+    if([cibilDetailsWrapperList, loanDetails].some(apz.isObjectEmpty)) return;
+    const isProduct = window.AdditionalProductsOptionalCoApp?.includes(inSessionStore?.applicationMaster?.productCode);
+    for (const custType of cibilDetailsWrapperList) {
+        if (custType.cibilDetails.custDtlId === gApzCOB.userDetails.custDtlId) {
+            applicantCBDetails = custType.cibilDetails.payload;
+            if (isProduct) {
+                coApplicantCBDetails = custType.cibilDetails.payload;
+                break;
+            }
+        } else {
+            coApplicantCBDetails = custType.cibilDetails.payload;
+        }
+    }
+    let initialPayload = ApzCOB.getPayloadDatafromWrapper('bmRecommendationBrePayload', 'Applicant', 'loanDetails');
+    bminitialPayload = ApzCOB.getPayloadDatafromWrapper('initialBrePayload', 'Applicant', 'loanDetails');
+    let bmInitLoanAmt = !apz.isNull(bminitialPayload) ? bminitialPayload.eligibleAmt : coApplicantCBDetails.eligibleAmt;
+    if(window.AdditionalProducts.includes(inSessionStore?.applicationMaster?.productCode)){
+       initialPayload = coApplicantCBDetails;
+    }
+    let insurancePremium = Number(initialPayload?.insuranceChargeJoint) + Number(initialPayload?.insuranceChargeMember) + Number(initialPayload?.insuranceChargeSpouse);
+    insurancePremium = isNaN(insurancePremium) ? 0 : insurancePremium;
+    let netAmountTotal = 0;
+    if(!skipNetOffCal){
+       netAmountTotal =  Number(initialPayload?.processingFees) + Number(insurancePremium) + Number(initialPayload?.stampDutyCharge) + Number(leadDetails?.caglOs || cdhLeadDetails?.caglOs);
+    }else{
+        netAmountTotal =  Number(initialPayload?.processingFees) + Number(insurancePremium) + Number(initialPayload?.stampDutyCharge) ;
+    }
+    netAmountTotal = isNaN(netAmountTotal) ? 0 : netAmountTotal;
+    let bmRecoLoanAmt = loanDetails?.bmRecommendedLoanAmount || '';
+    let totalAmountValue = Number(bmRecoLoanAmt) - netAmountTotal;
+    window.BREloanAmount = initialPayload?.eligibleAmt ?? 0;
+    $(`#${screenMainId}InitialEligibleAmtRow`).addClass('sno');
+    if (initialPayload.eligibleAmt) {
+        $(`#${screenMainId}InitialEligibleAmtRow`).removeClass('sno');
+    }
+        let indebtNessVal = initialPayload?.totIndebtness?.split('|')?.[0]?.split(':')?.[1]?.trim() || '';
+        let TotalIncome = inSessionStore?.bcmpiIncomeDetails?.bcmpiIncomeDetailsWrapper?.fieldAssessedIncome || inSessionStore?.cdhLeadDetails?.annualIncome || 0;
+        let osAmt = leadDetails?.caglOs || cdhLeadDetails?.caglOs || 0;
+        let fields = {
+        eligibalLoanAmount: ApzCOB.formatamountVal(BREloanAmount),
+        bmRecommended: ApzCOB.formatamountVal(bmRecoLoanAmt),
+        InitialEligibleAmt: ApzCOB.formatamountVal(bmInitLoanAmt),
+        BMloanAmount: ApzCOB.formatamountVal(bmRecoLoanAmt),
+        rateOfInterest: initialPayload?.roi,
+        processingFee: ApzCOB.formatamountVal(initialPayload?.processingFees),
+        insurencePremium: ApzCOB.formatamountVal(insurancePremium),
+        StampCharges: ApzCOB.formatamountVal(initialPayload?.stampDutyCharge),
+        outstandingAmount: ApzCOB.formatamountVal(osAmt),
+        cbTriggerDate: (`Current CAGL Outstanding (As of ${ApzCOB.getCBTriggerDate() || ''})`),
+        netAmount:  ApzCOB.formatamountVal(netAmountTotal),
+        totalAmount:  ApzCOB.formatamountVal(Number(totalAmountValue)),
+        frequency: `₹ ${ApzCOB.formatamountVal(initialPayload?.approvedLoanEMI)} / ${loanDetails?.payload?.frequencyOfRepayment}`,
+        applicantOverdue: apz.app.Saloandetails.getCbAmt(applicantCBDetails?.overdueAmt),
+        applicantWAmount: apz.app.Saloandetails.getCbAmt(applicantCBDetails?.writeOffAmt),
+        applicantCBScore: applicantCBDetails?.cbScore,
+        coAppOverDue: apz.app.Saloandetails.getCbAmt(initialPayload?.overdueAmt),
+        coAppWAmount: apz.app.Saloandetails.getCbAmt(initialPayload?.writeOffAmt),
+        coAppCBScore: initialPayload?.cbScore,
+        netIncome: ApzCOB.formatamountVal(TotalIncome),
+        indebtedness: `₹ ${ApzCOB.formatamountVal(indebtNessVal)}`,
+        foir: `${initialPayload?.foirPercentage}%`
+    }
+     Object.entries(fields).forEach(([key, value]) => {
+        $(`#${screenMainId}${key}`).text(value);
+    });
+}
+apz.app.Saloandetails.getCbAmt = function(amtValue){
+  let finalAmt = '';
+   if(amtValue === undefined || apz.isNull(amtValue)) return finalAmt;
+if (amtValue?.includes('|') && amtValue.includes(':')) {
+    try {
+        finalAmt = amtValue.split('|')[0].split(':')[1].trim();
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        finalAmt = '';
+    }
+}  
+return finalAmt;
+}
+apz.app.Saloandetails.tabsClick = function(pthis,ptype) {
+    $('.tabDiv').addClass('sno');
+    $('.sanctionTabs').removeClass('active');
+    $(pthis).addClass("active");
+    $(`.tabDiv.${ptype}`).removeClass('sno');
+}
+apz.app.Saloandetails.paintDeviationReAssesment = function (divType) {
+    if (apz.isObjectEmpty(DEVIATION_DATA) || !DEVIATION_DATA[divType]) return;
+    const config = {
+        deviation: {
+            selectElementID: `${screenMainId}deviationItem_0`,
+            parentDiv: `#${screenMainId}deviation_cloneRow`,
+            metricRow: `#${screenMainId}deviationMetricRow`
+        },
+        reAssesment: {
+            selectElementID: `${screenMainId}reassesmentItem_0`,
+            parentDiv: `#${screenMainId}reassesment_cloneRow`,
+            metricRow: `#${screenMainId}ReassessmentRow`
+        }
+    };
+    let { selectElementID, parentDiv, metricRow } = config[divType];
+    parentDiv = $(parentDiv);
+    parentDiv.html('');
+    let loggedInRole = LoggedInUserDetails?.loginResponse?.addInfo1;
+    let isPendingReAssesExist = 0;
+    let reAssesmentCompleted = 0;
+    let reAssemRemark = '';
+    if(DEVIATION_DATA[divType].length > 0){
+    DEVIATION_DATA[divType].forEach((dev, index) => {
+                  let newId = ApzCOB.cloneDashboardDivs(selectElementID, parentDiv, index + 1);
+        if (divType === "deviation") {
+            $(`#${newId} .devaitionDesc p.ett-para.pri`).text(dev.recordMsg);
+            $(`#${newId} .deviationApproveDateTime p.ett-para.pri`).text(dev?.approvedTimeStamp);
+            $(`#${newId} .deviationValidated p.ett-para.pri`).text(dev?.remarks);
+            $(`#${newId} .pendingDeviationText button span`).text(`Pending with ${dev.authority}`);
+            if (dev.approvedStatus === "PENDING"){
+                if(dev.authority === loggedInRole) {
+                    $(`#${newId} .deviationResponseTxt, #${newId} .approve`).removeClass('sno');   
+                } else {
+                    $(`#${newId} .pendingDeviationText`).removeClass('sno');
+                }
+                $(`#${newId} .autapproved`).addClass('sno');
+            } else if (dev.approvedStatus === "APPROVED") {
+                let approvedText = dev.authority === "SYSTEM" ? "Auto Approved" : `Approved By ${dev.authority}`;
+                $(`#${newId} .deviationValidated, #${newId} .approved, #${newId} .autapproved`).removeClass('sno');
+                $(`#${newId} .DeviationApproveText p.ett-para.pri`).text(approvedText);
+            }
+        } else if (divType === "reAssesment") {
+            $(`#${newId} .reAssesmentDesc p.ett-para.pri`).text(dev.recordMsg);
+             $(`#${newId} .otherPending button span`).text(`Pending with ${dev.authority}`);
+            if (dev.approvedStatus === "PENDING"){
+                if(dev.authority === loggedInRole) {
+                    isPendingReAssesExist++;
+                    $(`#${newId} .approve`).removeClass('sno');
+                    $(`#${newId} .ownPending`).removeClass('sno');
+                } else {
+                    $(`#${newId} .otherPending`).removeClass('sno');
+                }
+            } else if (dev.approvedStatus === "APPROVED") {
+                let approvedText = dev.authority === "SYSTEM" ? "Auto completed" : `Completed By ${dev.authority}`;
+                $(`#${newId} .deviationValidated, #${newId} .approved, #${newId} .autapproved`).removeClass('sno');
+                $(`#${newId} .ReAssesmentApproveText p.ett-para.pri`).text(approvedText);
+                $(`#${newId} .ReAssesmentApproveDateTime p.ett-para.pri`).text(dev?.approvedTimeStamp);
+                if(!apz.isNull(dev.remarks)){
+                   $(`#${newId} .re-assesment-remark label`).html(`<span>Response : ${dev.remarks}</span>`);  
+                }
+                if(dev.authority === loggedInRole) {
+                reAssesmentCompleted++;
+                reAssemRemark = dev?.remarks;
+                }
+                $('.uploadimg .dltIcon').addClass('sno');
+            }
+            window.pendingReAssesmentCount = isPendingReAssesExist;
+            apz.app.Saloandetails.prepareReAssesDocs();
+        }
+        $(metricRow).removeClass('sno');
+        $(`#${newId}`).attr('data-id',dev.recordId)
+        $(`#${newId}`).removeClass('sno');  
+    });
+     }  else {
+             $(metricRow).addClass('sno');
+        }
+    if(applicationStatus === "PENDINGREASSESSMENT" && isPendingReAssesExist > 0){
+      $('.reAssesmentModules .approve').removeClass('sno'); 
+      reAssesmentResponseRiv.removeClass('sno');  
+      $('.reAssementRemark').removeClass('sno');
+    } else {
+        $('.reAssesmentModules .approve').addClass('sno');
+        reAssesmentResponseRiv.addClass('sno'); 
+        $('.uploadimg .dltIcon').addClass('sno'); 
+        $('.reAssesmentModules.reAssementRemark').addClass('sno'); 
+    }
+    if(reAssesmentCompleted > 0){
+        $(`#${screenMainId}reAssesmentResp`).val(reAssemRemark); 
+        ApzCOB.addDisableToInput(`${screenMainId}reAssesmentResp`);
+        $('.reAssesmentModules.imgupload').addClass('sno');
+        reAssesmentResponseRiv.removeClass('sno');
+    } else {
+        ApzCOB.removeDisableToInput(`${screenMainId}reAssesmentResp`); 
+    }
+};
+apz.app.Saloandetails.paintSendBack = function(){
+    let selectElementID = `${screenMainId}sendBacktItem_0`;
+    let parentDiv = $(`#${screenMainId}sendBackReason_cloneRow`);
+          let currentIndex = 1; 
+          let newId = ApzCOB.cloneDashboardDivs(selectElementID, parentDiv, currentIndex);
+           $(`#${newId}`).removeClass('sno');
+}
+apz.app.Saloandetails.prepareDeviationData = function(){
+    let deviationArray = [];
+    let reAssesmentArray = [];
+    if(apz.isObjectEmpty(inSessionStore) || !inSessionStore.hasOwnProperty('deviationRATrackerList')) return;
+    if(inSessionStore.deviationRATrackerList.length > 0){
+       deviationArray = inSessionStore.deviationRATrackerList.filter(dev => dev.recordType === "CA_DEVIATION");
+       reAssesmentArray = inSessionStore.deviationRATrackerList.filter(dev => dev.recordType === "REASSESSMENT");
+    }
+    DEVIATION_DATA.deviation = structuredClone(deviationArray);
+    DEVIATION_DATA.reAssesment = structuredClone(reAssesmentArray);
+}
+apz.app.Saloandetails.approveDeviation = function(pthis){
+    currentDeviationID = $(pthis).parents('.deviationItem').attr('id');
+    $(`#${currentDeviationID} .deviationErrorText`).remove();
+  let remarksElem = $(`#${currentDeviationID}`).find('.deviationResponseTxt input');
+  let remarks = remarksElem.val();
+  if(!apz.isNull(remarks)){
+            let popUpObj = {};
+            popUpObj.text = "Do you want to approve the deviation?";
+            popUpObj.Btn1 = {
+                "text": "Yes",
+                "onClick": `apz.app.Saloandetails.approveDeviationService("CA_DEVIATION")`
+            }
+            popUpObj.Btn2 = {
+                "text": "No",
+                "onClick": "apz.app.DeviationSanctBase.closeCnfmMdl()"
+            }
+            ApzCOB.showRpcModals(popUpObj, "confirmation"); 
+  } else {
+      remarksElem.addClass('err-border');
+      remarksElem.parent().append('<span style="font-size:12px;color:red;text-align:left;" class="deviationErrorText">Enter Remarks</span>');
+  }
+}
+apz.app.Saloandetails.approveDeviationService = function(approveType){
+     let deviationRecordID = '';
+    if(approveType === "CA_DEVIATION"){
+    deviationRecordID = $(`#${currentDeviationID}`).attr('data-id');
+    let deviationData = inSessionStore.deviationRATrackerList.find(deviation => deviation.recordId === deviationRecordID);
+    if(apz.isObjectEmpty(deviationData)) return;
+    }
+    let callBackFn = '';
+   let req = {
+    "apiRequest": {
+        "interfaceName":"ApproveDeviationRaApplications",
+        "userId":LoggedInUserDetails.loginResponse.userDet.id,
+        "requestObj":{
+            "applicationId":gApzCOB.userDetails.applicationId,
+            "recordId":"",
+            "recordType":approveType,
+            "remarks": "",
+            "role": LoggedInUserDetails?.loginResponse?.addInfo1
+            // "role": "BCM"
+        }
+    }
+    }
+    if(approveType === "CA_DEVIATION"){
+        req.apiRequest.requestObj.recordId = deviationRecordID;
+        req.apiRequest.requestObj.remarks = $(`#${currentDeviationID}`).find('.deviationResponseTxt input').val();
+        callBackFn = apz.app.Saloandetails.changeDeviationRemarksCB;
+    } else if(approveType === "REASSESSMENT") {
+        req.apiRequest.requestObj.remarks = $(`#${screenMainId}reAssesmentResp`).val(); 
+        callBackFn = apz.app.Saloandetails.reAssementSubmitCB;
+    }
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "ApproveDeviationRaApplications", "N", "N", req, false, callBackFn);
+    }, 1000)
+}
+apz.app.Saloandetails.changeDeviationRemarksCB = function(params) {
+    apz.stopLoader();
+    if (ApzCOB.handleServiceCallBacks(params)) {
+        let responseVal = JSON.parse(params.res.APZCBO__ApproveDeviationRaApplications_Res.apiResponse.ResponseBody.responseObj);
+        if(responseVal.length > 0){
+            inSessionStore.deviationRATrackerList = [];
+            inSessionStore.deviationRATrackerList = structuredClone(responseVal);
+            apz.app.Saloandetails.prepareDeviationData();
+            apz.app.Saloandetails.paintDeviationReAssesment('deviation');
+            apz.app.DeviationSanctBase.closeCnfmMdl();
+        }
+    } else {
+        ApzCOB.showRpcModals({
+            text: errMsg,
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.Saloandetails.reAssementSubmitCB = function(params) {
+    apz.stopLoader();
+    if (ApzCOB.handleServiceCallBacks(params)) {
+        let responseVal = JSON.parse(params.res.APZCBO__ApproveDeviationRaApplications_Res.apiResponse.ResponseBody.responseObj);
+        if(responseVal.length > 0){
+            inSessionStore.deviationRATrackerList = [];
+            inSessionStore.deviationRATrackerList = structuredClone(responseVal);
+            apz.app.Saloandetails.prepareDeviationData();
+            apz.app.Saloandetails.paintDeviationReAssesment('reAssesment');
+            apz.app.DeviationSanctBase.closeCnfmMdl();
+        }
+    } else {
+        ApzCOB.showRpcModals({
+            text: errMsg,
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.Saloandetails.changeDeviationRemarks = function(pthis){
+   $('.deviationErrorText').remove(); 
+}
+apz.app.Saloandetails.uploadLink = function(){
+    let curUserReAssesment = [];
+    curUserReAssesment = RE_ASSESMENT_DOCS.filter(reAsDoc => reAsDoc.payload.uploadedBy === gApzCOB.LoggedInUserDetails.loginResponse.addInfo1)
+    if (curUserReAssesment.length < RE_ASSES_DOC_COUNT.MAX) {
+        if (apz.deviceType === 'ANDROID') {
+            var cameraObj = {
+                "zoomLevel": "20",
+                "targetWidth": "950",
+                "targetHeight": "950",
+                "crop": "Y",
+                "cropBox": "rectangle",
+                "flash": "N",
+                "action": "base64_Save",
+                "fileName": 'b',
+                "quality": "75",
+                "encodingType": "JPG",
+                "sourceType": "camera"
+            };
+            cameraObj.id = "CAMERA_ID";
+            cameraObj.callBack = apz.app.Saloandetails.cameraCallback;
+            apz.ns.openCamera(cameraObj);
+        } else {
+            $(`#${screenMainId}reAssesmentUpload`).click();
+        }
+    } else {
+        ApzCOB.showRpcModals({
+            text: `Re-Assesment document max count should be below ${RE_ASSES_DOC_COUNT.MAX}`,
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.Saloandetails.cameraCallback = function(params) {
+    window.cameracallbackres = params;
+    let fileName = params.path.split('/').pop();
+    let groupCode = inSessionStore.applicationMaster.productGroupCode;
+    let type = "ReAssesmentDoc";
+    let docName = "ReAssesment Document";
+    window.localFileObj = {};
+    localFileObj.filePath = `${apz.appId}/${groupCode}/${inSessionStore.applicationMaster.applicationId}`;
+    localFileObj.filename = fileName;
+    localFileObj.base64Value = params.encodedImage;
+    localFileObj.productGroupCode = inSessionStore.applicationMaster.productGroupCode;
+    localFileObj.documentName = docName;
+    localFileObj.docSize = ApzCOB.getBase64FileSizeInBytes(params.encodedImage);
+    ApzCOB.exceptionFileUpload(localFileObj, type);
+    // apz.app.CaIncomeDetails.saveDocument(fileName, params.encodedImage);
+}
+apz.app.Saloandetails.reAssesmentDocView = function(pthis){
+    let documentId = $(pthis).parents('.uploadimg').attr('data-id');
+    let docDetails = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.find(doc => parseInt(doc.appDocId) === parseInt(documentId));
+    if(!apz.isObjectEmpty(docDetails)){
+        let fileName = docDetails?.payload?.documentFileName;
+        let callBackFn = apz.app.Saloandetails.reAssesmentDocViewCB;
+        window.ImageLocationDetails = {
+            latitude: docDetails?.payload.latitude || "",
+            longitude: docDetails?.payload.longitude || "",
+            uploadedTs: docDetails?.payload.uploadedTs || "",
+            documentFileName: docDetails?.payload.documentFileName || ""
+        };
+        ApzCOB.downloadFileFromServer(fileName,callBackFn);
+    }
+}
+apz.app.Saloandetails.reAssesmentDocViewCB = function(params){
+     apz.stopLoader();
+    if (!apz.isNull(params.base64)) {
+        $(`#${sancBaseElemID}imgPrev`).attr('src', 'data:image/png;base64,' + params.base64);
+        let id = $(`#${sancBaseElemID}imgPrev`)
+        if (Object.keys(window.ImageLocationDetails).length > 0) {
+            apz.app.BaseScreens.paintImageLocationDetails(id, window.ImageLocationDetails);
+        }
+        ApzCOB.toggleModal(`${sancBaseElemID}ReAssesDocMdl`);  
+    } else {
+        ApzCOB.showRpcModals({
+            text: "Document not found.!",
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.Saloandetails.reAssesmentDocDelete = function(pthis){
+let documentId = $(pthis).parents('.uploadimg').attr('data-id');
+if(!apz.isNull(documentId)){
+   let popUpObj = {};
+            popUpObj.text = "Do you want to delete this document?";
+            popUpObj.Btn1 = {
+                "text": "Yes",
+                "onClick": `apz.app.Saloandetails.reAssesmentDocDeleteCnfm(${documentId})`
+            }
+            popUpObj.Btn2 = {
+                "text": "No",
+                "onClick": "apz.app.DeviationSanctBase.closeCnfmMdl()"
+            }
+            ApzCOB.showRpcModals(popUpObj, "confirmation");   
+}
+}
+apz.app.Saloandetails.reAssesmentDocDeleteCnfm = function(docId){
+    let callBackFn = apz.app.Saloandetails.reAssesmentDocDeleteCnfmCB;
+  ApzCOB.deleteDocument('','','',docId,callBackFn) 
+}
+apz.app.Saloandetails.reAssesmentDocDeleteCnfmCB = function (params) {
+    apz.stopLoader();
+    try {
+        const isSuccess = ApzCOB.handleServiceCallBacks(params);
+        const modalOptions = {
+            text: isSuccess ? "Document Deleted.!" : "Document Delete Failed.!",
+            Btn1: {
+                text: "OK",
+                onClick: isSuccess
+                    ? "apz.app.DeviationSanctBase.closeSucmMdl()"
+                    : "apz.app.DeviationSanctBase.closeErrMdl()"
+            }
+        };
+        apz.app.DeviationSanctBase.closeCnfmMdl();
+        if(isSuccess && params.res.APZCBO__DeleteDocument_Res.apiResponse.ResponseBody.responseObj === 'Success'){
+        let deletedDocId = params?.req?.apiRequest?.requestObj?.appDocId || "";  
+        let documentArray = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        if(!apz.isNull(deletedDocId) && documentArray.length > 0){
+         let updatedDocs =  documentArray.filter(item => Number(item.appDocId) !== Number(deletedDocId)); 
+          inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = [];
+           inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = structuredClone(updatedDocs);
+        }
+        }
+        apz.app.Saloandetails.prepareReAssesDocs(); 
+        ApzCOB.showRpcModals(modalOptions, isSuccess ? "Success" : "Error");
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        ApzCOB.showRpcModals({
+            text: technicalErrMsg,
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+            }
+        }, "Error");
+    }
+};
+apz.app.Saloandetails.submitReAssesment = function () {
+  const remarksElem = $(`#${screenMainId}reAssesmentResp`);
+  const response = remarksElem.val();
+  remarksElem.removeClass('err-border');
+  $('.deviationErrorText').remove();
+  if (apz.isNull(response)) {
+    remarksElem.addClass('err-border');
+    remarksElem.parent().append(`
+      <span class="deviationErrorText" style="font-size:12px; color:red; text-align:left;">
+        Enter the re-assesment response
+      </span>`);
+    return;
+  }
+  let curUserReAssesment = RE_ASSESMENT_DOCS.filter(reAsDoc => reAsDoc.payload.uploadedBy === gApzCOB.LoggedInUserDetails.loginResponse.addInfo1)
+  const docCount = curUserReAssesment.length;
+  const { MIN, MAX } = RE_ASSES_DOC_COUNT;
+  //Commented out the document size validation to make it non-mandatory
+  /*if (docCount < MIN || docCount > MAX) {
+    ApzCOB.showRpcModals({
+      text: `Re-assesment document should be minimum ${MIN} and maximum ${MAX}`,
+      Btn1: {
+        text: "OK",
+        onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+      }
+    }, "Error");
+    return;
+  }*/
+  ApzCOB.showRpcModals({
+    text: "Do you want to approve the Reassessment?",
+    Btn1: {
+      text: "Yes",
+      onClick: `apz.app.Saloandetails.approveDeviationService("REASSESSMENT")`
+    },
+    Btn2: {
+      text: "No",
+      onClick: "apz.app.DeviationSanctBase.closeCnfmMdl()"
+    }
+  }, "confirmation");
+};
+apz.app.Saloandetails.BRECBService = function(lAmount) {
+    const { loanDetails } = inSessionStore;
+    let newSanctionAmt = $(`#${screenMainId}sanLoanInput`).val();
+    let unformatAmt = newSanctionAmt.replace(/[^0-9.]/g, '');
+    let finalSancAmt = unformatAmt.replace(/\.00$/, '');
+    let errMsg = '';
+    let curSancLoanAmt = Number(loanDetails?.sanctionedLoanAmount ?? 0);
+    if (lAmount) {
+        finalSancAmt = lAmount;
+    }
+    /*let isValid = curSancLoanAmt !== Number(finalSancAmt);
+        if (!isValid) return;*/
+    let currentStage = `${inSessionStore?.applicationMaster?.applicationStatus} | ${inSessionStore?.applicationMaster?.applicationStatus}`;
+    let caglOs = gApzCOB?.selLeadDtls?.caglOs || inSessionStore?.leadDetails?.caglOs || inSessionStore?.cdhLeadDetails?.caglOs || 0;
+    let customerDtlsId = gApzCOB.userDetails.CoApplicantCustomerId ? gApzCOB.userDetails.CoApplicantCustomerId: gApzCOB.userDetails.custDtlId;
+    if(window.AdditionalProductsOptionalCoApp?.includes(inSessionStore?.applicationMaster?.productCode)){
+        customerDtlsId = gApzCOB.userDetails.custDtlId;
+    }
+    let req = { 
+        "apiRequest": {
+            "requestObj": {
+                "appId": gAppId,
+                "applicationId": gApzCOB.userDetails.applicationId,
+                "versionNum": 1,
+                "stageId": "BRE",
+                "requestType": "Edit",
+                "customerType": "Co-App",
+                "updatedLoanAmount": Number(finalSancAmt),
+                "customerDtlsId": customerDtlsId,
+                "editedFields": [],
+                "currentStage": currentStage,
+                "caglOs": caglOs
+            },
+            "userId": LoggedInUserDetails.loginResponse.userDet.id,
+            "appId": gAppId,
+            "interfaceName": "UploadCALoanData"
+        }
+    }
+    // apz.startLoader();
+    let popUpObj = {
+        text: "Calling BRE service. Please wait...",
+        Btn1: { text: "", onClick: "" },
+        Btn2: { text: "", onClick: "" }
+    };
+    ApzCOB.showRpcModals(popUpObj, "confirmation");
+    ApzCOB.addDisableToInput('Sanct__DeviationSanctBase__confirmBtn');
+    ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.Saloandetails.changeSanctionLoanAmtCB);
+}
+apz.app.Saloandetails.unFormatSancAmt = function(pthis) {
+    let newSanctionAmt = $(pthis).val();
+    let unformatAmt = newSanctionAmt.replace(/[^0-9.]/g, '');
+    let finalSancAmt = unformatAmt.replace(/\.00$/, '');
+    pthis.value = finalSancAmt.replace(gALLOWONLYINPNUM, "");
+}
+apz.app.Saloandetails.changeSanctionLoanAmt = function(pthis) {
+    if (applicationStatus === 'PENDINGPRESANCTION') {
+        if (!apz.isNull(pthis) && Number(pthis.value) > Number(inSessionStore.loanDetails.bmRecommendedLoanAmount)) {
+            let errMsg = gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 + ' Sanctioned Loan Amount Should be less than or equal to the BM Recommended Loan Amount '+
+            '<br> <br> BM Recommended Loan Amount: ' + Number(inSessionStore.loanDetails.bmRecommendedLoanAmount);
+            let onClick = "apz.app.DeviationSanctBase.closeErrMdl()";
+            ApzCOB.showRpcModals({
+                text: errMsg,
+                Btn1: {
+                    text: 'OK',
+                    onClick: onClick
+                }
+            }, "Error");
+            let bmREcoLoanAmt =  ApzCOB.getPayloadDatafromWrapper('eligibleAmt', 'Co-App', 'cibilDetailsWrapperList');
+            $(`#${screenMainId}sanLoanInput`).val(bmREcoLoanAmt);
+            return;
+        }
+    }
+    if(!apz.isNull(pthis)){
+       ApzCOB.checkThousand(pthis);
+    }
+    const { loanDetails} = inSessionStore;
+    let newSanctionAmt = $(`#${screenMainId}sanLoanInput`).val();
+    let unformatAmt = newSanctionAmt.replace(/[^0-9.]/g, '');
+    let finalSancAmt = unformatAmt.replace(/\.00$/, '');
+    let errMsg = '';
+    let curSancLoanAmt = Number(loanDetails?.sanctionedLoanAmount ?? 0);
+    let isValid = curSancLoanAmt !== Number(finalSancAmt);
+    errMsg = apz.app.Saloandetails.validateSanctionLoanAmount();
+    if (apz.isNull(errMsg) || (errMsg === 'CB FAILED' && isValid)) {
+        // if (!isValid) return;
+        apz.app.Saloandetails.BRECBService(Number(finalSancAmt));
+        return;
+        /*let currentStage = `${inSessionStore?.applicationMaster?.applicationStatus} | ${inSessionStore?.applicationMaster?.applicationStatus}`;
+        let caglOs = gApzCOB?.selLeadDtls?.caglOs || inSessionStore?.leadDetails?.caglOs || inSessionStore?.cdhLeadDetails?.caglOs;
+        let req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": gAppId,
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "versionNum": 1,
+                    "stageId": "Sanction",
+                    "requestType": "Edit",
+                    "customerType": "Co-App",
+                    "updatedLoanAmount": Number(finalSancAmt),
+                    "customerDtlsId": gApzCOB.userDetails.CoApplicantCustomerId,
+                    "editedFields": [],
+                    "currentStage": currentStage,
+                    "caglOs": caglOs
+                },
+                "userId": LoggedInUserDetails.loginResponse.userDet.id,
+                "appId": gAppId,
+                "interfaceName": "UploadCALoanData"
+            }
+        }
+        apz.startLoader();
+        ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.Saloandetails.changeSanctionLoanAmtCB);*/
+    } else {
+        if (errMsg !== 'CB FAILED') {
+            ApzCOB.showRpcModals({
+                text: errMsg,
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+                }
+            }, "Error");
+            apz.app.Saloandetails.showSanctionAmtDetails();
+        } else {
+            let CB_STATUS = ApzCOB.getPayloadDatafromWrapper('cbStatus', 'Co-App', 'cibilDetailsWrapperList');
+            if (!apz.isNull(CB_STATUS) && CB_STATUS !== 'PASS') {
+                window.rejectRsn = ApzCOB.getPayloadDatafromWrapper('rejectionReason', 'Co-App', 'cibilDetailsWrapperList')
+                window.retry_Attempts = ApzCOB.getPayloadDatafromWrapper('retryAttempts', 'Co-App', 'cibilDetailsWrapperList');
+                let irisMessage = ApzCOB.getPayloadDatafromWrapper('irisMessage', 'Co-App', 'cibilDetailsWrapperList')
+                if (!retry_Attempts || retry_Attempts === 0) {
+                    let errMsgBRE = `CB retrigger limit exceeded.Reject the application.<br/>Reject reason: ${window.rejectRsn ?? '-'}.`
+                    if (irisMessage?.includes('success')) {
+                        errMsgBRE = `BRE CB failed!.Reject the application.<br/>Reject reason: ${window.rejectRsn ?? '-'}.`
+                    }
+                    let popUpObj = {
+                        text: errMsgBRE,
+                        Btn: {
+                            text: "Ok",
+                            onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`);  apz.app.DeviationSanctBase.directReject(this,'REJECTED');"
+                        }
+                    };
+                    ApzCOB.showNewCommonErrorModal(popUpObj);
+                    apz.stopLoader();
+                    return;
+                } else {
+                    let errMsgBRE = `BRE failed due to ${rejectRsn}.<br/>Remaining retry attempts: ${retry_Attempts}.<br/>Do you want to rehit BRE?`
+                    if (irisMessage?.includes('bureauError') && !irisMessage?.includes('roll')) {
+                        errMsgBRE = `BRE failed due to ${rejectRsn}.<br/>Do you want to rehit BRE?`
+                    }
+                    popUpObj = {
+                        text: errMsgBRE,
+                        Btn1: {
+                            text: "Yes",
+                            onClick: "apz.app.DeviationSanctBase.closeCnfmMdl(); apz.app.Saloandetails.BRECBService();"
+                        },
+                        Btn2: {
+                            text: "No",
+                            onClick: "apz.app.DeviationSanctBase.closeCnfmMdl()"
+                        }
+                    }
+                }
+                apz.stopLoader();
+                ApzCOB.showRpcModals(popUpObj, "confirmation");
+            }
+            //   apz.app.DeviationSanctBase.directReject(this,'REJECTED')
+        }
+    }
+};
+apz.app.Saloandetails.changeSanctionLoanAmtCB = function(params){
+    apz.stopLoader();
+    $(`#Sanct__DeviationSanctBase__conFormation_mdl_close`).click();
+    ApzCOB.addDisableToInput('Sanct__DeviationSanctBase__confirmBtn');
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            let resp = params?.res?.APZCBO__UploadCALoanData_Res?.apiResponse?.ResponseBody ?? '';
+            if (!apz.isNull(resp)) {
+                let msg = resp?.responseObj ?? "";
+                if (!apz.isNull(msg)) {
+                    if (msg?.toUpperCase()?.includes('BRE CHECK SERVICE FAILED')) {
+                        ApzCOB.showRpcModals({
+                            text: msg,
+                            Btn1: {
+                                text: "OK",
+                                onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+                            }
+                        }, "Error");
+                        apz.app.Saloandetails.showSanctionAmtDetails();
+                        // ApzCOB.revertRecommendedLoanAmount();
+                    } else {
+                        ApzCOB.updateInsessionData(params);
+                        let coApplicantCBDetails;
+                        let {cibilDetailsWrapperList} = inSessionStore || {};
+                        if([cibilDetailsWrapperList].some(apz.isObjectEmpty)) return;
+                        coApplicantCBDetails = cibilDetailsWrapperList.find((item) => item.cibilDetails?.custDtlId == gApzCOB.userDetails.CoApplicantCustomerId)?.cibilDetails; 
+                        if (window.AdditionalProductsOptionalCoApp?.includes(inSessionStore?.applicationMaster?.productCode)) {
+                            coApplicantCBDetails = cibilDetailsWrapperList.find((item) => item.cibilDetails?.custDtlId == gApzCOB.userDetails.custDtlId)?.cibilDetails;
+                        }
+                        let CB_STATUS = coApplicantCBDetails?.cbStatus ?? "";
+                        if (!apz.isNull(CB_STATUS) && CB_STATUS !== 'PASS') {
+                            window.rejectRsn = coApplicantCBDetails?.payload?.rejectionReason;
+                            window.rejectionReason = coApplicantCBDetails?.payload?.rejectionReason;
+                            window.retry_Attempts = coApplicantCBDetails?.payload?.retryAttempts;
+                            let irisMessage = coApplicantCBDetails?.payload?.irisMessage;
+                            if (!retry_Attempts || retry_Attempts === 0) {
+                                let errMsgBRE = `CB retrigger limit exceeded.Reject the application.<br/>Reject reason: ${window.rejectRsn ?? '-'}.`
+                                if (irisMessage?.includes('success')) {
+                                    apz.app.DeviationSanctBase.directReject(this,'REJECTED');
+                                    // errMsgBRE = `BRE CB failed!.Reject the application.<br/>Reject reason: ${window.rejectRsn ?? '-'}.`
+                                } else {   
+                                let popUpObj = {
+                                    text: errMsgBRE,
+                                    Btn: {
+                                        text: "Ok",
+                                            onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`);"
+                                    }
+                                };
+                                ApzCOB.showNewCommonErrorModal(popUpObj);
+                                }
+                                apz.stopLoader();
+                                return;
+                            } else {
+                                let errMsgBRE = `BRE failed due to ${rejectRsn}.<br/>Remaining retry attempts: ${retry_Attempts}.<br/>Do you want to rehit BRE?`
+                                if (irisMessage?.includes('bureauError') && !irisMessage?.includes('roll')) {
+                                    errMsgBRE = `BRE failed due to ${rejectRsn}.<br/>Do you want to rehit BRE?`
+                                }
+                                popUpObj = {
+                                    text: `BRE failed due to ${rejectRsn}.<br/>Remaining retry attempts: ${retry_Attempts}.<br/>Do you want to retry?`,
+                                    Btn1: {
+                                        text: "Yes",
+                                        onClick: "apz.app.DeviationSanctBase.closeCnfmMdl(); apz.app.Saloandetails.BRECBService();"
+                                    },
+                                    Btn2: {
+                                        text: "No",
+                                        onClick: "apz.app.DeviationSanctBase.closeCnfmMdl()"
+                                    }
+                                }
+                            }
+                            apz.stopLoader();
+                            ApzCOB.showRpcModals(popUpObj, "confirmation");
+                        } else {
+                            ApzCOB.removeDisableToInput('Sanct__DeviationSanctBase__confirmBtn');
+                            apz.app.Saloandetails.paintBMLoanDetals();
+                            apz.app.Saloandetails.showSanctionAmtDetails();
+                            apz.app.Saloandetails.validateSanctionLoanAmount();
+                            apz.app.Saloandetails.paintFieldDataDetails();
+                        }
+                    }
+                }
+            }
+        } else {
+            apz.stopLoader();
+            // ApzCOB.revertRecommendedLoanAmount();
+            ApzCOB.showRpcModals({
+                text: technicalErrMsg,
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+                }
+            }, "Error");
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        // ApzCOB.revertRecommendedLoanAmount();
+        ApzCOB.showRpcModals({
+            text: technicalErrMsg,
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.Saloandetails.showSanctionAmtDetails = function () {
+    const CoApplicantCustomerId = window.AdditionalProductsOptionalCoApp?.includes(inSessionStore?.applicationMaster?.productCode)
+    ? (gApzCOB.userDetails?.CoApplicantCustomerId ?? gApzCOB.userDetails?.custDtlId)
+    : gApzCOB.userDetails?.CoApplicantCustomerId;//check if use this if direct assign 
+    
+    const { loanDetails, leadDetails, cdhLeadDetails } = inSessionStore;
+    let cbInfo = inSessionStore.cibilDetailsWrapperList.find(
+        cb => Number(cb.cibilDetails.custDtlId) === Number(CoApplicantCustomerId)
+    ) || {};
+    if(window.AdditionalProductsOptionalCoApp?.includes(inSessionStore?.applicationMaster?.productCode)) {
+       cbInfo  = inSessionStore.cibilDetailsWrapperList.find(
+        cb => Number(cb.cibilDetails.custDtlId) === Number(gApzCOB.userDetails?.custDtlId)
+    ) || {};
+    }
+    if (apz.isObjectEmpty(cbInfo)) return;
+    const payload = cbInfo.cibilDetails?.payload || {};
+    const caglOs = leadDetails?.caglOs || cdhLeadDetails?.caglOs || 0;
+    // const loanAmt = Number(loanDetails?.sanctionedLoanAmount ?? loanDetails?.bmRecommendedLoanAmount ?? 0);
+    const loanAmt = ApzCOB.getPayloadDatafromWrapper('eligibleAmt', 'Co-App', 'cibilDetailsWrapperList');
+    const insuranceTotal = Number(payload.insuranceChargeJoint || 0) +
+        Number(payload.insuranceChargeMember || 0) +
+        Number(payload.insuranceChargeSpouse || 0);
+    let netOffAmt = 0;
+    if (!skipNetOffCal) {
+    netOffAmt = Number(payload.processingFees || 0) + Number(payload.stampDutyCharge || 0) + insuranceTotal + Number(caglOs || 0);
+    }else{
+        netOffAmt = Number(payload.processingFees || 0) + Number(payload.stampDutyCharge || 0) + insuranceTotal;
+    }
+    const postNetOff = loanAmt - netOffAmt;
+    const formatCurrency = val => val ? `₹ ${ApzCOB.formatamountVal(val)}` : `₹ 0`;
+    const freq = loanDetails?.payload?.frequencyOfRepayment;
+    const emi = payload.approvedLoanEMI;
+    const emiFreq = emi && freq ? `₹ ${emi} / ${freq}` : "";
+    const roi = payload?.roi && payload.roi !== 'null' ? `${payload.roi}%` : "";
+    const selectors = {
+        eligibalLoanAmount: ApzCOB.formatamountVal(loanAmt),
+        sanLoanInput: loanAmt,
+        sanLoanAmt: formatCurrency(loanAmt),
+        sanROI: roi,
+        sanPf: formatCurrency(payload.processingFees),
+        sanInsPremium: formatCurrency(insuranceTotal),
+        sanStampDuty: formatCurrency(payload.stampDutyCharge),
+        sanOS: formatCurrency(caglOs),
+        SancbTriggerDate: (`Current CAGL Outstanding (As of ${ApzCOB.getCBTriggerDate() || ''})`),
+        sanNetoffAmt: formatCurrency(ApzCOB.formatToTwoDecimal(netOffAmt)),
+        sanPostOff: formatCurrency(ApzCOB.formatToTwoDecimal(Number(postNetOff))),  
+        sanInstallmentAmtFreq: formatCurrency(emiFreq.split('/')[0]) + '/' + emiFreq.split('/')[1]
+    };
+    for (const [idSuffix, value] of Object.entries(selectors)) {
+        const selector = `#${screenMainId}${idSuffix}`;
+        $(selector).is("input") ? $(selector).val(value) : $(selector).text(value);
+    }
+    if (window.isAdditionalProduct) {
+        $(`#${screenMainId}InitialEligibleAmtRow, #${screenMainId}gr_row_5, #${screenMainId}loanMetricRow, #${screenMainId}sc_col_378`).addClass('sno');
+    }
+};  
+apz.app.Saloandetails.validateSanctionLoanAmount = function () {
+    const { cibilDetailsWrapperList } = inSessionStore;
+    let errMsg = "";
+    if (!CURRENT_SANCTION_INFO || CURRENT_SANCTION_INFO.length === 0) return;
+    let minAmt = CURRENT_SANCTION_INFO[0].min;
+    let maxAmt = CURRENT_SANCTION_INFO[0].max;
+    let minBMAMount = SANCTION_MATRIX.find(item => item.role === "BM")?.min;
+    // const recommendedLoanAmt = applicationStatus === 'CACOMPLETED' ? Number(inSessionStore?.loanDetails?.presactionLoanAmount) || 0 : Number(inSessionStore?.loanDetails?.bmRecommendedLoanAmount) || 0;   
+    const bmRecommendedLoanAmt = Number(inSessionStore?.loanDetails?.bmRecommendedLoanAmount) || 0;
+    const preSanctionLoanAmt = Number(inSessionStore?.loanDetails?.presactionLoanAmount) || 0;
+    const sanctionRecommendedAmt = preSanctionLoanAmt || bmRecommendedLoanAmt;
+    let recommendedLoanAmt;
+    if (applicationStatus === 'CACOMPLETED') {
+        recommendedLoanAmt = sanctionRecommendedAmt;
+    }
+    // Resanction
+    else if (applicationStatus === 'RESANCTION') {
+        const prevSanctionedAmt = Number(inSessionStore?.loanDetails?.sanctionedLoanAmount) || 0;
+        recommendedLoanAmt = Math.min(
+            prevSanctionedAmt,
+            sanctionRecommendedAmt
+        );
+    }
+    // Pre-sanction / Other
+    else {
+        recommendedLoanAmt = bmRecommendedLoanAmt;
+    }
+    if (applicationStatus === 'PENDINGPRESANCTION') {
+        minAmt = minBMAMount;
+        maxAmt = bmRecommendedLoanAmt
+    }
+    const custDetailID = ApzCOB.getCustDetailID("Co-App");
+    const coAppCibilDetail = cibilDetailsWrapperList.filter(item => item.cibilDetails.custDtlId === custDetailID);
+     let CB_STATUS = coAppCibilDetail?.[0]?.cibilDetails?.cbStatus ?? "";
+      if(!apz.isNull(CB_STATUS) && CB_STATUS === 'PASS'){
+        const eligibleAmt = Number(coAppCibilDetail?.[0]?.cibilDetails?.payload?.eligibleAmt) || 0;
+        // const minLoanAmount = Math.min(eligibleAmt, bmRecommendedLoanAmt);
+        let minLoanAmount = recommendedLoanAmt;
+        if (applicationStatus === 'RESANCTION') {
+            let prevSanctionedAmt = inSessionStore.loanDetails?.sanctionedLoanAmount;
+            minLoanAmount = Math.min(prevSanctionedAmt, recommendedLoanAmt);
+        }//For resanction BM recommended should be the maximum loan amt
+        const newAmount = Number($(`#${screenMainId}sanLoanInput`).val()) || 0;
+        if (!newAmount || newAmount === 0) {
+        errMsg = 'Enter valid loan amount';
+        } else if ((newAmount < minAmt || newAmount > maxAmt)) {
+        errMsg = `Sanction loan amount should be between minimum and maximum loan amount. <br/><br/> Minimum Loan Amount : ${minAmt} <br/> Maximum Loan Amount : ${maxAmt}`;
+        } else if (apz.isNull(minLoanAmount) || newAmount > minLoanAmount) {
+            errMsg = 'Sanction loan amount should be less than or equal to ' + (applicationStatus === 'CACOMPLETED' ? 'Pre-sanctioned Amount' : 'BM Recommended Amount') + 
+            '. <br/><br/> Maximum Limit : ' + minLoanAmount;
+            if (applicationStatus === 'RESANCTION') {
+                errMsg = `Sanction loan amount should be minimum of previous sanctioned amount and BM Recommended Amount. <br/><br/> Maximum Limit : ${minLoanAmount}`;
+            }
+        }
+      } else {
+        errMsg = 'CB FAILED';
+        window.rejectRsn = ApzCOB.getPayloadDatafromWrapper('rejectionReason', 'Co-App', 'cibilDetailsWrapperList')
+        window.retry_Attempts = ApzCOB.getPayloadDatafromWrapper('retryAttempts', 'Co-App', 'cibilDetailsWrapperList');
+      }
+      return errMsg;
+}
+apz.app.Saloandetails.sanctionMasterData = function(){
+    let req = {
+        "apiRequest": {
+            "interfaceName":"SanctionMaster",
+            "userId":LoggedInUserDetails.loginResponse.userDet.id,
+            "requestObj":{
+                "productCode":inSessionStore?.applicationMaster?.productCode
+            }
+        }
+    }
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "SanctionMaster", "N", "N", req, true, apz.app.Saloandetails.sanctionMasterDataCB);
+    }, 1000)
+}
+apz.app.Saloandetails.sanctionMasterDataCB = function(params) {
+    apz.stopLoader();
+    if (ApzCOB.handleServiceCallBacks(params)) {
+        let responseVal = JSON.parse(params.res.APZCBO__SanctionMaster_Res.apiResponse.ResponseBody.responseObj);
+
+        if (responseVal.length > 0) {
+            const userRole = (gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 || "").toLowerCase();
+
+            const sanctionInfo = responseVal.find(item =>
+                String(item[userRole] || "").toUpperCase() === "Y"
+            );
+
+            CURRENT_SANCTION_INFO = sanctionInfo ? [{
+                role: userRole.toUpperCase(),
+                min: sanctionInfo.minValue,
+                max: sanctionInfo.maxValue
+            }] : [];
+
+            console.log("CURRENT_SANCTION_INFO :", CURRENT_SANCTION_INFO);
+        }
+    } else {
+        ApzCOB.showRpcModals({
+            text: errMsg,
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+            }
+        }, "Error");
+    }
+}

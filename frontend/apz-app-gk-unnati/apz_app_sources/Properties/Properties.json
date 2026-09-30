@@ -1,0 +1,20 @@
+{
+    "BaseAppName": "AppzillonConsumerOnboardingBackOffice",
+    "ServerWarName": "AppzillonServer",
+    "ServerType": "Jboss",
+    "AppzillonBuildPath": "JENKIN_WORKSPACE/build",
+    "BuildAppPath": "JENKIN_WORKSPACE/Bin/Preferences/BuildParams_Apps.json",
+    "BuildServerPath": "JENKIN_WORKSPACE/Bin/Preferences/BuildParams_Server.json",
+    "ServerDebugLevel": "DEBUG",
+    "DBType": "POSTGRESQL",
+    "BundleWebProps": "N",
+    "BundleServerProps": "N",
+    "DisableSessionStickyness": "N",
+    "IncludeMicroApp": "Y",
+    "codecoverage": "",
+    "serverapptype": "WAR",
+    "ServerAppType": "WAR",
+    "webapptype":"WAR",
+    "WebAppType":"WAR"
+  }
+  

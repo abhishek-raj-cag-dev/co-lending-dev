@@ -1,0 +1,2197 @@
+/**
+ * @author Swaroop Raj R (CAGL)
+ */
+var kmScrId = 'KmSourc__KMReviewConfirm__',
+    KM_CURR_STAGE_NAME = 'KMReviewConfirm',
+    KM_CURR_STAGE_NO;
+    if(!iskmPreview) KM_CURR_STAGE_NO = 5;
+var custDetIndexApp = "";
+var custDetIndexCoApp = "";
+var values = {
+    Other: "Other",
+    Present: "Present",
+    relationshipProof: "RELATIONSHIP_PROOF",
+    appResidencePremisePhoto: "APP_RESIDENCE_PREMISE_PHOTO",
+    changeBankDocs: "CHANGED_BANK_DOCS", // chinna added doc
+    firstBankAccProof: "BANK_ACCOUNT_PROOF" // chinna added doc
+}
+apz.app.onLoad_KMReviewConfirm = function () {
+    let hidefooterElements = ['nxtBtn', 'SaveDraft'];
+    hidefooterElements.forEach(id => {
+        $(`#${kmbaseScr}${id}`).addClass('sno');
+    });
+    if (!(window.currentApplication === 'Rejected')) {
+        apz.app.Kmbase.toggleSidebar();
+    }
+};
+apz.app.onShown_KMReviewConfirm = function () {
+    // Chinna start
+    var reviewHypId = kmbaseScr + "KMReviewConfirm_hyp";
+    if(!iskmPreview){
+        $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+        $(`#${kmbaseScr}KMReviewConfirm_hyp`).addClass('active');
+    }
+    var cbApp = apz.app.Kmbase.getSrcVerifiedStatus(1, "A");
+    var cbCoApp = apz.app.Kmbase.getSrcVerifiedStatus(1, "C");
+    var aadhaarApp = apz.app.Kmbase.getSrcVerifiedStatus(2, "A");
+    var aadhaarCoApp = apz.app.Kmbase.getSrcVerifiedStatus(2, "C");
+    var business = apz.app.Kmbase.getSrcVerifiedStatus(3, "A");
+    var otherInfo = apz.app.Kmbase.getSrcVerifiedStatus(4, "A");
+
+    var allVerified = (cbApp === "Y" && cbCoApp === "Y" && aadhaarApp === "Y" && aadhaarCoApp === "Y" && business === "Y" && otherInfo === "Y");
+    console.log("allVerified", allVerified);
+    // chinna end
+
+    $(`#KmSourc__KMReviewConfirm__appNachSuc`).addClass("kmenachsucc ");
+    $(`#KmSourc__KMReviewConfirm__coappNachSuc`).addClass("kmenachsucc ");
+    $(`#KmSourc__KMReviewConfirm__appNachFail`).addClass("kmenacherr");
+    $(`#KmSourc__KMReviewConfirm__coappNachFail`).addClass("kmenacherr");
+    // apz.app.KMReviewConfirm.paintData();
+    // ApzCOB.FetchApplication();
+    // apz.app.KMReviewConfirm.paintDataForOtherInformation();
+    // apz.app.KMReviewConfirm.paintDocuments();
+    // apz.app.KMReviewConfirm.paintBusinessDetails();
+    // apz.app.KMReviewConfirm.paintIncomeSummary();
+    // chinna fix start - wrap all paint calls inside FetchApplication callback
+    // so inSessionStore is fully populated before painting on first load
+    ApzCOB.FetchApplication(); //16th june changes
+    // setTimeout(function () {
+    //     apz.app.KMReviewConfirm.paintData();
+    //     apz.app.KMReviewConfirm.paintDataForOtherInformation();
+    //     apz.app.KMReviewConfirm.paintDocuments();
+    //     apz.app.KMReviewConfirm.paintBusinessDetails();
+    //     apz.app.KMReviewConfirm.paintBusinessDocs();
+    //     apz.app.KMReviewConfirm.paintIncomeSummary();
+    // }, 1000);
+    // chinna fix end
+    //$('input[type="radio"][id*="option_presentOther"]')
+    // .not('#KmSourc__KMReviewConfirm__othAddressRadioBtn_option_presentOther')
+    // .not('#KmSourc__KMReviewConfirm__permRadioBtnOne_option_presentOther')
+    // .not('#KmSourc__KMReviewConfirm__secondAddPresRadio_option_presentOther')
+    // .not('#KmSourc__KMReviewConfirm__secondAddPermRadio_option_presentOther')
+    // .prop("checked", true);
+    document.querySelectorAll("#KmSourc__KMReviewConfirm__amlList input[type='radio']").forEach(radio => radio.disabled = true);
+    if (window.currentApplication === 'Rejected') {
+        $(`#${kmScrId}screenTitle_txtcnt`).text("Re-initiate");
+        $(`#${kmbaseScr}confirmBtn`).addClass('sno');
+        $(`#${kmScrId}rejectReasonRow`).removeClass('sno');
+        $(`#${kmScrId}rejectReasonTitle_txtcnt`).addClass('rejTitle');
+        const rejectedDetails = inSessionStore?.applicationTimelineDtl?.[
+            inSessionStore?.applicationTimelineDtl?.length - 1];
+        ApzCOB.fetchQueryResponseFromAllStage(rejectedDetails, `#KmSourc__KMReviewConfirm__rejectReasonList`);
+        const rejectedReasons = rejectedDetails?.remarks?.split('|') ?? [];
+        const reasonsList = JSON.parse((DBKIT_MASTERDATA || []).find(s => s.stageName === "KMREJECT" && s.appId === "ALL").rejectReasons).rejectReason;
+        let rejectedReasonsDescList = [];
+        const lastReason = rejectedReasons[rejectedReasons.length - 1];
+        if (rejectedDetails.stage.includes("RPC")) {
+            rejectedReasonsDescList = rejectedDetails?.remarks ? [rejectedDetails.remarks] : [];
+        }
+        else {
+            rejectedReasonsDescList = reasonsList?.filter(
+                item => rejectedReasons.includes(item.id))?.map(item => item.value);
+            if (lastReason?.startsWith("oth?")) {
+                rejectedReasonsDescList.push(lastReason.substring(4));
+            }
+        }
+        if (rejectedReasonsDescList.length < 1 && typeof lastReason == 'string') {
+            rejectedReasonsDescList.push(...rejectedReasons);
+        }
+        const rejectRemark = $(`#${kmScrId}rejectReasonList`);
+        if (rejectedReasonsDescList.length > 1) {
+            rejectRemark.html(rejectedReasonsDescList.filter(msg => msg).map(msg => `• ${msg}`).join("<br>"));
+        } else {
+            rejectRemark.html(rejectedReasonsDescList[0]);
+        }
+        const otherDetails = [];
+        otherDetails.push(rejectedDetails.userId);
+        if (rejectedDetails.stage) otherDetails.push(rejectedDetails.stage);
+        otherDetails.push(rejectedDetails.timeStamp);
+        $(`#${kmScrId}rejectOtherDetails`).html(otherDetails.join(" | "));
+    }
+    else {
+        $(`#${kmScrId}screenTitle_txtcnt`).text("Review & Confirm");
+        $(`#${kmbaseScr}confirmBtn`).removeClass('sno');
+        $(`#${kmScrId}rejectReasonRow`).addClass('sno');
+    }
+    if (inSessionStore?.srcStatDetails && inSessionStore?.srcStatDetails?.length !== 0) {
+        $(`#${kmbaseScr}sendback`).removeClass('sno')
+        $(`#${kmbaseScr}confirmBtn`).prop('disabled', true)
+    } else {
+        $(`#${kmbaseScr}sendback`).addClass('sno')
+        if (!allVerified) {
+            $(`#${kmbaseScr}confirmBtn`).prop('disabled', true);
+        } else {
+            $(`#${kmbaseScr}confirmBtn`).prop('disabled', false);
+        }
+    }
+    ApzCOB.scrollTopKMSourcing();
+
+    // chinna changes end
+    //apz.app.Kmbase.checkpendingstage(); // chinna commented this because of apz.app.Kmbase.checkpendingstage is not a function
+    $(`#${kmbaseScr}KMReviewConfirm_hyp`).removeClass("disabled-sidebar")
+    if (iskmPreview) {
+        apz.app.Kmbase.hideNshowBtns();
+    } else {
+        $(`#${kmbaseScr}scrDtls`).addClass('disabled-sidebar');
+    }
+    if ($("#KmSourc__Kmbase__sidebar_col").hasClass("sideon")) { //31st july fixes
+        apz.app.Kmbase.toggleSidebar();
+    }
+    if(gApzCOB.productCode === '1003') {
+     $("#KmSourc__KMReviewConfirm__el_label_37").text("Unnati Lite decision");
+     $("#KmSourc__KMReviewConfirm__el_label_80").text("Unnati Lite decision");
+     $("#KmSourc__KMReviewConfirm__el_label_38").text("Unnati Lite decision reason");
+     $("#KmSourc__KMReviewConfirm__el_label_81").text("Unnati Lite decision reason");
+     $("#KmSourc__KMReviewConfirm__el_label_85").text("Unnati Lite approved amount");
+    }
+    if ($('#APZCBO__BaseScreens__BaseDIV_apz_1').length) {
+        $('#APZCBO__BaseScreens__BaseDIV_apz_1').remove();
+    }
+    if ($('#APZCBO__BaseScreens__BaseDIV_apz_2').length) {
+        $('#APZCBO__BaseScreens__BaseDIV_apz_2').remove();
+    }
+};
+apz.app.KMReviewConfirm.createRequest = function () { };
+
+apz.app.KMReviewConfirm.paintData = function () {
+    const s = inSessionStore;
+    const val = (v) => (v !== undefined && v !== null && v !== '') ? v : '---';
+    const iA = s.customerDetailsList[0].customerType === 'Applicant' ? 0 : 1;
+    const iC = iA === 0 ? 1 : 0;
+    const app = s.customerDetailsList[iA];
+    const coap = s.customerDetailsList[iC];
+    if (ApzCOB.getPayloadDatafromWrapper("isNewCustomer", "Co-App", "customerDetailsList") === 'Create a new Co-Applicant') {
+        $("#KmSourc__KMReviewConfirm__co-app-name").text("New Co-Applicant Name");
+    }
+    const coAppNameAndRelation = (inSessionStore?.customerDetailsList || []).filter(x => x?.customerType === "Co-App").map(x => `${x?.customerName || ""}${x?.payload?.relationShipWithApplicant ? ` (${x.payload.relationShipWithApplicant})` : ""}`);
+    const addrBlocks = s.addressDetailsWrapperList?.[0]?.addressDetailsList ?? [];
+    const getBlock = (custDtlId, type) =>
+        addrBlocks.find(b => b.custDtlId === custDtlId && b.addressType === type);
+    const getAddr = (block, type) =>
+        block?.payload?.addressList?.find(a => a.addressType === type) ?? {};
+
+    const appPersonal = getBlock(app?.custDtlId, 'Personal'); // chinna doc added null handler
+    const coapPersonal = getBlock(coap?.custDtlId, 'Personal'); // chinna doc added null handler
+
+    // Applicant addresses
+    const appPresent = getAddr(appPersonal, 'Present');
+    const appPermanent = getAddr(appPersonal, 'Permanent');
+    const appVoter = getAddr(appPersonal, 'Voter');
+    const appSecKyc = getAddr(appPersonal, 'SecondaryKyc');
+
+    // Co-applicant addresses
+    const coapPresent = getAddr(coapPersonal, 'Present');
+    const coapPermanent = getAddr(coapPersonal, 'Permanent');
+    const coapVoter = getAddr(coapPersonal, 'Voter');
+    const coapSecKyc = getAddr(coapPersonal, 'SecondaryKyc');
+
+    // ── CB / CIBIL ────────────────────────────────────────────────────────────
+    // Match cibil entry by custDtlId
+    const cbFor = (id) =>
+        s.cibilDetailsWrapperList?.find(w => w.cibilDetails.custDtlId === id)?.cibilDetails?.payload ?? {};
+    const cbA = cbFor(app.custDtlId);
+    const cbC = cbFor(coap?.custDtlId);
+    const cbApplicantStatus = s?.cibilDetailsWrapperList?.[0]?.cibilDetails?.cbStatus || '';
+    const cbCopplicantStatus = s?.cibilDetailsWrapperList?.[1]?.cibilDetails?.cbStatus || '';
+    // Helper: split "Label : VALUE | STATUS" → VALUE | STATUS part
+    const splitCb = (str) => val(str?.split(':')?.[1]?.trim());
+
+    // ── Loan ──────────────────────────────────────────────────────────────────
+    const loan = s.loanDetails ?? {};
+    const lp = loan.payload ?? {};
+
+    // ── Income ────────────────────────────────────────────────────────────────
+    const inc = s.bcmpiIncomeDetails?.bcmpiIncomeDetailsWrapper ?? {};
+    const biz = inc.business ?? {};
+
+    // ── Set helpers ───────────────────────────────────────────────────────────
+    const set = (id, v) => apz.setElmValue(id, val(v));
+    const setAddr = (prefix, addr) => {
+        set(`KmSourc__KMReviewConfirm__${prefix}addressLine1Txt_txtcnt`, addr.addressLine1);
+        set(`KmSourc__KMReviewConfirm__${prefix}addressLine2Txt_txtcnt`, addr.addressLine2);
+        set(`KmSourc__KMReviewConfirm__${prefix}addressLine3Txt_txtcnt`, addr.addressLine3);
+        set(`KmSourc__KMReviewConfirm__${prefix}pincodeTxt_txtcnt`, addr.pinCode);
+        set(`KmSourc__KMReviewConfirm__${prefix}cityTownVillageTxt_txtcnt`, addr.city);
+        set(`KmSourc__KMReviewConfirm__${prefix}districtTxt_txtcnt`, addr.district);
+        set(`KmSourc__KMReviewConfirm__${prefix}stateTxt_txtcnt`, addr.state);
+    };
+
+    // ════════════════════════════════════════════════════════════════════════
+    // APPLICANT – Basic / KYC
+    // ════════════════════════════════════════════════════════════════════════
+    set('KmSourc__KMReviewConfirm__primaryMobileTxt_txtcnt', "+91 " + app.mobileNumber);
+    set('KmSourc__KMReviewConfirm__secondaryMobileTxt_txtcnt', "+91 " + app.payload?.secMobileNo);
+    set('KmSourc__KMReviewConfirm__reqLoanAmountTxt_txtcnt', loan.loanAmount);
+    set('KmSourc__KMReviewConfirm__purposeOfLoanTxt_txtcnt', lp.loanPurpose);
+    set('KmSourc__KMReviewConfirm__subPurposeOfLoanTxt_txtcnt', lp.subCategory);
+    set('KmSourc__KMReviewConfirm__frequencyOfRepaymentTxt_txtcnt', lp.frequencyOfRepayment);
+    set('KmSourc__KMReviewConfirm__nameAsPerVoterTxt_txtcnt', app.payload?.namePerKyc);
+    set('KmSourc__KMReviewConfirm__voterIdTxt_txtcnt', app.payload?.primaryKycId);
+    set('KmSourc__KMReviewConfirm__alternateVoterIdText_txtcnt', app.payload?.alternateVoterId);
+    set('KmSourc__KMReviewConfirm__cKYCTxt_txtcnt', app.payload?.ckyc);
+    set('KmSourc__KMReviewConfirm__nameAsPerT24Txt_txtcnt', app.customerName);
+    set('KmSourc__KMReviewConfirm__genderTxt_txtcnt', app.payload?.gender);
+    set('KmSourc__KMReviewConfirm__dobTxt_txtcnt', ApzCOB.convertDateFormat(app.payload?.dob, 'dd/mm/yyyy'));
+    set('KmSourc__KMReviewConfirm__ageTxt_txtcnt', app.payload?.age);
+
+    // Applicant – Present address (what was selected on the address screen)
+    setAddr('', appPresent);
+
+    // Applicant – PAN
+    set('KmSourc__KMReviewConfirm__havePanTxt_txtcnt',['y', 'yes'].includes((app.payload?.panNumberValue || '').trim().toLowerCase())? 'Yes' : 'No');
+    set('KmSourc__KMReviewConfirm__panCardNoTxt_txtcnt', app.payload?.panNumber);
+    set('KmSourc__KMReviewConfirm__nameAsPerPanTxt_txtcnt', app.payload?.namePerPan);
+
+    if (['n', 'no'].includes(app.payload?.panNumberValue?.toLowerCase())) {
+        $("#KmSourc__KMReviewConfirm__appPancardNo").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__appNamepePan").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__appPanDocBlock").addClass("sno");
+    } else {
+        $("#KmSourc__KMReviewConfirm__appPancardNo").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__appNamepePan").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__appPanDocBlock").removeClass("sno");
+    }
+    let isApproved = (cbA?.finalDecision || "").includes("Approved");
+    let product_code = inSessionStore.applicationMaster.productCode;
+    // Applicant – Loan / CB
+    set('KmSourc__KMReviewConfirm__requestedLoanAmtTxt_txtcnt', loan.loanAmount);
+    set('KmSourc__KMReviewConfirm__loanTenureTxt_txtcnt', loan.tenure);
+    set('KmSourc__KMReviewConfirm__ROITxt_txtcnt', cbA.roi);
+    set('KmSourc__KMReviewConfirm__lastCBDateTxt_txtcnt',
+        formatDate(s.cibilDetailsWrapperList?.find(w => w.cibilDetails.custDtlId === app.custDtlId)?.cibilDetails?.cbDate));
+    set('KmSourc__KMReviewConfirm__lastCBCheckStatusTxt_txtcnt',
+        s.cibilDetailsWrapperList?.find(w => w.cibilDetails.custDtlId === app.custDtlId)?.cibilDetails?.cbStatus);
+    set('KmSourc__KMReviewConfirm__bureauNameTxt_txtcnt', cbA.bureauName);
+    set('KmSourc__KMReviewConfirm__hitOrNoHitTxt_txtcnt', cbA.irisMessage);
+    set('KmSourc__KMReviewConfirm__cbScoreTxt_txtcnt', cbA.cbScore);
+    set('KmSourc__KMReviewConfirm__totalIndebtednessTxt_txtcnt', splitCb(cbA.totIndebtness));
+    set('KmSourc__KMReviewConfirm__suitFilledTxt_txtcnt', splitCb(cbA.writeoffSuitFiledFlag));
+    set('KmSourc__KMReviewConfirm__overdueAmtTxt_txtcnt', splitCb(cbA.overdueAmt));
+    set('KmSourc__KMReviewConfirm__writtenoffAmtTxt_txtcnt', splitCb(cbA.writeOffAmt));
+    set('KmSourc__KMReviewConfirm__runningEMITxt_txtcnt', cbA.foir);
+    set('KmSourc__KMReviewConfirm__caglDPDTxt_txtcnt', splitCb(cbA.caglUnnatiFlag));
+     if(product_code === "1009"){
+    set('KmSourc__KMReviewConfirm__unnatiDecisionTxt_txtcnt', cbApplicantStatus); // 17th june
+    set('KmSourc__KMReviewConfirm__unnatiDecisionReasonTxt_txtcnt', isApproved ? 'Approved':cbA?.rejectionReason || "-" );
+    $("#KmSourc__KMReviewConfirm__sc_row_1702").addClass("sno");
+    $("#KmSourc__KMReviewConfirm__sc_row_1705").addClass("sno");
+    }else if(product_code === "1003"){
+    $("#KmSourc__KMReviewConfirm__sc_row_1696").addClass("sno");
+    $("#KmSourc__KMReviewConfirm__sc_row_1699").addClass("sno");
+    set('KmSourc__KMReviewConfirm__visheshDecisionTxt_txtcnt', cbApplicantStatus);
+    set('KmSourc__KMReviewConfirm__visheshDecisionReasonTxt_txtcnt', isApproved ? 'Approved':cbA?.rejectionReason || "-");
+    }else{
+    set('KmSourc__KMReviewConfirm__unnatiDecisionTxt_txtcnt', cbApplicantStatus); // 17th june
+    set('KmSourc__KMReviewConfirm__unnatiDecisionReasonTxt_txtcnt', isApproved ? 'Approved':cbA?.rejectionReason || "-" );
+    set('KmSourc__KMReviewConfirm__visheshDecisionTxt_txtcnt', cbA.visheshDecision);
+    set('KmSourc__KMReviewConfirm__visheshDecisionReasonTxt_txtcnt', cbA.visheshDecisionReason);
+    }
+    // ════════════════════════════════════════════════════════════════════════
+    // APPLICANT – Aadhaar / Additional Details
+    // ════════════════════════════════════════════════════════════════════════
+    set('KmSourc__KMReviewConfirm__adhaadharNoAdh_txtcnt', app.payload?.secondaryKycId);
+    set('KmSourc__KMReviewConfirm__nameoOFPerAadharAdh_txtcnt', app.payload?.secondaryKycName);
+    set('KmSourc__KMReviewConfirm__dobAdh_txtcnt', app.payload?.secondaryKycDob);
+
+    // Aadhaar address (SecondaryKyc address block)
+    set('KmSourc__KMReviewConfirm__addressline1Adh_txtcnt', appSecKyc.addressLine1);
+    set('KmSourc__KMReviewConfirm__addressLine2Adh_txtcnt', appSecKyc.addressLine2);
+    set('KmSourc__KMReviewConfirm__addressLine3Adh_txtcnt', appSecKyc.addressLine3);
+    set('KmSourc__KMReviewConfirm__pincodeAdh_txtcnt', appSecKyc.pinCode);
+    set('KmSourc__KMReviewConfirm__cityOrTwonAdh_txtcnt', appSecKyc.city);
+    set('KmSourc__KMReviewConfirm__districtAdh_txtcnt', appSecKyc.district);
+    set('KmSourc__KMReviewConfirm__stateAdh_txtcnt', appSecKyc.state);
+
+    // Applicant additional personal info
+    set('KmSourc__KMReviewConfirm__maritalStatusAdh_txtcnt', app.payload?.maritalStatus);
+    set('KmSourc__KMReviewConfirm__fatherNameAdh_txtcnt', app.payload?.fathersName);
+    set('KmSourc__KMReviewConfirm__spouseNameAdh_txtcnt', app.payload?.spouseName);
+    set('KmSourc__KMReviewConfirm__educationAdh_txtcnt', app.payload?.education);
+    set('KmSourc__KMReviewConfirm__religionAdh_txtcnt', app.payload?.religion);
+    set('KmSourc__KMReviewConfirm__casteAdh_txtcnt', app.payload?.caste);
+
+    const isAddressSame = checkAddressesSame(appPresent, appPermanent);
+
+    if (appPresent?.residenceOwnership !== "Rented") {
+        $("#KmSourc__KMReviewConfirm__secondResidentAddrBlock").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__permRadioOneBlock_li").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__permntLabel_li").addClass("sno"); // Chinna added 02/06/2026
+    } else if (appPresent?.residenceOwnership === "Rented" && isAddressSame) {
+        $("#KmSourc__KMReviewConfirm__secondResidentAddrBlock").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__permRadioOneBlock_li").removeClass("sno");
+    } else {
+        $("#KmSourc__KMReviewConfirm__secondResidentAddrBlock").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__permRadioOneBlock_li").removeClass("sno");
+    }
+
+    if (appPresent?.addressType === "Present" && isAddressSame) {
+        document.getElementById('KmSourc__KMReviewConfirm__othAddressRadioBtn_option_presentOther').checked = true;
+        document.getElementById('KmSourc__KMReviewConfirm__permRadioBtnOne_option_presentOther').checked = true;
+
+        $('#KmSourc__KMReviewConfirm__secondAddPresRadio_option_presentOther').prop('disabled', true);
+        $('#KmSourc__KMReviewConfirm__secondAddPermRadio_option_presentOther').prop('disabled', true);
+    } else if (appPresent?.addressType === "Present" && !isAddressSame) {
+        document.getElementById('KmSourc__KMReviewConfirm__othAddressRadioBtn_option_presentOther').checked = true;
+        document.getElementById('KmSourc__KMReviewConfirm__permRadioBtnOne_option_presentOther').checked = false;
+        $('#KmSourc__KMReviewConfirm__permRadioBtnOne_option_presentOther').prop('disabled', true);
+    } else if (appPresent?.addressType !== "Present" && !isAddressSame) {
+        document.getElementById('KmSourc__KMReviewConfirm__othAddressRadioBtn_option_presentOther').checked = false;
+        $('#KmSourc__KMReviewConfirm__othAddressRadioBtn_option_presentOther').prop('disabled', true);
+        document.getElementById('KmSourc__KMReviewConfirm__permRadioBtnOne_option_presentOther').checked = true;
+    }
+
+    if (appPermanent?.addressType === "Present" && isAddressSame) {
+        document.getElementById('KmSourc__KMReviewConfirm__secondAddPresRadio_option_presentOther').checked = true;
+        document.getElementById('KmSourc__KMReviewConfirm__secondAddPermRadio_option_presentOther').checked = true;
+
+        $('#KmSourc__KMReviewConfirm__othAddressRadioBtn_option_presentOther').prop('disabled', true);
+        $('#KmSourc__KMReviewConfirm__permRadioBtnOne_option_presentOther').prop('disabled', true);
+    } else if (appPermanent?.addressType === "Present" && !isAddressSame) {
+        document.getElementById('KmSourc__KMReviewConfirm__secondAddPresRadio_option_presentOther').checked = true;
+        document.getElementById('KmSourc__KMReviewConfirm__secondAddPermRadio_option_presentOther').checked = false;
+        $('#KmSourc__KMReviewConfirm__secondAddPermRadio_option_presentOther').prop('disabled', true);
+    } else if (appPermanent?.addressType !== "Present" && !isAddressSame) {
+        document.getElementById('KmSourc__KMReviewConfirm__secondAddPresRadio_option_presentOther').checked = false;
+        document.getElementById('KmSourc__KMReviewConfirm__secondAddPermRadio_option_presentOther').checked = true;
+        $('#KmSourc__KMReviewConfirm__secondAddPresRadio_option_presentOther').prop('disabled', true);
+    }
+    if(appPresent?.residenceOwnership == 'Rented' && appPermanent?.addressSameAs === "Other"){
+        $("#KmSourc__KMReviewConfirm__permanentAddressBlock").removeClass("sno");
+    } else {
+        $("#KmSourc__KMReviewConfirm__permanentAddressBlock").addClass("sno");
+    }
+    if (appPresent?.addressSameAs === "Other" ) {
+        $("#KmSourc__KMReviewConfirm__presentAddressBlock").removeClass("sno"); 
+    } else {
+        $("#KmSourc__KMReviewConfirm__presentAddressBlock").addClass("sno");
+    }
+    if (appPresent.addressSameAs !== values?.Other) {
+        var formattedPresentAddress = [
+            appPresent.addressLine1,
+            appPresent.addressLine2,
+            appPresent.addressLine3,
+            appPresent.district,
+            appPresent.city,
+            appPresent.pinCode,
+            appPresent.state,
+            appPresent.country
+        ].filter(Boolean).join(", ");
+        //$("#KmSourc__KMReviewConfirm__OthAddressColumn_li").find("label").text(formattedPresentAddress); // chinna changes start
+        $("#KmSourc__KMReviewConfirm__OthAddressColumn_li").find("label").html('<span class="ett-para pri fs12">' + getAddressLabel(appPresent.addressSameAs) + ' </span><br>' + formattedPresentAddress); // chinna updated 09/06/2026
+    } else {
+        $("#KmSourc__KMReviewConfirm__OthAddressColumn_li").find("label").text("Other address (If needed)");
+    }
+
+    if (appPermanent.addressSameAs !== values?.Other) {
+        var formattedPermanentAddress = [
+            appPermanent.addressLine1,
+            appPermanent.addressLine2,
+            appPermanent.addressLine3,
+            appPermanent.district,
+            appPermanent.city,
+            appPermanent.pinCode,
+            appPermanent.state,
+            appPermanent.country
+        ].filter(Boolean).join(", ");
+        //$("#KmSourc__KMReviewConfirm__secondResiAddress_li").find("label").text(formattedPermanentAddress);
+        $("#KmSourc__KMReviewConfirm__secondResiAddress_li").find("label").html('<span class="ett-para pri fs12">' + getAddressLabel(appPermanent.addressSameAs) + ' </span><br>' + formattedPermanentAddress); // Chinna updated this 09/06/2026
+    } else {
+        $("#KmSourc__KMReviewConfirm__secondResiAddress_li").find("label").text("Other address (If needed)");
+    }
+
+    // Present address (repeated under Adh section)
+    set('KmSourc__KMReviewConfirm__presentAddressLine1Adh_txtcnt', appPresent.addressLine1);
+    set('KmSourc__KMReviewConfirm__presentAddressLine2Adh_txtcnt', appPresent.addressLine2);
+    set('KmSourc__KMReviewConfirm__presentAddressLine3Adh_txtcnt', appPresent.addressLine3);
+    set('KmSourc__KMReviewConfirm__presentPincodeAdh_txtcnt', appPresent.pinCode);
+    set('KmSourc__KMReviewConfirm__presentCityOrTownAdh_txtcnt', appPresent.city);
+    set('KmSourc__KMReviewConfirm__presentDistrictAdh_txtcnt', appPresent.district);
+    set('KmSourc__KMReviewConfirm__presentStateAdh_txtcnt', appPresent.state);
+    set('KmSourc__KMReviewConfirm__presentAdressProofAdh_txtcnt', appPresent.currentAddressProof);
+
+    // Permanent address
+    set('KmSourc__KMReviewConfirm__permanentAddLine1Adh_txtcnt', appPermanent.addressLine1);
+    set('KmSourc__KMReviewConfirm__permanentAddLine2Adh_txtcnt', appPermanent.addressLine2);
+    set('KmSourc__KMReviewConfirm__permanentAddLine3Adh_txtcnt', appPermanent.addressLine3);
+    set('KmSourc__KMReviewConfirm__permanentPincodeAdh_txtcnt', appPermanent.pinCode);
+    set('KmSourc__KMReviewConfirm__permanentCityOrTownAdh_txtcnt', appPermanent.city);
+    set('KmSourc__KMReviewConfirm__permanentDistrictAdh_txtcnt', appPermanent.district);
+    set('KmSourc__KMReviewConfirm__permanentStateAdh_txtcnt', appPermanent.state);
+    set('KmSourc__KMReviewConfirm__permanentAddressProofAdh_txtcnt', appPermanent.currentAddressProof);
+
+    // chinna changes start from here 02/06/2026
+    const communicationAddr = appPersonal?.payload?.addressList?.find(
+        addr => addr?.addressType === "Communication");
+    const communicationAddressSameAs = communicationAddr?.addressSameAs;
+    console.log("communicationAddressSameAs", communicationAddressSameAs);
+    // Chinna changes end here 02/06/2026
+    set('KmSourc__KMReviewConfirm__cummAddressSameAdh_txtcnt', communicationAddressSameAs + " " + "address"); // Chinna Updated this 02/06/2026
+    //set('KmSourc__KMReviewConfirm__cummAddressSameAdh_txtcnt', window.selectedCommunicationAddress); // chinna added comment communication address doc
+    set('KmSourc__KMReviewConfirm__resStabilityCityAdh_txtcnt', appPresent.residenceCitySince);
+    set('KmSourc__KMReviewConfirm__resStabilityInAddressAdh_txtcnt', appPresent.residenceAddressSince);
+    set('KmSourc__KMReviewConfirm__typeOfHouseAdh_txtcnt', appPresent.houseType);
+    set('KmSourc__KMReviewConfirm__residentailStatusAdh_txtcnt', appPresent.residenceOwnership);
+
+    // ════════════════════════════════════════════════════════════════════════
+    // CO-APPLICANT – Basic / KYC
+    // ════════════════════════════════════════════════════════════════════════
+    set('KmSourc__KMReviewConfirm__selectedCoAppTxt', coAppNameAndRelation);
+    set('KmSourc__KMReviewConfirm__coPrimaryMobileNoTxt_txtcnt', "+91 " + coap?.mobileNumber);
+    set('KmSourc__KMReviewConfirm__coSecondarymobileNoTxt_txtcnt', "+91 " + coap?.payload?.secMobileNo);
+    set('KmSourc__KMReviewConfirm__coReqLoaAmtTxt_txtcnt', loan.loanAmount);
+    set('KmSourc__KMReviewConfirm__coPurposeOfLoanTxt_txtcnt', lp.loanPurpose);
+    set('KmSourc__KMReviewConfirm__coSubPurposeTxt_txtcnt', lp.subCategory);
+    set('KmSourc__KMReviewConfirm__coFrequencyOfRepaymentTxt_txtcnt', lp.frequencyOfRepayment);
+    set('KmSourc__KMReviewConfirm__coNameAsPerVoterIDTxt_txtcnt', coap?.payload?.namePerKyc);
+    set('KmSourc__KMReviewConfirm__coVoterIdTxt_txtcnt', coap?.payload?.primaryKycId);
+    set('KmSourc__KMReviewConfirm__coAlternativeVoterIdTxt_txtcnt', coap?.payload?.alternateVoterId);
+    set('KmSourc__KMReviewConfirm__coCKYCTxt_txtcnt', coap?.payload?.ckyc);
+    set('KmSourc__KMReviewConfirm__coCoAppNameTxt_txtcnt', coap?.customerName);
+    set('KmSourc__KMReviewConfirm__coRelationWithAppTxt_txtcnt', coap?.payload?.relationShipWithApplicant);
+    set('KmSourc__KMReviewConfirm__coGender_txtcnt', coap?.payload?.gender);
+    set('KmSourc__KMReviewConfirm__coDOBTxt_txtcnt', ApzCOB.convertDateFormat(coap?.payload?.dob, 'dd/mm/yyyy'));
+    set('KmSourc__KMReviewConfirm__coAgeTxt_txtcnt', coap?.payload?.age);
+    //set('KmSourc__KMReviewConfirm__coMemberIdTxt_txtcnt', cbC?.memberId);
+    set('KmSourc__KMReviewConfirm__coMemberIdTxt_txtcnt', '---');
+
+    // Co-app – Present address
+    set('KmSourc__KMReviewConfirm__coAddLine1Txt_txtcnt', coapPresent.addressLine1);
+    set('KmSourc__KMReviewConfirm__coAddLine2Txt_txtcnt', coapPresent.addressLine2);
+    set('KmSourc__KMReviewConfirm__coAddLine3Txt_txtcnt', coapPresent.addressLine3);
+    set('KmSourc__KMReviewConfirm__coPincode_txtcnt', coapPresent.pinCode);
+    set('KmSourc__KMReviewConfirm__coCityOrTownOrVillage_txtcnt', coapPresent.city);
+    set('KmSourc__KMReviewConfirm__coDistrictTxt_txtcnt', coapPresent.district);
+    set('KmSourc__KMReviewConfirm__coStateTxt_txtcnt', coapPresent.state);
+
+    // Co-app – PAN
+    if(!apz.isNull(coap)){
+    set('KmSourc__KMReviewConfirm__coDoHavePanTxt_txtcnt', ['y', 'yes'].includes((coap?.payload?.panNumberValue || '').toLowerCase()) ? 'Yes' : 'No');
+    set('KmSourc__KMReviewConfirm__coPANNumberTxt_txtcnt', coap?.payload?.panNumber);
+    set('KmSourc__KMReviewConfirm__coNameAsPerPANTxt_txtcnt', coap?.payload?.namePerPan);
+
+    if (!(['y', 'yes'].includes(coap.payload?.panNumberValue?.toLowerCase()))) {
+        $("#KmSourc__KMReviewConfirm__cpAppPanNum").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppNameAsPerPan").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppPanDocBlock").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppPanDocInsideBlock").addClass("sno"); // chinna added
+    } else {
+        $("#KmSourc__KMReviewConfirm__cpAppPanNum").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppNameAsPerPan").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppPanDocBlock").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppPanDocInsideBlock").removeClass("sno");  // Chinna added
+    }
+    }
+
+    // Co-app – Loan / CB
+     if(!apz.isNull(cbC) && !apz.isObjectEmpty(cbC)){
+    let isApprovedforCo = (cbC?.finalDecision || "").includes("Approved");
+    set('KmSourc__KMReviewConfirm__coRequestedLoan_Txt_txtcnt', loan?.loanAmount);
+    set('KmSourc__KMReviewConfirm__coLoanTenure_Txt_txtcnt', loan?.tenure);
+    set('KmSourc__KMReviewConfirm__coRoi_Txt_txtcnt', cbC?.roi);
+    set('KmSourc__KMReviewConfirm__coLastCBDateTxt_txtcnt',
+        formatDate(s.cibilDetailsWrapperList?.find(w => w.cibilDetails.custDtlId === coap?.custDtlId)?.cibilDetails?.cbDate));
+    set('KmSourc__KMReviewConfirm__coLastCBStatusTxt_txtcnt',
+        s.cibilDetailsWrapperList?.find(w => w.cibilDetails.custDtlId === coap?.custDtlId)?.cibilDetails?.cbStatus);
+    set('KmSourc__KMReviewConfirm__coBureaNameTxt_txtcnt', cbC?.bureauName);
+    set('KmSourc__KMReviewConfirm__coHitOrNoHitTxt_txtcnt', cbC?.irisMessage);
+    set('KmSourc__KMReviewConfirm__coCBScoreTxt_txtcnt', cbC?.cbScore);
+    set('KmSourc__KMReviewConfirm__coTotalIndebtnessTxt_txtcnt', splitCb(cbC?.totIndebtness));
+    set('KmSourc__KMReviewConfirm__coSuitFilledTxt_txtcnt', splitCb(cbC?.writeoffSuitFiledFlag));
+    set('KmSourc__KMReviewConfirm__coOverdueAmountTxt_txtcnt', splitCb(cbC?.overdueAmt));
+    set('KmSourc__KMReviewConfirm__coWrittenOffAmountTxt_txtcnt', splitCb(cbC?.writeOffAmt));
+    set('KmSourc__KMReviewConfirm__coRunningEMITxt_txtcnt', cbC?.foir);
+    set('KmSourc__KMReviewConfirm__coCAGLDPDTxt_txtcnt', splitCb(cbC?.caglUnnatiFlag));
+    // set('KmSourc__KMReviewConfirm__coUnnatiDecisionTxt_txtcnt', cbC?.finalDecision);
+    // set('KmSourc__KMReviewConfirm__coUnnatiDecisionTxt_txtcnt', window?.CO_APPLICANT_CIBIL_STATUS ? 'Pass' : 'Fail');   
+    set('KmSourc__KMReviewConfirm__coSelectPrdTxt_txtcnt', cbC?.appliedLoanCode);
+    if(product_code === "1009"){
+    set('KmSourc__KMReviewConfirm__coUnnatiDecisionTxt_txtcnt', cbCopplicantStatus);
+    set('KmSourc__KMReviewConfirm__coUnnatiDecisionReasonTxt_txtcnt', isApprovedforCo ? 'Approved': cbC?.rejectionReason || "-"); 
+    set('KmSourc__KMReviewConfirm__coUnnatiAprAmtTxt_txtcnt', cbC?.eligibleAmt); 
+     $("#KmSourc__KMReviewConfirm__sc_row_1848").addClass("sno");
+      $("#KmSourc__KMReviewConfirm__sc_row_1851").addClass("sno");
+       $("#KmSourc__KMReviewConfirm__sc_row_1867").addClass("sno");
+    }else if(product_code === "1003"){
+     $("#KmSourc__KMReviewConfirm__sc_row_1842").addClass("sno");
+      $("#KmSourc__KMReviewConfirm__sc_row_1845").addClass("sno");
+       $("#KmSourc__KMReviewConfirm__sc_row_1864").addClass("sno");
+    set('KmSourc__KMReviewConfirm__coVisheshDecisionTxt_txtcnt', cbCopplicantStatus);
+    set('KmSourc__KMReviewConfirm__coVisheshDecisionReasonTxt_txtcnt', isApprovedforCo ? 'Approved': cbC?.rejectionReason || "-");
+    set('KmSourc__KMReviewConfirm__coVisheshAprdAmtTxt_txtcnt', cbC?.eligibleAmt);
+    }else{
+    set('KmSourc__KMReviewConfirm__coUnnatiDecisionTxt_txtcnt', cbCopplicantStatus);
+    set('KmSourc__KMReviewConfirm__coUnnatiDecisionReasonTxt_txtcnt', isApprovedforCo ? 'Approved': cbC?.rejectionReason || "-");    
+    set('KmSourc__KMReviewConfirm__coUnnatiAprAmtTxt_txtcnt', cbC?.eligibleAmt);
+    set('KmSourc__KMReviewConfirm__coVisheshDecisionTxt_txtcnt', cbC?.visheshDecision);
+    set('KmSourc__KMReviewConfirm__coVisheshDecisionReasonTxt_txtcnt', cbC?.visheshDecisionReason);
+    set('KmSourc__KMReviewConfirm__coVisheshAprdAmtTxt_txtcnt', cbC?.visheshApprovedAmt);
+    }
+    }
+    
+    if(!apz.isNull(coap)){
+    set('KmSourc__KMReviewConfirm__coAadhareNoAdh_txtcnt', coap?.payload?.secondaryKycId);
+    set('KmSourc__KMReviewConfirm__coNamePerAadharAdh_txtcnt', coap?.payload?.secondaryKycName);
+    set('KmSourc__KMReviewConfirm__coDOBAdh_txtcnt', coap?.payload?.secondaryKycDob);
+    // Co-app additional personal info
+    set('KmSourc__KMReviewConfirm__coMaritalStatusAdh_txtcnt', coap?.payload?.maritalStatus);
+    set('KmSourc__KMReviewConfirm__coFatherNameAdh_txtcnt', coap?.payload?.fathersName);
+    set('KmSourc__KMReviewConfirm__coSpouseNameAdh_txtcnt', coap?.payload?.spouseName);
+    set('KmSourc__KMReviewConfirm__coEducationAdh_txtcnt', coap?.payload?.education);
+    set('KmSourc__KMReviewConfirm__coReligionAdh_txtcnt', coap?.payload?.religion);
+    set('KmSourc__KMReviewConfirm__coCasteAdh_txtcnt', coap?.payload?.caste);
+    set('KmSourc__KMReviewConfirm__coRelationWithAppAdh_txtcnt', coap?.payload?.relationShipWithApplicant);
+    }
+    
+    // Co-app Aadhaar address
+     if(!apz.isNull(coapSecKyc)){
+    set('KmSourc__KMReviewConfirm__coAddLine1Adh_txtcnt', coapSecKyc?.addressLine1);
+    set('KmSourc__KMReviewConfirm__coAddLine2Adh_txtcnt', coapSecKyc?.addressLine2);
+    set('KmSourc__KMReviewConfirm__coAddLine3Adh_txtcnt', coapSecKyc?.addressLine3);
+    set('KmSourc__KMReviewConfirm__coPincodeAdh_txtcnt', coapSecKyc?.pinCode);
+    set('KmSourc__KMReviewConfirm__coCityOrTownAdh_txtcnt', coapSecKyc?.city);
+    set('KmSourc__KMReviewConfirm__coDistrictAdh_txtcnt', coapSecKyc?.district);
+    set('KmSourc__KMReviewConfirm__coStateAdh_txtcnt', coapSecKyc?.state);
+     }
+    
+    //set('KmSourc__KMReviewConfirm__coRelationProofAdh_txtcnt', '---');  // not in data model
+
+    const relationProofDoc = s?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList?.find(item => item.custDtlId === coap?.custDtlId && item
+        .payload.documentType === values?.relationshipProof);
+    set('KmSourc__KMReviewConfirm__coRelationProofAdh_txtcnt', relationProofDoc?.payload?.documentFileName || '---');
+
+    // ════════════════════════════════════════════════════════════════════════
+    // BUSINESS / INCOME
+    // ════════════════════════════════════════════════════════════════════════
+    //  const dairy = biz.dairy?.[0] ?? {};
+    //  const tailoring = biz.Tailoring?.[0] ?? {};
+    //  const kirana = biz.Kirana?.[0] ?? {};
+
+    //  set('KmSourc__KMReviewConfirm__ownedByBis_txtcnt', dairy.DairyType);
+    //  set('KmSourc__KMReviewConfirm__netBusinessIncomeBis_txtcnt', dairy.netMonthlyIncome);
+    //  set('KmSourc__KMReviewConfirm__isStreetVendorBis_txtcnt', kirana.streetVendor);
+    //  set('KmSourc__KMReviewConfirm__otherLineOfBusinessBis_txtcnt', kirana.kiranaShopType);
+
+    // Kirana office address (from Occupation addressType block)
+    //  const appOccupation = getBlock(app.custDtlId, 'Occupation');
+    //  const bizAddr = appOccupation?.payload?.addressList?.[0] ?? {};
+    //  set('KmSourc__KMReviewConfirm__addressLine1Bis_txtcnt', bizAddr.addressLine1);
+    //  set('KmSourc__KMReviewConfirm__addressLine2Bis_txtcnt', bizAddr.addressLine2);
+    //  set('KmSourc__KMReviewConfirm__addressLine3Bis_txtcnt', bizAddr.addressLine3);
+    //  set('KmSourc__KMReviewConfirm__pincodeBis_txtcnt', bizAddr.pinCode);
+    //  set('KmSourc__KMReviewConfirm__cityOrTownBis_txtcnt', bizAddr.city);
+    //  set('KmSourc__KMReviewConfirm__districtBis_txtcnt', bizAddr.district);
+    //  set('KmSourc__KMReviewConfirm__stateBis_txtcnt', bizAddr.state);
+    //  set('KmSourc__KMReviewConfirm__AddressProofBis_txtcnt', bizAddr.currentAddressProof);
+
+    //  set('KmSourc__KMReviewConfirm__secondOwnedByBis_txtcnt', tailoring.tailoringType);
+    //  set('KmSourc__KMReviewConfirm__secondNetIncomeBis_txtcnt', tailoring.netMonthlyIncome);
+
+    //  let hasAppAgr = inc.agriculture?.applicant?.declaredIncome != null;
+    //  let hasCoAgr = inc.agriculture?.coApplicant?.declaredIncome != null;
+    //  let  = hasAppAgr && hasCoAgr ? "Both" : hasAppAgr ? "Applicant" : hasCoAgr ? "CoApplicant" : "---"
+    let getType = (section) => {
+        let hasApp = inc?.[section]?.applicant != null;
+        let hasCo = inc?.[section]?.coApplicant != null;
+        return hasApp && hasCo ? "Both" : hasApp ? "Applicant" : hasCo ? "coApplicant" : "null";
+    };
+    let agricultureType = getType("agriculture");
+    let salaryType = getType("salary");
+    let wageType = getType("wage");
+    let pensionType = getType("pension");
+    let rentalIncomeType = getType("rentalIncome");
+
+    if (agricultureType !== "null") {
+        $("#KmSourc__KMReviewConfirm__agricultureRowBis").removeClass("sno");
+        set('KmSourc__KMReviewConfirm__agrOwnedByBis_txtcnt', agricultureType);
+        if (agricultureType === "Both") {
+            $("#KmSourc__KMReviewConfirm__aprAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__aprAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__agrNetIncomeMonthBisApp_txtcnt', inc.agriculture?.applicant?.declaredIncome);
+            $("#KmSourc__KMReviewConfirm__aprCoAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__aprCoAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__agrNetIncomeMonthBisCoApp_txtcnt', inc.agriculture?.coApplicant?.declaredIncome);
+        } else if (agricultureType === "Applicant") {
+            $("#KmSourc__KMReviewConfirm__aprAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__aprAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__agrNetIncomeMonthBisApp_txtcnt', inc.agriculture?.applicant?.declaredIncome);
+
+        } else if (agricultureType === "coApplicant") {
+            $("#KmSourc__KMReviewConfirm__aprCoAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__aprCoAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__agrNetIncomeMonthBisCoApp_txtcnt', inc.agriculture?.coApplicant?.declaredIncome);
+
+        }
+    }
+    if (salaryType !== "null") {
+        $("#KmSourc__KMReviewConfirm__salaryRowBis").removeClass("sno");
+        set('KmSourc__KMReviewConfirm__salaryEarnedByBis_txtcnt', salaryType);
+        if (salaryType === "Both") {
+            $("#KmSourc__KMReviewConfirm__salAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__salAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__salaryNetIncomeBisApp_txtcnt', inc.salary?.applicant?.netSalary);
+            $("#KmSourc__KMReviewConfirm__salCoAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__salCoAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__salaryNetIncomeBisCoApp_txtcnt', inc.salary?.coApplicant?.netSalary);
+        } else if (salaryType === "Applicant") {
+            $("#KmSourc__KMReviewConfirm__salAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__salAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__salaryNetIncomeBisApp_txtcnt', inc.salary?.applicant?.netSalary);
+        } else if (salaryType === "coApplicant") {
+            $("#KmSourc__KMReviewConfirm__salCoAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__salCoAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__salaryNetIncomeBisCoApp_txtcnt', inc.salary?.coApplicant?.netSalary);
+        }
+    }
+    if (wageType !== "null") {
+        $("#KmSourc__KMReviewConfirm__wageRowBis").removeClass("sno");
+        set('KmSourc__KMReviewConfirm__wageEarnedByBis_txtcnt', wageType);
+        if (wageType === "Both") {
+            $("#KmSourc__KMReviewConfirm__wageAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__wageAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__appTotalWageMonthBis_txtcnt', inc.wage?.applicant?.other?.selfDeclaredWage);
+            $("#KmSourc__KMReviewConfirm__wageCoAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__wageCoAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__coAppTotalWagePerMonthBis_txtcnt', inc.wage?.coApplicant?.other?.selfDeclaredWage);
+        } else if (wageType === "Applicant") {
+            $("#KmSourc__KMReviewConfirm__wageAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__wageAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__appTotalWageMonthBis_txtcnt', inc.wage?.applicant?.other?.selfDeclaredWage);
+        } else if (wageType === "coApplicant") {
+            $("#KmSourc__KMReviewConfirm__wageCoAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__wageCoAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__coAppTotalWagePerMonthBis_txtcnt', inc.wage?.coApplicant?.other?.selfDeclaredWage);
+        }
+    }
+    if (pensionType !== "null") {
+        $("#KmSourc__KMReviewConfirm__pensionRowBis").removeClass("sno");
+        set('KmSourc__KMReviewConfirm__pensionEarnedByBis_txtcnt', pensionType);
+        if (pensionType === "Both") {
+            $("#KmSourc__KMReviewConfirm__pensionAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__pensionAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__appPensionMonthBis_txtcnt', inc.pension?.applicant?.applicantPensionIncome);
+            $("#KmSourc__KMReviewConfirm__pensionCoAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__pensionCoAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__coAppPensionMonthBis_txtcnt', inc.pension?.coApplicant?.coApplicantPensionIncome);
+        } else if (pensionType === "Applicant") {
+            $("#KmSourc__KMReviewConfirm__pensionAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__pensionAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__appPensionMonthBis_txtcnt', inc.pension?.applicant?.applicantPensionIncome);
+        } else if (pensionType === "coApplicant") {
+            $("#KmSourc__KMReviewConfirm__pensionCoAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__pensionCoAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__coAppPensionMonthBis_txtcnt', inc.pension?.coApplicant?.coApplicantPensionIncome);
+        }
+    }
+    if (rentalIncomeType !== "null") {
+        $("#KmSourc__KMReviewConfirm__rentalIncomeRowBis").removeClass("sno");
+        set('KmSourc__KMReviewConfirm__rentalEarnedByBis_txtcnt', rentalIncomeType);
+        if (rentalIncomeType === "Both") {
+            $("#KmSourc__KMReviewConfirm__rentalAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__rentalAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__appRentalMonthBis_txtcnt', inc.rentalIncome?.applicant?.monthlyRentalIncome);
+            $("#KmSourc__KMReviewConfirm__rentalCoAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__rentalCoAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__coAppRentalMonthBis_txtcnt', inc.rentalIncome?.coApplicant?.monthlyRentalIncome);
+        } else if (rentalIncomeType === "Applicant") {
+            $("#KmSourc__KMReviewConfirm__rentalAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__rentalAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__appRentalMonthBis_txtcnt', inc.rentalIncome?.applicant?.monthlyRentalIncome);
+        } else if (rentalIncomeType === "coApplicant") {
+            $("#KmSourc__KMReviewConfirm__rentalCoAppLbl").removeClass("sno");
+            $("#KmSourc__KMReviewConfirm__rentalCoAppRow").removeClass("sno");
+            set('KmSourc__KMReviewConfirm__coAppRentalMonthBis_txtcnt', inc.rentalIncome?.coApplicant?.monthlyRentalIncome);
+        }
+    }
+    // let getType = (section) => {
+    //     let hasApp = inc?.[section]?.applicant != null;
+    //     let hasCo = inc?.[section]?.coApplicant != null;
+    //     return hasApp && hasCo ? "Both" : hasApp ? "Applicant" : hasCo ? "CoApplicant" : "---";
+    // };
+
+    // set('KmSourc__KMReviewConfirm__agrOwnedByBis_txtcnt', getType("agriculture"));
+    // set('KmSourc__KMReviewConfirm__agrNetIncomeMonthBisApp_txtcnt', inc.agriculture?.applicant?.declaredIncome);
+    // set('KmSourc__KMReviewConfirm__agrNetIncomeMonthBisCoApp_txtcnt', inc.agriculture?.coApplicant?.declaredIncome);
+
+    // set('KmSourc__KMReviewConfirm__salaryEarnedByBis_txtcnt', getType("salary"));
+    // set('KmSourc__KMReviewConfirm__salaryNetIncomeBisApp_txtcnt', inc.salary?.applicant?.netSalary);
+    // set('KmSourc__KMReviewConfirm__salaryNetIncomeBisCoApp_txtcnt', inc.salary?.coApplicant?.netSalary);
+
+
+    // set('KmSourc__KMReviewConfirm__wageEarnedByBis_txtcnt', getType("wage"));
+    // set('KmSourc__KMReviewConfirm__appTotalWageMonthBis_txtcnt', inc.wage?.applicant?.other?.selfDeclaredWage);
+    // set('KmSourc__KMReviewConfirm__coAppTotalWagePerMonthBis_txtcnt', inc.wage?.coApplicant?.other?.selfDeclaredWage);
+
+    // set('KmSourc__KMReviewConfirm__pensionEarnedByBis_txtcnt', getType("pension"));
+    // set('KmSourc__KMReviewConfirm__appPensionMonthBis_txtcnt', inc.pension?.applicant?.applicantPensionIncome);
+    // set('KmSourc__KMReviewConfirm__coAppPensionMonthBis_txtcnt', inc.pension?.coApplicant?.coApplicantPensionIncome);
+
+
+    // set('KmSourc__KMReviewConfirm__rentalEarnedByBis_txtcnt', getType("rentalIncome"));
+    // set('KmSourc__KMReviewConfirm__appRentalMonthBis_txtcnt', inc.rentalIncome?.applicant?.monthlyRentalIncome);
+    // set('KmSourc__KMReviewConfirm__coAppRentalMonthBis_txtcnt', inc.rentalIncome?.coApplicant?.monthlyRentalIncome);
+
+
+    // Income summary section
+    //  set('KmSourc__KMReviewConfirm__bus1IncomeOwnedByBis', dairy.DairyType);
+    //  set('KmSourc__KMReviewConfirm__bus1IncomeBis', dairy.netMonthlyIncome);
+    //  set('KmSourc__KMReviewConfirm__bus2IncomeOwnedByBis', tailoring.tailoringType);
+    //  set('KmSourc__KMReviewConfirm__bus2IncomeBis', tailoring.netMonthlyIncome);
+    //  set('KmSourc__KMReviewConfirm__otherAgrIncomeBis', inc.totalAgricultureSelfDeclaredIncome);
+    //  set('KmSourc__KMReviewConfirm__otherSalIncomeBis', inc.salary?.coApplicant?.netSalary);
+    //  set('KmSourc__KMReviewConfirm__otherPensionIncomeBis', inc.totalPensionSelfDeclaredIncome);
+    //  set('KmSourc__KMReviewConfirm__otherRentalIncomeBis', inc.totalRentalSelfDeclaredIncome);
+    //  set('KmSourc__KMReviewConfirm__totalNetMonthBis', inc.totalDeclaredIncome); 
+};
+function formatDate(cbDate) {
+    if (!cbDate) return '';
+    const d = new Date(cbDate);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+apz.app.KMReviewConfirm.paintDataForOtherInformation = function () {
+    //ApzCOB.FetchApplication();
+    var req = {
+        //bankDetails: {},
+        newBankDetails: inSessionStore?.bankDetailsWrapperList?.[0]?.bankDetails?.payload ?? [],
+        insuranceDetails: inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Applicant")?.insuranceDetails?.payload ?? [],
+        appNomineeDetails: inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Applicant")?.insuranceDetails?.payload ?? [],
+        coAppNomineeDetails: inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Co-App")?.insuranceDetails?.payload ?? [],
+        custCoAppNomineeDetails: inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload ?? [],
+        amlQuestionnaireDetails: inSessionStore?.amlQuestion?.payload?.amlQuestionList ?? []
+    };
+    apz.data.scrdata.KmSourc__OtherInfoData_Req = req;
+    apz.data.loadData("OtherInfoData", "KmSourc");
+    apz.app.KMReviewConfirm.paintAMLResponses();
+    document.head.insertAdjacentHTML("beforeend", "<style>.aml-lst .aml-opt-row .etb-rdio::after{display:none!important;}</style>");
+    // $(".scb-col65").css("width", "15%");
+    $(".aml-lst .aml-opt-row .scb-col35.opt-col").each(function () {
+        this.style.setProperty("padding", "0", "important");
+    });
+    $("[id='KmSourc__KMReviewConfirm__sc_row_3307_row']").css({
+        "padding-top": "15px",
+        "padding-bottom": "15px"
+    });
+    let insessionBankDetails = inSessionStore?.bankDetailsWrapperList?.[0]?.bankDetails?.payload ?? []
+    let insTypeFromSession =
+        inSessionStore?.insuranceDetailsWrapperList?.find(
+            item => item?.insuranceDetails?.insuranceType
+        )?.insuranceDetails?.insuranceType;
+    let hasCustNominee = inSessionStore.insuranceDetailsWrapperList?.some(
+        item => item.insuranceDetails?.insuredCustType === "Cust-Nominee"
+    );
+    let loanAmount = inSessionStore.insuranceDetailsWrapperList
+        ?.find(item => item.insuranceDetails?.payload?.loanAmount?.trim())
+        ?.insuranceDetails?.payload?.loanAmount || "---";
+    let insurerName = inSessionStore.insuranceDetailsWrapperList
+        ?.find(item => item.insuranceDetails?.payload?.insurerName?.trim())
+        ?.insuranceDetails?.payload?.insurerName || "---";
+    let insurancePremium = inSessionStore.insuranceDetailsWrapperList
+        ?.find(item => item.insuranceDetails?.payload?.insurancePremium?.trim())
+        ?.insuranceDetails?.payload?.insurancePremium || "---";
+
+    apz.setElmValue("KmSourc__OtherInfoData__i__insuranceDetails__loanAmount_txtcnt", loanAmount == null ? '' : (loanAmount > 200000 ? 200000 : loanAmount))
+    apz.setElmValue("KmSourc__OtherInfoData__i__insuranceDetails__insurerName_txtcnt", insurerName)
+    apz.setElmValue("KmSourc__OtherInfoData__i__insuranceDetails__insurancePremium_txtcnt", insurancePremium)
+    apz.setElmValue("KmSourc__OtherInfoData__i__insuranceDetails__insuranceType_txtcnt", insTypeFromSession)
+
+    if (insTypeFromSession === "bothInsurance") {
+        $("#KmSourc__KMReviewConfirm__jointInsuranceNoteRC").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__applicantInsuranceNoteRC").addClass("sno");
+
+        $("#KmSourc__KMReviewConfirm__appLblIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__appNomineeIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__appGenderIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__appDOBIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__appAgeIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__appRelationshipIns").removeClass("sno");
+
+        $("#KmSourc__KMReviewConfirm__coAppLblIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppNameOfInsurerIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppGenderIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppDobIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppAgeIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppRelationshipIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__custReasonAppIns").addClass("sno");
+        let appNomineeDob =
+            inSessionStore?.insuranceDetailsWrapperList?.find(
+                item => item?.insuranceDetails?.insuredCustType === "Applicant"
+            )?.insuranceDetails?.payload?.nomineeDob ?? '';
+        apz.setElmValue("KmSourc__OtherInfoData__i__appNomineeDetails__nomineeDob_txtcnt", apz.app.KMReviewConfirm.fnDateFormat(appNomineeDob));
+        let coAppNomineeDob =
+            inSessionStore?.insuranceDetailsWrapperList?.find(
+                item => item?.insuranceDetails?.insuredCustType === "Co-App"
+            )?.insuranceDetails?.payload?.nomineeDob ?? '';
+        apz.setElmValue("KmSourc__OtherInfoData__i__coAppNomineeDetails__nomineeDob_txtcnt", apz.app.KMReviewConfirm.fnDateFormat(coAppNomineeDob));
+        apz.setElmValue("KmSourc__OtherInfoData__i__insuranceDetails__insuranceType_txtcnt", "Both insurance")
+        $("#KmSourc__KMReviewConfirm__applicantInsCoLabel").addClass("sno");
+    }
+    if (insTypeFromSession === "applicant") {
+        $("#KmSourc__KMReviewConfirm__jointInsuranceNoteRC").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__applicantInsuranceNoteRC").removeClass("sno");
+
+        $("#KmSourc__KMReviewConfirm__coAppLblIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppNameOfInsurerIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppGenderIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppDobIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppAgeIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppRelationshipIns").addClass("sno");
+        let appNomineeDob =
+            inSessionStore?.insuranceDetailsWrapperList?.find(
+                item => item?.insuranceDetails?.insuredCustType === "Applicant"
+            )?.insuranceDetails?.payload?.nomineeDob ?? '';
+        apz.setElmValue("KmSourc__OtherInfoData__i__appNomineeDetails__nomineeDob_txtcnt", apz.app.KMReviewConfirm.fnDateFormat(appNomineeDob));
+        let reason = inSessionStore.insuranceDetailsWrapperList
+            ?.find(item => item.insuranceDetails?.insuranceType === "applicant")
+            ?.insuranceDetails?.payload?.reason;
+        let otherReasonValue = inSessionStore.insuranceDetailsWrapperList
+            ?.find(
+                item =>
+                    item.insuranceDetails?.insuranceType === "applicant" &&
+                    item.insuranceDetails?.payload?.otherReason?.trim()
+            )?.insuranceDetails?.payload?.otherReason;
+        let combinedReason = [reason, otherReasonValue ? `- ${otherReasonValue}` : ""].filter(Boolean).join(" ");
+        apz.setElmValue("KmSourc__OtherInfoData__i__insuranceDetails__reasonforNotOpting_txtcnt", combinedReason);
+        $("#KmSourc__KMReviewConfirm__applicantInsCoLabel").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__custReasonAppIns").removeClass("sno");
+    }
+    if (insTypeFromSession === "noInsurance") {
+        $("#KmSourc__KMReviewConfirm__jointInsuranceNoteRC").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__applicantInsuranceNoteRC").addClass("sno");
+
+        $("#KmSourc__KMReviewConfirm__appLblIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__appNomineeIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__appGenderIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__appDOBIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__appAgeIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__appRelationshipIns").addClass("sno");
+
+        $("#KmSourc__KMReviewConfirm__coAppLblIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppNameOfInsurerIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppGenderIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppDobIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppAgeIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppRelationshipIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__applicantInsCoLabel").addClass("sno");
+        let reason = inSessionStore.insuranceDetailsWrapperList
+            ?.find(item => item.insuranceDetails?.insuranceType === "noInsurance")
+            ?.insuranceDetails?.payload?.reason;
+        let otherReasonValue = inSessionStore.insuranceDetailsWrapperList
+            ?.find(
+                item =>
+                    item.insuranceDetails?.insuranceType === "noInsurance" &&
+                    item.insuranceDetails?.payload?.otherReason?.trim()
+            )?.insuranceDetails?.payload?.otherReason;
+        let combinedReason = [reason, otherReasonValue ? `- ${otherReasonValue}` : ""].filter(Boolean).join(" ");
+        apz.setElmValue("KmSourc__OtherInfoData__i__insuranceDetails__reasonforNotOpting_txtcnt", combinedReason);
+        $("#KmSourc__KMReviewConfirm__custReasonAppIns").removeClass("sno");
+        apz.setElmValue("KmSourc__OtherInfoData__i__insuranceDetails__insuranceType_txtcnt", "No insurance")
+        apz.setElmValue("KmSourc__OtherInfoData__i__insuranceDetails__loanAmount_txtcnt", "---")
+    }
+    //if (!(req?.custCoAppNomineeDetails && req?.custCoAppNomineeDetails?.nomineeName)) {
+    if (!hasCustNominee) {
+        $("#KmSourc__KMReviewConfirm__custNElement").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__custNomIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__custNGender").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__custdateofbrtnominee").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__custAgeofnominee").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__custRelationnom").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__custNomineenum").addClass("sno");
+        //$("#KmSourc__KMReviewConfirm__custReasonAppIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__custNomDoc").addClass("sno");
+    } else {
+        $("#KmSourc__KMReviewConfirm__custNElement").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__custNomIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__custNGender").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__custdateofbrtnominee").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__custAgeofnominee").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__custRelationnom").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__custNomineenum").removeClass("sno");
+        //$("#KmSourc__KMReviewConfirm__custReasonAppIns").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__custNomDoc").removeClass("sno");
+        // new insurance CR
+        $("#KmSourc__KMReviewConfirm__appLblIns").addClass("sno"); 
+        $("#KmSourc__KMReviewConfirm__appNomineeIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__appGenderIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__appDOBIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__appAgeIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__appRelationshipIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppLblIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppNameOfInsurerIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppGenderIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppDobIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppAgeIns").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__coAppRelationshipIns").addClass("sno");
+
+        let custNomineeDob =
+            inSessionStore?.insuranceDetailsWrapperList?.find(
+                item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee"
+            )?.insuranceDetails?.payload?.nomineeDob ?? '';
+        apz.setElmValue("KmSourc__OtherInfoData__i__custCoAppNomineeDetails__nomineeDob_txtcnt", apz.app.KMReviewConfirm.fnDateFormat(custNomineeDob));
+    }
+
+    apz.setElmValue("KmSourc__OtherInfoData__i__custCoAppNomineeDetails__mobileNumber_txtcnt", "+91 " + inSessionStore?.insuranceDetailsWrapperList?.find(item => item?.insuranceDetails?.insuredCustType === "Cust-Nominee")?.insuranceDetails?.payload?.mobileNumber ?? "---");
+    let BankDetailsData = inSessionStore?.leadDetails || inSessionStore?.renewalLeadDetails || inSessionStore?.cdhLeadDetails || '';
+    // old lead data approach
+    apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__accountName_txtcnt", BankDetailsData?.nameAsPerBankAcc || BankDetailsData?.nameAsPerBankAccount || "---");
+    apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__accountNumber_txtcnt", BankDetailsData?.accNumber || BankDetailsData?.accountNumber || "---");
+    apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__ifsc_txtcnt", BankDetailsData?.ifscCode || "---");
+    apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__bankName_txtcnt", BankDetailsData?.bankName || "---");
+    apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__branchName_txtcnt", BankDetailsData?.branchName || "---");
+    apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__accountType_txtcnt", BankDetailsData?.typeOfAcc || BankDetailsData?.typeOfAccount ||"---");
+    apz.setElmValue("KmSourc__OtherInfoData__i__newBankDetails__typeOfDocument_txtcnt", insessionBankDetails?.bankdocumentType || "---");
+    // if (insessionBankDetails.eNachStatus === "false" || insessionBankDetails.pennyCheckStatus === "false") { // chinna commented doc
+    if (insessionBankDetails.primaryENachStatus === "false" || insessionBankDetails.primaryPennyCheckStatus === "false" || insessionBankDetails.primaryPennyCheckStatus === undefined) { // chinna updated doc
+        $("#KmSourc__KMReviewConfirm__penniEnachtypeDocEle").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__penniEnachtypeDoc").addClass("sno");
+    }
+    // apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__accountName_txtcnt", insessionBankDetails?.accountName || "---");
+    // apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__accountNumber_txtcnt", insessionBankDetails?.accountNumber || "---");
+    // apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__ifsc_txtcnt", insessionBankDetails?.ifsc || "---");
+    // apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__bankName_txtcnt", insessionBankDetails?.bankName || "---");
+    // apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__branchName_txtcnt", insessionBankDetails?.branchName || "---");
+    // apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__accountType_txtcnt", insessionBankDetails?.accountType || "---");
+    if (insessionBankDetails.primaryENachStatus === "true") {
+        $("#KmSourc__KMReviewConfirm__eNachSuccessPrimary").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__eNachFailurePrimary").addClass("sno");
+    } else if (insessionBankDetails.primaryENachStatus === "false") {
+        $("#KmSourc__KMReviewConfirm__eNachSuccessPrimary").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__eNachFailurePrimary").removeClass("sno");
+    }
+    if (insessionBankDetails.primaryPennyCheckStatus === "true") {
+        $("#KmSourc__KMReviewConfirm__pennyCheckSuccessPrimary").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__pennyCheckFailurePrimary").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__pennyCheckPass").addClass("kmenachsucc");
+    } else if (insessionBankDetails.primaryPennyCheckStatus === "false") {
+        $("#KmSourc__KMReviewConfirm__pennyCheckSuccessPrimary").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__pennyCheckFailurePrimary").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__pennyCheckFail").addClass("kmenacherr");
+    }
+    if (insessionBankDetails.editBankDetails === "Yes") {
+        apz.setElmValue("KmSourc__OtherInfoData__i__newBankDetails__changeBankDetails", "Yes");
+        apz.setElmValue("KmSourc__OtherInfoData__i__newBankDetails__typeOfDocument", insessionBankDetails?.bankdocumentType || "---");
+
+        $("#KmSourc__KMReviewConfirm__changeIFSCcode").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__changeBankName").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__changeBranchName").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__changeTypeOfAccount").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__enachDocValildInvalid").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__changeBankofDoc").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__changeAcoDoc").removeClass("sno");
+
+    } else if (insessionBankDetails.editBankDetails === "No") {
+        apz.setElmValue("KmSourc__OtherInfoData__i__newBankDetails__changeBankDetails", "No");
+        $("#KmSourc__KMReviewConfirm__changeIFSCcode").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__changeBankName").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__changeBranchName").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__changeTypeOfAccount").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__enachDocValildInvalid").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__changeBankofDoc").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__changeAcoDoc").addClass("sno");
+    }
+    if (insessionBankDetails.secondaryENachStatus === "true") {
+        $("#KmSourc__KMReviewConfirm__eNachSuccessSecondary").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__eNachFailureSecondary").addClass("sno");
+    } else if (insessionBankDetails.secondaryENachStatus === "false") {
+        $("#KmSourc__KMReviewConfirm__eNachSuccessSecondary").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__eNachFailureSecondary").removeClass("sno");
+    }
+    if (ApplicationType === "OpenMarket ") {
+        $("#KmSourc__KMReviewConfirm__penniEnachtypeDoc").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__penniEnachtypeDocEle").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__appNachSuc").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__pennyCheckPass").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__eNachFailurePrimary").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__pennyCheckSuccessPrimary").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__eNachFailurePrimary").addClass("sno");
+
+    }
+};
+apz.app.KMReviewConfirm.paintDocuments = function () {
+    const s = inSessionStore;
+    const docs = s?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList ?? [];
+    const hasAdditionalDocs = docs?.some(doc => doc?.documentType === "ADDITIONAL_DOCS");
+    const changedBank = docs?.some(doc => doc?.documentType === "CHANGED_BANK_DOCS"); // chinna added doc
+    const editBankDetails = inSessionStore?.bankDetailsWrapperList?.[0]?.bankDetails?.payload?.editBankDetails;
+    const bankDocumentType = inSessionStore?.bankDetailsWrapperList?.[0]?.bankDetails?.payload?.bankdocumentType;
+    if (hasAdditionalDocs) {
+        console.log("Additional documents exist");
+        $("#KmSourc__KMReviewConfirm__additionalDocBlock").removeClass("sno"); // show
+    } else {
+        console.log("No additional documents");
+        $("#KmSourc__KMReviewConfirm__additionalDocBlock").addClass("sno"); // hide
+    }
+    if (editBankDetails === "Yes") {
+        $("#KmSourc__KMReviewConfirm__changedBankDocDiv").addClass("APP_BANK_ACCOUNT_PROOF");
+        $("#KmSourc__KMReviewConfirm__firstBankDocDiv").removeClass("APP_BANK_ACCOUNT_PROOF");
+        $("#KmSourc__KMReviewConfirm__changedBankDocDiv").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__firstBankDocDiv").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__penniEnachtypeDocEle").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__changeBankofDoc").removeClass("sno");
+        apz.setElmValue("KmSourc__OtherInfoData__i__newBankDetails__typeOfDocument_txtcnt",bankDocumentType)        
+    } else {
+        $("#KmSourc__KMReviewConfirm__firstBankDocDiv").addClass("APP_BANK_ACCOUNT_PROOF");
+        $("#KmSourc__KMReviewConfirm__changedBankDocDiv").removeClass("APP_BANK_ACCOUNT_PROOF");
+        $("#KmSourc__KMReviewConfirm__changedBankDocDiv").addClass("sno");
+        $("#KmSourc__KMReviewConfirm__firstBankDocDiv").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__penniEnachtypeDocEle").removeClass("sno");
+        $("#KmSourc__KMReviewConfirm__changeBankofDoc").addClass("sno")
+        apz.setElmValue("KmSourc__OtherInfoData__i__bankDetails__typeOfDocument_txtcnt",bankDocumentType)        
+    }
+    // ── Resolve custDtlId by customerType ────────────────────────────────────
+    const custList = s?.customerDetailsList ?? [];
+    const appDtlId = custList.find(c => c.customerType === 'Applicant')?.custDtlId;
+    const coAppDtlId = custList.find(c => c.customerType === 'Co-App')?.custDtlId;
+
+    const PREFIX_MAP = {
+        'APP_': appDtlId,
+        'CO_': coAppDtlId,
+    };
+    const PREFIXES = Object.keys(PREFIX_MAP);
+
+    // ── Strip " Doc" suffix for comparison only ───────────────────────────────
+    const normalizeType = (type) => type?.replace(/\s+Doc$/i, '').trim() ?? '';
+
+    // ── Bytes → KB label ─────────────────────────────────────────────────────
+    const toKB = (bytes) => bytes ? (bytes / 1024).toFixed(1) + ' KB' : '---';
+
+    // ── Build request object for console log ─────────────────────────────────
+    const buildDocReq = (doc) => ({
+        appDocId: doc.appDocId,
+        applicationId: doc.applicationId,
+        appId: doc.appId,
+        custDtlId: doc.custDtlId,
+        documentId: doc.documentId,
+        documentType: doc.documentType,
+        documentFormat: doc.payload?.documentFormat,
+        documentFileName: doc.payload?.documentFileName,
+        documentLoc: doc.payload?.documentLoc,
+        docSide: doc.payload?.docSide,
+        docLevel: doc.payload?.docLevel,
+        uploadedBy: doc.payload?.uploadedBy,
+        uploadedTs: doc.payload?.uploadedTs,
+        status: doc.status,
+    });
+
+    // ── Paint one uploadimg block with doc data ───────────────────────────────
+    // Finds hyperlink / name / size by CLASS within the block — not by ID
+    const paintBlock = (block, doc) => {
+
+        // Hyperlink anchor — class "ett-hypl"
+        const anchor = block.querySelector('a.ett-hypl');
+        if (anchor) {
+            // Hyperlink text — the <span> directly inside the anchor (not the svg)
+            const hplTxt = anchor.querySelector('span');
+            //if (hplTxt) hplTxt.textContent = doc.payload?.documentFormat || '---'; // chinna commented DOC
+            if(!apz.isNull(doc)){
+                if (hplTxt) hplTxt.textContent = doc?.payload?.documentFileName || '---'; // chinna added doc
+                anchor.setAttribute('data-doc-id', doc.appDocId);
+                anchor.setAttribute('data-doc-type', doc.documentType);
+                anchor.setAttribute('data-doc-format', doc.payload?.documentFormat || '');
+                anchor.onclick = function () {
+                    const req = buildDocReq(doc);
+                    console.log('[KMReviewConfirm] viewDocument request >', req);
+                    apz.app.KMReviewConfirm.viewDocument(req.documentId);
+                };
+            }
+        }
+
+        // // Doc name — first "ett-para" span txtcnt (inside scb-col85)
+        // const nameCol = block.querySelector('.scb-col85');
+        // if (nameCol) {
+        //     const nameTxt = nameCol.querySelector('p.ett-para span');
+        //     if (nameTxt) nameTxt.textContent = doc.payload?.documentFileName || '---';
+        // }
+
+        // File size — second "ett-para" span txtcnt (inside scb-col15)
+        const sizeCol = block.querySelector('.scb-col15');
+        if (sizeCol) {
+            const sizeTxt = sizeCol.querySelector('p.ett-para span');
+            if (sizeTxt) sizeTxt.textContent = toKB(doc?.payload?.docSize || "");
+        }
+    };
+    const paintedDocIds = new Set();
+    // ── Non-doc utility classes on every uploadimg — ignore these ─────────────
+    // const IGNORE_CLASSES = new Set(['srb', 'pri', 'uploadimg', 'scb-col100', 'lft', 'rht']); // chinna commented doc
+    const IGNORE_CLASSES = new Set(['srb', 'pri', 'uploadimg', 'scb-col100', 'lft', 'rht', 'marginBottom']); // chinna added doc
+    // ── Query only .uploadimg elements ────────────────────────────────────────
+    document.querySelectorAll('.uploadimg').forEach((uploadBlock) => {
+        
+        // Skip already painted rows added for Defect CAGLM-369
+    if (uploadBlock.classList.contains("km-doc-upload-row")) {
+        return;
+    } 
+    //
+        // chinna fix start - skip business address proof blocks, handled by paintBusinessDocs 15/06/2026
+        if (uploadBlock.closest('[id*="businessAddressADdetailsBlc"]') ||
+            uploadBlock.closest('.business-address-doc-container')) {
+            return;
+        }
+        // chinna fix end 15/06/2026
+
+        // Doc class = the ONE class not in ignore list
+        const docClass = [...uploadBlock.classList].find(c => !IGNORE_CLASSES.has(c));
+        if (!docClass) return;
+
+        // Check for customer prefix (App_ / co_)
+        const matchedPrefix = PREFIXES.find(p => docClass.startsWith(p));
+
+        let matchedDocs;
+
+        if (matchedPrefix) {
+            const baseType = docClass.slice(matchedPrefix.length);
+            const custDtlId = PREFIX_MAP[matchedPrefix];
+            // chinna commenting start 15/06/2026
+            // matchedDocs = docs.filter(d =>
+            //     normalizeType(d.documentType) === baseType &&
+            //     d.custDtlId === custDtlId
+            // );
+            // chinna commenting end 15/06/2026
+
+            // chinna start 15/06/2026
+            if (baseType === 'ADDRESS_PROOF') {
+                // Present address block → only PRESENT desc docs
+                matchedDocs = docs.filter(d =>
+                    d.documentType === 'ADDRESS_PROOF' &&
+                    d.custDtlId === custDtlId &&
+                    (d.payload?.documentDesc || '').toUpperCase() === 'PRESENT'
+                );
+            } else if (baseType === 'PERMANENT_ADDRESS_PROOF') {
+                // Permanent address block → resolve back to ADDRESS_PROOF type, filter by PERMANENT desc
+                matchedDocs = docs.filter(d =>
+                    d.documentType === 'ADDRESS_PROOF' &&
+                    d.custDtlId === custDtlId &&
+                    (d.payload?.documentDesc || '').toUpperCase() === 'PERMANENT'
+                );
+            } else {
+                matchedDocs = docs.filter(d =>
+                    (normalizeType(d.documentType) === baseType &&
+                    (d.documentType == 'ADDITIONAL_DOCS' || d.custDtlId === custDtlId))
+                );
+            }
+            // chinna end 15/06/2026
+
+        } else {
+            matchedDocs = docs.filter(d => normalizeType(d.documentType) === docClass);
+        }
+        // ── NEW: dedupe against docs already painted into an earlier block ──────
+    matchedDocs = matchedDocs.filter(d => !paintedDocIds.has(d.appDocId));
+
+        // chinna changes start 13/06/2025
+        matchedDocs = matchedDocs.sort((a, b) => {
+            const levelA = parseInt(a.payload?.docLevel) || 0;
+            const levelB = parseInt(b.payload?.docLevel) || 0;
+            return levelA - levelB;
+        });
+        // chinna changes end 15/06/2026
+        if (!matchedDocs.length){
+              uploadBlock.classList.add('sno');  
+              return;  
+        } else {
+              uploadBlock.classList.remove('sno')  
+        }
+        // ── NEW: mark these docs as consumed so no later block repaints them ────
+        matchedDocs.forEach(d => paintedDocIds.add(d.appDocId));
+        if (docClass === values?.appResidencePremisePhoto) {
+            const parent = uploadBlock?.parentNode;
+            // remove duplicate html blocks already present
+            parent?.querySelectorAll('.uploadimg.APP_RESIDENCE_PREMISE_PHOTO')?.forEach((block, index) => {
+                if (index > 0) {
+                    if (block?.nextElementSibling && block?.nextElementSibling.classList.contains('res-img-meta')) {
+                        block?.nextElementSibling.remove();
+                    }
+                    block.remove();
+                }
+            });
+            // remove existing metadata from original
+            if (uploadBlock?.nextElementSibling && uploadBlock?.nextElementSibling.classList.contains('res-img-meta')) {
+                uploadBlock?.nextElementSibling.remove();
+            }
+            matchedDocs?.forEach((doc, idx) => {
+                let targetBlock;
+                if (idx === 0) {
+                    targetBlock = uploadBlock;
+                } else {
+                    targetBlock = uploadBlock.cloneNode(true);
+                    targetBlock.querySelectorAll('[id]').forEach(el => {
+                        el.id = el.id + '_clone_' + idx;
+                    });
+                    parent?.appendChild(targetBlock);
+                }
+                paintBlock(targetBlock, doc);
+                let dateTimeStr = doc?.payload?.uploadedTs ? ApzCOB.formatDateTimeObject(doc?.payload.uploadedTs) : '---';
+                let lat = (doc?.payload?.latitude || '').toString().trim();
+                let lng = (doc?.payload?.longitude || '').toString().trim();
+                let locationStr = (lat && lat !== '0' && lng && lng !== '0') ? `${lat}, ${lng}` : 'Not available';
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'res-img-meta mb16';
+                metaDiv.innerHTML = `
+<span>
+<span class="res-meta-title">Date / Time: </span>
+<span class="res-meta-value">${dateTimeStr}</span>
+</span>
+<span style="margin-left:20px;">
+<span class="res-meta-title">Location: </span>
+<span class="res-meta-value">${locationStr}</span>
+</span>
+        `;
+                targetBlock.after(metaDiv);
+            });
+            return;
+        }
+
+        const parent = uploadBlock.parentNode;
+
+        // Paint first doc into existing block
+        paintBlock(uploadBlock, matchedDocs[0]);
+
+        // Clone block for each additional doc of the same type
+        matchedDocs.slice(1).forEach((doc, idx) => {
+            const clone = uploadBlock.cloneNode(true);
+
+            // Make all IDs unique on clone
+            clone.querySelectorAll('[id]').forEach(el => {
+                el.id = el.id + '_clone_' + (idx + 1);
+            });
+
+            parent.insertBefore(clone, uploadBlock.nextSibling);
+            paintBlock(clone, doc);
+        });
+    });
+};
+apz.app.KMReviewConfirm.paintBusinessDocs = function () {
+    const docs = inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList ?? [];
+    // Business doc types mapping — normalized type → what's stored
+    const BUSINESS_DOC_TYPES = ['Dairy Doc', 'Kirana Doc', 'Tailoring Doc', 'Other Doc'];
+    document.querySelectorAll('.business-doc-container').forEach((container) => {
+
+        const rowno = container.closest('[rowno]')?.getAttribute('rowno');
+        if (rowno == null) return;
+        const rowIndex = parseInt(rowno);
+        // all business docs for this business
+        const businessDocs = docs.filter(d =>
+            BUSINESS_DOC_TYPES.includes(d.documentType) &&
+            String(d.payload?.businessIndex) === String(rowIndex + 1)
+        );
+
+        if (!businessDocs.length) return;
+        const template = container.querySelector('.uploadimg.APP_KIRANA');
+        if (!template) return;
+
+        // remove previously cloned docs
+        container.querySelectorAll('.business-doc-clone').forEach(x => x.remove());
+        businessDocs.forEach((doc, idx) => {
+            let block;
+            if (idx === 0) {
+                block = template;
+            } else {
+                block = template.cloneNode(true);
+                block.classList.add('business-doc-clone');
+                block.querySelectorAll('[id]').forEach(el => {
+                    el.id = el.id + '_doc_' + idx;
+                });
+                container.appendChild(block);
+            }
+            block.classList.remove('sno');
+            const anchor = block.querySelector('a.ett-hypl');
+            if (anchor) {
+                const txt = anchor.querySelector('span');
+                if (txt) {
+                    // txt.textContent = doc.payload?.documentFileName || '---'; // chinna commented 09/06/2026
+                    txt.textContent = doc.payload?.documentType || '---';  // chinna updated 09/06/2026
+                }
+                anchor.onclick = function () {
+                    apz.app.KMReviewConfirm.viewDocument(doc.documentId);
+                };
+            }
+
+            const sizeTxt = block.querySelector('.scb-col15 p.ett-para span');
+            if (sizeTxt) {
+                const bytes = doc.payload?.docSize;
+                sizeTxt.textContent = bytes
+                    ? (bytes / 1024).toFixed(1) + ' KB'
+                    : '---';
+            }
+        });
+    });
+
+    document.querySelectorAll('.business-address-doc-container').forEach((container) => {
+        const rowno = container.closest('[rowno]')?.getAttribute('rowno');
+        if (rowno == null) return;
+        const rowIndex = parseInt(rowno);
+        // all business docs for this business
+        const businessDocs = docs.filter(d =>
+            BUSINESS_ADDRESS_PROOF.includes(d.documentType) &&
+            String(d.payload?.docNo) === String(rowIndex + 1)
+        );
+
+        if (!businessDocs.length) return;
+        const template = container.querySelector('.uploadimg.APP_KIRANA');
+        if (!template) return;
+        // remove previously cloned docs
+        container.querySelectorAll('.business-doc-clone').forEach(x => x.remove());
+        businessDocs.forEach((doc, idx) => {
+            let block;
+            if (idx === 0) {
+                block = template;
+            } else {
+                block = template.cloneNode(true);
+                block.classList.add('business-doc-clone');
+                block.querySelectorAll('[id]').forEach(el => {
+                    el.id = el.id + '_doc_' + idx;
+                });
+                container.appendChild(block);
+            }
+            block.classList.remove('sno');
+            const anchor = block.querySelector('a.ett-hypl');
+            if (anchor) {
+                const txt = anchor.querySelector('span');
+                if (txt) {
+                    txt.textContent = doc.payload?.documentFileName || '---';
+                }
+                anchor.onclick = function () {
+                    apz.app.KMReviewConfirm.viewDocument(doc.documentId);
+                };
+            }
+            const sizeTxt = block.querySelector('.scb-col15 p.ett-para span');
+            if (sizeTxt) {
+                const bytes = doc.payload?.docSize;
+                sizeTxt.textContent = bytes
+                    ? (bytes / 1024).toFixed(1) + ' KB'
+                    : '---';
+            }
+        });
+    });
+    $('.crt-list > ul.pri > li > span').css({
+        'margin-bottom': '12px',
+        'padding-bottom': '12px'
+    });
+
+    // ── chinna fix start ─────────── 09/06/2026
+    document.querySelectorAll('.uploadimg.APP_ADDRESS_PROOF').forEach((uploadBlock) => {
+        const anchor = uploadBlock.querySelector('a.ett-hypl[rowno]');
+        if (!anchor) return;
+        const rowno = anchor.getAttribute('rowno');
+        if (rowno == null) return;
+        const businessIndex = parseInt(rowno) + 1; // rowno is 0-based list index
+
+        const addressDocs = docs.filter(d =>
+            d.documentType === 'BUSINESS_ADDRESS_PROOF' &&
+            String(d.payload?.businessIndex) === String(businessIndex)
+        );
+
+        if (!addressDocs.length) return;
+
+        const parent = uploadBlock.parentNode;
+
+        // Remove previously painted clones for this block
+        parent.querySelectorAll('.business-addr-proof-clone').forEach(x => x.remove());
+
+        // Paint first doc into the existing block
+        const firstDoc = addressDocs[0];
+        const firstTxt = anchor.querySelector('span');
+        if (firstTxt) firstTxt.textContent = firstDoc.payload?.documentDesc || '---';
+        anchor.onclick = function () {
+            apz.app.KMReviewConfirm.viewDocument(firstDoc.documentId);
+        };
+        const firstSize = uploadBlock.querySelector('.scb-col15 p.ett-para span');
+        if (firstSize) {
+            firstSize.textContent = firstDoc.payload?.docSize
+                ? (firstDoc.payload.docSize / 1024).toFixed(1) + ' KB'
+                : '---';
+        }
+
+        addressDocs.slice(1).forEach((doc, idx) => {
+            const clone = uploadBlock.cloneNode(true);
+            clone.classList.add('business-addr-proof-clone');
+            clone.querySelectorAll('[id]').forEach(el => {
+                el.id = el.id + '_addrproof_' + (idx + 1);
+            });
+
+            const cloneAnchor = clone.querySelector('a.ett-hypl');
+            if (cloneAnchor) {
+                const cloneTxt = cloneAnchor.querySelector('span');
+                if (cloneTxt) cloneTxt.textContent = doc.payload?.documentDesc || '---';
+                cloneAnchor.onclick = function () {
+                    apz.app.KMReviewConfirm.viewDocument(doc.documentId);
+                };
+            }
+            const cloneSize = clone.querySelector('.scb-col15 p.ett-para span');
+            if (cloneSize) {
+                cloneSize.textContent = doc.payload?.docSize
+                    ? (doc.payload.docSize / 1024).toFixed(1) + ' KB'
+                    : '---';
+            }
+
+            parent.insertBefore(clone, uploadBlock.nextSibling);
+        });
+    });
+    // ── chinna fix end 09/06/2026 ───────────────────────────────────────────────────────
+
+    $('[id="KmSourc__KMReviewConfirm__businessPremiDoc_row"]').each(function () { // chinna updated 09/06/2026
+        const div = document.createElement('div');
+
+        div.id = this.id;
+        div.className = this.className;
+        div.style.cssText = this.style.cssText;
+
+        while (this.firstChild) {
+            div.appendChild(this.firstChild);
+        }
+
+        this.parentNode.replaceChild(div, this);
+    });
+    $('.uploadimg').css('marginTop', '8px');
+};
+apz.app.KMReviewConfirm.viewDocument = function (documentId) {
+    //  let $uploadDiv = $(pthis).closest('.uploadimg');
+    // let documentId = $uploadDiv.attr('data-doc-id');
+    if (!documentId) {
+        ApzCOB.fnDisplayMsg("Document is not available");
+        return;
+    }
+    window._aadhaarDocIds = [];
+    window._aadhaarDocIdx = 0;
+    $(`#${kmbaseScr}docNavRow`).addClass('sno');
+    let docDetails = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.find(doc => parseInt(doc.appDocId) === parseInt(
+        documentId));
+    if (!apz.isObjectEmpty(docDetails)) {
+        //window.paintFileName = docDetails?.payload?.documentFormat || (docDetails?.payload?.documentFileName + ".jpg"); // chinna commented doc
+        window.paintFileName = docDetails?.payload?.documentFileName; // chinna added doc
+        const specialDocTypes = [     // chinna added 09/06/2026
+            "Dairy Doc",
+            "Tailoring Doc",
+            "Other Doc",
+            "Kirana Doc"
+        ];
+        window.ImageLocationDetails = {
+            latitude: docDetails?.payload?.latitude || "",
+            longitude: docDetails?.payload?.longitude || "",
+            uploadedTs: docDetails?.payload?.uploadedTs || "",
+            // documentFileName: docDetails?.payload?.documentFileName || "",  // chinna commented this 09/06/2026
+            documentFileName: docDetails?.payload?.documentType === "BUSINESS_ADDRESS_PROOF"
+                ? docDetails?.payload?.documentDesc : specialDocTypes.includes(docDetails?.payload?.documentType)
+                    ? docDetails?.payload?.documentType : docDetails?.payload?.documentFileName || "" // chinna added this 09/06/2026
+        };
+        ApzCOB.downloadFileFromServer(paintFileName, apz.app.Kmbase.viewDocumentCB);
+    } else {
+        ApzCOB.fnDisplayMsg("Document is not available");
+    }
+}
+/* Final Stage Movement API*/
+// --------------- CHINNA COMMENTED FOR KM TO RPC CODE UPDATE START --------------
+// apz.app.KMReviewConfirm.successConfirmToggleKM = function () {
+//     const isBM = gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1 === 'BM';
+//     const message = isBM ? "Are you sure you want to submit the application to RPC?" : "Are you sure you want to submit the application to BM?";
+//     $("#KmSourc__Kmbase__confirmationText_txtcnt").text(message);
+//     ApzCOB.toggleModal(kmbaseScr + "conFormation_mdl");
+// };
+// -------------- CHINNA COMMENTED FOR KM TO RPC CODE UPDATE END -------------------
+
+// -------------- CHINNA CODE CHANGES START FOR KM TO RPC -------------------------
+apz.app.KMReviewConfirm.successConfirmToggleKM = function () {
+    const role = gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1;
+    const isBM = role === 'BM';
+    const isKMRenewal = role === 'KM' && window.ApplicationType === 'RENEWAL';
+    let { applicationStatus } = inSessionStore?.applicationMaster;
+    let message;
+    if (isBM || isKMRenewal || applicationStatus === "IPUSHBACK") {
+        message = "Are you sure you want to submit the application to RPC?";
+    } else {
+        message = "Are you sure you want to submit the application to BM?";
+    }
+    $("#KmSourc__Kmbase__confirmationText_txtcnt").text(message);
+    ApzCOB.toggleModal(kmbaseScr + "conFormation_mdl");
+};
+// ------------- CHINNA CODE CHANGES END FOR KM TO RPC ------------------------
+apz.app.KMReviewConfirm.selectstagemomentCall = function () {
+    const isBM = gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1 === 'BM';
+    let { applicationStatus } = inSessionStore?.applicationMaster;
+    if (applicationStatus === 'INPROGRESS') {
+        apz.app.KMReviewConfirm.finalConfirmStageMovement();
+    } else {
+        let gaction = 'APPROVED';
+        switch (applicationStatus) {
+            case "PENDING":
+                gaction = 'APPROVED';
+                break;
+            case "BMPUSHBACK":
+                gaction = 'PENDING';
+                window.KM_updatedRejectString = inSessionStore?.sourcingQueryResponse?.response ?? "";
+                break;
+            case "CAPUSHBACK":
+                gaction = 'RPCVERIFIED';
+                window.KM_updatedRejectString = inSessionStore?.sourcingQueryResponse?.response ?? "";
+                break;
+            case "IPUSHBACK":
+                window.KM_updatedRejectString = inSessionStore?.sourcingQueryResponse?.response ?? "";
+                gaction = 'APPROVED';
+                break;
+            default:
+                gaction = 'CONTINUE';
+        }
+        apz.app.Kmbase.kmApproveReject(gaction)
+    }
+};
+apz.app.KMReviewConfirm.finalConfirmStageMovement = function () {
+    var currentRole = ""
+    var action = ""
+    var workflowId = ""
+    var stage = ""
+    var req = {};
+    let intfName = "CreateLoan";
+    req.apiRequest = {};
+    req.apiRequest.requestObj = {};
+    let workflow = {};
+    let workflowData = inSessionStore?.applnWfDefinitionList;
+    // --------------- CHINNA COMMENTED FOR KM TO RPC CODE UPDATE START --------------
+    // if (gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1 === 'KM') {
+    //     let matched = workflowData.find(item =>
+    //         item.workFlowId === "CREATEAPPLICATION"
+    //     );
+    //     if (matched) {
+    //         workflow = {
+    //             currentRole: matched.currentRole,
+    //             action: matched.action,
+    //             workflowId: matched.workFlowId,
+    //             stage: matched.fromStageId
+    //         };
+    //     }
+    // } 
+    // --------------- CHINNA COMMENTED FOR KM TO RPC CODE UPDATE START --------------
+    // -------------- CHINNA CODE CHANGES START FOR KM TO RPC -------------------------
+    if (gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1 === 'KM') {
+        const isRenewal = window.ApplicationType === 'RENEWAL';
+        // RENEWAL uses "RENEWAPPLICATION" → routes directly to PENDINGWITHRPCMAKER (RPC)
+        // NEW / OpenMarket uses "CREATEAPPLICATION" → routes to SUBMITFORAPPROVAL (BM)
+        const targetWorkflowId = isRenewal ? "RENEWAPPLICATION" : "CREATEAPPLICATION";
+
+        let matched = workflowData.find(item =>
+            item.workFlowId === targetWorkflowId
+        );
+        if (matched) {
+            workflow = {
+                currentRole: matched.currentRole,
+                action: matched.action,
+                workflowId: matched.workFlowId,
+                stage: matched.fromStageId
+            };
+        }
+    }
+    // -------------- CHINNA CODE CHANGES END FOR KM TO RPC ------------------------- 
+    else if (gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1 === 'BM') {
+        let matched = workflowData.find(item =>
+            item.workFlowId === "APPROVEAPPLICATION"
+        );
+
+        if (matched) {
+            workflow = {
+                currentRole: matched.currentRole,
+                action: matched.action,
+                workflowId: matched.workFlowId,
+                stage: matched.fromStageId
+            };
+        }
+    }
+    req.apiRequest.userId = gApzCOB.LoggedInUserDetails.loginResponse.userDet.id;
+    req.apiRequest.appId = gAppId;
+    req.apiRequest.interfaceName = intfName;
+    req.apiRequest.requestObj = {
+        isNewSourcing: "N",
+        isStageVerified: isVerified,
+        appId: gApzCOB.userDetails.appId,
+        applicationId: !apz.isNull(gApzCOB.relatedApplicationId) ? gApzCOB.relatedApplicationId : gApzCOB.userDetails.applicationId,
+        versionNum: window.versionNum,
+        isExistingCustomer: "",
+        applicationMaster: {
+            applicationType: "online",
+            appId: gApzCOB.userDetails.appId,
+            applicationId: gApzCOB.userDetails.applicationId,
+            createdBy: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+            currentScreenId: "CONFIRMATION",
+            currentStageNo: 1,
+            custDtlId: gApzCOB.userDetails.custDtlId,
+            addressDtlsId: gApzCOB.userDetails.addressDtlsId,
+            customerId: ProductData[0].productCode === "1001" ? "" : gApzCOB.userDetails.customerId,
+            declarationFlag: gApzCOB.userDetails.declarationFlag,
+            mobileNumber: !apz.isNull(gApzCOB.userDetails.mobileNum) ? gApzCOB.userDetails.mobileNum : "",
+            productCode: apz.isNull(gApzCOB.productCode) ? "1009" : gApzCOB.productCode,
+            productGroupCode: gApzCOB.product,
+            searchCode1: gApzCOB.selLeadDtls.kendraId,
+            searchCode2: gApzCOB.selLeadDtls.customerId,
+            custDtlSlNum: gApzCOB.currentApplicant,
+            applicantsCount: gApzCOB.noOfApplicants,
+            mainProductGroupCode: gApzCOB.mainProductGroupCode,
+            kendraId: gApzCOB.selLeadDtls.kendraId,
+            kendraName: gApzCOB.selLeadDtls.kendraName,
+            branchId: gApzCOB.selLeadDtls.glBranchId,
+            branchName: gApzCOB.selLeadDtls.glBranchName,
+            memberId: gApzCOB.selLeadDtls.customerId,
+            primaryKycType: "Voter ID",
+            primaryKycId: gApzCOB.selLeadDtls.primaryKyc,
+            workitemNo: ProductData[0].productCode === "1001"
+                ? String(gApzCOB.selLeadDtls.referenceId || gApzCOB.selLeadDtls.openMarketId)
+                : gApzCOB.selLeadDtls.pid
+        },
+        workflow: workflow
+    }
+    apz.startLoader();
+    ApzCOB.serverBuildParam(gAppId, "CreateLoan", "N", "N", req, false, apz.app.KMReviewConfirm.finalConfirmStageMovementCB);
+};
+apz.app.KMReviewConfirm.finalConfirmStageMovementCB = function (params) {
+    apz.stopLoader();
+    console.log(params);
+    try {
+        ApzCOB.toggleModal(kmbaseScr + "conFormation_mdl");
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            var resParams = JSON.parse(params.res.APZCBO__CreateLoan_Res?.apiResponse?.ResponseBody?.responseObj)
+            if (!apz.isNull(resParams) && resParams?.versionNum == 1) {
+                const applicationId = resParams.applicationId;
+                const isRenewal = window.ApplicationType === 'RENEWAL';
+                const role = gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1;
+                const target = (role === 'BM') ? 'RPC' : (isRenewal && role === 'KM') ? 'RPC' : 'BM';
+                $("#KmSourc__Kmbase__successText").text(`Application no ${applicationId} submitted to ${target} successfully.`);
+                window._KM_AFTER_SUBMIT_REFRESH = true;
+                ApzCOB.toggleModal(kmbaseScr + "Succ_modal");
+            }
+        } else {
+            apz.stopLoader();
+            let errMsg = 'Case Submission Failed!';
+            if (!apz.isNull(params?.res?.APZCBO__CreateLoan_Res?.apiResponse?.ResponseBody?.responseObj)) {
+                errMsg = params?.res?.APZCBO__CreateLoan_Res?.apiResponse?.ResponseBody?.responseObj;
+            }
+            ApzCOB.fnDisplayMsg(errMsg, "E", "");
+            return;
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.fnDisplayMsg("Case Submission Failed", 'E');
+    }
+    /*if (apz.isNull(params.errors)) {
+        ApzCOB.toggleModal(kmbaseScr + "conFormation_mdl");
+        var resParams = JSON.parse(params.res.APZCBO__CreateLoan_Res.apiResponse.ResponseBody.responseObj)
+        // --------------- CHINNA COMMENTED FOR KM TO RPC CODE UPDATE START --------------
+        // if (!apz.isNull(resParams) && resParams.versionNum == 1) {
+        //     const applicationId = resParams.applicationId;
+        //     $("#KmSourc__Kmbase__successText").text(`Application no ${applicationId} submitted to BM successsfully.`)
+        //     ApzCOB.toggleModal(kmbaseScr + "Succ_modal")
+        // }
+        // -------------- CHINNA COMMENTED FOR KM TO RPC CODE UPDATE END -------------------
+        // -------------- CHINNA CODE CHANGES START FOR KM TO RPC -------------------------
+        if (!apz.isNull(resParams) && resParams.versionNum == 1) {
+            const applicationId = resParams.applicationId;
+            const isRenewal = window.ApplicationType === 'RENEWAL';
+            const role = gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1;
+            const target = (role === 'BM') ? 'RPC'
+                : (isRenewal && role === 'KM') ? 'RPC'
+                    : 'BM';
+            $("#KmSourc__Kmbase__successText")
+                .text(`Application no ${applicationId} submitted to ${target} successfully.`);
+            window._KM_AFTER_SUBMIT_REFRESH = true;
+            ApzCOB.toggleModal(kmbaseScr + "Succ_modal");
+        }
+        // ------------- CHINNA CODE CHANGES END FOR KM TO RPC ------------------------
+    }*/
+};
+var getAddressLabel = (addressSameAs) => {
+    const addressLabelMap = {
+        "ApplicantVoter": "Applicant's voter ID address",
+        "Co-AppVoter": "Co-applicant's voter ID address",
+        "ApplicantAadhaar": "Applicant's aadhaar card address",
+        "Co-AppAadhaar": "Co-applicant's aadhaar card address",
+        "ApplicantSecondaryKyc": "Applicant's aadhaar card address", // chinna added 09/06/2026
+        "Co-AppSecondaryKyc": "Co-applicant's aadhaar card address", // chinna added 09/06/2026
+        "Other": "Other address"
+    };
+    return addressLabelMap?.[addressSameAs] ?? null;
+};
+
+var getOwnedBy = (business) => {
+    return business?.DairyType
+        ?? business?.tailoringType
+        ?? business?.kiranaType
+        ?? business?.otherType
+        ?? null;
+};
+
+var mapBusinessWithAddress = (businessData, addressDetailsList) => {
+    const occupationAddressList = addressDetailsList
+        ?.find(item => item?.addressType === "Occupation")
+        ?.payload?.addressList ?? [];
+
+    const allBusinesses = Object.entries(businessData ?? {})
+        .flatMap(([type, list]) =>
+            (list ?? []).map(business => ({ ...business, businessCategory: type }))
+        )
+        .sort((a, b) => Number(a?.businessIndex) - Number(b?.businessIndex));
+
+    return allBusinesses.map((business, index) => {
+        const matchedAddress = occupationAddressList
+            ?.find(addr => String(addr?.businessIndex) === String(business?.businessIndex))
+            ?? occupationAddressList?.find(addr => addr?.addressSameAs === business?.addressSameAs)
+            ?? {};
+
+        const isOther = business?.addressSameAs === "Other";
+
+        const mergedAddressTxt = !isOther
+            ? [
+                matchedAddress?.addressLine1,
+                matchedAddress?.addressLine2,
+                matchedAddress?.addressLine3,
+                matchedAddress?.city,
+                matchedAddress?.district,
+                matchedAddress?.state,
+                matchedAddress?.pinCode
+            ].filter(Boolean).join(", ")
+            : "Other";
+
+        const ownedBy = getOwnedBy(business);
+
+        const ownedByLabel = ownedBy === "Applicant" ? "Applicant's Business"
+            : ownedBy === "Co-Applicant" ? "Co-Applicant's Business"
+                : ownedBy === "Both" ? "Applicant's & Co-Applicant's Business"
+                    : null;
+
+        const businessType = business?.businessCategory === "Other"
+            ? (business?.lineOfOtherBusiness ?? "Other")
+            : business?.businessCategory ?? null;
+
+        return {
+            // Business fields
+            buisnessCount: business?.businessIndex ?? null,  // ✅ updated
+            ownedByBis: ownedByLabel,
+            netBusinessIncomeBis: business?.netMonthlyIncome ?? business?.netBusinessIncome ?? null,
+            businessType: businessType,
+            otherLineOfBusinessBis: business?.lineOfOtherBusiness ?? null,
+            isStreetVendorBis: business?.streetVendor ?? null,
+
+            // Address fields
+            addressSameAs: business?.addressSameAs ?? null,
+            addressLbl: getAddressLabel(business?.addressSameAs),
+            addressTxt: mergedAddressTxt ?? null,
+            addressLine1Bis: matchedAddress?.addressLine1 ?? null,
+            addressLine2Bis: matchedAddress?.addressLine2 ?? null,
+            addressLine3Bis: matchedAddress?.addressLine3 ?? null,
+            pincodeBis: matchedAddress?.pinCode ?? null,
+            cityOrTownBis: matchedAddress?.city ?? null,
+            districtBis: matchedAddress?.district ?? null,
+            stateBis: matchedAddress?.state ?? null,
+            AddressProofBis: matchedAddress?.currentAddressProof ?? null,
+        };
+    });
+};
+apz.app.KMReviewConfirm.paintBusinessDetails = function () {
+    apz.data.scrdata.KmSourc__IPaintReviewBusiness_Req = {}
+    apz.data.scrdata.KmSourc__IPaintReviewBusiness_Req.businessIncomeDetails = mapBusinessWithAddress(inSessionStore?.bcmpiIncomeDetails?.bcmpiIncomeDetailsWrapper?.business, inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList);
+    apz.data.loadData("IPaintReviewBusiness", "KmSourc")
+    Promise.resolve().then(() => {
+        const businessList = apz.data.scrdata.KmSourc__IPaintReviewBusiness_Req.businessIncomeDetails || [];
+        const isVisheshProduct = gApzCOB.SelectedProductName === "Vishesh" && gApzCOB.productCode === "1003";
+        if (!businessList.length) {
+            $('#KmSourc__KMReviewConfirm__businessLstDiv').addClass('sno')
+            if(isVisheshProduct){
+                $('#KmSourc__KMReviewConfirm__el_txt_1208_ul').addClass('sno');
+                $('#KmSourc__KMReviewConfirm__ct_nav_1').addClass('sno');
+                $('#KmSourc__KMReviewConfirm__ct_frm_35').addClass('sno');
+            }
+            return;
+        }
+        $('input[type="radio"][id*="businessRadioButton"][id*="option_presentOther"]')
+            .not('#KmSourc__KMReviewConfirm__othAddressRadioBtn_option_presentOther')
+            .not('#KmSourc__KMReviewConfirm__permRadioBtnOne_option_presentOther')
+            .not('#KmSourc__KMReviewConfirm__secondAddPresRadio_option_presentOther')
+            .not('#KmSourc__KMReviewConfirm__secondAddPermRadio_option_presentOther')
+            .prop("checked", true);
+        businessList.forEach((business, index) => {
+            if (business?.addressSameAs !== "Other") {
+                // hide all address related fields (label + value)
+                ["addressLine1Bis", "addressLine2Bis", "addressLine3Bis", "pincodeBis", "cityOrTownBis", "districtBis",
+                    "stateBis", "AddressProofBis"
+                ].forEach(field => {
+                    $(`#KmSourc__IPaintReviewBusiness__i__businessIncomeDetails__${field}_${index}`).closest('.srb').prev(
+                        '.srb').addBack().addClass('sno');
+                });
+                // hide upload document
+                $(`#KmSourc__KMReviewConfirm__businessHypLink_${index}`).closest('.uploadimg').addClass('sno');
+                // hide wrapper block
+                $(`#KmSourc__IPaintReviewBusiness__i__businessIncomeDetails__addressLine1Bis_${index}`).closest(
+                    'span[id="KmSourc__KMReviewConfirm__businessAddressADdetailsBlc_li"]').addClass('sno');
+            }
+            // ── chinna fix start: Other line of business — show only for Other type ── 09/06/2026
+            const otherLinePara = document.getElementById(
+                `KmSourc__IPaintReviewBusiness__i__businessIncomeDetails__otherLineOfBusinessBis_${index}`
+            );
+            if (otherLinePara) {
+                const isOtherBusiness = business?.businessType !== null
+                    && business?.businessType !== undefined
+                    && business?.businessType !== "dairy"
+                    && business?.businessType !== "Tailoring"
+                    && business?.businessType !== "Kirana";
+
+                const isOtherCategory = !["dairy", "Tailoring", "Kirana"].includes(
+                    // re-derive category from businessType sentinel values
+                    business?.businessType === "dairy" ? "dairy"
+                        : business?.businessType === "Tailoring" ? "Tailoring"
+                            : business?.businessType === "Kirana" ? "Kirana"
+                                : "Other"
+                );
+                if (isOtherCategory) {
+                    // show: remove sno from the label row + value row
+                    otherLinePara.closest('.srb')?.parentElement?.parentElement?.classList.remove('sno');
+                    otherLinePara.closest('.srb')?.parentElement?.parentElement?.previousElementSibling?.classList.remove('sno');
+                } else {
+                    // hide: add sno to the label row + value row
+                    otherLinePara.closest('.srb')?.parentElement?.parentElement?.classList.add('sno');
+                    otherLinePara.closest('.srb')?.parentElement?.previousElementSibling?.classList.add('sno');
+                }
+            }
+            // ── Street vendor — show only for Kirana type ─────────────────────
+            const streetVendorPara = document.getElementById(
+                `KmSourc__IPaintReviewBusiness__i__businessIncomeDetails__isStreetVendorBis_${index}`
+            );
+            if (streetVendorPara) {
+                const isKirana = business?.businessType === "Kirana";
+                if (isKirana) {
+                    streetVendorPara.closest('.srb')?.classList.remove('sno');
+                    streetVendorPara.closest('.srb')?.previousElementSibling?.classList.remove('sno');
+                } else {
+                    streetVendorPara.closest('.srb')?.classList.add('sno');
+                    streetVendorPara.closest('.srb')?.previousElementSibling?.classList.add('sno');
+                }
+            }
+            // ── chinna fix end ──────────────────────────────────────────────── 09/06/2026
+        });
+        // chinna start 09/06/2026
+        document.querySelectorAll('[id*="KMReviewConfirm__addressTypeSelRow_row"]').forEach((bodyRow) => {
+            const bodyWrap = bodyRow.closest('[id*="businessAddreMainRow_row"]');
+            if (bodyWrap) {
+                bodyWrap.classList.add('crt-list', 'list-data', 'pt0', 'pb0', 'address-table', 'kmsourcing-table', 'addr-body-list');
+            }
+        });
+
+        document.querySelectorAll('[id*="KMReviewConfirm__businessAddreHeader_row"]').forEach((headerRow) => {
+            const headerWrap = headerRow.closest('[id*="businessAddresMainRow_row"]');
+            if (headerWrap) {
+                headerWrap.classList.add('crt-list', 'list-hdr', 'pb0', 'address-table', 'addr-header-list');
+            }
+        });
+        // chinna end 09/06/2026
+    });
+    const incomeSources = getAvailableIncomeSources(inSessionStore?.bcmpiIncomeDetails?.bcmpiIncomeDetailsWrapper || {});
+    $("#KmSourc__KMReviewConfirm__sourceOfIncomeTypes_txtcnt").text(incomeSources);
+}
+function getAvailableIncomeSources(incomeWrapper) {
+    const sources = [];
+    if (incomeWrapper?.business && Object.keys(incomeWrapper?.business).some(key => Array.isArray(incomeWrapper?.business[key]) && incomeWrapper
+        .business[key].length > 0)) {
+        sources.push("Business");
+    }
+    if (incomeWrapper?.agriculture && Object.keys(incomeWrapper?.agriculture).length > 0) {
+        sources.push("Agriculture");
+    }
+    if (incomeWrapper?.salary && Object.keys(incomeWrapper?.salary).length > 0) {
+        sources.push("Salary");
+    }
+    if (incomeWrapper?.wage && Object.keys(incomeWrapper?.wage).length > 0) {
+        sources.push("Wage");
+    }
+    if (incomeWrapper?.pension && Object.keys(incomeWrapper?.pension).length > 0) {
+        sources.push("Pension");
+    }
+    if (incomeWrapper?.rentalIncome && Object.keys(incomeWrapper?.rentalIncome).length > 0) {
+        sources.push("Rental Income");
+    }
+    return sources.join(", ");
+}
+
+var checkAddressesSame = (presentAddr, permanentAddr) => {
+    // Define the critical fields that determine if the address is the same
+    const fieldsToCompare = [
+        'addressLine1',
+        'addressLine2',
+        'addressLine3',
+        'area',
+        'city',
+        'district',
+        'state',
+        'country',
+        'pinCode'
+    ];
+
+    // Check if every single field matches between the two objects
+    const isSame = fieldsToCompare.every(field => {
+        // Normalize values to handle cases like undefined vs "" or different casing
+        const val1 = (presentAddr[field] || '').toString().trim().toLowerCase();
+        const val2 = (permanentAddr[field] || '').toString().trim().toLowerCase();
+        return val1 === val2;
+    });
+
+    return isSame;
+}
+
+apz.app.KMReviewConfirm.paintIncomeSummary = function () {
+
+    const P = 'KmSourc__KMReviewConfirm__';
+    const inc = inSessionStore?.bcmpiIncomeDetails?.bcmpiIncomeDetailsWrapper ?? {};
+    const biz = inc?.business ?? {};
+
+    const toNum = (v) => { const n = parseFloat(String(v ?? '').replace(/,/g, '')); return isNaN(n) ? 0 : n; };
+    const fmtINR = (n) => n ? `₹ ${Number(n).toLocaleString('en-IN')}` : '---';
+    const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v ?? '---'; };
+
+    const ownerLabel = (v) => {
+        switch (v) {
+            case 'Applicant': return "Applicant";
+            case 'Co-Applicant': return "Co-Applicant";
+            case 'Both': return "Both";
+            default: return v ?? '---';
+        }
+    };
+
+    const BIZ_CFG = {
+        dairy: { label: 'Dairy', ownerKey: 'DairyType', incKey: 'netMonthlyIncome' },
+        Tailoring: { label: 'Tailoring', ownerKey: 'tailoringType', incKey: 'netMonthlyIncome' },
+        Kirana: { label: 'Kirana/Utility store', ownerKey: 'kiranaType', incKey: 'netMonthlyIncome' },
+        Other: { label: 'Other', ownerKey: 'otherType', incKey: 'netBusinessIncome' },
+    };
+
+    const allEntries = [];
+    Object.keys(BIZ_CFG).forEach(typeKey => {
+        const cfg = BIZ_CFG[typeKey];
+        const entries = biz[typeKey] ?? [];
+        entries.forEach(entry => allEntries.push({ typeKey, cfg, entry }));
+    });
+    allEntries.sort((a, b) => toNum(a.entry.businessIndex) - toNum(b.entry.businessIndex));
+
+    const bizGroups = {};           // { 'dairy': { totalIncome, owners:Set, count, cfg }, ... }
+    allEntries.forEach(({ typeKey, cfg, entry }) => {
+        if (!bizGroups[typeKey]) {
+            bizGroups[typeKey] = { totalIncome: 0, owners: new Set(), count: 0, cfg };
+        }
+        bizGroups[typeKey].totalIncome += toNum(entry[cfg.incKey]);
+        const owner = entry[cfg.ownerKey];
+        if (owner) bizGroups[typeKey].owners.add(ownerLabel(owner));
+        bizGroups[typeKey].count++;
+    });
+
+    const orderedTypes = [];
+    allEntries.forEach(({ typeKey }) => {
+        if (!orderedTypes.includes(typeKey)) orderedTypes.push(typeKey);
+    });
+
+    const templateRow = document.getElementById('KmSourc__KMReviewConfirm__sc_row_3223');
+    if (templateRow) {
+        // Remove old clones from any previous paint
+        document.querySelectorAll('.biz-income-clone').forEach(el => el.remove());
+        const parent = templateRow.parentNode;
+
+        orderedTypes.forEach((typeKey, idx) => {
+            const grp = bizGroups[typeKey];
+            let row;
+
+            if (idx === 0) {
+                row = templateRow;
+                row.classList.remove('sno');
+            } else {
+                row = templateRow.cloneNode(true);
+                row.classList.add('biz-income-clone');
+                row.querySelectorAll('[id]').forEach(el => { el.id = el.id + `_bizgrp_${idx}`; });
+                parent.appendChild(row);
+            }
+
+            const cells = row.querySelectorAll('dd.eic');
+
+            // Cell 1 — "Business N - TypeLabel"  (N = row number in summary, 1-based)
+            if (cells[0]) cells[0].textContent = `Business ${idx + 1} - ${grp.cfg.label}`;
+
+            // Cell 2 — owners joined  e.g. "Applicant, Both"
+            if (cells[1]) cells[1].textContent = [...grp.owners].join(', ') || '---';
+
+            // Cell 3 — total income formatted
+            if (cells[2]) cells[2].textContent = fmtINR(grp.totalIncome);
+        });
+
+        if (!orderedTypes.length) templateRow.classList.add('sno');
+    }
+
+    const paintOtherRow = (ownerElId, incomeElId, appVal, coAppVal) => {
+        const hasApp = appVal !== undefined && appVal !== null && String(appVal).trim() !== '';
+        const hasCoApp = coAppVal !== undefined && coAppVal !== null && String(coAppVal).trim() !== '';
+
+        // Always keep the row visible — show "None" when no data
+        $(`#${ownerElId}_ctrl_grp_div`).closest('.srb').removeClass('sno');
+
+        let owner = hasApp && hasCoApp ? 'Both'
+            : hasApp ? 'Applicant'
+                : hasCoApp ? 'Co-Applicant'
+                    : 'None';   // ← new
+
+        const total = toNum(appVal) + toNum(coAppVal);
+
+        const ownerEl = document.getElementById(ownerElId);
+        const incomeEl = document.getElementById(incomeElId);
+        if (ownerEl) ownerEl.textContent = owner;
+        if (incomeEl) incomeEl.textContent = total > 0 ? fmtINR(total) : "₹ 0";
+    };
+
+
+    paintOtherRow(
+        `${P}otherInAgrBis`, `${P}otherAgrIncomeBis`,
+        inc?.agriculture?.applicant?.declaredIncome,
+        inc?.agriculture?.coApplicant?.declaredIncome
+    );
+
+    paintOtherRow(
+        `${P}otherInASalBis`, `${P}otherSalIncomeBis`,
+        inc?.salary?.applicant?.netSalary,
+        inc?.salary?.coApplicant?.netSalary
+    );
+
+    paintOtherRow(
+        `${P}otherInAWageBis`, `${P}otherWageIncomeBis`,
+        inc?.wage?.applicant?.other?.selfDeclaredWage,
+        inc?.wage?.coApplicant?.other?.selfDeclaredWage
+    );
+
+    paintOtherRow(
+        `${P}otherInPensionBis`, `${P}otherPensionIncomeBis`,
+        inc?.pension?.applicant?.applicantPensionIncome,
+        inc?.pension?.coApplicant?.coApplicantPensionIncome
+    );
+
+    paintOtherRow(
+        `${P}otherInRentalBis`, `${P}otherRentalIncomeBis`,
+        inc?.rentalIncome?.applicant?.monthlyRentalIncome,
+        inc?.rentalIncome?.coApplicant?.monthlyRentalIncome
+    );
+
+    const sumArr = (arr, key) =>
+        (arr ?? []).reduce((s, e) => s + toNum(e[key] ?? e.netMonthlyIncome ?? e.netBusinessIncome), 0);
+
+    const sumBoth = (appVal, coAppVal) => toNum(appVal) + toNum(coAppVal);
+
+    const dairyTotal = sumArr(biz.dairy, 'netMonthlyIncome');
+    const kiranaTotal = sumArr(biz.Kirana, 'netMonthlyIncome');
+    const tailoringTotal = sumArr(biz.Tailoring, 'netMonthlyIncome');
+    const otherTotal = sumArr(biz.Other, 'netBusinessIncome');
+
+    const agriTotal = sumBoth(inc?.agriculture?.applicant?.declaredIncome, inc?.agriculture?.coApplicant?.declaredIncome);
+    const salaryTotal = sumBoth(inc?.salary?.applicant?.netSalary, inc?.salary?.coApplicant?.netSalary);
+    const wageTotal = sumBoth(inc?.wage?.applicant?.other?.selfDeclaredWage, inc?.wage?.coApplicant?.other?.selfDeclaredWage);
+    const pensionTotal = sumBoth(inc?.pension?.applicant?.applicantPensionIncome, inc?.pension?.coApplicant?.coApplicantPensionIncome);
+    const rentalTotal = sumBoth(inc?.rentalIncome?.applicant?.monthlyRentalIncome, inc?.rentalIncome?.coApplicant?.monthlyRentalIncome);
+
+    const monthly = dairyTotal + kiranaTotal + tailoringTotal + otherTotal
+        + agriTotal + salaryTotal + wageTotal + pensionTotal + rentalTotal;
+    const annually = monthly * 12;
+
+    const monthEl = document.getElementById(`${P}totalNetMonthBis`);
+    const annualEl = document.getElementById(`${P}totalNetAnuallyBis`);
+    if (monthEl) monthEl.textContent = fmtINR(monthly);
+    if (annualEl) annualEl.textContent = fmtINR(annually);
+};
+apz.app.ReviewConfirm.reInitiateReject = function (pthis, gaction) {
+    apz.startLoader();
+    apz.app.BaseScreens.stageBasedOnAction(pthis, gaction);
+    window.approveRejectAction = gaction;
+    if (!apz.isNull(inSessionStore.customerDetailsList)) {
+        if (inSessionStore.customerDetailsList.length > 0) {
+            inSessionStore.customerDetailsList.map(cust => {
+                if (cust.customerType === "Applicant") {
+                    gApzCOB.userDetails.custDtlId = cust.custDtlId;
+                } else {
+                    gApzCOB.userDetails.CoApplicantCustomerId = cust.custDtlId;
+                }
+            })
+        }
+    }
+    var req = {
+        "apiRequest": {
+            // "interfaceName": approveRejectAction === 'APPROVED' ? "CreateApplication" : "",
+            "interfaceName": "",
+            "appId": gAppId,
+            "requestObj": {
+                "appId": gApzCOB.userDetails.appId,
+                "status": "INPROGRESS",
+                "userId": gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                "applicationId": gApzCOB.userDetails.applicationId,
+                "versionNum": gApzCOB.userDetails.versionNum,
+                "custDtlId": gApzCOB.userDetails.custDtlId,
+                "remarks": "",
+                "workflow": {
+                    "currentRole": "Initiator",
+                    "action": "REINITIATE",
+                    "workflowId": "REJECTAPPLICATION",
+                    "stage": "INPUT"
+                }
+            }
+        }
+    }
+    ApzCOB.serverBuildParam(gAppId, "RejectReinitiate", "N", "N", req, false, apz.app.ReviewConfirm.reInitiateRejectCB);
+};
+apz.app.ReviewConfirm.reInitiateRejectCB = function (params) {
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            window.IS_REINITIATE_APPLICATION = true;
+            window.currentApplication = "InProgress";
+            ApzCOB.FetchApplication(undefined, apz.app.KMReviewConfirm.fetchAppCB);
+            if (!apz.isNull(inSessionStore)) {
+                window.bankIndex = inSessionStore?.bankDetailsWrapperList?.findIndex(el => el.bankDetails.custDtlId === ApzCOB.getCustDetailID('Applicant'))
+            }
+            if (inSessionStore?.bankDetailsWrapperList?.[bankIndex]?.bankDetails?.payload) {
+                inSessionStore.bankDetailsWrapperList[bankIndex].bankDetails.payload.accntVerified = "";
+            }
+            //  else {
+            //     ApzCOB.getPayloadDatafromWrapper("accntVerified", "Applicant", "bankDetailsWrapperList") = '';
+            // }
+        } else {
+            apz.stopLoader();
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_REJECT_REINITIATE_SERVICE_FAILED"), "E");
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+    }
+}
+apz.app.KMReviewConfirm.fetchAppCB = function (params) {
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            ApzCOB.launchSubScreen("CBcheck", "KmSourc__Kmbase__KMLaunchCol", "");
+        }
+    } catch(e) {
+    ApzCOB.traceFrontEndError(e,"");
+    }
+}
+apz.app.KMReviewConfirm.paintAMLResponses = function () {
+    const amlList = inSessionStore?.amlQuestion?.payload?.amlQuestionList || [];
+    amlList.forEach((item, index) => {
+        const appText =
+            String(item.applicant).toLowerCase() === "yes"
+                ? "Yes (Low Risk)"
+                : "No (High Risk)";
+        const coAppText =
+            String(item.coApplicant).toLowerCase() === "yes"
+                ? "Yes (Low Risk)"
+                : "No (High Risk)";
+        $(`#KmSourc__KMReviewConfirm__appQuestVal_${index}_option_yes_span_${index}`).text(appText);
+        $(`#KmSourc__KMReviewConfirm__co-appQuestVal_${index}_option_yes_span_${index}`).text(coAppText);
+        $(`#KmSourc__KMReviewConfirm__appQuestVal_${index}_option_yes`).prop("checked", true).prop("disabled", true);
+        $(`#KmSourc__KMReviewConfirm__co-appQuestVal_${index}_option_yes`).prop("checked", true).prop("disabled", true);
+        $(`[id*='appQuestVal_${index}_option_yes']`)
+            .parent()
+            .css({
+                "pointer-events": "none",
+                "opacity": "0.7"
+            });
+    });
+};
+apz.app.KMReviewConfirm.fnDateFormat = function (pthis) {
+    if (!pthis) return '';
+    const parts = pthis.split(/[-/]/);
+    return parts[0].length === 4
+        ? `${parts[2]}/${parts[1]}/${parts[0]}`
+        : `${parts[0]}/${parts[1]}/${parts[2]}`;
+}

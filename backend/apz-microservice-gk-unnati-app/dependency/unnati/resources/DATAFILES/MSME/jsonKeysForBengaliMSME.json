@@ -1,0 +1,70 @@
+{
+  "keysForContent": {
+    "applicationName1": "Group Micro Life Insurance Consent Form For",
+    "applicationName2": "A Non-Linked Non-Participating Group Micro Insurance Product",
+    "memberId": "CAGL Member ID:",
+    "loanAccount": "CAGL Loan Account No:",
+    "assuredLife": "Life to be Assured",
+    "borrower": "Applicant",
+    "coborrower": "Spouse /Co Applicant#",
+    "name": "Name",
+    "age": "DOB",
+    "gender": "Gender",
+
+    "subApplicationName1": "MSME-এর জন্য ঘোষণা",
+    "to": "<br>প্রতি,",
+    "cagl": "ক্রেডিট এক্সেস গ্রামীণ লিমিটেড (CA গ্রামীণ)",
+    "caglAddress1": "#নং 49, 46তম ক্রস, 8ম ব্লক,",
+    "caglAddress2": "জয়নগর, ব্যাঙ্গালোর – 560071",
+    "appId": "আবেদন ID",
+    "loanId": "ঋণ ID",
+    "date": "তারিখ",
+
+    "letter1": "\nপ্রিয় মহাশয়/মহাশয়া,",
+    "letter2": "আমি/আমরা এতদ্বারা এটি নিশ্চিত করছি যে আমি/আমরা <purpose> / উৎপাদনের ব্যবসায়ে নিযুক্ত আছি যা <subPurpose> পরিষেবা প্রদান করে এবং <nameOfTheOrganisation> এর নামে ব্যবসা পরিচালনা করছি।",
+    "letter3": "আমি/আমরা আরো নিশ্চিত করছি যে আমার/আমাদের মূল বিনিয়োগ কারখানা এবং যন্ত্রপাতি (উৎপাদনের জন্য)/সরঞ্জাম (পরিষেবার জন্য) <sanctionedAmount> (টাকায় <sanctionedAmountInWords> শুধুমাত্র), তাই আমার ব্যবসাকে নিম্নরূপ শ্রেণীবদ্ধ করা হচ্ছে:\n\n",
+
+    "tableName": "নির্মাণ এবং পরিষেবা প্রদানকারী সংস্থা",
+    "microLoan": "ক্ষুদ্র",
+    "smallLoan": "ছোটো",
+    "mediumLoan": "মাঝারি",
+
+    "microLoanValue": "<font face='Arial Unicode MS'>☑</font> বিনিয়োগ < 1 কোটি টাকা এবং টার্নওভার < 5 কোটি টাকা",
+    "smallLoanValue": "<font face='Arial Unicode MS'>☐</font> বিনিয়োগ < 10 কোটি টাকা এবং টার্নওভার < 50 কোটি টাকা",
+    "mediumLoanValue": "<font face='Arial Unicode MS'>☐</font> বিনিয়োগ < 20 কোটি টাকা এবং টার্নওভার < 100 কোটি টাকা",
+
+    "particulars": "উপরে ঘোষিত বিনিয়োগের বিবরণ নিম্নরূপ:",
+    "serialNum": "ক্রমিক নম্বর",
+    "machineryDetails": "যন্ত্রপাতি/সরঞ্জাম/উপকরণের বিবরণ",
+    "cost": "মূল্য",
+
+    "gstinNo": "GSTIN (যদি থাকে):",
+    "notApplicable": "",
+    "udyamNo": "উদ্যম নিবন্ধন নম্বর (যদি থাকে):",
+
+    "gstinDeclaration": "যদি GSTIN প্রদান না করা হয় তবে ব্যবসার মোট টার্নওভার 20 লক্ষ টাকার নিচে",
+    "gstinDeclaration1": "যদি উপরে GSTIN প্রদান করা না হয়ে থাকে, তাহলে আমি/আমরা ঘোষণা করছি যে এই ব্যবসার মোট টার্নওভার 20 লক্ষ টাকার নিচে (পরিষেবার জন্য) অথবা 40 লক্ষ টাকার নিচে (বাণিজ্যের জন্য)। আমি/আমরা ঘোষণা করছি যে ঋণ শুধুমাত্র কার্যকরী মূলধন এবং ব্যবসা সম্প্রসারণের জন্য ব্যবহৃত হবে এবং ব্যক্তিগত কাজে ব্যবহার করা হবে না।",
+    "gstinDeclaration2": "আমি/আমরা এই বিষয়ে অবগত যে এই প্রদত্ত প্রতিনিধিত্ব, ঘোষণা এবং নিশ্চিতকরণের উপর করা বিশ্বাসের ভিত্তিতেই CA গ্রামীণ আমার/আমাদের আর্থিক সহায়তার জন্য পূর্বোক্ত আবেদনটি অনুমোদন করতে সম্মত হয়েছে।",
+    "gstinDeclaration3": "কোনও ভুল উপস্থাপনা বা ঘোষণা লঙ্ঘনের ফলে কোনো ক্ষতির জন্য আমি/আমরা CA গ্রামীণকে ক্ষতিপূরণ দেব।",
+    "gstinDeclaration4": "আমি/আমরা বুঝেছি যে এই ঘোষণাপত্র CA গ্রামীণ অভ্যন্তরীণ বা বাহ্যিক কাজে ব্যবহার করতে পারে, যার মধ্যে নিয়ন্ত্রক প্রকাশ অন্তর্ভুক্ত।",
+    "gstinDeclaration5": "আমি/আমরা নিশ্চিত করছি যে এই ঘোষণা স্বেচ্ছায় প্রদান করা হয়েছে এবং এটি ঋণ চুক্তির শর্তাবলীকে প্রভাবিত করে না এবং আমরা তা মেনে চলব।",
+
+    "thankingYou": "\nধন্যবাদ,",
+    "borrowerSignature": "(আবেদনকারীর স্বাক্ষর)",
+    "coborrowerSignature": "(সহ-আবেদনকারীর স্বাক্ষর)",
+
+    "number1": "<font face='Arial Unicode MS'>1.</font>",
+    "number2": "<font face='Arial Unicode MS'>2.</font>",
+    "number3": "<font face='Arial Unicode MS'>3.</font>",
+    "number4": "<font face='Arial Unicode MS'>4.</font>",
+    "number5": "<font face='Arial Unicode MS'>5.</font>",
+
+    "borrowerNameLabel": "আবেদনকারীর নাম",
+    "coborrowerNameLabel": "সহ-আবেদনকারীর নাম",
+	
+	"coborrowerName": "সহ-আবেদনকারীর নাম",
+	"coborrowerSign": "সহ-আবেদনকারীর স্বাক্ষর",
+	"borrowerName": "আবেদনকারীর নাম",
+	"borrowerSign": "আবেদনকারীর স্বাক্ষর"
+  }
+}

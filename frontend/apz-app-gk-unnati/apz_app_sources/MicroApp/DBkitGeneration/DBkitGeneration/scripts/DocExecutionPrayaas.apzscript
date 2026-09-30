@@ -1,0 +1,9 @@
+var scrId = "DBkitG__DocExecutionPrayaas__";
+DB_CURRENT_STAGE = "DocExecutionPrayaas";
+apz.app.onLoad_DocExecutionPrayaas = function() {
+    
+}
+apz.app.onShown_DocExecutionPrayaas = function() {
+    
+    
+}

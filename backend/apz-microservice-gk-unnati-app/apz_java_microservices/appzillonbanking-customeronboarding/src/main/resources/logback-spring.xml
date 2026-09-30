@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level %logger.%M - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>
+
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!--<configuration>-->
+
+<!--    &lt;!&ndash; Import Spring Boot’s default logging &ndash;&gt;-->
+<!--    <include resource="org/springframework/boot/logging/logback/base.xml"/>-->
+
+<!--    &lt;!&ndash; Access log file appender &ndash;&gt;-->
+<!--    <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+<!--        <file>/opt/logs/microservice_accessLogs/access.log</file>-->
+
+<!--        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">-->
+<!--            <fileNamePattern>/opt/logs/microservice_accessLogs/access-%d{yyyy-MM-dd}-%i.log.zip</fileNamePattern>-->
+<!--            <maxFileSize>10MB</maxFileSize>-->
+<!--            <maxHistory>30</maxHistory>-->
+<!--            <totalSizeCap>500MB</totalSizeCap>-->
+<!--        </rollingPolicy>-->
+
+<!--        <encoder>-->
+<!--            <pattern>%msg%n</pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
+
+<!--    &lt;!&ndash; Route Netty access logs to access.log only &ndash;&gt;-->
+<!--    <logger name="reactor.netty.http.server.AccessLog"-->
+<!--            level="INFO"-->
+<!--            additivity="false">-->
+<!--        <appender-ref ref="ACCESS_FILE"/>-->
+<!--    </logger>-->
+
+<!--</configuration>-->
+

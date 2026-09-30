@@ -1,0 +1,37 @@
+{
+  "keysForContent": {
+    "applicationName": "Repayment Sheet",
+    "customerID": "Customer ID",
+    "customerName": "Customer Name",
+    "scan": "SCAN BELOW FOR UPI PAYMENT",
+    "spouseName":"Spouse Name",
+    "kendraName": "Kendra Name",
+    "loanAccount": "Loan Account No",
+    "loanAmount": "Loan Amount",
+    "productName":"Product Name",
+    "moratorium": "Moratorium",
+     "moratoriumValue": "1 - Installment For Principal",
+
+	
+	"roi": "Rate of Interest ",
+	"loanPurpose":"Loan Purpose",
+	"disbursementDate":"Disbursement Date",
+	"loanTerm":"Term of Loan",
+	"insurancePremium": "Insurance Premium",
+    "phoneNumber": "Phone Number",
+	"processingFee": "Processing Fee(PF) Upfront Collection", 
+	"slno":"<b>SI NO</b>",	
+	"date": "<b>Date</b>",
+	"instalment":"<b>Instalment</b>",
+	"balance":"<b>Due/Balance</b>",
+	"KMSignature":"<b>KM Signature</b>",
+	"Principal":"<b>Principal</b>",
+	"interest":"<b>Interest</b>",
+	"total":"<b>Total</b>",	
+	"closureLine1":"*If you have any queries or concerns, please do contact us on our Toll-Free Number 1800- 123- 153-153 during working hours or email us at yourvoice@cagrameen.in. In all communication, please remember to quote your loan ID and customer ID, both of which are mentioned at the top of this letter. If you are not satisfied with the resolution provided by us, you will have the option of escalating it to MFIN toll free number (for other state customers) at 1800-102-1080",
+	"closureLine2":"*Other terms are as per the Sanction Letter Issued."
+
+}
+}
+
+

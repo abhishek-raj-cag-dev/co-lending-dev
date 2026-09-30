@@ -1,0 +1,2539 @@
+window.AadhaarScrId = 'KmSourc__AadhaarDetails__';
+var TempImageObject = {},
+    addrProfArr = [],
+    KM_CURR_STAGE_NAME = 'AadhaarDetails',
+    KM_CURR_STAGE_NO = 2,
+    relatArr = [];
+window.selectedCommunicationAddress = "";
+window.AADHAAR_ROW_FALLBACK = {
+    applicant: false,
+    coapplicant: false
+};
+window.AADHAAR_ADDRESS_MAP = {
+    applicant: {
+        present: {},
+        permanent: {}
+    },
+    coapplicant: {
+        present: {},
+        permanent: {}
+    }
+};
+window.AADHAAR_INIT_DONE = false;
+var residentialAddressFields = [
+    AadhaarScrId + "presentAddrLine1",
+    AadhaarScrId + "presentAddrLine2",
+    AadhaarScrId + "presentAddrLine3",
+    AadhaarScrId + "presentPincode",
+    AadhaarScrId + "addPreCity",
+    AadhaarScrId + "addPreDistrict",
+    AadhaarScrId + "addPreState",
+    AadhaarScrId + "addressProof"
+];
+var permanentAddressFields = [
+    AadhaarScrId + "permanentAddrLine1",
+    AadhaarScrId + "permanentAddrLine2",
+    AadhaarScrId + "permanentAddrLine3",
+    AadhaarScrId + "permanentPincode",
+    AadhaarScrId + "addPermCity",
+    AadhaarScrId + "addPermDistrict",
+    AadhaarScrId + "addPermState",
+    AadhaarScrId + "permanentAddressProof"
+];
+window.Aadhaar_Validate = {
+    required: function(fieldId, message) {
+        let $el = $("#" + fieldId);
+        if ($el.length === 0) return true;
+        if ($el.prop("disabled") || !$el.is(":visible")) return true;
+        let value = ($el.val() || "").trim();
+        if (!value || value === PleaseSelect) {
+            showFieldError(fieldId, message);
+            return false;
+        }
+        return true;
+    },
+    radio: function(name, message) {
+        let radios = document.querySelectorAll(`input[name='${name}']`);
+        if (!radios.length) return true;
+        let isChecked = Array.from(radios).some(r => r.checked);
+        let firstId = radios[0].id;
+        clearFieldError(firstId);
+        if (!isChecked) {
+            showFieldError(firstId, message);
+            return false;
+        }
+        return true;
+    },
+    addFieldMandatory: function(elementIds) {
+        $("#" + elementIds).parents().parents().eq(3).find(".flb").eq(0).addClass("req");
+        $("#" + elementIds).addClass("mand");
+    },
+    removeFieldMandatory: function(elementIds) {
+        $("#" + elementIds).removeClass("mand");
+        $("#" + elementIds).parents().parents().eq(3).find(".flb").eq(0).removeClass("req");
+        $("#" + elementIds).parents().eq(3).find(".err-msg").addClass("sno");
+        $("#" + elementIds).removeClass("err");
+    },
+    fnCheckMaxMinLengthOnBlur: function(pthis) {
+        let minlength = pthis.minLength;
+        let maxlength = pthis.maxLength;
+        let value = pthis.value.trim();
+        let $field = $("#" + pthis.id);
+        if (!apz.isNull(value) && (value.length < minlength || value.length > maxlength)) {
+            window.gIsMinMaxErr = true;
+            $field.addClass("err");
+            $("#" + pthis.id + "_ul").next().removeClass("sno");
+            let errTxtFieldId = $("#" + pthis.id + "_ul").next()?.find('.icon-Error')?.next() ?? $('#dummyid');
+            errTxtFieldId?.text(`Please enter minimum:${minlength} and maximum:${maxlength} characters!`);
+            let wrapper;
+            if ($field.closest(".etb-slct").length) {
+                wrapper = $field.closest(".etb-slct").parent().parent();
+            } else if ($field.closest(".ett-inpt").length) {
+                wrapper = $field.closest(".ett-inpt").parent().parent();
+            } else if ($field.closest("ul").length) {
+                wrapper = $field.closest("ul").parent().parent();
+            }
+            wrapper?.addClass("error-inline");
+        } else {
+            window.gIsMinMaxErr = false;
+            let wrapper;
+            if ($field.closest(".etb-slct").length) {
+                wrapper = $field.closest(".etb-slct").parent().parent();
+            } else if ($field.closest(".ett-inpt").length) {
+                wrapper = $field.closest(".ett-inpt").parent().parent();
+            } else if ($field.closest("ul").length) {
+                wrapper = $field.closest("ul").parent().parent();
+            }
+            wrapper?.removeClass("error-inline");
+        }
+    },
+    getAddressOrFallback: function(address) {
+        if (!address || address.trim() === "") {
+            return "Data not available, please update the aadhaar details";
+        }
+        return address;
+    }
+};
+apz.app.otherAddressState = {
+    present: false,
+    permanent: false
+};
+apz.app.resetOtherAddressByColumn = function(colIndex) {
+    if (colIndex === 1) {
+        apz.app.otherAddressState.present = false;
+        const presentSection = document.querySelector('.other-present-details');
+        if (presentSection) presentSection.style.display = 'none';
+    }
+    if (colIndex === 2) {
+        apz.app.otherAddressState.permanent = false;
+        const permanentSection = document.querySelector('.other-permanent-details');
+        if (permanentSection) permanentSection.style.display = 'none';
+    }
+};
+apz.app.AadhaarDetails.isFreshCase = function() {
+    let key = gApzCOB.currentApplicant === 1 ? "applicant" : "coapplicant";
+    let custType = gApzCOB.currentApplicant === 1 ? "Applicant" : "Co-App";
+    let customerList = inSessionStore?.customerDetailsList;
+    if (!customerList || !customerList.length) return true;
+    let custWrapper = customerList.find(c => c.customerType === custType);
+    if (!custWrapper || !custWrapper.payload) return true;
+    let p = custWrapper.payload;
+    let hasMarital = p.maritalStatus && p.maritalStatus.trim() !== "" && p.maritalStatus !== PleaseSelect;
+    let hasFather = p.fathersName && p.fathersName.trim() !== "" && p.fathersName !== "NULL";
+    let hasSpouse = p.spouseName && p.spouseName.trim() !== "" && p.spouseName !== "NULL";
+    return !(hasMarital || hasFather || hasSpouse);
+};
+//get voter address from inSessionStore
+apz.app.AadhaarDetails.getVoterAddrFromSession = function(custDtlId) {
+    let addrDetailsList = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList || [];
+    let personalWrapper = addrDetailsList.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId));
+    if (!personalWrapper) return null;
+    let addrList = personalWrapper.payload?.addressList || [];
+    return addrList.find(a => a.addressType === "Voter") || null;
+};
+//get Present address from inSessionStore
+apz.app.AadhaarDetails.getPresentAddrFromSession = function(custDtlId) {
+    let addrDetailsList = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList || [];
+    let personalWrapper = addrDetailsList.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId));
+    if (!personalWrapper) return null;
+    let addrList = personalWrapper.payload?.addressList || [];
+    return addrList.find(a => a.addressType === "Present") || null;
+};
+// read live Aadhaar address fields from the screen 
+apz.app.AadhaarDetails.getAadhaarAddrFromFields = function() {
+    let p = AadhaarScrId;
+    return {
+        addressLine1: $(`#${p}addline1`).val() || "",
+        addressLine2: $(`#${p}addline2`).val() || "",
+        addressLine3: $(`#${p}addline3`).val() || "",
+        pinCode: $(`#${p}addpin`).val() || "",
+        city: $(`#${p}aadCity`).val() || "",
+        district: $(`#${p}aadDistrict`).val() || "",
+        state: $(`#${p}aadState`).val() || "",
+        country: $(`#${p}aadCountry`).val() || "",
+        area: $(`#${p}aadArea`).val() || "",
+        landMark: $(`#${p}aadLandmark`).val() || ""
+    };
+};
+//build a display string from an address object
+apz.app.AadhaarDetails.buildAddrString = function(addr) {
+    if (!addr) return "";
+    return [
+        addr.addressLine1, addr.addressLine2, addr.addressLine3,
+        addr.city, addr.district, addr.state, addr.pinCode
+    ].filter(Boolean).join(", ");
+};
+//compare two address objects for equality 
+apz.app.AadhaarDetails.addrEqual = function(a, b) {
+    if (!a || !b) return false;
+    return (a.addressLine1 || "") === (b.addressLine1 || "") && (a.pinCode || "") === (b.pinCode || "") && (a.city || "") === (b.city || "") && (a
+        .state || "") === (b.state || "");
+};
+apz.app.onLoad_AadhaarDetails = function() {
+    $(`#${kmbaseScr}nxtBtn`).prop('disabled', false).removeClass('sno');
+    $(`#${kmbaseScr}SaveDraft`).removeClass('sno');
+    // INITIAL SETUP 
+    apz.app.AadhaarDetails.commoncodeConfTypesLst();
+    apz.populateDropdown(document.getElementById(AadhaarScrId + 'mrtsts'), ApzCOB.formatDropDownforArray(maritalStatus));
+    let filteredReligion = religion;
+    if (ApplicationType === 'OpenMarket' && /Other/.test(religion)) {
+        filteredReligion = religion.filter(item => item !== "Others" && item !== "Other");
+    }
+    apz.populateDropdown(document.getElementById(AadhaarScrId + 'religion'), ApzCOB.formatDropDownforArray(filteredReligion));
+    apz.populateDropdown(document.getElementById(AadhaarScrId + 'caste'), ApzCOB.formatDropDownforArray(caste));
+    apz.populateDropdown(document.getElementById(AadhaarScrId + 'education'), ApzCOB.formatDropDownforArray(education));
+    apz.populateDropdown(document.getElementById(`${AadhaarScrId}A_residence_stabilit_present_city`), ApzCOB.formatDropDownforArray(resYr));
+    apz.populateDropdown(document.getElementById(`${AadhaarScrId}A_residence_stability`), ApzCOB.formatDropDownforArray(resYr));
+    apz.populateDropdown(document.getElementById(AadhaarScrId + 'relationshipProof'), relatArr);
+    // Guard: only unshift "Please Select" once
+    if (addrProfArr.length === 0 || addrProfArr[0]?.val !== PleaseSelect) {
+        addrProfArr.unshift({
+            val: PleaseSelect,
+            desc: PleaseSelect
+        });
+    }
+    apz.populateDropdown(document.getElementById(AadhaarScrId + 'addressProof'), addrProfArr);
+    apz.populateDropdown(document.getElementById(AadhaarScrId + 'permanentAddressProof'), addrProfArr);
+    // UI DEFAULT SETUP
+    window.AADHAAR_INIT_DONE = true;
+    apz.app.otherAddressState.present = false;
+    apz.app.otherAddressState.permanent = false;
+    const presentSection = document.querySelector('.other-present-details');
+    const permanentSection = document.querySelector('.other-permanent-details');
+    if (presentSection) presentSection.style.display = 'none';
+    if (permanentSection) permanentSection.style.display = 'none';
+    // Guard: bind error clearing only once
+    let $screen = $("#scr__" + AadhaarScrId + "main");
+    $screen.off("mousedown.aadhaar").on("mousedown.aadhaar", "input, select", function() {
+        clearFieldError(this.id);
+    });
+    $screen.off("change.aadhaar").on("change.aadhaar", "input[type=radio]", function() {
+        clearFieldError(this.id);
+    });
+    // Min/Max setup
+    ApzCOB.setMinMaxLength([{
+        fieldName: 'MaritalStatus',
+        fieldId: AadhaarScrId + 'mrtsts'
+    }, {
+        fieldName: 'Name',
+        fieldId: AadhaarScrId + 'fathersName'
+    }, {
+        fieldName: 'Name',
+        fieldId: AadhaarScrId + 'spouseName'
+    }, {
+        fieldName: 'AddressLine1',
+        fieldId: AadhaarScrId + 'presentAddrLine1'
+    }, {
+        fieldName: 'AddressLine2',
+        fieldId: AadhaarScrId + 'presentAddrLine2'
+    }, {
+        fieldName: 'AddressLine3',
+        fieldId: AadhaarScrId + 'presentAddrLine3'
+    }, {
+        fieldName: 'Pincode',
+        fieldId: AadhaarScrId + 'presentPincode'
+    }, {
+        fieldName: 'Pincode',
+        fieldId: AadhaarScrId + 'permanentPincode'
+    }, {
+        fieldName: 'AddressLine1',
+        fieldId: AadhaarScrId + 'permanentAddrLine1'
+    }, {
+        fieldName: 'AddressLine2',
+        fieldId: AadhaarScrId + 'permanentAddrLine2'
+    }, {
+        fieldName: 'AddressLine3',
+        fieldId: AadhaarScrId + 'permanentAddrLine3'
+    }]);
+    if (window.AADHAAR_TAB_SWITCH_TARGET) {
+        gApzCOB.currentApplicant = window.AADHAAR_TAB_SWITCH_TARGET === 'CoApplicant' ? 2 : 1;
+    } else {
+        gApzCOB.currentApplicant = 1;
+    }
+    // Data paint
+    apz.app.AadhaarDetails.paintAddressTable();
+    apz.app.AadhaarDetails.prePopulateAll();
+    apz.app.AadhaarDetails.rebuildAddressTable();
+    apz.app.Kmbase.paintAllDocuments();
+    // show/hide Aadhaar details section 
+    let aadhaarNum = ($("#" + AadhaarScrId + "aadharnum").val() || "").trim();
+    let isApplicant = gApzCOB.currentApplicant === 1;
+    let custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    let addrDetailsList = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList || [];
+    let personalWrapper = addrDetailsList.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId));
+    let hasSecondaryKyc = personalWrapper?.payload?.addressList?.some(a => a.addressType === "SecondaryKyc" && a.addressLine1);
+    let comingFromNext = window.AADHAAR_NEXT_TAB_SWITCH === true;
+    ///document capture changes
+    if (aadhaarNum !== "" || hasSecondaryKyc) {
+        // already has data — always show regardless of back/next
+        $("#" + AadhaarScrId + "aadharDetails").removeClass('sno');
+        $("#" + AadhaarScrId + "captureAadhaar").removeClass('btm-seperator');
+    } else if (comingFromNext) {
+        // coming from Next with fresh OCR data — show fields
+        $("#" + AadhaarScrId + "aadharDetails").removeClass('sno');
+        $("#" + AadhaarScrId + "captureAadhaar").removeClass('btm-seperator');
+    } else {
+        // coming from Back — hide fields, don't touch session
+        $("#" + AadhaarScrId + "aadharDetails").addClass('sno');
+        window.AADHAAR_DOC_CAPTURE_SUCCESS = false;
+    }
+    // Tab switch — must be LAST after all paints are done
+    if (window.AADHAAR_TAB_SWITCH_TARGET) {
+        let target = window.AADHAAR_TAB_SWITCH_TARGET;
+        //window.AADHAAR_TAB_SWITCH_TARGET = null;
+        let tabs = $('.aadhaarSubMenu');
+        if (target === 'CoApplicant' && tabs.length > 1) {
+            apz.app.AadhaarDetails._doTabSwitch(tabs.eq(1), 'CoApplicant');
+        } else {
+            apz.app.AadhaarDetails._doTabSwitch(tabs.eq(0), 'Applicant');
+        }
+    }
+    let aadhaarCfgLoad = window.KM_DOC_VIEWER_CONFIG['SECONDARY_KYC'];
+    $(`#${aadhaarCfgLoad.rowId}`).removeClass('km-doc-upload-row').addClass('sno');
+    $(`#${aadhaarCfgLoad.captureBtnId}`).removeClass('sno');
+    let _paintFor = (window.AADHAAR_PAINT_DOC_ON_LOAD != null) ? window.AADHAAR_PAINT_DOC_ON_LOAD : gApzCOB.currentApplicant;
+    window.AADHAAR_PAINT_DOC_ON_LOAD = null;
+    apz.app.Kmbase.paintAadhaarKycDocsInScreen(_paintFor);
+    apz.app.Kmbase.paintSidebarStatus();
+    apz.app.AadhaarDetails.toggleAddressProofDropdown();
+    apz.app.AadhaarDetails.toggleRelationshipDropdown();
+    apz.app.Kmbase.bmRecommendation();
+    apz.app.AadhaarDetails.toggleAddressRadiosForBM();
+};
+apz.app.onShown_AadhaarDetails = function() {
+    if ($('#KmSourc__Kmbase__sidebar_col').hasClass('sideon')) {
+        apz.app.Kmbase.toggleSidebar();
+    }
+    let appCustDtlId = gApzCOB.userDetails.custDtlId;
+    let coAppCustDtlId = gApzCOB.userDetails.CoApplicantCustomerId;
+    let addrDetailsList = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList || [];
+    let appPersonal = addrDetailsList.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(appCustDtlId));
+    let coAppPersonal = addrDetailsList.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(coAppCustDtlId));
+    let appHasSecondaryKyc = appPersonal?.payload?.addressList?.some(a => a.addressType === "SecondaryKyc" && a.addressLine1);
+    let coAppHasSecondaryKyc = coAppPersonal?.payload?.addressList?.some(a => a.addressType === "SecondaryKyc" && a.addressLine1);
+    // which tab are we landing on
+    let targetTab = window.AADHAAR_TAB_SWITCH_TARGET === 'CoApplicant' ? 'CoApplicant' : 'Applicant';
+    let hasSecondaryKyc = targetTab === 'CoApplicant' ? coAppHasSecondaryKyc : appHasSecondaryKyc;
+    let comingFromNext = window.AADHAAR_FROM_DOC_NEXT === true;
+    let capturedFor = window.AADHAAR_FROM_DOC_NEXT_FOR; // 1 = applicant, 2 = co-app
+    window.AADHAAR_FROM_DOC_NEXT = false;
+    window.AADHAAR_FROM_DOC_NEXT_FOR = null;
+    // coming from Next — only show fields for the tab that was just captured
+    let comingFromNextForThisTab = comingFromNext && (
+        (targetTab === 'Applicant' && capturedFor === 1) || (targetTab === 'CoApplicant' && capturedFor === 2));
+    // SIDEBAR ACTIVE STATE — parent always active
+    $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+    $(`#${kmbaseScr}AadhaarDetails_hyp`).addClass('active');
+    // Child active based on target
+    if (window.AADHAAR_TAB_SWITCH_TARGET === 'CoApplicant') {
+        $(`#${kmbaseScr}CoAppAadhaarDetails_hyp`).addClass('active');
+        $(`#${AadhaarScrId}el_btn_2`).addClass('active');
+    } else {
+        $(`#${kmbaseScr}AppAadhaarDetails_hyp`).addClass('active');
+        $(`#${AadhaarScrId}el_btn_1`).addClass('active');
+    }
+    window.AADHAAR_TAB_SWITCH_TARGET = null;
+    // Aadhaar doc capture UI
+    if (hasSecondaryKyc) {
+        // already has saved data — always show
+        $("#" + AadhaarScrId + "aadharDetails").removeClass('sno');
+        $("#" + AadhaarScrId + "captureAadhaar").removeClass('btm-seperator');
+    } else if (comingFromNextForThisTab) {
+        // fresh OCR confirmed via Next for this tab — show fields
+        $("#" + AadhaarScrId + "aadharDetails").removeClass('sno');
+        $("#" + AadhaarScrId + "captureAadhaar").removeClass('btm-seperator');
+    } else {
+        // Back navigation or different tab — hide fields
+        $('.aadharDetails').addClass('sno');
+        window.AADHAAR_DOC_CAPTURE_SUCCESS = false;
+    }
+    apz.app.Kmbase.paintSidebarStatus();
+    if ($(`#KmSourc__AadhaarDetails__el_txt_3`).is(":visible")) {
+        $(`#KmSourc__AadhaarDetails__sc_row_189`).removeClass("sno");
+    } else {
+        $(`#KmSourc__AadhaarDetails__sc_row_189`).addClass("sno");
+    }
+    if (ApplicationType === 'OpenMarket') {
+        $("#KmSourc__AadhaarDetails__residentialStatus_option_Own").click()
+        $("#KmSourc__AadhaarDetails__residentialStatus_option_Rented").prop("disabled", true);
+    }
+    const scrollContainer = document.querySelector('#APZCBO__BaseScreens__baseRow');
+    scrollContainer.scrollTop = 0;
+    // ── Enable Name Field in Fetch OCR Section  ───────────────────────
+    $("#" + kmbaseScr + "ocrNameSection").removeClass('disabled').prop('disabled', false);
+    document.querySelector('label[for="KmSourc__Kmbase__ocrNameSection"]')
+        ?.classList.add('req');
+};
+apz.app.handleColumnRadio = function(pthis) {
+    if (!pthis) return;
+    const cell = pthis.closest('.addr-cell');
+    if (!cell) return;
+    const row = pthis.closest('.addr-body-row');
+    if (!row) return;
+    const cells = Array.from(row.children);
+    const colIndex = cells.indexOf(cell);
+    const isOtherRow = pthis.closest('.other-address-row');
+    if (!isOtherRow) {
+        const otherActive = colIndex === 1 ? apz.app.otherAddressState.present : apz.app.otherAddressState.permanent;
+        if (otherActive && apz.app.AadhaarDetails._otherDocExists(colIndex)) {
+            const docLabel = colIndex === 1 ? "Address Proof" : "Permanent Address Proof";
+            pthis.checked = false;
+            const allRows = document.querySelectorAll('.addr-body-row');
+            const otherRow = allRows[4];
+            if (otherRow) {
+                const otherCell = otherRow.children[colIndex];
+                const otherRadio = otherCell?.querySelector('input[type="radio"]');
+                if (otherRadio) otherRadio.checked = true;
+            }
+            ApzCOB.fnDisplayMsg(`Please delete the captured ${docLabel} document before changing the address source.`, "E");
+            return;
+        }
+    }
+    if (!isOtherRow) {
+        if (colIndex === 1) {
+            apz.app.otherAddressState.present = false;
+            const presentSection = document.querySelector('.other-present-details');
+            if (presentSection) presentSection.style.display = 'none';
+            let p = AadhaarScrId;
+            $(`#${p}presentAddrLine1`).val("");
+            $(`#${p}presentAddrLine2`).val("");
+            $(`#${p}presentAddrLine3`).val("");
+            $(`#${p}presentPincode`).val("");
+            $(`#${p}addPreCity`).val("").trigger("change");
+            $(`#${p}addPreDistrict`).val("").trigger("change");
+            $(`#${p}addPreState`).val("").trigger("change");
+            $(`#${p}addPreCountry`).val("").trigger("change");
+            $(`#${p}addPreArea`).val("");
+            $(`#${p}addPreLandmark`).val("");
+            $(`#${p}addressProof`).val(PleaseSelect).trigger("change");
+            $(`#${p}addressProof`).prop("disabled", false).closest('.ett-inpt').removeClass("disabled");
+        }
+        if (colIndex === 2) {
+            apz.app.otherAddressState.permanent = false;
+            const permanentSection = document.querySelector('.other-permanent-details');
+            if (permanentSection) permanentSection.style.display = 'none';
+            let p = AadhaarScrId;
+            $(`#${p}permanentAddrLine1`).val("");
+            $(`#${p}permanentAddrLine2`).val("");
+            $(`#${p}permanentAddrLine3`).val("");
+            $(`#${p}permanentPincode`).val("");
+            $(`#${p}addPermCity`).val("").trigger("change");
+            $(`#${p}addPermDistrict`).val("").trigger("change");
+            $(`#${p}addPermState`).val("").trigger("change");
+            $(`#${p}addPermCountry`).val("").trigger("change");
+            $(`#${p}addPermArea`).val("");
+            $(`#${p}addPermLandmark`).val("");
+            $(`#${p}permanentAddressProof`).val(PleaseSelect).trigger("change");
+            $(`#${p}permanentAddressProof`).prop("disabled", false).closest('.ett-inpt').removeClass("disabled");
+        }
+        const allRows = Array.from(document.querySelectorAll('.addr-body-row'));
+        const rowIndex = allRows.indexOf(pthis.closest('.addr-body-row')) + 1;
+        const rowToSameAs = {
+            1: "ApplicantVoter",
+            2: "Co-AppVoter",
+            3: "ApplicantSecondaryKyc",
+            4: "Co-AppSecondaryKyc"
+        };
+
+        function getAddrForRow(rowNum) {
+            let custList = inSessionStore?.customerDetailsList || [];
+            let addrRoot = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList || [];
+
+            function getAddr(custDtlId, addrType) {
+                let personal = addrRoot.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId));
+                return personal?.payload?.addressList?.find(a => a.addressType === addrType) || null;
+            }
+            let appCustDtlId = custList.find(c => c.customerType === "Applicant")?.custDtlId || gApzCOB.userDetails.custDtlId;
+            let coAppCustDtlId = custList.find(c => c.customerType === "Co-App")?.custDtlId || gApzCOB.userDetails.CoApplicantCustomerId;
+            if (rowNum === 1) return getAddr(appCustDtlId, "Voter");
+            if (rowNum === 2) return getAddr(coAppCustDtlId, "Voter");
+            if (rowNum === 3) return getAddr(appCustDtlId, "SecondaryKyc");
+            if (rowNum === 4) return getAddr(coAppCustDtlId, "SecondaryKyc");
+            return null;
+        }
+        let sourceAddr = getAddrForRow(rowIndex);
+        let p = AadhaarScrId;
+        if (colIndex === 1) {
+            if (sourceAddr && sourceAddr.addressLine1) {
+                $(`#${p}presentAddrLine1`).val(sourceAddr.addressLine1 || "");
+                $(`#${p}presentAddrLine2`).val(sourceAddr.addressLine2 || "");
+                $(`#${p}presentAddrLine3`).val(sourceAddr.addressLine3 || "");
+                $(`#${p}presentPincode`).val(sourceAddr.pinCode || "");
+                $(`#${p}addPreCity`).val(sourceAddr.city || "").trigger("change");
+                $(`#${p}addPreDistrict`).val(sourceAddr.district || "").trigger("change");
+                $(`#${p}addPreState`).val(sourceAddr.state || "").trigger("change");
+                $(`#${p}addPreCountry`).val(sourceAddr.country || "").trigger("change");
+                $(`#${p}addPreArea`).val(sourceAddr.area || "");
+                $(`#${p}addPreLandmark`).val(sourceAddr.landMark || "");
+            } else {
+                $(`#${p}presentAddrLine1`).val("");
+                $(`#${p}presentAddrLine2`).val("");
+                $(`#${p}presentAddrLine3`).val("");
+                $(`#${p}presentPincode`).val("");
+                $(`#${p}addPreCity`).val("").trigger("change");
+                $(`#${p}addPreDistrict`).val("").trigger("change");
+                $(`#${p}addPreState`).val("").trigger("change");
+                $(`#${p}addPreCountry`).val("").trigger("change");
+                $(`#${p}addPreArea`).val("");
+                $(`#${p}addPreLandmark`).val("");
+            }
+        }
+        if (colIndex === 2) {
+            if (sourceAddr && sourceAddr.addressLine1) {
+                $(`#${p}permanentAddrLine1`).val(sourceAddr.addressLine1 || "");
+                $(`#${p}permanentAddrLine2`).val(sourceAddr.addressLine2 || "");
+                $(`#${p}permanentAddrLine3`).val(sourceAddr.addressLine3 || "");
+                $(`#${p}permanentPincode`).val(sourceAddr.pinCode || "");
+                $(`#${p}addPermCity`).val(sourceAddr.city || "").trigger("change");
+                $(`#${p}addPermDistrict`).val(sourceAddr.district || "").trigger("change");
+                $(`#${p}addPermState`).val(sourceAddr.state || "").trigger("change");
+                $(`#${p}addPermCountry`).val(sourceAddr.country || "").trigger("change");
+                $(`#${p}addPermArea`).val(sourceAddr.area || "");
+                $(`#${p}addPermLandmark`).val(sourceAddr.landMark || "");
+            } else {
+                $(`#${p}permanentAddrLine1`).val("");
+                $(`#${p}permanentAddrLine2`).val("");
+                $(`#${p}permanentAddrLine3`).val("");
+                $(`#${p}permanentPincode`).val("");
+                $(`#${p}addPermCity`).val("").trigger("change");
+                $(`#${p}addPermDistrict`).val("").trigger("change");
+                $(`#${p}addPermState`).val("").trigger("change");
+                $(`#${p}addPermCountry`).val("").trigger("change");
+                $(`#${p}addPermArea`).val("");
+                $(`#${p}addPermLandmark`).val("");
+            }
+        }
+    }
+    document.querySelectorAll('.addr-body-row').forEach(r => {
+        const targetCell = r.children[colIndex];
+        if (!targetCell) return;
+        const radio = targetCell.querySelector('input[type="radio"]');
+        if (radio && radio !== pthis) {
+            radio.checked = false;
+        }
+    });
+};
+apz.app.handleAddressType = function(pthis) {
+    if (!pthis) return;
+    const value = pthis.value;
+    document.querySelectorAll('.addr-header-row, .addr-body-row').forEach(row => {
+        const cells = row.children;
+        if (!cells || cells.length < 3) return;
+        const presentCell = cells[1];
+        const permanentCell = cells[2];
+        if (value === 'Own') {
+            presentCell.style.display = '';
+            permanentCell.style.display = 'none';
+            permanentCell.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+            $(`#${AadhaarScrId}permanentAddressProof`).val(PleaseSelect);
+        } else {
+            presentCell.style.display = '';
+            permanentCell.style.display = '';
+        }
+    });
+    const addressRow = document.querySelector('.address-selection');
+    if (!addressRow) return;
+    const optionRadios = addressRow.querySelectorAll('input[type="radio"]');
+    if (value === 'Own') {
+        addressRow.classList.add('disabled');
+        optionRadios.forEach(r => {
+            if (r.value === 'presentAddr') {
+                r.checked = true;
+                r.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            } else {
+                r.checked = false;
+            }
+        });
+        apz.app.otherAddressState.permanent = false;
+        const otherPermanentSection = document.querySelector('.other-permanent-details');
+        if (otherPermanentSection) otherPermanentSection.style.display = 'none';
+        window.selectedCommunicationAddress = "Present";
+        apz.app.AadhaarDetails.captureCommunicationAddress();
+    } else {
+        addressRow.classList.remove('disabled');
+        optionRadios.forEach(r => r.checked = false);
+        window.selectedCommunicationAddress = "";
+        let anyPermanentChecked = Array.from(document.querySelectorAll('.addr-body-row')).some(row => {
+            let radio = row.children[2]?.querySelector("input[type='radio']");
+            return radio && radio.checked;
+        });
+        if (!anyPermanentChecked) {
+            checkRowRadio(1, 2);
+        }
+    }
+};
+apz.app.handleOtherAddressSelection = function(pthis) {
+    if (!apz.app.otherAddressState) {
+        apz.app.otherAddressState = {
+            present: false,
+            permanent: false
+        };
+    }
+    const value = pthis?.value || '';
+    let p = AadhaarScrId;
+    if (value === 'presentOther') {
+        apz.app.otherAddressState.present = !apz.app.otherAddressState.present;
+        if (apz.app.otherAddressState.present) {
+            $(`#${p}presentAddrLine1`).val("");
+            $(`#${p}presentAddrLine2`).val("");
+            $(`#${p}presentAddrLine3`).val("");
+            $(`#${p}presentPincode`).val("");
+            $(`#${p}addPreCity`).val("").trigger("change");
+            $(`#${p}addPreDistrict`).val("").trigger("change");
+            $(`#${p}addPreState`).val("").trigger("change");
+            $(`#${p}addPreCountry`).val("").trigger("change");
+            $(`#${p}addPreArea`).val("");
+            $(`#${p}addPreLandmark`).val("");
+        }
+    }
+    if (value === 'permanentOther') {
+        apz.app.otherAddressState.permanent = !apz.app.otherAddressState.permanent;
+        if (apz.app.otherAddressState.permanent) {
+            $(`#${p}permanentAddrLine1`).val("");
+            $(`#${p}permanentAddrLine2`).val("");
+            $(`#${p}permanentAddrLine3`).val("");
+            $(`#${p}permanentPincode`).val("");
+            $(`#${p}addPermCity`).val("").trigger("change");
+            $(`#${p}addPermDistrict`).val("").trigger("change");
+            $(`#${p}addPermState`).val("").trigger("change");
+            $(`#${p}addPermCountry`).val("").trigger("change");
+            $(`#${p}addPermArea`).val("");
+            $(`#${p}addPermLandmark`).val("");
+        }
+    }
+    const presentSection = document.querySelector('.other-present-details');
+    const permanentSection = document.querySelector('.other-permanent-details');
+    if (!presentSection || !permanentSection) return;
+    presentSection.style.display = apz.app.otherAddressState.present ? '' : 'none';
+    permanentSection.style.display = apz.app.otherAddressState.permanent ? '' : 'none';
+};
+apz.app.AadhaarDetails.handletabSwitch = function(pthis, CustType) {
+    if (!pthis) return;
+    if (!window.AADHAAR_TAB_SWITCH_SAVING) {
+        window.AADHAAR_NEXT_TAB_SWITCH = false;
+        window.AADHAAR_SKIP_SAVE = false;
+    }
+    if (window.AADHAAR_INIT_DONE && !window.AADHAAR_TAB_SWITCH_SAVING) {
+        // programmatic Next navigation — skip confirm modal
+        if (window.AADHAAR_NEXT_TAB_SWITCH) {
+            window.AADHAAR_NEXT_TAB_SWITCH = false;
+            window.AADHAAR_TAB_SWITCH_SAVING = true;
+            window.AADHAAR_TAB_SWITCH_TARGET = (CustType === 'Applicant') ? 'Applicant' : 'CoApplicant';
+            window.AADHAAR_SAVE_DRAFT = false;
+            window.AADHAAR_EXPLICIT_DRAFT = false;
+            window.isVerified = "N";
+            window._AFTER_DRAFT_SAVE = function() {
+                window.AADHAAR_TAB_SWITCH_SAVING = false;
+                apz.app.AadhaarDetails._doTabSwitch(pthis, CustType);
+            };
+            apz.app.AadhaarDetails.saveAadhaarDetails(true);
+            return;
+        }
+        if (window.AADHAAR_SKIP_SAVE) {
+            window.AADHAAR_SKIP_SAVE = false;
+            window.AADHAAR_NEXT_TAB_SWITCH = false;
+            apz.app.AadhaarDetails._doTabSwitch(pthis, CustType);
+            return;
+        }
+        apz.app.Kmbase.confirmNavigate(function() {
+            window.AADHAAR_TAB_SWITCH_SAVING = true;
+            window.AADHAAR_TAB_SWITCH_TARGET = (CustType === 'Applicant') ? 'Applicant' : 'CoApplicant';
+            window.AADHAAR_SAVE_DRAFT = false;
+            window.AADHAAR_EXPLICIT_DRAFT = false;
+            window.isVerified = "N";
+            try {
+                var _aadLeavingNo = gApzCOB.currentApplicant;
+                var _aadLeavingCode = (_aadLeavingNo === 2) ? "C" : "A";
+                apz.app.Kmbase.updateSrcVerifiedStages(2, _aadLeavingCode, "N");
+                apz.app.Kmbase.paintSidebarStatus();
+            } catch (e) {
+                ApzCOB.traceFrontEndError(e,"");
+            }
+            window._AFTER_DRAFT_SAVE = function() {
+                window.AADHAAR_TAB_SWITCH_SAVING = false;
+                apz.app.AadhaarDetails._doTabSwitch(pthis, CustType);
+            };
+            apz.app.AadhaarDetails.saveAadhaarDetails(true);
+        });
+        return;
+    }
+    apz.app.AadhaarDetails._doTabSwitch(pthis, CustType);
+};
+apz.app.AadhaarDetails._doTabSwitch = function(pthis, CustType) {
+    $(`#${kmbaseScr}nxtBtn`).prop('disabled', false);
+    resetAllMinMaxErrors();
+    var $btn = $(pthis);
+    $('.aadhaarSubMenu').removeClass('active');
+    $btn.addClass('active');
+    if (CustType === 'Applicant') {
+        gApzCOB.currentApplicant = 1;
+        $('.src-coapp').addClass('sno');
+        $('.src-app').removeClass('sno');
+        $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+        $(`#${kmbaseScr}AadhaarDetails_hyp`).addClass('active');
+        $(`#${kmbaseScr}AppAadhaarDetails_hyp`).addClass('active');
+    } else {
+        gApzCOB.currentApplicant = 2;
+        $('.src-app').addClass('sno');
+        $('.src-coapp').removeClass('sno');
+        $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+        $(`#${kmbaseScr}AadhaarDetails_hyp`).addClass('active');
+        $(`#${kmbaseScr}CoAppAadhaarDetails_hyp`).addClass('active');
+    }
+    apz.app.AadhaarDetails.clearScreenFields();
+    apz.app.AadhaarDetails.paintAddressTable();
+    apz.app.AadhaarDetails.prePopulateAll();
+    apz.app.Kmbase.paintAllDocuments();
+    apz.app.AadhaarDetails.toggleAddressProofDropdown();
+    apz.app.AadhaarDetails.toggleRelationshipDropdown();
+    // re-evaluate aadhaar details visibility for the new tab
+    let _switchCustDtlId = CustType === 'CoApplicant' ? gApzCOB.userDetails.CoApplicantCustomerId : gApzCOB.userDetails.custDtlId;
+    let _switchAddrList = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList || [];
+    let _switchPersonal = _switchAddrList.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(_switchCustDtlId));
+    let _switchHasSecKyc = _switchPersonal?.payload?.addressList?.some(a => a.addressType === "SecondaryKyc" && a.addressLine1);
+    if (_switchHasSecKyc) {
+        $("#" + AadhaarScrId + "aadharDetails").removeClass('sno');
+        $("#" + AadhaarScrId + "captureAadhaar").removeClass('btm-seperator');
+    } else {
+        $("#" + AadhaarScrId + "aadharDetails").addClass('sno');
+        $("#" + AadhaarScrId + "captureAadhaar").addClass('btm-seperator');
+    }
+    let aadhaarCfgSwitch = window.KM_DOC_VIEWER_CONFIG['SECONDARY_KYC'];
+    $(`#${aadhaarCfgSwitch.rowId}`).removeClass('km-doc-upload-row').addClass('sno');
+    $(`#${aadhaarCfgSwitch.captureBtnId}`).removeClass('sno');
+    apz.app.Kmbase.paintAadhaarKycDocsInScreen(gApzCOB.currentApplicant);
+    //window.scrollTo(0, 0);
+    ApzCOB.scrollTopKMSourcing();
+    apz.app.Kmbase.bmRecommendation();
+//   apz.app.AadhaarDetails.handleOpenMarketFields()
+    if(window.AADHAAR_TAB_SWITCH_TARGET === 'Applicant'){
+        apz.app.AadhaarDetails.toggleAddressRadiosForBM();
+    }
+    apz.app.Kmbase.paintQueryResponsedata();
+    if(lastBM)
+    apz.app.Kmbase.paintQueryResponsedata(true);
+};
+apz.app.AadhaarDetails.handleOpenMarketFields = function () {
+    let applicantMaritalStatus  = inSessionStore.customerDetailsList.filter((e) => e.customerType === "Applicant")[0].payload.maritalStatus || "";
+
+    let coApplicantRelationwithApplicant = inSessionStore.customerDetailsList.filter((e) => e.customerType === 'Co-App')[0].payload.relationShipWithApplicant || "";
+
+    if (gApzCOB.currentApplicant === 2 && gApzCOB.productCode === "1001" && (applicantMaritalStatus === "Married" && coApplicantRelationwithApplicant !== "Spouse")) {
+        var today = new Date();
+        var maxDob = new Date();
+        maxDob.setFullYear(today.getFullYear() - 18);
+        var defaultDob = new Date();
+        defaultDob.setFullYear(today.getFullYear() - 18);
+        $("#KmSourc__AadhaarDetails__spouseDob").datepicker("option", {
+            maxDate: maxDob
+        });
+        $("#KmSourc__AadhaarDetails__spouseDob").datepicker("setDate", defaultDob);
+        let kycTypes = ['Please Select', 'Aadhaar Card', 'Voter ID', 'Driving License', 'Passport'];
+        apz.populateDropdown(document.getElementById('KmSourc__AadhaarDetails__spouseKYCType'), ApzCOB.formatDropDownforArray(kycTypes));
+        $("#" + AadhaarScrId + "spouseKycID_row").removeClass("sno");
+        $("#" + AadhaarScrId + "spouseKYCType_row").removeClass("sno");
+        $("#" + AadhaarScrId + "spouseDob_row").removeClass("sno");
+    } else {
+        $("#" + AadhaarScrId + "spouseKycID_row").addClass("sno");
+        $("#" + AadhaarScrId + "spouseKYCType_row").addClass("sno");
+        $("#" + AadhaarScrId + "spouseDob_row").addClass("sno");
+        $("#" + AadhaarScrId + "spouseKycID").val("");
+        $("#" + AadhaarScrId + "spouseKYCType").val("");
+        $("#" + AadhaarScrId + "spouseDob").val("");
+    }
+}
+// apz.app.AadhaarDetails.commoncodeConfTypesLst = function () {
+//     let applicantMaritalStatus  = inSessionStore.customerDetailsList.filter((e) => e.customerType === "Applicant")[0].payload.maritalStatus || "";
+
+//     let coApplicantRelationwithApplicant = inSessionStore.customerDetailsList.filter((e) => e.customerType === 'Co-App')[0].payload.relationShipWithApplicant || "";
+
+//     if (gApzCOB.currentApplicant === 2 && gApzCOB.productCode === "1001" && (applicantMaritalStatus === "Married" && coApplicantRelationwithApplicant !== "Spouse")) {
+//         var today = new Date();
+//         var maxDob = new Date();
+//         maxDob.setFullYear(today.getFullYear() - 18);
+//         var defaultDob = new Date();
+//         defaultDob.setFullYear(today.getFullYear() - 18);
+//         $("#KmSourc__AadhaarDetails__spouseDob").datepicker("option", {
+//             maxDate: maxDob
+//         });
+//         $("#KmSourc__AadhaarDetails__spouseDob").datepicker("setDate", defaultDob);
+//         let kycTypes = ['Please Select', 'Aadhaar Card', 'Voter ID', 'Driving License', 'Passport'];
+//         apz.populateDropdown(document.getElementById('KmSourc__AadhaarDetails__spouseKYCType'), ApzCOB.formatDropDownforArray(kycTypes));
+//         $("#" + AadhaarScrId + "spouseKycID_row").removeClass("sno");
+//         $("#" + AadhaarScrId + "spouseKYCType_row").removeClass("sno");
+//         $("#" + AadhaarScrId + "spouseDob_row").removeClass("sno");
+//     } else {
+//         $("#" + AadhaarScrId + "spouseKycID_row").addClass("sno");
+//         $("#" + AadhaarScrId + "spouseKYCType_row").addClass("sno");
+//         $("#" + AadhaarScrId + "spouseDob_row").addClass("sno");
+//         $("#" + AadhaarScrId + "spouseKycID").val("");
+//         $("#" + AadhaarScrId + "spouseKYCType").val("");
+//         $("#" + AadhaarScrId + "spouseDob").val("");
+//     }
+// }
+apz.app.AadhaarDetails.commoncodeConfTypesLst = function () {
+    var doctypearr = upDocsData["DOCS"][0]['OtherDocs~Y~N'].documentstype;
+    for (let i = 0; i < doctypearr.length; i++) {
+        let temptype = doctypearr[i].split('~');
+        if (temptype[2] == 'Address Proof') {
+            addrProfArr.push({
+                "val": temptype[1],
+                "desc": temptype[1]
+            });
+        } else if (temptype[2] == 'Relationship proof') {
+            relatArr.push({
+                "val": temptype[1],
+                "desc": temptype[1]
+            });
+        }
+    }
+};
+// VALIDATION HELPERS
+function clearFieldError(fieldId) {
+    let field = document.getElementById(fieldId);
+    if (!field) return;
+    let parent = field.parentElement;
+    while (parent) {
+        if (parent.classList.contains("error-inline")) {
+            parent.classList.remove("error-inline");
+            break;
+        }
+        parent = parent.parentElement;
+    }
+    let errorEl = document.getElementById(fieldId + "_error");
+    if (errorEl) errorEl.remove();
+}
+
+function showFieldError(fieldId, message) {
+    let field = document.getElementById(fieldId);
+    if (!field) return;
+    clearFieldError(fieldId);
+    let wrapper;
+    if (field.closest(".etb-slct")) {
+        wrapper = field.closest(".etb-slct").parentElement;
+    } else if (field.closest(".ett-inpt")) {
+        wrapper = field.closest(".ett-inpt").parentElement;
+    } else {
+        wrapper = field.parentElement;
+    }
+    if (wrapper) wrapper.classList.add("error-inline");
+    let error = document.createElement("div");
+    error.className = "cb-error-msg";
+    error.id = fieldId + "_error";
+    error.innerText = message;
+    wrapper.appendChild(error);
+}
+
+function resetAllMinMaxErrors() {
+    document.querySelectorAll("ul").forEach(u => {
+        const errBox = u.nextElementSibling;
+        if (errBox && errBox.classList.contains("err-msg")) errBox.classList.add("sno");
+    });
+    document.querySelectorAll(".error-inline").forEach(e => e.classList.remove("error-inline"));
+    document.querySelectorAll(".err").forEach(e => e.classList.remove("err"));
+    document.querySelectorAll(".cb-error-msg").forEach(e => e.remove());
+    window.gIsMinMaxErr = false;
+}
+apz.app.AadhaarDetails.formValidator = function() {
+    let isValid = true;
+    let p = AadhaarScrId;
+    let isApplicant = gApzCOB.currentApplicant === 1;
+
+    // clear any previous min/max errors before validating
+    let minMaxErrorFound = false;
+
+    function check(res) {
+        if (!res) isValid = false;
+    }
+    function checkLength(fieldId) {
+        let el = document.getElementById(fieldId);
+        if (el && !el.disabled && el.offsetParent !== null) {
+            Aadhaar_Validate.fnCheckMaxMinLengthOnBlur(el);
+            if (window.gIsMinMaxErr) minMaxErrorFound = true;
+        }
+    }
+    check(Aadhaar_Validate.required(p + "mrtsts", "Please select marital status"));
+    check(Aadhaar_Validate.required(p + "education", "Please select education"));
+    check(Aadhaar_Validate.required(p + "religion", "Please select religion"));
+    check(Aadhaar_Validate.required(p + "caste", "Please select caste"));
+    let applicantMaritalStatus  = inSessionStore.customerDetailsList.filter((e) => e.customerType === "Applicant")[0].payload.maritalStatus || "";
+    let coApplicantRelationwithApplicant = inSessionStore.customerDetailsList.filter((e) => e.customerType === 'Co-App')[0].payload.relationShipWithApplicant || "";
+    // if (gApzCOB.currentApplicant === 2 && gApzCOB.productCode === "1001" && (applicantMaritalStatus === "Married" && coApplicantRelationwithApplicant !== "Spouse")) {
+    //     check(Aadhaar_Validate.required(p + "spouseKYCType", "Please select spouse KYC type"));
+    //     check(Aadhaar_Validate.required(p + "spouseKycID", "Please enter spouse KYC ID"));
+    //     check(Aadhaar_Validate.required(p + "spouseDob", "Please select spouse date of birth"));
+    // }
+    let marital = $("#" + p + "mrtsts").val();
+    if (marital === "Married") {
+        check(Aadhaar_Validate.required(p + "spouseName", "Please enter spouse name"));
+    } else if (marital && marital !== PleaseSelect) {
+        check(Aadhaar_Validate.required(p + "fathersName", "Please enter father name"));
+    }
+    let coAppGender = ApzCOB.getPayloadDatafromWrapper('gender', 'Co-App', 'customerDetailsList') || '';
+    if (gApzCOB.currentApplicant === 2 && coAppGender.toLowerCase() == 'male') {
+        check(Aadhaar_Validate.required(p + "spouseName", "Please enter spouse name"));
+        check(Aadhaar_Validate.required(p + "fathersName", "Please enter father name"));
+    }
+    checkLength(p + "fathersName");
+    checkLength(p + "spouseName");
+    if (!isApplicant) {
+        check(Aadhaar_Validate.required(p + "relationshipProof", "Please select relationship proof document"));
+    }
+    check(Aadhaar_Validate.radio(p + "communicationAddress_", "Please select communication address"));
+    let residential = $("input[name='" + p + "residentialStatus_']:checked").val();
+    let validatePresent = apz.app.otherAddressState?.present;
+    let validatePermanent = apz.app.otherAddressState?.permanent;
+    // Own + Other present selected — validate present address fields
+    if (residential === "Own" && validatePresent) {
+        check(Aadhaar_Validate.required(p + "presentAddrLine1", "Please enter address Line 1"));
+        check(Aadhaar_Validate.required(p + "presentPincode", "Please enter pincode"));
+        checkLength(p + "presentAddrLine1");
+        checkLength(p + "presentAddrLine2");
+        checkLength(p + "presentAddrLine3");
+        if (isApplicant) {
+            let addrProofVal = ($(`#${p}addressProof`).val() || "").trim();
+            if (!addrProofVal || addrProofVal === PleaseSelect) {
+                showFieldError(p + "addressProof", "Please select address proof");
+                isValid = false;
+            }
+        }
+    } else if (residential === "Own") {}
+    // Rented/other ownership + Other present selected
+    if (residential !== "Own" && validatePresent) {
+        check(Aadhaar_Validate.required(p + "presentAddrLine1", "Please enter address line 1"));
+        check(Aadhaar_Validate.required(p + "presentPincode", "Please enter pincode"));
+        checkLength(p + "presentAddrLine1");
+        checkLength(p + "presentAddrLine2");
+        checkLength(p + "presentAddrLine3");
+        if (isApplicant) {
+            let addrProofVal = ($(`#${p}addressProof`).val() || "").trim();
+            if (!addrProofVal || addrProofVal === PleaseSelect) {
+                showFieldError(p + "addressProof", "Please select address proof");
+                isValid = false;
+            }
+        }
+    }
+    if (validatePermanent) {
+        check(Aadhaar_Validate.required(p + "permanentAddrLine1", "Please enter address Line 1"));
+        check(Aadhaar_Validate.required(p + "permanentPincode", "Please enter pincode"));
+        checkLength(p + "permanentAddrLine1");
+        checkLength(p + "permanentAddrLine2");
+        checkLength(p + "permanentAddrLine3");
+        if (isApplicant) {
+            let permAddrProofVal = ($(`#${p}permanentAddressProof`).val() || "").trim();
+            if (!permAddrProofVal || permAddrProofVal === PleaseSelect) {
+                showFieldError(p + "permanentAddressProof", "Please select address proof");
+                isValid = false;
+            }
+        }
+    }
+    check(Aadhaar_Validate.required(p + "A_residence_stabilit_present_city", "Please select present city(years)"));
+    check(Aadhaar_Validate.required(p + "A_residence_stability", "Please select present address(years)"));
+
+    if (minMaxErrorFound) isValid = false;
+    return isValid;
+};
+apz.app.AadhaarDetails.validateForm = function() {
+    let p = AadhaarScrId;
+    let isApplicant = gApzCOB.currentApplicant === 1;
+    let custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    // ── CHECK 1: Mandatory fields validation ──
+    let valid = apz.app.AadhaarDetails.formValidator();
+    if (!valid) {
+        ApzCOB.fnDisplayMsg("Please fill all mandatory fields before proceeding.", "E");
+        let firstError = $(".error-inline:visible").first();
+        if (firstError.length) firstError[0].scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+        return false;
+    }
+    // ── CHECK 2: Mandatory document upload validation ──
+    let missingDocs = apz.app.AadhaarDetails.getMissingMandatoryDocs();
+    if (missingDocs.length > 0) {
+        let message = "Please capture the following mandatory document(s) before proceeding:\n" + missingDocs.join(", ");
+        ApzCOB.fnDisplayMsg(message, "E");
+        return false;
+    }
+    // ── CHECK 3: Aadhaar document must be captured AND aadhaar number must have a value ──
+    let aadhaarDocs = (inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || []).filter(d => d.payload
+        .documentType === "SECONDARY_KYC" && parseInt(d.custDtlId) === parseInt(custDtlId));
+    let aadhaarNum = ($("#" + p + "aadharnum").val() || "").trim();
+    let hasDoc = aadhaarDocs.length > 0;
+    let hasNum = aadhaarNum !== "";
+    if (!hasDoc || !hasNum) {
+        ApzCOB.fnDisplayMsg("Aadhaar address is not available. Please update Aadhaar details before proceeding.", "E");
+        let aadhaarScrollTarget = isApplicant ? "#" + AadhaarScrId + "appAadhaarAddr" : "#" + AadhaarScrId + "captureAadhaar";
+        $(aadhaarScrollTarget)[0]?.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+        return false;
+    }
+    apz.app.AadhaarDetails.captureCommunicationAddress();
+    return true;
+};
+apz.app.AadhaarDetails.getMissingMandatoryDocs = function() {
+    let isApplicant = gApzCOB.currentApplicant === 1;
+    let custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    let docList = inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || [];
+ 
+    // ── CHANGE: generic uploaded count — now supports ADDRESS_PROOF with desc filter ──
+    function getUploadedCount(docType, descFilter) {
+        return docList.filter(d => {
+            if (d.payload.documentType !== docType) return false;
+            if (parseInt(d.custDtlId) !== parseInt(custDtlId)) return false;
+            if (!d.payload.documentFileName) return false;
+            // If a descFilter is supplied, match documentDesc
+            if (descFilter) {
+                let storedDesc = (d.payload.documentDesc || "").toUpperCase();
+                if (storedDesc !== descFilter.toUpperCase()) return false;
+            }
+            return true;
+        }).length;
+    }
+ 
+    function getMinRequired(docType) {
+        let config = docMaxAndMand.find(d => d.key === docType);
+        if (!config) return 1;
+        return parseInt(config.value.split('~')[1]);
+    }
+ 
+    let missing = [];
+ 
+    // CUSTOMER_PHOTOGRAPH — no desc filter needed
+    if (getUploadedCount("CUSTOMER_PHOTOGRAPH") < getMinRequired("CUSTOMER_PHOTOGRAPH")) {
+        missing.push("Customer Photograph");
+    }
+ 
+    if (isApplicant) {
+        // RESIDENCE_PREMISE_PHOTO — no desc filter needed
+        if (getUploadedCount("RESIDENCE_PREMISE_PHOTO") < getMinRequired("RESIDENCE_PREMISE_PHOTO")) {
+            missing.push("Residence Premise Photo");
+        }
+ 
+        // ── CHANGE: ADDRESS_PROOF (PRESENT) — filter by documentDesc = "PRESENT" ──
+        let addrProofVal = ($(`#${AadhaarScrId}addressProof`).val() || "").trim();
+        if (addrProofVal && addrProofVal !== PleaseSelect) {
+            if (getUploadedCount("ADDRESS_PROOF", "PRESENT") < getMinRequired("ADDRESS_PROOF")) {
+                missing.push(`Address Proof (${addrProofVal})`);
+            }
+        }
+ 
+        // ── CHANGE: ADDRESS_PROOF (PERMANENT) — filter by documentDesc = "PERMANENT" ──
+        let permAddrProofVal = ($(`#${AadhaarScrId}permanentAddressProof`).val() || "").trim();
+        let isOwnedHouse = $(`input[name="${AadhaarScrId}residentialStatus_"]:checked`).val() === 'Own';
+        if (permAddrProofVal && permAddrProofVal !== PleaseSelect && !isOwnedHouse) {
+            if (getUploadedCount("ADDRESS_PROOF", "PERMANENT") < getMinRequired("ADDRESS_PROOF")) {
+                missing.push(`Permanent Address Proof (${permAddrProofVal})`);
+            }
+        }
+    } else {
+        // RELATIONSHIP_PROOF — co-applicant only, if dropdown selected
+        let relProofVal = ($(`#${AadhaarScrId}relationshipProof`).val() || "").trim();
+        if (relProofVal && relProofVal !== PleaseSelect) {
+            if (getUploadedCount("RELATIONSHIP_PROOF") < getMinRequired("RELATIONSHIP_PROOF")) {
+                missing.push(`Relationship Proof (${relProofVal})`);
+            }
+        }
+    }
+ 
+    return missing;
+};
+
+apz.app.AadhaarDetails.lengthvalidator = function(pthis, max) {
+    pthis.value = pthis.value.substr(0, max);
+};
+apz.app.AadhaarDetails.maritalStatusOnChange = function(maritalStatusValue) {
+    let spouseId = AadhaarScrId + 'spouseName';
+    let fatherId = AadhaarScrId + 'fathersName';
+    let $spouse = $('#' + spouseId);
+    let $father = $('#' + fatherId);
+    if (!maritalStatusValue || maritalStatusValue === "Please Select") return;
+    if (maritalStatusValue.toUpperCase() === "MARRIED") {
+        Aadhaar_Validate.addFieldMandatory(spouseId);
+        Aadhaar_Validate.removeFieldMandatory(fatherId);
+        $spouse.prop('disabled', false).attr('placeholder', 'Please type here').closest('.ett-inpt').removeClass('disabled');
+        $father.prop('disabled', false).closest('.ett-inpt').removeClass('disabled');
+    } else {
+        Aadhaar_Validate.addFieldMandatory(fatherId);
+        Aadhaar_Validate.removeFieldMandatory(spouseId);
+        $father.prop('disabled', false).closest('.ett-inpt').removeClass('disabled');
+        $spouse.prop('disabled', true).val('').removeAttr('placeholder');
+        $spouse.closest('.ett-inpt').addClass('disabled');
+    }    
+    // Father name mandaotory for Male CO_APPLICANT
+    let coAppGender = ApzCOB.getPayloadDatafromWrapper('gender', 'Co-App', 'customerDetailsList') || '';
+    if (gApzCOB.currentApplicant === 2 && coAppGender.toLowerCase() == 'male') {
+        Aadhaar_Validate.addFieldMandatory(fatherId);
+        Aadhaar_Validate.addFieldMandatory(spouseId);
+    }
+};
+apz.app.AadhaarDetails.paintAddressTable = function() {
+    let customerList = inSessionStore?.customerDetailsList || gApzCOB?.requestNodes?.customerDetailsList || [];
+    let addressWrapperRoot = inSessionStore?.addressDetailsWrapperList || gApzCOB?.requestNodes?.addressDetailsWrapperList || [];
+    // Flatten address detail list once
+    let addrDetailsList = addressWrapperRoot?.[0]?.addressDetailsList || addressWrapperRoot || [];
+    // get addressList for a custDtlId 
+    function getAddrList(custDtlId) {
+        if (!custDtlId) return [];
+        let pw = addrDetailsList.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId));
+        return pw?.payload?.addressList || [];
+    }
+    //  build display string from a Voter entry 
+    function getVoterStr(addrList) {
+        let v = addrList.find(a => a.addressType === "Voter");
+        if (!v) return "";
+        return [v.addressLine1, v.addressLine2, v.addressLine3, v.district, v.city, v.pinCode, v.state, v.country
+        ].filter(Boolean).join(", ");
+    }
+    //  build Aadhaar address string 
+    function getAadhaarStr(addrList, isActive) {
+        let sec = addrList.find(a => a.addressType === "SecondaryKyc");
+        if (sec && sec.addressLine1) {
+            return [sec.addressLine1, sec.addressLine2, sec.addressLine3, sec.district, sec.city, sec.pinCode, sec.state, sec.country
+            ].filter(Boolean).join(", ");
+        }
+        if (isActive) {
+            let live = apz.app.AadhaarDetails.getAadhaarAddrFromFields();
+            return apz.app.AadhaarDetails.buildAddrString(live);
+        }
+        return "";
+    }
+    // ── Resolve custDtlIds (prefer session customerDetailsList, fall back to userDetails) ──
+    let appCustWrapper = customerList.find(c => c.customerType === "Applicant");
+    let coAppCustWrapper = customerList.find(c => c.customerType === "Co-App");
+    let appCustDtlId = appCustWrapper?.custDtlId || gApzCOB?.userDetails?.custDtlId;
+    let coAppCustDtlId = coAppCustWrapper?.custDtlId || gApzCOB?.userDetails?.CoApplicantCustomerId;
+    let appAddrList = getAddrList(appCustDtlId);
+    let coAppAddrList = getAddrList(coAppCustDtlId);
+    let appVoterAddr = getVoterStr(appAddrList);
+    let coAppVoterAddr = getVoterStr(coAppAddrList);
+    let appAadhaarAddr = getAadhaarStr(appAddrList, gApzCOB.currentApplicant === 1);
+    let coAppAadhaarAddr = getAadhaarStr(coAppAddrList, gApzCOB.currentApplicant === 2);
+    // Track fallback state
+    window.AADHAAR_ROW_FALLBACK.applicant = !appAadhaarAddr;
+    window.AADHAAR_ROW_FALLBACK.coapplicant = !coAppAadhaarAddr;
+    let sharedMap = {
+        present: {
+            1: appVoterAddr,
+            2: coAppVoterAddr,
+            3: appAadhaarAddr,
+            4: coAppAadhaarAddr
+        },
+        permanent: {
+            1: appVoterAddr,
+            2: coAppVoterAddr,
+            3: appAadhaarAddr,
+            4: coAppAadhaarAddr
+        }
+    };
+    window.AADHAAR_ADDRESS_MAP.applicant = sharedMap;
+    window.AADHAAR_ADDRESS_MAP.coapplicant = sharedMap;
+    let fallbackText = Aadhaar_Validate.getAddressOrFallback("");
+    // Row 1 — Applicant Voter
+    $("#" + AadhaarScrId + "appVoterAddr").text(appVoterAddr);
+    // Row 2 — Co-App Voter
+    $("#" + AadhaarScrId + "coAppVoterAddr").text(coAppVoterAddr);
+    // Row 3 — Applicant Aadhaar (fallback if not yet captured)
+    $("#" + AadhaarScrId + "appAadhaarAddr").text(appAadhaarAddr || fallbackText).toggleClass("aadhaar-fallback-text", !appAadhaarAddr);
+    // Row 4 — Co-App Aadhaar (fallback if not yet captured)
+    $("#" + AadhaarScrId + "coAppAadhaarAddr").text(coAppAadhaarAddr || fallbackText).toggleClass("aadhaar-fallback-text", !coAppAadhaarAddr);
+    apz.app.AadhaarDetails.toggleAddressRadios();
+};
+apz.app.AadhaarDetails.captureCommunicationAddress = function() {
+    let commRadio = $('input[name="' + AadhaarScrId + 'communicationAddress_"]:checked');
+    if (!commRadio.length) return;
+    let colType = commRadio.val();
+    if (colType && colType.includes("present")) {
+        window.selectedCommunicationAddress = "Present";
+    } else if (colType && colType.includes("permanent")) {
+        window.selectedCommunicationAddress = "Permanent";
+    } else {
+        window.selectedCommunicationAddress = "";
+    }
+};
+/*apz.app.AadhaarDetails.toggleAddressRadios = function() {
+    const rows = document.querySelectorAll(".addr-body-row");
+    if (!rows.length) return;
+    // Resolve address detail list — handles both wrapped and flat structures
+    let wrappers = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList || gApzCOB?.requestNodes?.addressDetailsWrapperList?.[0]
+        ?.addressDetailsList || [];
+    let custList = inSessionStore?.customerDetailsList || gApzCOB?.requestNodes?.customerDetailsList || [];
+    // Get custDtlId — prefer inSessionStore custWrapper, fall back to userDetails
+    let applicantWrapper = custList.find(c => c.customerType === "Applicant");
+    let coApplicantWrapper = custList.find(c => c.customerType === "Co-App");
+    let appCustDtlId = applicantWrapper?.custDtlId || gApzCOB?.userDetails?.custDtlId;
+    let coAppCustDtlId = coApplicantWrapper?.custDtlId || gApzCOB?.userDetails?.CoApplicantCustomerId;
+    let applicantPersonal = appCustDtlId ? wrappers.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(appCustDtlId)) :
+    null;
+    let coApplicantPersonal = coAppCustDtlId ? wrappers.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(
+        coAppCustDtlId)) : null;
+    // Row 3: Applicant Aadhaar — enabled if SecondaryKyc has data OR active tab has live data
+    let applicantHasAadhaar = applicantPersonal?.payload?.addressList?.some(a => a.addressType === "SecondaryKyc" && a.addressLine1) || false;
+    if (!applicantHasAadhaar && gApzCOB.currentApplicant === 1) {
+        let live = apz.app.AadhaarDetails.getAadhaarAddrFromFields();
+        if (live.addressLine1 && live.addressLine1.trim() !== "") applicantHasAadhaar = true;
+    }
+    // Row 4: Co-App Aadhaar — enabled if SecondaryKyc has data OR active tab has live data
+    let coApplicantHasAadhaar = coApplicantPersonal?.payload?.addressList?.some(a => a.addressType === "SecondaryKyc" && a.addressLine1) || false;
+    if (gApzCOB.currentApplicant === 2) {
+        let live = apz.app.AadhaarDetails.getAadhaarAddrFromFields();
+        if (live.addressLine1 && live.addressLine1.trim() !== "") coApplicantHasAadhaar = true;
+    }
+    rows.forEach((row, index) => {
+        const rowNumber = index + 1;
+        const radios = row.querySelectorAll("input[type='radio']");
+        let disable = false;
+        if (rowNumber === 3) {
+            disable = !applicantHasAadhaar;
+        } else if (rowNumber === 4) {
+            disable = !coApplicantHasAadhaar;
+        }
+        radios.forEach(r => {
+            r.disabled = disable;
+            r.closest(".addr-cell")?.classList.toggle("aadhar-radio-disable", disable);
+            if (disable) r.checked = false;
+        });
+    });
+};*/
+apz.app.AadhaarDetails.toggleAddressRadios = function() {
+    let rows = document.querySelectorAll(".addr-body-row");
+    if (!rows.length) return;
+    let isBM = gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1 === 'BM';
+    let wrappers = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList || gApzCOB?.requestNodes?.addressDetailsWrapperList?.[0]
+        ?.addressDetailsList || [];
+    let custList = inSessionStore?.customerDetailsList || gApzCOB?.requestNodes?.customerDetailsList || [];
+    let applicantWrapper = custList.find(c => c.customerType === "Applicant");
+    let coApplicantWrapper = custList.find(c => c.customerType === "Co-App");
+    let appCustDtlId = applicantWrapper?.custDtlId || gApzCOB?.userDetails?.custDtlId;
+    let coAppCustDtlId = coApplicantWrapper?.custDtlId || gApzCOB?.userDetails?.CoApplicantCustomerId;
+    let applicantPersonal = appCustDtlId ? wrappers.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(appCustDtlId)) :
+    null;
+    let coApplicantPersonal = coAppCustDtlId ? wrappers.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(
+        coAppCustDtlId)) : null;
+    // Aadhaar checks
+    let applicantHasAadhaar = applicantPersonal?.payload?.addressList?.some(a => a.addressType === "SecondaryKyc" && a.addressLine1) || false;
+    if (!applicantHasAadhaar && gApzCOB.currentApplicant === 1) {
+        let live = apz.app.AadhaarDetails.getAadhaarAddrFromFields();
+        if (live.addressLine1?.trim()) applicantHasAadhaar = true;
+    }
+    let coApplicantHasAadhaar = coApplicantPersonal?.payload?.addressList?.some(a => a.addressType === "SecondaryKyc" && a.addressLine1) || false;
+    if (gApzCOB.currentApplicant === 2) {
+        let live = apz.app.AadhaarDetails.getAadhaarAddrFromFields();
+        if (live.addressLine1?.trim()) coApplicantHasAadhaar = true;
+    }
+    let checkedRow = null;
+    rows.forEach((row, index) => {
+        let rowNumber = index + 1;
+        let radios = row.querySelectorAll("input[type='radio']");
+        let disable = false;
+        if (rowNumber === 3) disable = !applicantHasAadhaar;
+        else if (rowNumber === 4) disable = !coApplicantHasAadhaar;
+        radios.forEach(r => {
+            if (r.checked) checkedRow = row;
+            r.disabled = disable;
+            r.closest(".addr-cell")?.classList.toggle("aadhar-radio-disable", disable);
+            if (disable && !isBM) r.checked = false;
+        });
+    });
+};
+apz.app.AadhaarDetails.toggleAddressRadiosForBM = function() {
+    let isBM = gApzCOB?.LoggedInUserDetails?.loginResponse?.addInfo1 === 'BM';
+    if (isBM) {
+        let rows = document.querySelectorAll(".addr-body-row");
+        rows.forEach(row => {
+            const radios = row.querySelectorAll("input[type='radio']");
+            let hasChecked = false;
+            radios.forEach(r => {
+                if(r.checked) hasChecked = true;
+                r.disabled = true;
+                r.closest(".addr-cell")?.classList.toggle("aadhar-radio-disable", true);
+            });
+            if (!hasChecked) {
+                row.classList.add('sno');
+            } else {
+                row.classList.remove('sno');
+            }
+        });
+    }
+}
+apz.app.AadhaarDetails.clearScreenFields = function() {
+    let $screen = $("#scr__" + AadhaarScrId + "main");
+    if (!$screen.length) return;
+    $screen.find("input, select, textarea").each(function() {
+        if (this.type === "radio" || this.type === "checkbox") {
+            this.checked = false;
+            return;
+        }
+        if (this.tagName === "SELECT") {
+            this.selectedIndex = 0;
+            $(this).trigger("change");
+            return;
+        }
+        if (this.type === "text" && this.hasAttribute("readonly")) {
+            this.value = PleaseSelect;
+            return;
+        }
+        this.value = "";
+    });
+    // ── RE-APPLY DEFAULTS after clear ──
+    let p = AadhaarScrId;
+    document.querySelectorAll(`[name="${p}typeHouse_"]`).forEach(r => {
+        r.checked = (r.value === "HouType2");
+    });
+    apz.app.otherAddressState.present = false;
+    apz.app.otherAddressState.permanent = false;
+    const presentSection = document.querySelector('.other-present-details');
+    const permanentSection = document.querySelector('.other-permanent-details');
+    if (presentSection) presentSection.style.display = 'none';
+    if (permanentSection) permanentSection.style.display = 'none';
+};
+apz.app.AadhaarDetails.onChangeResStability = function(pthis) {
+    var cityValue = $("#" + AadhaarScrId + "A_residence_stabilit_present_city").val();
+    var resValue = $("#" + AadhaarScrId + "A_residence_stability").val();
+    var cityIndex = resYr.indexOf(cityValue);
+    var resIndex = resYr.indexOf(resValue);
+    if ((resIndex != 0 && resIndex < 3) || (cityIndex != 0 && cityIndex < 3)) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_RESIDENTIAL_STABILITY_TWO_YR_ERR"), "E");
+        $(pthis).val(PleaseSelect);
+        $(`#${pthis.id}_div`).find('li').removeClass('is-selected hilt').first().addClass('is-selected hilt');
+    } else if (cityIndex === 0 || resIndex === 0) {
+        // do nothing
+    } else if (resYr.indexOf(resValue) > resYr.indexOf(cityValue)) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_RESIDENTIAL_STABILITY_ERR"), "E");
+        $(pthis).val(PleaseSelect);
+        $(`#${pthis.id}_div`).find('li').removeClass('is-selected hilt').first().addClass('is-selected hilt');
+    }
+};
+// ADDRESS OBJECT BUILDER 
+apz.app.AadhaarDetails.address = function() {
+    let p = AadhaarScrId;
+    let isApplicant = gApzCOB.currentApplicant === 1;
+    let addressArr = [];
+    let secondaryKycAddress = {
+        "addressType": "SecondaryKyc",
+        "addressLine1": $(`#${p}addline1`).val(),
+        "addressLine2": $(`#${p}addline2`).val(),
+        "addressLine3": $(`#${p}addline3`).val(),
+        "pinCode": $(`#${p}addpin`).val(),
+        "city": $(`#${p}aadCity`).val(),
+        "district": $(`#${p}aadDistrict`).val(),
+        "state": $(`#${p}aadState`).val(),
+        "country": $(`#${p}aadCountry`).val(),
+        "area": $(`#${p}aadArea`).val(),
+        "landMark": $(`#${p}aadLandmark`).val(),
+        "currentAddressProof": isApplicant ? "Applicant Aadhaar" : "Co-Applicant Aadhaar"
+    };
+    addressArr.push(secondaryKycAddress);
+    //Co-Applicant: only SecondaryKyc is managed here.
+    if (!isApplicant) {
+        return addressArr;
+    }
+    // Applicant-only: build Present, Permanent, Communication 
+    let residentialOwnership = $(`input[name="${p}residentialStatus_"]:checked`).val();
+    let presentSameAs = apz.app.AadhaarDetails.getAddressSameAs("present");
+    let permanentSameAs = residentialOwnership === "Own" ? presentSameAs : apz.app.AadhaarDetails.getAddressSameAs("permanent");
+    let houseTypeRawCode = $(`input[name="${p}typeHouse_"]:checked`).val() || "HouType2";
+    
+    const codeToDisplay = {
+        "HouType1": "Kuccha",
+        "HouType2": "Pucca",
+        "HouType3": "Semi Pucca"
+    };
+    let houseTypeValue = codeToDisplay[houseTypeRawCode] || "Pucca";
+    let addressProofVal = '';
+    if(presentSameAs !== "Other"){
+        addressProofVal = sameAsMapping[presentSameAs];
+    } else {
+       addressProofVal = $(`#${p}addressProof`).val();
+    }
+    let presentAddress = {
+        "addressType": "Present",
+        "addressSameAs": presentSameAs,
+        "addressLine1": $(`#${p}presentAddrLine1`).val(),
+        "addressLine2": $(`#${p}presentAddrLine2`).val(),
+        "addressLine3": $(`#${p}presentAddrLine3`).val(),
+        "pinCode": $(`#${p}presentPincode`).val(),
+        "city": $(`#${p}addPreCity`).val(),
+        "district": $(`#${p}addPreDistrict`).val(),
+        "state": $(`#${p}addPreState`).val(),
+        "country": $(`#${p}addPreCountry`).val(),
+        "area": $(`#${p}addPreArea`).val(),
+        "landMark": $(`#${p}addPreLandmark`).val(),
+        "residenceOwnership": residentialOwnership || "",
+        "residenceCitySince": $(`#${p}A_residence_stabilit_present_city`).val(),
+        "residenceAddressSince": $(`#${p}A_residence_stability`).val(),
+        "houseType": houseTypeValue,
+        "currentAddressProof": addressProofVal
+    };
+    addressArr.push(presentAddress);
+    let permanentAddress = {
+        "addressType": "Permanent",
+        "addressSameAs": permanentSameAs,
+        "addressLine1": $(`#${p}permanentAddrLine1`).val(),
+        "addressLine2": $(`#${p}permanentAddrLine2`).val(),
+        "addressLine3": $(`#${p}permanentAddrLine3`).val(),
+        "pinCode": $(`#${p}permanentPincode`).val(),
+        "city": $(`#${p}addPermCity`).val(),
+        "district": $(`#${p}addPermDistrict`).val(),
+        "state": $(`#${p}addPermState`).val(),
+        "country": $(`#${p}addPermCountry`).val(),
+        "area": $(`#${p}addPermArea`).val(),
+        "landMark": $(`#${p}addPermLandmark`).val(),
+        "currentAddressProof": $(`#${p}permanentAddressProof`).val()
+    };
+    addressArr.push(permanentAddress);
+    let communicationAddress = {};
+    if (window.selectedCommunicationAddress === "Present") {
+        communicationAddress = {
+            ...presentAddress,
+            addressSameAs: "Present",
+            addressType: "Communication"
+        };
+    } else /*if (window.selectedCommunicationAddress === "Permanent") */{
+        communicationAddress = {
+            ...permanentAddress,
+            addressSameAs: "Permanent",
+            addressType: "Communication"
+        };
+    }
+    addressArr.push(communicationAddress);
+    return addressArr;
+};
+apz.app.AadhaarDetails.createRequest = function() {
+    if (window.CAPTURE_FROM_APPLICANT !== undefined && window.CAPTURE_FROM_APPLICANT !== null && apz.currentSubScreen === "documentCapture") {
+        console.log("Skipping Aadhaar request rebuild during doc capture");
+        return inSessionStore;
+    }
+    let p = AadhaarScrId;
+    let isApplicant = gApzCOB.currentApplicant === 1;
+    let custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    let customerType = isApplicant ? "Applicant" : "Co-App";
+    let addressDtlsId = isApplicant ? gApzCOB.userDetails.addressDtlsId : gApzCOB.userDetails.CoApplicantAddressDtlsId;
+    if (!inSessionStore.customerDetailsList) inSessionStore.customerDetailsList = [];
+    if (!inSessionStore.addressDetailsWrapperList) inSessionStore.addressDetailsWrapperList = [{
+        addressDetailsList: []
+    }];
+    if (!inSessionStore.addressDetailsWrapperList[0].addressDetailsList) inSessionStore.addressDetailsWrapperList[0].addressDetailsList = [];
+    let custPayload = {
+        "namePerAdhr": $(`#${p}aadharname`).val() || "",
+        "aadhaarNumber": $(`#${p}aadharnum`).val() || "",
+        "maritalStatus": $(`#${p}mrtsts`).val() || "",
+        "fathersName": $(`#${p}fathersName`).val() || "",
+        "spouseName": $(`#${p}spouseName`).val() || "",
+        // "spouseKycID": $(`#${p}spouseKycID`).val() || "",
+        // "spouseKycType": $(`#${p}spouseKYCType`).val() || "",
+        // "spouseKycDob": $(`#${p}spouseDob`).val() || "",
+        "education": $(`#${p}education`).val() || "",
+        "religion": $(`#${p}religion`).val() || "",
+        "caste": $(`#${p}caste`).val() || "",
+        "secondaryKycId": $(`#${p}aadharnum`).val() || "",
+        "secondaryKycDob": $(`#${p}aadhardob`).val() || "",
+        "secondaryKycName": $(`#${p}aadharname`).val() || "",
+        "secondaryKycType": "Aadhaar",
+        "relationshipProof": $(`#${p}relationshipProof`).val() || ""
+    };
+    let existingCust = inSessionStore.customerDetailsList.find(c => String(c.custDtlId) === String(custDtlId));
+    let mergedPayload = Object.assign({}, existingCust?.payload || {}, custPayload);
+    let addressList = apz.app.AadhaarDetails.address();
+    let custIndex = inSessionStore.customerDetailsList.findIndex(c => String(c.custDtlId) === String(custDtlId));
+    if (custIndex >= 0) {
+        inSessionStore.customerDetailsList[custIndex].payload = mergedPayload;
+    } else {
+        inSessionStore.customerDetailsList.push({
+            "custDtlId": custDtlId,
+            "customerType": customerType,
+            "customerName": existingCust?.customerName || "",
+            "mobileNumber": existingCust?.mobileNumber || "",
+            "payload": mergedPayload
+        });
+    }
+    let addrDetailsList = inSessionStore.addressDetailsWrapperList[0].addressDetailsList;
+    let addrIndex = addrDetailsList.findIndex(a => String(a.custDtlId) === String(custDtlId) && a.addressType === "Personal");
+    if (addrIndex >= 0) {
+        let existingList = addrDetailsList[addrIndex].payload.addressList || [];
+        if (isApplicant) {
+            let aadhaarManagedTypes = ["Present", "Permanent", "SecondaryKyc", "Communication"];
+            let preserved = existingList.filter(a => !aadhaarManagedTypes.includes(a.addressType));
+            addrDetailsList[addrIndex].payload.addressList = [...preserved, ...addressList];
+        } else {
+            let preserved = existingList.filter(a => a.addressType !== "SecondaryKyc");
+            let secKyc = addressList.find(a => a.addressType === "SecondaryKyc");
+            addrDetailsList[addrIndex].payload.addressList = secKyc ? [...preserved, secKyc] : preserved;
+        }
+    } else {
+        addrDetailsList.push({
+            "addressDtlsId": addressDtlsId || "",
+            "custDtlId": parseInt(custDtlId),
+            "addressType": "Personal",
+            "payload": {
+                "addressList": addressList
+            }
+        });
+    }
+    let customerDetailsList = [{
+        "custDtlId": custDtlId,
+        "applicationId": gApzCOB.userDetails.applicationId,
+        "customerType": customerType,
+        "customerName": existingCust?.customerName || "",
+        "mobileNumber": existingCust?.mobileNumber || "",
+        "payload": mergedPayload
+    }];
+    let addressDetailsWrapperList = [{
+        "addressDetailsList": [{
+            "addressDtlsId": addressDtlsId || "",
+            "custDtlId": parseInt(custDtlId),
+            "addressType": "Personal",
+            "payload": {
+                "addressList": addressList
+            }
+        }]
+    }];
+    //  Save relationshipProof to applicationDocumentsWrapperList 
+    let relationshipProofVal = $(`#${p}relationshipProof`).val();
+    if (relationshipProofVal && relationshipProofVal !== PleaseSelect && !isApplicant) {
+        if (!inSessionStore.applicationDocumentsWrapperList) {
+            inSessionStore.applicationDocumentsWrapperList = [{
+                applicationDocumentsList: []
+            }];
+        }
+        if (!inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList) {
+            inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = [];
+        }
+        let docList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        let existingIdx = docList.findIndex(d => d.payload?.documentType === "RELATIONSHIP_PROOF" && parseInt(d.custDtlId) === parseInt(
+            custDtlId));
+        let relDocObj = {
+            appDocId: existingIdx >= 0 ? (docList[existingIdx].appDocId || "") : "",
+            applicationId: gApzCOB.userDetails.applicationId,
+            custDtlId: custDtlId,
+            status: "A",
+            payload: {
+                documentType: "RELATIONSHIP_PROOF",
+                documentName: relationshipProofVal,
+                documentDesc: relationshipProofVal,
+                screenId: "AadhaarDetails",
+                docStatus: "A"
+            }
+        };
+        if (existingIdx >= 0) {
+            docList[existingIdx] = relDocObj;
+        } else {
+            docList.push(relDocObj);
+        }
+    }
+    return {
+        customerDetailsList,
+        addressDetailsWrapperList,
+        applicationDocumentsWrapperList: inSessionStore.applicationDocumentsWrapperList || []
+    };
+};
+apz.app.AadhaarDetails.saveAadhaarDetails = function(skipValidation) {
+    if (!skipValidation && !apz.app.AadhaarDetails.validateForm()) return;
+    //sidebar status
+    window._AADHAAR_PENDING_SNAPS = window._AADHAAR_PENDING_SNAPS || [];
+    var _aadSnapVerified = !skipValidation && (window.isVerified === "Y");
+    window._AADHAAR_PENDING_SNAPS.push({
+        verified: _aadSnapVerified,
+        applicantNo: gApzCOB.currentApplicant
+    });
+    try {
+        var _aadOptNo = gApzCOB.currentApplicant;
+        apz.app.Kmbase.markStageStatus("AadhaarDetails", _aadOptNo, _aadSnapVerified);
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+    }
+    let requestBody = apz.app.AadhaarDetails.createRequest();
+    let secondaryKycType = "",
+        secondaryKycId = "",
+        alternateVoterId = "";
+    if (!apz.isNull(inSessionStore.customerDetailsList)) {
+        let applicantCustomerData = inSessionStore.customerDetailsList.find(cust => cust.customerType === "Applicant");
+        if (!apz.isNull(applicantCustomerData)) {
+            secondaryKycType = applicantCustomerData.payload.secondaryKycType;
+            secondaryKycId = applicantCustomerData.payload.secondaryKycId;
+            alternateVoterId = applicantCustomerData.payload.alternateVoterId;
+        }
+    }
+    let isCoApp = gApzCOB.currentApplicant > 1;
+    let custDtlId = isCoApp ? (gApzCOB.userDetails.CoApplicantCustomerId || "") : gApzCOB.userDetails.custDtlId;
+    let addressDtlsId = isCoApp ? (parseInt(gApzCOB.userDetails.CoApplicantAddressDtlsId) || "") : gApzCOB.userDetails.addressDtlsId;
+    let role = '';
+    if (gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 == 'BM') {
+        role = gApzCOB.LoggedInUserDetails.loginResponse.addInfo1;
+    }
+    let req = {
+        apiRequest: {
+            interfaceName: "CreateLoan",
+            appId: gAppId,
+            userId: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+            requestObj: {
+                "isNewSourcing": "Y",
+                "isStageVerified": isVerified,
+                "appId": gApzCOB.userDetails.appId,
+                "applicationId": gApzCOB.userDetails.applicationId,
+                "versionNum": window.versionNum,
+                "isExistingCustomer": "",
+                "customerDetailsList": requestBody.customerDetailsList,
+                "addressDetailsWrapperList": requestBody.addressDetailsWrapperList,
+                "applicationDocumentsWrapperList": requestBody.applicationDocumentsWrapperList || [],
+                "applicationMaster": {
+                    "appId": gApzCOB.userDetails.appId,
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "applicationType": "online",
+                    "createdBy": gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                    "currentScreenId": "AadhaarDetails",
+                    "currentStageNo": 2,
+                    "custDtlId": custDtlId,
+                    "addressDtlsId": addressDtlsId,
+                    "customerId": ApplicationType === "OpenMarket" || ApplicationType === "Vishesh" ? null : gApzCOB.userDetails.customerId,
+                    "declarationFlag": gApzCOB.userDetails.declarationFlag,
+                    "mobileNumber": !apz.isNull(gApzCOB.userDetails.mobileNum) ? gApzCOB.userDetails.mobileNum : null,
+                    "productCode": apz.isNull(gApzCOB.productCode) ? '1009' : gApzCOB.productCode,
+                    "productGroupCode": gApzCOB.product,
+                    "searchCode1": gApzCOB.selLeadDtls.kendraId,
+                    "searchCode2": gApzCOB.selLeadDtls.customerId,
+                    "custDtlSlNum": gApzCOB.currentApplicant,
+                    "applicantsCount": gApzCOB.noOfApplicants,
+                    "mainProductGroupCode": gApzCOB.mainProductGroupCode,
+                    "kendraId": gApzCOB.selLeadDtls.kendraId,
+                    "kendraName": gApzCOB.selLeadDtls.kendraName,
+                    "branchId": gApzCOB.selLeadDtls.glBranchId,
+                    "branchName": gApzCOB.selLeadDtls.glBranchName,
+                    "memberId": gApzCOB.selLeadDtls.customerId,
+                    "primaryKycType": "Voter ID",
+                    "primaryKycId": gApzCOB.selLeadDtls.primaryKyc,
+                    "secondaryKycType": secondaryKycType,
+                    "secondaryKycId": secondaryKycId,
+                    "workitemNo": ProductData[0].productCode === "1001"
+                                    ? String(gApzCOB.selLeadDtls.referenceId || gApzCOB.selLeadDtls.openMarketId)
+                                    : gApzCOB.selLeadDtls.pid,
+                    "alternateVoterId": alternateVoterId
+                },
+                "workflow": {
+                    "currentRole": role
+                }
+            }
+        }
+    };
+    if(["BMPUSHBACK", "IPUSHBACK", "CAPUSHBACK"].includes(window.ApplicationStatus)){
+        req.apiRequest.requestObj.queryResponse = apz.app.Kmbase.prepareQueryResponse();
+    }
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "CreateLoan", "N", "N", req, false, apz.app.AadhaarDetails.saveAadhaarDetailsCB);
+    }, 1000);
+};
+apz.app.AadhaarDetails.saveAadhaarDetailsCB = function(params) {
+    apz.stopLoader();
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            let savedStages = (inSessionStore.srcVerifiedStages || []).slice();
+            let savedCustomerDetailsList = JSON.parse(JSON.stringify(inSessionStore.customerDetailsList || []));
+            let savedAddressDetailsWrapperList = JSON.parse(JSON.stringify(inSessionStore.addressDetailsWrapperList || []));
+            ApzCOB.updateInsessionData(params);
+            let ifaceName = ApzCOB.GetInterfaceResMap(params);
+            let response = JSON.parse(params.res[ifaceName].apiResponse.ResponseBody.responseObj);
+            if (response?.hasOwnProperty("applicationId")) {
+                gApzCOB.userDetails.applicationId = response.applicationId;
+            }
+            let serverStages = inSessionStore.srcVerifiedStages || [];
+            let mergedStages = savedStages.slice();
+            serverStages.forEach(function(serverEntry) {
+                let keyBase = serverEntry.split('_').slice(0, 2).join('_') + '_';
+                let alreadyHave = mergedStages.some(function(s) {
+                    return s.indexOf(keyBase) === 0;
+                });
+                if (!alreadyHave) {
+                    mergedStages.push(serverEntry);
+                }
+            });
+            inSessionStore.srcVerifiedStages = mergedStages;
+            apz.app.Kmbase.paintSidebarStatus();
+            if (savedCustomerDetailsList.length > 0) {
+                let updatedList = inSessionStore.customerDetailsList || [];
+                savedCustomerDetailsList.forEach(function(savedEntry) {
+                    let match = updatedList.find(function(e) {
+                        return String(e.custDtlId) === String(savedEntry.custDtlId);
+                    });
+                    if (!match || !match.payload || Object.keys(match.payload).length === 0) {
+                        if (match) {
+                            match.payload = savedEntry.payload;
+                        } else {
+                            updatedList.push(savedEntry);
+                        }
+                    } else {
+                        match.payload = Object.assign({}, savedEntry.payload, match.payload);
+                    }
+                });
+                inSessionStore.customerDetailsList = updatedList;
+            }
+            if (savedAddressDetailsWrapperList.length > 0) {
+                if (!inSessionStore.addressDetailsWrapperList || inSessionStore.addressDetailsWrapperList.length === 0) {
+                    inSessionStore.addressDetailsWrapperList = savedAddressDetailsWrapperList;
+                } else {
+                    let savedAddrList = savedAddressDetailsWrapperList[0]?.addressDetailsList || [];
+                    let updatedAddrList = inSessionStore.addressDetailsWrapperList[0].addressDetailsList || [];
+                    savedAddrList.forEach(function(savedWrapper) {
+                        let match = updatedAddrList.find(function(w) {
+                            return String(w.custDtlId) === String(savedWrapper.custDtlId) && w.addressType === savedWrapper
+                                .addressType;
+                        });
+                        if (!match || !match.payload || !match.payload.addressList || match.payload.addressList.length === 0) {
+                            if (match) {
+                                match.payload = savedWrapper.payload;
+                            } else {
+                                updatedAddrList.push(savedWrapper);
+                            }
+                        } else {
+                            // Merge address entries — preserve saved entries the server didn't return
+                            let serverAddrList = match.payload.addressList;
+                            let savedAddrEntries = savedWrapper.payload.addressList || [];
+                            savedAddrEntries.forEach(function(savedAddr) {
+                                let serverMatch = serverAddrList.find(function(a) {
+                                    return a.addressType === savedAddr.addressType;
+                                });
+                                if (!serverMatch || !serverMatch.addressLine1) {
+                                    if (serverMatch) {
+                                        Object.assign(serverMatch, savedAddr);
+                                    } else {
+                                        serverAddrList.push(savedAddr);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    inSessionStore.addressDetailsWrapperList[0].addressDetailsList = updatedAddrList;
+                }
+            }
+            // Sync Aadhaar Present address → CBcheck Present address for applicant
+            try {
+                let appCustDtlId = gApzCOB.userDetails.custDtlId;
+                let addrRoot = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList || [];
+                let appPersonal = addrRoot.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(appCustDtlId));
+                if (appPersonal?.payload?.addressList) {
+                    let aadhaarPresent = appPersonal.payload.addressList.find(a => a.addressType === "Present");
+                    if (aadhaarPresent && aadhaarPresent.addressLine1 && aadhaarPresent.addressLine1.trim() !== "") {
+                        // Update CBcheck Present address with the same data
+                        let cbPresent = appPersonal.payload.addressList.find(a => a.addressType === "Present");
+                        if (cbPresent) {
+                            cbPresent.addressLine1 = aadhaarPresent.addressLine1;
+                            cbPresent.addressLine2 = aadhaarPresent.addressLine2 || "";
+                            cbPresent.addressLine3 = aadhaarPresent.addressLine3 || "";
+                            cbPresent.pinCode = aadhaarPresent.pinCode || "";
+                            cbPresent.city = aadhaarPresent.city || "";
+                            cbPresent.district = aadhaarPresent.district || "";
+                            cbPresent.state = aadhaarPresent.state || "";
+                            cbPresent.country = aadhaarPresent.country || "";
+                            cbPresent.area = aadhaarPresent.area || "";
+                            cbPresent.landMark = aadhaarPresent.landMark || "";
+                        }
+                    }
+                }
+            } catch (e) {
+                ApzCOB.traceFrontEndError(e,"");
+            }
+            // Mark sidebar status using the pre-save snapshot
+            try {
+                var snaps = window._AADHAAR_PENDING_SNAPS || [];
+                var snap = snaps.shift();
+                if (snap) {
+                    apz.app.Kmbase.markStageStatus("AadhaarDetails", snap.applicantNo, snap.verified);
+                }
+            } catch (e) {
+                ApzCOB.traceFrontEndError(e,"");
+            }
+            // SAVE DRAFT 
+            window.AADHAAR_SAVE_DRAFT = false;
+            if (window.AADHAAR_EXPLICIT_DRAFT) {
+                window.AADHAAR_EXPLICIT_DRAFT = false;
+                window._AFTER_DRAFT_SAVE = null;
+                ApzCOB.fnDisplayMsg("Draft saved successfully", "S");
+                return;
+            }
+            //Partial save (tab switch / confirmNavigate) 
+            if (typeof window._AFTER_DRAFT_SAVE === "function") {
+                let fn = window._AFTER_DRAFT_SAVE;
+                window._AFTER_DRAFT_SAVE = null;
+                fn();
+                return;
+            }
+            // BACK navigation
+            if (window.AADHAAR_BACK_NAV) {
+                window.AADHAAR_BACK_NAV = false;
+                window.AADHAAR_SAVE_DRAFT = false;
+                window.AADHAAR_EXPLICIT_DRAFT = false;
+                let backFrom = window.AADHAAR_BACK_FROM_APPLICANT || gApzCOB.currentApplicant;
+                window.AADHAAR_BACK_FROM_APPLICANT = null;
+                if (backFrom === 1) {
+                    window.CBCHECK_TAB_SWITCH_TARGET = 'CoApplicant';
+                    ApzCOB.launchSubScreen("CBcheck", "KmSourc__Kmbase__KMLaunchCol", "");
+                    $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+                    $(`#${kmbaseScr}CBcheck_hyp`).addClass('active');
+                    $(`#${kmbaseScr}CoAppCBcheck_hyp`).addClass('active');
+                } else {
+                    let tabs = $('.aadhaarSubMenu');
+                    apz.app.AadhaarDetails._doTabSwitch(tabs.eq(0), 'Applicant');
+                }
+                return;
+            }
+            // Sidebar tab switch (manual sidebar click)
+            if (window.AADHAAR_TAB_SWITCH_TARGET) {
+                let target = window.AADHAAR_TAB_SWITCH_TARGET;
+                window.AADHAAR_TAB_SWITCH_TARGET = null;
+                let tabs = $('.aadhaarSubMenu');
+                if (target === 'CoApplicant' && tabs.length > 1) {
+                    apz.app.AadhaarDetails._doTabSwitch(tabs.eq(1), 'CoApplicant');
+                } else {
+                    apz.app.AadhaarDetails._doTabSwitch(tabs.eq(0), 'Applicant');
+                }
+                return;
+            }
+            // Normal forward navigation (Next button)
+            if (gApzCOB.currentApplicant === 1) {
+                let tabs = $('.aadhaarSubMenu');
+                if (tabs.length > 1) {
+                    apz.app.AadhaarDetails._doTabSwitch(tabs.eq(1), 'CoApplicant');
+                    $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+                    $(`#${kmbaseScr}AadhaarDetails_hyp`).addClass('active');
+                    $(`#${kmbaseScr}CoAppAadhaarDetails_hyp`).addClass('active');
+                } else {
+                    ApzCOB.launchSubScreen("BusinessIncome", "KmSourc__Kmbase__KMLaunchCol", "");
+                    $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+                    $(`#${kmbaseScr}BusinessIncome_hyp`).addClass('active');
+                }
+            } else {
+                ApzCOB.launchSubScreen("BusinessIncome", "KmSourc__Kmbase__KMLaunchCol", "");
+                $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+                $(`#${kmbaseScr}BusinessIncome_hyp`).addClass('active');
+            }
+        } else {
+            ApzCOB.fnDisplayMsg("Failed to save Aadhaar details", "E");
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"), "E");
+    }
+};
+apz.app.AadhaarDetails.getAddressSameAs = function(column) {
+    let rows = document.querySelectorAll(".addr-body-row");
+    let selectedRowIndex = -1;
+    rows.forEach((row, index) => {
+        const cells = row.children;
+        const colIndex = column === "present" ? 1 : 2;
+        const cell = cells[colIndex];
+        if (!cell) return;
+        const radio = cell.querySelector("input[type='radio']");
+        if (radio && radio.checked) selectedRowIndex = index + 1;
+    });
+    const rowToSameAs = {
+        1: "ApplicantVoter",
+        2: "Co-AppVoter",
+        3: "ApplicantSecondaryKyc",
+        4: "Co-AppSecondaryKyc",
+        5: "Other"
+    };
+    return rowToSameAs[selectedRowIndex] || "";
+};
+
+function checkRowRadio(rowIndex, colIndex) {
+    let rows = Array.from(document.querySelectorAll('.addr-body-row'))
+        .filter(row => row.id.startsWith('KmSourc__AadhaarDetails'));
+    // Clear all radios in that column first
+    rows.forEach(row => {
+        let cell = row.children[colIndex];
+        let radio = cell?.querySelector("input[type='radio']");
+        if (radio) radio.checked = false;
+    });
+    let targetRow = rows[rowIndex - 1];
+    if (!targetRow) return;
+    let cell = targetRow.children[colIndex];
+    let radio = cell?.querySelector("input[type='radio']");
+    if (radio && !radio.disabled) {
+        radio.checked = true;
+        apz.app.handleColumnRadio(radio);
+    }
+}
+apz.app.AadhaarDetails.prePopulateAll = function() {
+    let p = AadhaarScrId;
+    let custType = gApzCOB.currentApplicant === 1 ? "Applicant" : "Co-App";
+    // Always clear screen before repainting so stale values 
+    apz.app.AadhaarDetails.clearScreenFields();
+    let customerList = inSessionStore?.customerDetailsList || gApzCOB?.requestNodes?.customerDetailsList;
+    let addressWrapperRoot = inSessionStore?.addressDetailsWrapperList || gApzCOB?.requestNodes?.addressDetailsWrapperList;
+    let custWrapper = customerList?.find(c => c.customerType === custType);
+    let addrList = null;
+    if (custWrapper) {
+        let wrappers = addressWrapperRoot?.[0]?.addressDetailsList || addressWrapperRoot;
+        let personalWrapper = wrappers?.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(custWrapper.custDtlId));
+        addrList = personalWrapper?.payload?.addressList;
+    }
+    let freshCase = apz.app.AadhaarDetails.isFreshCase();
+    if (freshCase) {
+        // FRESH CASE 
+        apz.app.AadhaarDetails.paintFromFresh(p, custWrapper, addrList);
+    } else {
+        // BACK NAV / EDIT CASE
+        if (custWrapper && addrList?.length) {
+            apz.app.AadhaarDetails.paintFromSession(custWrapper, addrList, p);
+        }
+    }
+    apz.app.AadhaarDetails.cleanOrphanedAddressProofDocs();
+    apz.app.AadhaarDetails.toggleAddressRadios();
+};
+apz.app.AadhaarDetails.paintFromFresh = function(p, custWrapper, addrList) {
+    // Resolve lead data based on customer type
+    let isApplicant = gApzCOB.currentApplicant === 1;
+    let lead = null;
+    if (isApplicant) {
+        lead = gApzCOB.selLeadDtls;
+    } else {
+        let leadCustomerList = gApzCOB.selLeadDtls?.customerDetailsList || inSessionStore?.leadDetails?.customerDetailsList || [];
+        let coAppLead = leadCustomerList.find(c => c.customerType === "Co-App" || c.customerType === "CoApplicant" || c.customerType ===
+            "CO_APPLICANT");
+        lead = coAppLead || null;
+    }
+    if (lead) {
+        let marital = lead.maritalStatus ? ApzCOB.capitalize(lead.maritalStatus.trim()) : PleaseSelect;
+        $("#" + p + "mrtsts").val(marital).trigger("change");
+        if (marital && marital !== PleaseSelect) {
+            apz.app.AadhaarDetails.maritalStatusOnChange(marital);
+        }
+        let fatherName = (!lead.fathersName || lead.fathersName === "NULL") ? "" : lead.fathersName;
+        let spouseName = (!lead.spouseName || lead.spouseName === "NULL") ? "" : lead.spouseName;
+        $("#" + p + "fathersName").val(fatherName);
+        $("#" + p + "spouseName").val(spouseName);
+    }
+    let defaultHouseType = "HouType2";
+    document.querySelectorAll(`[name="${p}typeHouse_"]`).forEach(r => {
+        r.checked = (r.value === defaultHouseType);
+        if (r.checked) {
+            r.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        }
+    });
+    if (!isApplicant) {
+        let coAppCust = inSessionStore?.customerDetailsList?.find(c => c.customerType === "Co-App");
+        let relation = coAppCust?.payload?.relationShipWithApplicant || lead?.relationShipWithApplicant || "";
+        if (relation && relation !== PleaseSelect) {
+            $("#" + p + "relationApplicant").val(relation);
+        }
+    }
+    let ownRadio = document.querySelector(`[name="${p}residentialStatus_"][value="Own"]`);
+    if (ownRadio) {
+        ownRadio.checked = true;
+        apz.app.handleAddressType(ownRadio);
+    }
+    apz.app.AadhaarDetails.toggleAddressRadios();
+    //Address table: default radios 
+    checkRowRadio(1, 1);
+    checkRowRadio(1, 2);
+    let custListFresh = inSessionStore?.customerDetailsList || [];
+    let custDtlIdFresh = custWrapper?.custDtlId || (isApplicant ? gApzCOB?.userDetails?.custDtlId : gApzCOB?.userDetails?.CoApplicantCustomerId);
+    let custEntryFresh = custListFresh.find(c => String(c.custDtlId) === String(custDtlIdFresh));
+    if (custEntryFresh?.payload) {
+        let cp = custEntryFresh.payload;
+        if (cp.secondaryKycName) $("#" + p + "aadharname").val(cp.secondaryKycName);
+        if (cp.secondaryKycId) $("#" + p + "aadharnum").val(cp.secondaryKycId);
+        if (cp.secondaryKycDob) $("#" + p + "aadhardob").val(ApzCOB.convertDateFormat(cp.secondaryKycDob, 'dd/mm/yyyy'));
+    }
+    let secondaryKycFresh = addrList?.find(a => a.addressType === "SecondaryKyc");
+    if (secondaryKycFresh && secondaryKycFresh.addressLine1) {
+        $("#" + p + "addline1").val(secondaryKycFresh.addressLine1 || "");
+        $("#" + p + "addline2").val(secondaryKycFresh.addressLine2 || "");
+        $("#" + p + "addline3").val(secondaryKycFresh.addressLine3 || "");
+        $("#" + p + "addpin").val(secondaryKycFresh.pinCode || "");
+        $("#" + p + "aadCity").val(secondaryKycFresh.city || "").trigger("change");
+        $("#" + p + "aadDistrict").val(secondaryKycFresh.district || "").trigger("change");
+        $("#" + p + "aadState").val(secondaryKycFresh.state || "").trigger("change");
+        $("#" + p + "aadCountry").val(secondaryKycFresh.country || "").trigger("change");
+        $("#" + p + "aadArea").val(secondaryKycFresh.area || "");
+        $("#" + p + "aadLandmark").val(secondaryKycFresh.landMark || "");
+        //reveal Aadhaar details section since data exists
+        $("#" + p + "aadharDetails").removeClass('sno');
+        $("#" + p + "captureAadhaar").removeClass('btm-seperator');
+    }
+    //  "Other" auto-detection — only for truly fresh cases with no sameAs saved
+    if (custWrapper && addrList?.length) {
+        let custDtlId = custWrapper.custDtlId;
+        let voterAddr = apz.app.AadhaarDetails.getVoterAddrFromSession(custDtlId);
+        let presentAddr = apz.app.AadhaarDetails.getPresentAddrFromSession(custDtlId);
+        // Only auto-select Other if present has no sameAs (truly fresh/unset)
+        let hasSameAs = presentAddr?.addressSameAs && presentAddr.addressSameAs !== "" && presentAddr.addressSameAs !== "Other";
+        if (presentAddr && voterAddr && !apz.app.AadhaarDetails.addrEqual(presentAddr, voterAddr) && !hasSameAs) {
+            apz.app.AadhaarDetails._selectOtherPresentRow();
+            apz.app.AadhaarDetails.prefillOtherPresentFields(p, presentAddr);
+        } else if (presentAddr && hasSameAs) {
+            // Restore the correct row based on saved sameAs
+            const sameAsToRow = {
+                "ApplicantVoter": 1,
+                "Co-AppVoter": 2,
+                "ApplicantSecondaryKyc": 3,
+                "Co-AppSecondaryKyc": 4
+            };
+            let rowNum = sameAsToRow[presentAddr.addressSameAs];
+            if (rowNum) checkRowRadio(rowNum, 1);
+        }
+    }
+    // RELATIONSHIP PROOF DOC — fresh case restore
+    if (gApzCOB.currentApplicant !== 1) {
+        let custDtlIdFresh = custWrapper?.custDtlId || gApzCOB?.userDetails?.CoApplicantCustomerId;
+        let docWrappers = inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || gApzCOB?.requestNodes
+            ?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || [];
+        let relDoc = docWrappers.find(d => d.payload?.documentType === "RELATIONSHIP_PROOF" && parseInt(d.custDtlId) === parseInt(
+        custDtlIdFresh));
+        let coAppCustEntry = inSessionStore?.customerDetailsList?.find(c => String(c.custDtlId) === String(custDtlIdFresh));
+        let relVal = coAppCustEntry?.payload?.relationshipProof || relDoc?.payload?.documentDesc || relDoc?.payload?.documentName || (relDoc
+            ?.payload?.documentFileName || "").replace(/^Relationship_/i, "").trim() || "";
+        if (relVal && relVal !== PleaseSelect) {
+            $("#" + p + "relationshipProof").val(relVal).trigger("change");
+        }
+    }
+    //Paint address table
+    apz.app.AadhaarDetails.paintAddressTable();
+};
+apz.app.AadhaarDetails._selectOtherPresentRow = function() {
+    let rows = document.querySelectorAll(".addr-body-row");
+    let otherRow = rows[4];
+    if (!otherRow) return;
+    let cell = otherRow.children[1];
+    let radio = cell?.querySelector("input[type='radio']");
+    if (radio && !radio.disabled) {
+        // Clear all present-column radios first
+        rows.forEach(r => {
+            let c = r.children[1];
+            let rd = c?.querySelector("input[type='radio']");
+            if (rd) rd.checked = false;
+        });
+        radio.checked = true;
+        apz.app.otherAddressState.present = true;
+    }
+    const presentSection = document.querySelector('.other-present-details');
+    if (presentSection) presentSection.style.display = '';
+};
+apz.app.AadhaarDetails.prefillOtherPresentFields = function(p, addr) {
+    if (!addr) return;
+    $(`#${p}presentAddrLine1`).val(addr.addressLine1 || "");
+    $(`#${p}presentAddrLine2`).val(addr.addressLine2 || "");
+    $(`#${p}presentAddrLine3`).val(addr.addressLine3 || "");
+    $(`#${p}presentPincode`).val(addr.pinCode || "");
+    $(`#${p}addPreCity`).val(addr.city || "").trigger("change");
+    $(`#${p}addPreDistrict`).val(addr.district || "").trigger("change");
+    $(`#${p}addPreState`).val(addr.state || "").trigger("change");
+    $(`#${p}addPreCountry`).val(addr.country || "").trigger("change");
+    $(`#${p}addPreArea`).val(addr.area || "");
+    $(`#${p}addPreLandmark`).val(addr.landMark || "");
+    if (addr.currentAddressProof) {
+        $(`#${p}addressProof`).val(addr.currentAddressProof).trigger("change");
+    }
+    // Residence stability if available
+    if (addr.residenceCitySince) $(`#${p}A_residence_stabilit_present_city`).val(addr.residenceCitySince).trigger("change");
+    if (addr.residenceAddressSince) $(`#${p}A_residence_stability`).val(addr.residenceAddressSince).trigger("change");
+    // Residential ownership radio
+    if (addr.residenceOwnership) {
+        const map = {
+            "Owned": "Own",
+            "Own": "Own",
+            "Self Owned": "Own",
+            "Leased": "Rented",
+            "Rented": "Rented"
+        };
+        let uiValue = map[addr.residenceOwnership] || addr.residenceOwnership;
+        document.querySelectorAll(`[name="${AadhaarScrId}residentialStatus_"]`).forEach(r => {
+            r.checked = (r.value === uiValue);
+            if (r.checked) apz.app.handleAddressType(r);
+        });
+    }
+};
+apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
+    let cust = custWrapper.payload || custWrapper;
+    $("#" + p + "mrtsts").val(cust.maritalStatus || PleaseSelect).trigger("change");
+    if (cust.maritalStatus && cust.maritalStatus !== PleaseSelect) {
+        apz.app.AadhaarDetails.maritalStatusOnChange(cust.maritalStatus);
+    }
+    let lead = gApzCOB.currentApplicant === 1 ? gApzCOB.selLeadDtls : (gApzCOB.selLeadDtls?.customerDetailsList || inSessionStore?.leadDetails
+        ?.customerDetailsList || []).find(c => c.customerType === "Co-App" || c.customerType === "CoApplicant" || c.customerType ===
+        "CO_APPLICANT");
+    let fatherVal = (cust.fathersName && cust.fathersName !== "NULL") ? cust.fathersName : (lead?.fathersName && lead.fathersName !== "NULL" ?
+        lead.fathersName : "");
+    let spouseVal = (cust.spouseName && cust.spouseName !== "NULL") ? cust.spouseName : (lead?.spouseName && lead.spouseName !== "NULL" ? lead
+        .spouseName : "");
+    $("#" + p + "fathersName").val(fatherVal);
+    $("#" + p + "spouseName").val(spouseVal);
+    $("#" + p + "religion").val(cust.religion || PleaseSelect).trigger("change");
+    if (gApzCOB.currentApplicant == 1 && ApplicationType === "OpenMarket") {
+        const religion =
+            (cust.religion && cust.religion !== "Please Select")
+                ? cust.religion
+                : (gApzCOB?.selLeadDtls?.appReligion || "Please Select");
+
+        $("#" + p + "religion").val(religion).trigger("change");
+    };
+    $("#" + p + "caste").val(cust.caste || PleaseSelect).trigger("change");
+    if (gApzCOB.currentApplicant == 1 && ApplicationType === "OpenMarket") {
+        let OpCaste = gApzCOB?.selLeadDtls?.appCaste === "GEN" ? "General" : gApzCOB?.selLeadDtls?.appCaste
+        const caste =
+            (cust.caste && cust.caste !== "Please Select")
+                ? cust.caste
+                : (OpCaste || "Please Select");
+
+        $("#" + p + "caste").val(caste).trigger("change");
+    };
+    $("#" + p + "education").val(cust.education || PleaseSelect).trigger("change");
+    if (cust.secondaryKycId) $("#" + p + "aadharnum").val(cust.secondaryKycId);
+    if (cust.secondaryKycName) $("#" + p + "aadharname").val(cust.secondaryKycName);
+    if (cust.secondaryKycDob) $("#" + p + "aadhardob").val(ApzCOB.convertDateFormat(cust.secondaryKycDob, 'dd/mm/yyyy'));
+    let relation = cust.relationShipWithApplicant || "";
+    if (relation && relation !== PleaseSelect && gApzCOB.currentApplicant !== 1) {
+        $("#" + p + "relationApplicant").val(relation);
+    }
+    if (gApzCOB.currentApplicant !== 1) {
+        let relDocRestore = (inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || []).find(d => d.payload
+            ?.documentType === "RELATIONSHIP_PROOF" && parseInt(d.custDtlId) === parseInt(custWrapper.custDtlId));
+        let relValRestore = cust.relationshipProof || relDocRestore?.payload?.documentDesc || relDocRestore?.payload?.documentName || (
+            relDocRestore?.payload?.documentFileName || "").replace(/^Relationship_/i, "").trim() || "";
+        if (relValRestore && relValRestore !== PleaseSelect) {
+            $("#" + p + "relationshipProof").val(relValRestore).trigger("change");
+        }
+    }
+    let present = addrList.find(a => a.addressType === "Present");
+    let permanent = addrList.find(a => a.addressType === "Permanent");
+    let secondaryKyc = addrList.find(a => a.addressType === "SecondaryKyc");
+    let communication = addrList.find(a => a.addressType === "Communication");
+    let _savedCommSameAs = communication?.addressSameAs || "";
+    let _savedCommRadioVal = "";
+    if (_savedCommSameAs) {
+        let s = _savedCommSameAs.toLowerCase();
+        _savedCommRadioVal = s.includes("present") ? "presentAddr" : s.includes("permanent") ? "permanentAddr" : "";
+    }
+    // PRESENT ADDRESS
+    if (present) {
+        if (present.residenceCitySince) {
+            $(`#${p}A_residence_stabilit_present_city`).val(present.residenceCitySince).trigger("change");
+        }
+        if (present.residenceAddressSince) {
+            $(`#${p}A_residence_stability`).val(present.residenceAddressSince).trigger("change");
+        }
+        if (present.currentAddressProof) {
+            $(`#${p}addressProof`).val(present.currentAddressProof).trigger("change");
+        }
+        if (present.residenceOwnership) {
+            const map = {
+                "Owned": "Own",
+                "Own": "Own",
+                "Self Owned": "Own",
+                "Leased": "Rented",
+                "Rented": "Rented"
+            };
+            let uiValue = map[present.residenceOwnership] || present.residenceOwnership;
+            let matchedRadio = null;
+            document.querySelectorAll(`[name="${p}residentialStatus_"]`).forEach(r => {
+                r.checked = (r.value === uiValue);
+                if (r.checked) matchedRadio = r;
+            });
+            if (matchedRadio) apz.app.handleAddressType(matchedRadio);
+        } else {
+            let ownRadio = document.querySelector(`[name="${p}residentialStatus_"][value="Own"]`);
+            if (ownRadio) {
+                ownRadio.checked = true;
+                apz.app.handleAddressType(ownRadio);
+            }
+        }
+        // House type radio — fire change only once on the checked element
+        if (present.houseType) {
+            const displayToCode = {
+                "Kuccha": "HouType1",
+                "Pucca": "HouType2",
+                "Semi Pucca": "HouType3",
+                "HouType1": "HouType1",
+                "HouType2": "HouType2",
+                "HouType3": "HouType3"
+            };
+            let radioCode = displayToCode[present.houseType] || "HouType2";
+            let checkedHouseRadio = null;
+            document.querySelectorAll(`[name="${p}typeHouse_"]`).forEach(r => {
+                r.checked = (r.value === radioCode);
+                if (r.checked) checkedHouseRadio = r;
+            });
+            if (checkedHouseRadio) checkedHouseRadio.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        } else {
+            let defaultRadio = document.querySelector(`[name="${p}typeHouse_"][value="HouType2"]`);
+            if (defaultRadio) {
+                defaultRadio.checked = true;
+                defaultRadio.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
+        }
+        // Present address row selection
+        if (present.addressSameAs === "Other") {
+            $(`#${p}presentAddrLine1`).val(present.addressLine1 || "");
+            $(`#${p}presentAddrLine2`).val(present.addressLine2 || "");
+            $(`#${p}presentAddrLine3`).val(present.addressLine3 || "");
+            $(`#${p}presentPincode`).val(present.pinCode || "");
+            $(`#${p}addPreCity`).val(present.city || "").trigger("change");
+            $(`#${p}addPreDistrict`).val(present.district || "").trigger("change");
+            $(`#${p}addPreState`).val(present.state || "").trigger("change");
+            $(`#${p}addPreCountry`).val(present.country || "").trigger("change");
+            $(`#${p}addPreArea`).val(present.area || "");
+            $(`#${p}addPreLandmark`).val(present.landMark || "");
+            apz.app.otherAddressState.present = true;
+            const presentSection = document.querySelector('.other-present-details');
+            if (presentSection) presentSection.style.display = '';
+            checkRowRadio(5, 1);
+        } else {
+            apz.app.otherAddressState.present = false;
+            const presentSection = document.querySelector('.other-present-details');
+            if (presentSection) presentSection.style.display = 'none';
+            const sameAsToRow = {
+                "ApplicantVoter": 1,
+                "Co-AppVoter": 2,
+                "ApplicantSecondaryKyc": 3,
+                "Co-AppSecondaryKyc": 4
+            };
+            checkRowRadio(sameAsToRow[present.addressSameAs] || 1, 1);
+        }
+    }
+    // PERMANENT ADDRESS
+    let checkedResidential = document.querySelector(`[name="${p}residentialStatus_"]:checked`);
+    if (permanent) {
+        if (permanent.currentAddressProof) {
+            $(`#${p}permanentAddressProof`).val(permanent.currentAddressProof).trigger("change");
+        }
+        if (permanent.addressSameAs === "Other" && checkedResidential.value !== "Own") {
+            $(`#${p}permanentAddrLine1`).val(permanent.addressLine1 || "");
+            $(`#${p}permanentAddrLine2`).val(permanent.addressLine2 || "");
+            $(`#${p}permanentAddrLine3`).val(permanent.addressLine3 || "");
+            $(`#${p}permanentPincode`).val(permanent.pinCode || "");
+            $(`#${p}addPermCity`).val(permanent.city || "").trigger("change");
+            $(`#${p}addPermDistrict`).val(permanent.district || "").trigger("change");
+            $(`#${p}addPermState`).val(permanent.state || "").trigger("change");
+            $(`#${p}addPermCountry`).val(permanent.country || "").trigger("change");
+            $(`#${p}addPermArea`).val(permanent.area || "");
+            $(`#${p}addPermLandmark`).val(permanent.landMark || "");
+            apz.app.otherAddressState.permanent = true;
+            const permanentSection = document.querySelector('.other-permanent-details');
+            if (permanentSection) permanentSection.style.display = '';
+            checkRowRadio(5, 2);
+        } else {
+            apz.app.otherAddressState.permanent = false;
+            const permanentSection = document.querySelector('.other-permanent-details');
+            if (permanentSection) permanentSection.style.display = 'none';
+            const sameAsToRow = {
+                "ApplicantVoter": 1,
+                "Co-AppVoter": 2,
+                "ApplicantSecondaryKyc": 3,
+                "Co-AppSecondaryKyc": 4,
+                "Other": 5
+            };
+            checkRowRadio(sameAsToRow[permanent.addressSameAs] || 1, 2);
+        }
+    } else {
+        checkRowRadio(1, 2);
+    }
+    // SECONDARY KYC ADDRESS
+    if (secondaryKyc && secondaryKyc.addressLine1) {
+        $("#" + p + "addline1").val(secondaryKyc.addressLine1 || "");
+        $("#" + p + "addline2").val(secondaryKyc.addressLine2 || "");
+        $("#" + p + "addline3").val(secondaryKyc.addressLine3 || "");
+        $("#" + p + "addpin").val(secondaryKyc.pinCode || "");
+        $("#" + p + "aadCity").val(secondaryKyc.city || "").trigger("change");
+        $("#" + p + "aadDistrict").val(secondaryKyc.district || "").trigger("change");
+        $("#" + p + "aadState").val(secondaryKyc.state || "").trigger("change");
+        $("#" + p + "aadCountry").val(secondaryKyc.country || "").trigger("change");
+        $("#" + p + "aadArea").val(secondaryKyc.area || "");
+        $("#" + p + "aadLandmark").val(secondaryKyc.landMark || "");
+        $("#" + p + "aadharDetails").removeClass('sno');
+        $("#" + p + "captureAadhaar").removeClass('btm-seperator');
+    }
+    // Residential column visibility — handles Own/Rented layout only
+    // Does NOT set communication radio (that is done below, always last)
+    if (checkedResidential && checkedResidential.value !== "Own") {
+        apz.app.handleAddressType(checkedResidential);
+    } else if (checkedResidential && checkedResidential.value === "Own") {
+        let anyPermanentChecked = Array.from(document.querySelectorAll('.addr-body-row'))
+        .filter(row => row.id.startsWith('KmSourc__AadhaarDetails')).some(row => {
+            let radio = row.children[2]?.querySelector("input[type='radio']");
+            return radio && radio.checked;
+        });
+        if (!anyPermanentChecked) {
+            checkRowRadio(1, 2);
+        }
+        document.querySelectorAll('.addr-header-row, .addr-body-row').forEach(row => {
+            const cells = row.children;
+            if (cells && cells.length >= 3) cells[2].style.display = 'none';
+        });
+        const addressRow = document.querySelector('.address-selection');
+        if (addressRow) addressRow.classList.add('disabled');
+        // No communication radio set here — restored from snapshot below
+    }
+    // COMMUNICATION ADDRESS RADIO — always restored LAST so nothing overwrites it
+    if (_savedCommRadioVal) {
+        document.querySelectorAll(`input[name="${p}communicationAddress_"]`).forEach(r => {
+            r.checked = (r.value === _savedCommRadioVal);
+            if (r.checked) r.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
+        window.selectedCommunicationAddress = _savedCommRadioVal === "presentAddr" ? "Present" : "Permanent";
+    } else {
+        // Fallback — default to Present
+        document.querySelectorAll(`input[name="${p}communicationAddress_"]`).forEach(r => {
+            r.checked = (r.value === "presentAddr");
+            if (r.checked) r.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
+        window.selectedCommunicationAddress = "Present";
+    }
+};
+apz.app.AadhaarDetails.rebuildAddressTable = function() {
+    try {
+        let addrDetailsList = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList || [];
+        let custDtlId = gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+        let hasPersonalWrapper = addrDetailsList.some(w => w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId));
+        if (!hasPersonalWrapper) {
+            apz.app.AadhaarDetails.createAddressFromAadhaarFields();
+            apz.app.AadhaarDetails.paintAddressTable();
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        console.error("Address table rebuild failed:", e);
+    }
+};
+apz.app.AadhaarDetails.createAddressFromAadhaarFields = function() {
+    let p = AadhaarScrId;
+    let isApplicant = gApzCOB.currentApplicant === 1;
+    let custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    let addressDtlsId = isApplicant ? gApzCOB.userDetails.addressDtlsId : gApzCOB.userDetails.CoApplicantAddressDtlsId;
+    let addr = {
+        addressType: "SecondaryKyc",
+        addressLine1: $(`#${p}addline1`).val() || "",
+        addressLine2: $(`#${p}addline2`).val() || "",
+        addressLine3: $(`#${p}addline3`).val() || "",
+        pinCode: $(`#${p}addpin`).val() || "",
+        city: $(`#${p}aadCity`).val() || "",
+        district: $(`#${p}aadDistrict`).val() || "",
+        state: $(`#${p}aadState`).val() || "",
+        country: $(`#${p}aadCountry`).val() || "",
+        area: $(`#${p}aadArea`).val() || "",
+        landMark: $(`#${p}aadLandmark`).val() || "",
+        currentAddressProof: isApplicant ? "Applicant Aadhaar" : "Co-Applicant Aadhaar"
+    };
+    if (!addr.addressLine1) return;
+    if (!inSessionStore.addressDetailsWrapperList) {
+        inSessionStore.addressDetailsWrapperList = [{
+            addressDetailsList: []
+        }];
+    }
+    let addrDetailsList = inSessionStore.addressDetailsWrapperList[0].addressDetailsList;
+    let existingIdx = addrDetailsList.findIndex(w => w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId));
+    // AFTER — merge instead of replace
+    if (existingIdx >= 0) {
+        let addrList = addrDetailsList[existingIdx].payload.addressList || [];
+        let secIdx = addrList.findIndex(a => a.addressType === "SecondaryKyc");
+        if (secIdx >= 0) {
+            addrList[secIdx] = addr;
+        } else {
+            addrList.push(addr);
+        }
+    } else {
+        addrDetailsList.push({
+            addressDtlsId: addressDtlsId || "",
+            custDtlId: parseInt(custDtlId),
+            addressType: "Personal",
+            payload: {
+                addressList: [addr]
+            }
+        });
+    }
+};
+apz.app.AadhaarDetails._resolveAddrBySameAs = function(sameAs) {
+    let custList = inSessionStore?.customerDetailsList || [];
+    let addrRoot = inSessionStore?.addressDetailsWrapperList?.[0]?.addressDetailsList || [];
+
+    function getAddr(custDtlId, addrType) {
+        let personal = addrRoot.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId));
+        return personal?.payload?.addressList?.find(a => a.addressType === addrType) || null;
+    }
+    let appCustDtlId = custList.find(c => c.customerType === "Applicant")?.custDtlId || gApzCOB.userDetails.custDtlId;
+    let coAppCustDtlId = custList.find(c => c.customerType === "Co-App")?.custDtlId || gApzCOB.userDetails.CoApplicantCustomerId;
+    if (sameAs === "ApplicantVoter") return getAddr(appCustDtlId, "Voter");
+    if (sameAs === "Co-AppVoter") return getAddr(coAppCustDtlId, "Voter");
+    if (sameAs === "ApplicantSecondaryKyc") return getAddr(appCustDtlId, "SecondaryKyc");
+    if (sameAs === "Co-AppSecondaryKyc") return getAddr(coAppCustDtlId, "SecondaryKyc");
+    return null;
+};
+apz.app.AadhaarDetails.toggleRelationshipDropdown = function() {
+    let docs = (inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || []);
+    let custDtlId = gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    let relDocs = docs.filter(d => d.payload.documentType === "RELATIONSHIP_PROOF" && parseInt(d.custDtlId) === parseInt(custDtlId) && d.payload
+        .documentFileName);
+    let dropdownId = AadhaarScrId + "relationshipProof";
+    let $dropdown = $("#" + dropdownId);
+    let isDisabled = relDocs.length > 0;
+    $dropdown.prop("disabled", isDisabled);
+    $dropdown.closest('.ett-inpt').toggleClass("disabled", isDisabled);
+};
+apz.app.AadhaarDetails.toggleAddressProofDropdown = function() {
+    let docs = (inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || []);
+    let custDtlId = gApzCOB.currentApplicant === 1 
+        ? gApzCOB.userDetails.custDtlId 
+        : gApzCOB.userDetails.CoApplicantCustomerId;
+
+    // PRESENT
+    let presentDocs = docs.filter(d =>
+        d.payload.documentType === "ADDRESS_PROOF" &&
+        parseInt(d.custDtlId) === parseInt(custDtlId) &&
+        (d.payload.documentDesc || "").toUpperCase() === "PRESENT" &&
+        d.payload.documentFileName
+    );
+    let presentCaptured = presentDocs.length > 0;
+    let $presentDropdown = $("#" + AadhaarScrId + "addressProof");
+    $presentDropdown.prop("disabled", presentCaptured);
+    $presentDropdown.closest('.ett-inpt').toggleClass("disabled", presentCaptured);
+
+    // ← ONLY remove docs UI if dropdown is empty AND no docs exist in session
+    let presentVal = ($presentDropdown.val() || "").trim();
+    if (!presentCaptured && (!presentVal || presentVal === PleaseSelect)) {
+        $(`#${AadhaarScrId}presentAddrImg`).find('.km-doc-upload-row').remove();
+    }
+
+    // PERMANENT
+    let permanentDocs = docs.filter(d =>
+        d.payload.documentType === "ADDRESS_PROOF" &&
+        parseInt(d.custDtlId) === parseInt(custDtlId) &&
+        (d.payload.documentDesc || "").toUpperCase() === "PERMANENT" &&
+        d.payload.documentFileName
+    );
+    let permanentCaptured = permanentDocs.length > 0;
+    let $permanentDropdown = $("#" + AadhaarScrId + "permanentAddressProof");
+    $permanentDropdown.prop("disabled", permanentCaptured);
+    $permanentDropdown.closest('.ett-inpt').toggleClass("disabled", permanentCaptured);
+
+    // ← ONLY remove docs UI if dropdown is empty AND no docs exist in session
+    let permanentVal = ($permanentDropdown.val() || "").trim();
+    if (!permanentCaptured && (!permanentVal || permanentVal === PleaseSelect)) {
+        $(`#${AadhaarScrId}permanentAddrImg`).find('.km-doc-upload-row').remove();
+    }
+};
+apz.app.AadhaarDetails._getOtherDocType = function(colIndex) {
+    return "ADDRESS_PROOF";
+};
+apz.app.AadhaarDetails._otherDocExists = function(colIndex) {
+    let descFilter = colIndex === 1 ? "PRESENT" : "PERMANENT";
+    let custDtlId = gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    let docs = inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || [];
+    return docs.some(d =>
+        d.payload.documentType === "ADDRESS_PROOF" &&
+        parseInt(d.custDtlId) === parseInt(custDtlId) &&
+        (d.payload.documentDesc || "").toUpperCase() === descFilter &&
+        d.payload.documentFileName
+    );
+};
+apz.app.AadhaarDetails._deleteOtherDoc = function(colIndex) {
+    let descFilter = colIndex === 1 ? "PRESENT" : "PERMANENT";
+    let custDtlId = gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    let docList = inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || [];
+    let idx = docList.findIndex(d =>
+        d.payload.documentType === "ADDRESS_PROOF" &&
+        parseInt(d.custDtlId) === parseInt(custDtlId) &&
+        (d.payload.documentDesc || "").toUpperCase() === descFilter
+    );
+    if (idx >= 0) docList.splice(idx, 1);
+    let p = AadhaarScrId;
+    if (colIndex === 1) {
+        $(`#${p}addressProof`).val(PleaseSelect).trigger("change");
+        $(`#${p}addressProof`).prop("disabled", false).closest('.ett-inpt').removeClass("disabled");
+    } else {
+        $(`#${p}permanentAddressProof`).val(PleaseSelect).trigger("change");
+        $(`#${p}permanentAddressProof`).prop("disabled", false).closest('.ett-inpt').removeClass("disabled");
+    }
+    apz.app.Kmbase.paintAllDocuments();
+};
+apz.app.AadhaarDetails.cleanOrphanedAddressProofDocs = function() {
+    let isApplicant = gApzCOB.currentApplicant === 1;
+    if (!isApplicant) return; 
+
+    let custDtlId = gApzCOB.userDetails.custDtlId;
+    let p = AadhaarScrId;
+
+    let isPresentOther = apz.app.otherAddressState.present;
+    let isPermanentOther = apz.app.otherAddressState.permanent;
+
+    let docList = inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || [];
+
+    if (!isPresentOther) {
+        let presentDocs = docList.filter(d =>
+            d.payload.documentType === "ADDRESS_PROOF" &&
+            parseInt(d.custDtlId) === parseInt(custDtlId) &&
+            (d.payload.documentDesc || "").toUpperCase() === "PRESENT" &&
+            d.payload.documentFileName
+        );
+        if (presentDocs.length > 0) {
+            inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList =
+                docList.filter(d => !(
+                    d.payload.documentType === "ADDRESS_PROOF" &&
+                    parseInt(d.custDtlId) === parseInt(custDtlId) &&
+                    (d.payload.documentDesc || "").toUpperCase() === "PRESENT" &&
+                    d.payload.documentFileName
+                ));
+            // Clear UI
+            $(`#${p}addressProof`).val(PleaseSelect).trigger("change");
+            $(`#${p}addressProof`).prop("disabled", false).closest('.ett-inpt').removeClass("disabled");
+            $(`#${AadhaarScrId}presentAddrImg`).find('.km-doc-upload-row').remove();
+            console.warn("Cleaned orphaned PRESENT ADDRESS_PROOF docs (Other radio not active)");
+        }
+    }
+
+    docList = inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || [];
+
+    if (!isPermanentOther) {
+        let permanentDocs = docList.filter(d =>
+            d.payload.documentType === "ADDRESS_PROOF" &&
+            parseInt(d.custDtlId) === parseInt(custDtlId) &&
+            (d.payload.documentDesc || "").toUpperCase() === "PERMANENT" &&
+            d.payload.documentFileName
+        );
+        if (permanentDocs.length > 0) {
+            inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList =
+                docList.filter(d => !(
+                    d.payload.documentType === "ADDRESS_PROOF" &&
+                    parseInt(d.custDtlId) === parseInt(custDtlId) &&
+                    (d.payload.documentDesc || "").toUpperCase() === "PERMANENT" &&
+                    d.payload.documentFileName
+                ));
+            $(`#${p}permanentAddressProof`).val(PleaseSelect).trigger("change");
+            $(`#${p}permanentAddressProof`).prop("disabled", false).closest('.ett-inpt').removeClass("disabled");
+            $(`#${AadhaarScrId}permanentAddrImg`).find('.km-doc-upload-row').remove();
+           
+        }
+    }
+};

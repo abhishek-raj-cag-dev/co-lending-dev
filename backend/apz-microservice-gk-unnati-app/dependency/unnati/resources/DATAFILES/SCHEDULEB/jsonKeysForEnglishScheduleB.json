@@ -1,0 +1,16 @@
+{
+  "keysForContent": {
+    "applicationName": "Schedule B",
+    "applicationId": "Additional terms and conditions for the Guarantee",
+    "TnC1": "The Borrower(s) hereby acknowledges and agrees that the Company shall obtain a Guarantee on terms and conditions as set out in the Guarantee Agreement, which terms will include maximum guarantee limit under such Guarantee Agreement.",
+    "TnC2": "The Borrower further agrees that in the event the Company makes a claim under the Guarantee Agreement due to occurrence of an Event of Default under this Loan Agreement and such claim is paid by the Guarantor to the Company under the Guarantee Agreement , the Borrower(s) shall repay/reimburse all such amounts to the Guarantor directly (“Reimbursement Amount”).",
+    "TnC3": "The Borrower(s) hereby appoints the Company as its true and lawful attorney to do and execute for and in the name and on behalf of the Borrower(s), all acts, deeds and things required to repay/reimburse the Reimbursement Amount to the Guarantor under the Guarantee Agreement.",
+    "applicantNameSign": "Applicant Name and Sign",
+    "coapplicantNameSign": "Co Applicant Name and Sign",
+    "authorizedSign": "Authorized Signatory",
+    "applicantName": "Applicant Name",
+    "applicantSign": "Applicant Sign",
+    "coApplicantName": "Co Applicant Name",
+    "coApplicantSign": "Co Applicant Sign"
+  }
+}

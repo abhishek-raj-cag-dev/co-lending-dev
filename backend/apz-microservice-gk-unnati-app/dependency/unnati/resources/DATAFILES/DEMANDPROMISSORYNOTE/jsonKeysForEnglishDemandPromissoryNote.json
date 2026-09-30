@@ -1,0 +1,14 @@
+{
+  "keysForContent": {
+    "applicationName": "DEMAND PROMISSORY NOTE",
+    "rs": "Rs.",
+    "date": "Date:",
+	"place":"Place:",
+    "note": "On demand, I <applicantName> aged <applicantAge> years,  residing at <applicantAddress> and  <coApplicantName>aged  <coApplicantAge> years, residing at <coApplicantAddress> jointly and severally promise to pay CreditAccess Grameen Limited (CA Grameen), or order a sum of Rs.<sanctionedAmount> (Rupees <sanctionedAmountInWords> only) with interest @ <rateOfInterest> percent per annum on the sanctioned amount on account of the consideration received.",
+	"noteNew": "On demand, I <applicantName> aged <applicantAge> years,  residing at <applicantAddress> and  <coApplicantName>aged  <coApplicantAge> years, residing at <coApplicantAddress> jointly and severally promise to pay CreditAccess Grameen Limited (CA Grameen), or order a sum of Rs.<sanctionedAmount> (Rupees <sanctionedAmountInWords> only) with interest @ <rateOfInterest> percent per annum on the sanctioned amount on account of the consideration received.",
+	"loanAccount":"Loan Ac No",
+    "applicantName":"1. Applicant Name:",
+    "signature": "Signature:",
+    "coApplicantName":"2. Co-Applicant Name:"
+	}
+}

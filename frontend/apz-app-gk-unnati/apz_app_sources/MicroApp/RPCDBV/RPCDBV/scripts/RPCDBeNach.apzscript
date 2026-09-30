@@ -1,0 +1,256 @@
+var scrId = 'RPCDBV__RPCDBeNach__',
+    eQueries = '',
+    eNachcheckedReasons = '';
+apz.app.onShown_RPCDBeNach = function() {
+    apz.childScr = 'RPCDBeNach';
+    apz.app.RPCDBVerify.hideNshowBtns();
+    apz.app.RPCDBeNach.painteNachData();
+    apz.app.RPCDBeNach.paintQueryresponse();
+    apz.app.RPCDBVerify.setModifedtag();
+}
+apz.app.RPCDBeNach.paintQueryresponse = function(){
+    eQueries = inSessionStore?.dbKitStatDetails.filter(e => e.stageID == 2);
+    if(eQueries?.length > 0) {
+     $("#RPCDBV__RPCDBeNach__eQuery").removeClass('sno');
+        $("#RPCDBV__RPCDBeNach__EqueryFrm").removeClass('sno');
+        $("#RPCDBV__RPCDBeNach__Equeryrow").removeClass('sno');
+        $("span#RPCDBV__RPCDBeNach__EselectedQuerydata").html("");
+        apz.app.RPCDBVerify.queriestimeStamp(eQueries);
+        $("#RPCDBV__RPCDBeNach__EqueryDisplay_txtcnt").text("Queries (RPC DB verification ," + LoggedInUserDetails?.loginResponse?.userDet?.id + " " + formattedTimestamp + ")");
+         window.eNachcheckedQueries = apz.app.RPCDBVerify.getQueryReasons(RPCDBV_CURRENT_STAGE_NO,apz.childScr);
+        for (let q = 0; q < eNachcheckedQueries.length; q++) {
+            if (eNachcheckedQueries[q]?.Q.split('?')[0] === 'oth') {
+                window.eNachcheckedReasons = eNachcheckedQueries[q]?.Q.split('?')[1];
+            } else {
+                window.eNachcheckedReasons = eNachcheckedQueries[q]?.Q;
+            }
+            $("span#RPCDBV__RPCDBeNach__EselectedQuerydata").append('<p>' + (q + 1) + ". " + eNachcheckedReasons + '</p>');
+        }
+        $("span#RPCDBV__RPCDBeNach__enachSelectedresData").html("");
+        if(eNachcheckedQueries[0]?.R) {
+            $("span#RPCDBV__RPCDBeNach__eNachResrow").removeClass('sno');
+            $("#RPCDBV__RPCDBeNach__eResponsedisplay_txtcnt").text("Response (DB kit generation - " + latestUserId + " " + eNachcheckedQueries[0]?.RTS + ")");
+            $("span#RPCDBV__RPCDBeNach__enachSelectedresData").append('<p>' + (1) + ". " + eNachcheckedQueries[0]?.R + '</p>')
+            $("span#RPCDBV__RPCDBeNach__enachSelectedresData").removeClass('sno'); // i for query block 
+        } else {
+            $("span#RPCDBV__RPCDBeNach__enachSelectedresData").addClass('sno');
+            $("span#RPCDBV__RPCDBeNach__eNachResrow").addClass('sno');
+        }
+    }else{
+        $("#RPCDBV__RPCDBeNach__eQuery").addClass('sno');
+        $("#RPCDBV__RPCDBeNach__EqueryFrm").addClass('sno');
+        $("#RPCDBV__RPCDBeNach__Equeryrow").addClass('sno'); 
+        //$("span#RPCDBV__RPCDBeNach__EselectedQuerydata").append('<p>' + (q + 1) + ". " + eNachcheckedReasons + '</p>');
+    }
+    var enachAppSts,enachCoAppSts;
+    enachAppSts = ApzCOB.getPayloadDatafromWrapper("eNachStatus", 'Applicant', 'bankDetailsWrapperList') ?? '';
+    enachCoAppSts = ApzCOB.getPayloadDatafromWrapper("eNachStatus", 'Co-App', 'bankDetailsWrapperList') ?? '';
+    if (enachAppSts.length > 3 || (apz.isNull(enachAppSts) && applicantDtls?.length === 0)) {
+        $(`#${scrId + 'AppHeaderrow'}`).removeClass('sno');
+        $(`#${scrId + 'Applicantfrm'}`).addClass('sno');
+        $(`#${scrId}eNachstsAppRow`).removeClass("sno");
+        if (enachAppSts == 'eNach not compatible') {
+            $(`#${scrId}enachstsApp`).text(apz.lits[apz.currAppId][apz.language]["LIT_ENACHNOTCOMP"]);
+        } else if (enachAppSts == 'NotAvailable' || apz.isNull(enachAppSts)) {
+            $(`#${scrId}enachstsApp`).text(apz.lits[apz.currAppId][apz.language]["LIT_ENACHNOTAVAIL"]);
+        }
+        return;
+    } else if (enachCoAppSts.length > 3) {
+        $(`#${scrId + 'coAppHeaderrow'}`).removeClass('sno');
+        $(`#${scrId + 'coAppheaderFrm'}`).addClass('sno');
+        $(`#${scrId}eNachstsCoAppRow`).removeClass("sno");
+        if (enachCoAppSts == 'eNach not compatible') {
+            $(`#${scrId}enachstsApp`).text(apz.lits[apz.currAppId][apz.language]["LIT_ENACHNOTCOMP"]);
+        } else if (enachCoAppSts == 'NotAvailable') {
+            $(`#${scrId}enachstsApp`).text(apz.lits[apz.currAppId][apz.language]["LIT_ENACHNOTAVAIL"]);
+        }
+    }
+}
+apz.app.onLoad_RPCDBeNach = function() {
+    $('body').addClass(' unati crdas dbkit ');
+};
+apz.app.RPCDBeNach.painteNachData = function() {
+    let enachDet = inSessionStore.enachDetails;
+    const applicantEnach = ApzCOB.getPayloadDatafromWrapper("enachType", 'Applicant', 'enachDetails') ?? '';
+    const coapplicantEnach = ApzCOB.getPayloadDatafromWrapper("enachType", 'Co-App', 'enachDetails') ?? '';
+    $(`#${scrId + 'eNachType'}`).val(propertiesToCheck[applicantEnach]);
+    $(`#${scrId + 'coeNachType'}`).val(propertiesToCheck[coapplicantEnach]);
+    ApzCOB.addDisableToInput(`${scrId + 'eNachType'}`);
+    ApzCOB.addDisableToInput(`${scrId + 'coeNachType'}`);
+    bankAccField.forEach(function(el) {
+        ApzCOB.addDisableToInput(`${scrId + el}`);
+        $(`#${scrId + el}`).val(ApzCOB.getPayloadDatafromWrapper(el, 'Applicant', 'bankDetailsWrapperList') ?? '');
+    });
+    coAppbankFields.forEach(function(el) {
+        ApzCOB.addDisableToInput(`${scrId + el}`);
+        $(`#${scrId + el}`).val(ApzCOB.getPayloadDatafromWrapper(el.replace('coApp', ''), 'Co-App', 'bankDetailsWrapperList') ?? '');
+    });
+    rpcEditCheck = ApzCOB.getPayloadDatafromWrapper("rpcEditCheck", "Applicant", "bankDetailsWrapperList");
+    accNode = (!rpcEditCheck) ? 'accntVerified' : 'rpcaccntVerified';
+    window.appAccstatus = ApzCOB.getPayloadDatafromWrapper(accNode , "Applicant", "bankDetailsWrapperList");
+    // window.appAccstatus = ApzCOB.getPayloadDatafromWrapper("accntVerified", "Applicant", "bankDetailsWrapperList");
+    window.coappAccstatus = ApzCOB.getPayloadDatafromWrapper("accntVerified", "Co-App", "bankDetailsWrapperList");
+    let haseNachmodified = inSessionStore?.bankDetailsWrapperList?.some(item => item.bankDetails.payload.rpcEditCheck === true);
+    if (haseNachmodified) {
+        $(`#${scrId + 'coappmodifiedBadge_ul'}`).removeClass('sno');
+    } else {
+        $(`#${scrId + 'coappmodifiedBadge_ul'}`).addClass('sno');
+    }
+    window.applicantDtls = inSessionStore?.enachDetails.filter(el => el.customerType == 'Applicant');
+    window.coApplicantdtls = inSessionStore?.enachDetails.filter(el => el.customerType == 'Co-App');
+    $(`#RPCDBV__RPCDBVerify__docdisplayName`).text('Passbook');
+    window.stageDocuments = inSessionStore?.applicationDocumentsWrapperList[0]?.applicationDocumentsList.filter(el => (el.payload.documentType ===
+        "DBBankUpdate"));
+    $(`#${scrId + 'initiateeNachRow'}`).addClass('sno');
+    if (applicantDtls[0]?.customerType === 'Applicant' && (["Success", "Initiated"].includes(applicantDtls[0]?.resDesc))) {
+        $(`#${scrId + 'Applicantfrm'}`).removeClass('sno');
+        $(`#${scrId + 'appeNachSuccessdiv'}`).removeClass('sno');
+        $(`#${scrId + 'eNachFailurediv'}`).addClass('sno');
+        $(`#${scrId + 'bankcustName_txtcnt'}`).text(appAccName || '---');
+        $(`#${scrId + 'bankAccNo_txtcnt'}`).text(appAccNum || '---');
+        $(`#${scrId + 'appSuccrefNo_txtcnt'}`).text(applicantDtls[0]?.pgTranId);
+        // $(`#${scrId + 'initiateeNachRow'}`).removeClass('sno');
+        apz.app.RPCDBeNach.seteNachtype(applicantDtls[0]?.enachType);
+        if (apz.childScr == 'RPCDBeNach') {
+            $('#RPCDBV__RPCDBVerify__gr_row_50').removeClass('semi');
+            $('#RPCDBV__RPCDBVerify__gr_col_55').addClass('sno');
+            $('#RPCDBV__RPCDBVerify__RPCDbkitLaunchDiv').removeClass('twocol');
+            $('#RPCDBV__RPCDBVerify__gr_row_48').addClass('nodoc');
+            //$(`#RPCDBV__RPCDBVerify__queryBtn`).addClass('sno');
+        }
+    }
+    if (applicantDtls[0]?.customerType === 'Applicant' && (!["Success", "Initiated"].includes(applicantDtls[0]?.resDesc))) {
+        $(`#${scrId + 'appeNachSuccessdiv'}`).addClass('sno');
+        $(`#${scrId + 'eNachFailurediv'}`).removeClass('sno');
+        $(`#${scrId + 'Applicantfrm'}`).addClass('sno');
+        $(`#${scrId + 'initiateeNachRow'}`).addClass('sno');
+        $(`#${scrId + 'failedRefNo_txtcnt'}`).text(applicantDtls[0]?.pgTranId || '---');
+        if (apz.childScr == 'RPCDBeNach') {
+            $('#RPCDBV__RPCDBVerify__gr_row_50').removeClass('semi');
+            $('#RPCDBV__RPCDBVerify__gr_col_55').addClass('sno');
+            $('#RPCDBV__RPCDBVerify__RPCDbkitLaunchDiv').removeClass('twocol');
+            $('#RPCDBV__RPCDBVerify__gr_row_48').addClass('nodoc');
+        }
+    }
+    if (coApplicantdtls[0]?.customerType === 'Co-App' && (["Success", "Initiated"].includes(coApplicantdtls[0]?.resDesc))) {
+        $(`#${scrId + 'coAppeNachSuccessdiv'}`).removeClass('sno');
+        $(`#${scrId + 'coAppHeaderrow'}`).removeClass('sno');
+        $(`#${scrId + 'coAppfrm'}`).removeClass('sno');
+        $(`#${scrId + 'coAppeNachFailurediv'}`).addClass('sno');
+        $(`#${scrId + 'coAppbankcustName_txtcnt'}`).text(coappAccName || '---');
+        $(`#${scrId + 'coAppbankAccNo_txtcnt'}`).text(coappAccNum || '---');
+        $(`#${scrId + 'coAppSuccrefNo_txtcnt'}`).text(coApplicantdtls[0]?.pgTranId || '---');
+        // $(`#${scrId + 'initiateeNachRow'}`).removeClass('sno');
+        if (apz.childScr == 'RPCDBeNach') {
+            $('#RPCDBV__RPCDBVerify__gr_row_50').addClass('semi');
+            $('#RPCDBV__RPCDBVerify__gr_col_55').removeClass('sno');
+            $('#RPCDBV__RPCDBVerify__RPCDbkitLaunchDiv').addClass('twocol');
+            $('#RPCDBV__RPCDBVerify__gr_row_48').removeClass('nodoc');
+            $('#RPCDBV__RPCDBVerify__frntbckBtnRow').removeClass('sno');
+        }
+        apz.app.RPCDBeNach.paintenachDocs();
+    }
+    if (coApplicantdtls[0]?.customerType === 'Co-App' && (!["Success", "Initiated"].includes(coApplicantdtls[0]?.resDesc))) {
+        // $(`#${scrId + 'appeNachSuccessdiv'}`).addClass('sno');
+        $(`#${scrId + 'coAppHeaderrow'}`).removeClass('sno');
+        $(`#${scrId + 'coAppeNachFailurediv'}`).removeClass('sno');
+        // $(`#${scrId + 'Applicantfrm'}`).addClass('sno');
+        // $(`#${scrId + 'coAppfrm'}`).addClass('sno');
+        $(`#${scrId + 'initiateeNachRow'}`).addClass('sno');
+        $(`#${scrId + 'coAppfailedRefNo_txtcnt'}`).text(coApplicantdtls[0]?.pgTranId || '---');
+        if (apz.childScr == 'RPCDBeNach') {
+            $('#RPCDBV__RPCDBVerify__gr_row_50').addClass('semi');
+            $('#RPCDBV__RPCDBVerify__gr_col_55').removeClass('sno');
+            $('#RPCDBV__RPCDBVerify__RPCDbkitLaunchDiv').addClass('twocol');
+            $('#RPCDBV__RPCDBVerify__gr_row_48').removeClass('nodoc');
+            $('#RPCDBV__RPCDBVerify__frntbckBtnRow').removeClass('sno');
+        }
+    }
+    if ((["Success", "Initiated"].includes(applicantDtls[0]?.resDesc)) && (["Success", "Initiated"].includes(coApplicantdtls[0]?.resDesc))) {
+        if (apz.childScr == 'RPCDBeNach') {
+            $('#RPCDBV__RPCDBVerify__gr_row_50').removeClass('semi');
+            $('#RPCDBV__RPCDBVerify__gr_col_55').addClass('sno');
+            $('#RPCDBV__RPCDBVerify__RPCDbkitLaunchDiv').removeClass('twocol');
+            $('#RPCDBV__RPCDBVerify__gr_row_48').addClass('nodoc');
+        }
+        /*$(`#${scrId + 'coAppheaderFrm'}`).addClass('sno');
+        $(`#${scrId + 'coAppeNachSuccessdiv'}`).addClass('sno');
+        $(`#${scrId + 'coAppfrm'}`).addClass('sno');*/
+        $('#RPCDBV__RPCDBVerify__gr_row_50').addClass('semi');
+        $('#RPCDBV__RPCDBVerify__gr_col_55').removeClass('sno');
+        $('#RPCDBV__RPCDBVerify__RPCDbkitLaunchDiv').addClass('twocol');
+        $('#RPCDBV__RPCDBVerify__gr_row_48').removeClass('nodoc');
+        $('#RPCDBV__RPCDBVerify__frntbckBtnRow').removeClass('sno');
+    }
+    if ((!["Success", "Initiated"].includes(applicantDtls[0]?.resDesc)) && (["Success", "Initiated"].includes(coApplicantdtls[0]?.resDesc))) {
+        if (apz.childScr == 'RPCDBeNach') {
+            $('#RPCDBV__RPCDBVerify__gr_row_50').addClass('semi');
+            $('#RPCDBV__RPCDBVerify__gr_col_55').removeClass('sno');
+            $('#RPCDBV__RPCDBVerify__RPCDbkitLaunchDiv').addClass('twocol');
+            $('#RPCDBV__RPCDBVerify__gr_row_48').removeClass('nodoc');
+            $('#RPCDBV__RPCDBVerify__frntbckBtnRow').removeClass('sno');
+        }
+        $(`#${scrId + 'appeNachSuccessdiv'}`).addClass('sno');
+        if (applicantDtls.length == 0) {
+            $(`#${scrId + 'AppHeaderrow'}`).addClass('sno');
+            $(`#${scrId + 'eNachFailurediv'}`).addClass('sno');
+        } else {
+            $(`#${scrId + 'AppHeaderrow'}`).removeClass('sno');
+            $(`#${scrId + 'eNachFailurediv'}`).removeClass('sno');
+        }
+        $(`#${scrId + 'Applicantfrm'}`).addClass('sno');
+        $(`#${scrId + 'initiateeNachRow'}`).addClass('sno');
+        $(`#${scrId + 'failedRefNo_txtcnt'}`).text(applicantDtls[0]?.pgTranId || '---');
+        $(`#${scrId + 'coAppheaderFrm'}`).removeClass('sno');
+        $(`#${scrId + 'coAppeNachSuccessdiv'}`).removeClass('sno');
+        $(`#${scrId + 'coAppfrm'}`).removeClass('sno');
+        $(`#${scrId + 'coAppfailedRefNo_txtcnt'}`).text(coApplicantdtls[0]?.pgTranId || '---');
+    }
+    if (appAccstatus == 'Verified') {
+        $("#" + scrId + "AppVerified").removeClass("sno");
+        $("#" + scrId + "verifiedAcc").removeClass('sno');
+        $("#" + scrId + "verifiedAcc").addClass('suc');
+    } else if (!apz.isNull(appAccstatus)) {
+        $("#" + scrId + "AppInvalid").removeClass("sno");
+        $("#" + scrId + "invalidAcc").removeClass('sno');
+        $("#" + scrId + "invalidAcc").addClass('failed');
+    }
+    if (coappAccstatus == 'Verified') {
+        $("#" + scrId + "coAppVerified").removeClass("sno");
+        $("#" + scrId + "coAppverifiedAcc").removeClass('sno');
+        $("#" + scrId + "coAppverifiedAcc").addClass('suc');
+    } else if (!apz.isNull(coappAccstatus)) {
+        $("#" + scrId + "coAppInvalid").removeClass("sno");
+        $("#" + scrId + "coAppinvalidAcc").removeClass('sno');
+        $("#" + scrId + "coAppinvalidAcc").addClass('failed');
+    }
+}
+apz.app.RPCDBeNach.paintenachDocs = function() {
+    $(`#${DBVerifyscrId}rotate_ul , #${DBVerifyscrId}zoomout_ul,#${DBVerifyscrId}zoomin_ul`).removeClass('sno');
+    window.ImageLocationDetails = {
+        latitude: stageDocuments[0]?.payload?.latitude || "",
+        longitude: stageDocuments[0]?.payload?.longitude || "",
+        uploadedTs: stageDocuments[0]?.payload?.uploadedTs || "",
+        documentFileName: stageDocuments[0]?.payload?.documentFileName || ""
+    };
+    ApzCOB.downloadFileFromServer(stageDocuments[0]?.payload?.documentFileName, apz.app.RPCDBVerify.paintenachSectionDocs, '');
+};
+apz.app.RPCDBeNach.getEnachTypeByBankCode = function(code) {
+    const result = ALL_eNACH_BANKS.find(bank => bank.code === code);
+    return result ? result.enach_type : null;
+};
+apz.app.RPCDBeNach.seteNachtype = function(bankCode) {
+    $(`#${scrId}eNachMethodRadio input`).each(function() {
+        $(`#${this.id}_lbl_`).addClass('sno');
+        ApzCOB.addDisableToInput(this.id);
+    })
+    // let eNachType = apz.app.RPCDBeNach.getEnachTypeByBankCode(bankCode);
+    $(`#${scrId}eNachMethodRadio_option_${bankCode}_lbl_`).removeClass('sno');
+    $(`#${scrId}eNachMethodRadio_option_${bankCode}`).prop('checked', true);
+}
+apz.app.RPCDBeNach.launchNextsrcn = function() {
+    ApzCOB.launchSubScreen("RPCDBUdyamReg", `${DBVerifyscrId}RPCDbkitLaunchDiv`);
+}
+apz.app.RPCDBeNach.launchPrevious = function() {
+    ApzCOB.launchSubScreen("RPCdbsanctionDtl", `${DBVerifyscrId}RPCDbkitLaunchDiv`);
+}

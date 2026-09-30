@@ -1,0 +1,43 @@
+{
+  "keysForContent": {
+    "applicationName": "પરત-ચૂકવણી પત્ર",
+
+    "customerID": "ગ્રાહક ID",
+    "customerName": "ગ્રાહકનું નામ",
+    "scan": "UPI ચૂકવણી માટે સ્કેન કરો",
+    "spouseName": "જીવનસાથીનું નામ",
+    "kendraName": "કેન્દ્ર નામ",
+
+    "loanAccount": "ધીરાણ ખાતા નં.",
+    "loanAmount": "ધીરાણનો રકમ",
+
+    "productName": "ઉત્પાદન નામ",
+    "moratorium": "મૉરટૉરિઅમ",
+    "moratoriumValue": "1 - Installment For Principal",
+
+    "roi": "વ્યાજનો દર",
+    "loanPurpose": "ધીરાણનો હેતુ",
+
+    "disbursementDate": "વિતરણ તારીખ",
+    "loanTerm": "ધીરાણનો મુદત",
+
+    "insurancePremium": "વીમા પ્રીમિયમ",
+    "phoneNumber": "ફોન નંબર",
+
+    "processingFee": "પ્રક્રિયા કરવાની ફી (PF) અગાઉથી મેળવાશે",
+
+    "slno": "અનુ ક્રમાંક",
+    "date": "તારીખ",
+    "instalment": "હપ્તો",
+    "balance": "બાકી રકમ/બેલેન્સ",
+    "KMSignature": "KM સહી",
+
+    "Principal": "Principal",
+    "interest": "Interest",
+    "total": "Total",
+
+    "closureLine1": "*જો તમને પાસે કોઈ પ્રશ્નો અથવા ચિંતાઓ હોય તો કૃપયા કામકાજના કલાકો દરમિયાન અમારા નિઃશુલ્ક નંબર 1800- 123- 153-153 ઉપર અમારો સંપર્ક કરો અથવા yourvoice@cagrameen.in સરનામે અમને ઇમેઇલ કરો. તમામ સંદેશાવહેવારમાં કૃપયા તમારો ધીરાણ ID અને ગ્રાહક ID ને લખવાનું યાદ રાખો, જે બન્ને આ પત્રની સોથી ઉપર લખેલા છે. જો તમને અમે આપેલા ઉકેલથી સંતોષ ન હોય તો MFINના નિઃશુલ્ક નંબર (અન્ય રાજ્યના ગ્રાહકો માટે) 1800-102-1080 ઉપર આ બાબત આગળ વધારવાનો વિકલ્પ તમારી પાસે હશે.",
+
+    "closureLine2": "**અન્ય શરતો અપાયેલા મંજૂરી પત્ર મુજબ છે."
+  }
+}

@@ -1,0 +1,525 @@
+var infrmloanObg = 'CrdAss__InformalLoanObligation__';
+window.CA_CURRENT_STAGE = "InformalLoanObligation";
+apz.app.onLoad_InformalLoanObligation = function() {};
+apz.app.onShown_InformalLoanObligation = function() {
+    window.CA_CURRENT_STAGE_NO = CA_ALL_STAGE_FIELDS.find(stage => stage.stageName === CA_CURRENT_STAGE)?.id;
+    apz.app.Cabase.hideShowBtnBasedOnScreen();
+    apz.app.InformalLoanObligation.paintinformalObjData();
+    apz.app.InformalLoanObligation.setMinMaxLength();
+    apz.app.InformalLoanObligation.remainingTenureMonths();
+};
+apz.app.InformalLoanObligation.setMinMaxLength = function() {
+    const fieldMap = {
+        fndTnr_Inp: "Ten",
+        mnytnur_Inp: "Ten",
+        frndTenure_Inp: "Ten",
+        relTenure_Inp: "Ten",
+        coopTenure_Inp: "Ten",
+        finTenure_Inp: "Ten",
+        othrTenure_Inp: "Ten",
+        OthrObg_Inp: "Other",
+        finloanObg_Inp: "Other",
+        coopObg_Inp: "Other",
+        relLoanObg_Inp: "Other",
+        frndloanObg_Inp: "Other",
+        mnyLoanObg_Inp: "Other",
+        fndloanObg_Inp: "Other",
+        finmntlyEMI_Inp: "Other",
+        coopEMI_Inp: "Other",
+        relmntlyEmi_Inp: "Other",
+        frndmntlyEMI_Inp: "Other",
+        mnyEMI_Inp: "Other",
+        fndEMI_Inp: "Other",
+        othrmntEMI_Inp: "Other"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: infrmloanObg + fieldId
+    })));
+};
+apz.app.InformalLoanObligation.paintinformalObjData = function() {
+    let informalObjData = {};
+    if (inSessionStore?.bcmpiLoanObligations?.payload) {
+        informalObjData = JSON.parse(inSessionStore?.bcmpiLoanObligations?.payload);
+    }
+    var verified = false;
+    inSessionStore.bcmpiVerifiedStage.map(function(e) {
+        if (e.split('_')[0] === "6") {
+            verified = true;
+        }
+    })
+    if ((apz.isObjectEmpty(informalObjData) || informalObjData?.totalLoanObligations === "0") && verified) {
+        $("#CrdAss__InformalLoanObligation__nilloanObg_check").attr("checked", true);
+        ['checkBox_row'].hide();
+    } else if (!apz.isObjectEmpty(informalObjData)) {
+        if (informalObjData.hasOwnProperty('chitFunds')) {
+            $("#CrdAss__InformalLoanObligation__chitFund_check").attr("checked", true);
+            ['chitRow'].show();
+            $('#CrdAss__InformalLoanObligation__fndloanObg_Inp').val(informalObjData.chitFunds.otherLoanObligation);
+            $('#CrdAss__InformalLoanObligation__fndEMI_Inp').val(informalObjData.chitFunds.monthlyEMI);
+            $('#CrdAss__InformalLoanObligation__fndTnr_Inp').val(informalObjData.chitFunds.tenure);
+        } else {
+            $("#CrdAss__InformalLoanObligation__chitFund_check").prop("checked", false);
+            ['chitRow'].hide();
+        }
+        if (informalObjData.hasOwnProperty('moneyLender')) {
+            $("#CrdAss__InformalLoanObligation__moneyLender_check").attr("checked", true);
+            ['lenderRow'].show();
+            $('#CrdAss__InformalLoanObligation__mnyLoanObg_Inp').val(informalObjData.moneyLender.otherLoanObligation);
+            $('#CrdAss__InformalLoanObligation__mnyEMI_Inp').val(informalObjData.moneyLender.monthlyEMI);
+            $('#CrdAss__InformalLoanObligation__mnytnur_Inp').val(informalObjData.moneyLender.tenure);
+        } else {
+            $("#CrdAss__InformalLoanObligation__moneyLender_check").prop("checked", false);
+            ['lenderRow'].hide();
+        }
+        if (informalObjData.hasOwnProperty('Friends')) {
+            $("#CrdAss__InformalLoanObligation__Friends_check").attr("checked", true);
+            ['frndsRow'].show();
+            $('#CrdAss__InformalLoanObligation__frndloanObg_Inp').val(informalObjData.Friends.otherLoanObligation);
+            $('#CrdAss__InformalLoanObligation__frndmntlyEMI_Inp').val(informalObjData.Friends.monthlyEMI);
+            $('#CrdAss__InformalLoanObligation__frndTenure_Inp').val(informalObjData.Friends.tenure);
+        } else {
+            $("#CrdAss__InformalLoanObligation__Friends_check").prop("checked", false);
+            ['frndsRow'].hide();
+        }
+        if (informalObjData.hasOwnProperty('Relatives')) {
+            $("#CrdAss__InformalLoanObligation__relatives_check").attr("checked", true);
+            ['relationRow'].show();
+            $('#CrdAss__InformalLoanObligation__relLoanObg_Inp').val(informalObjData.Relatives.otherLoanObligation);
+            $('#CrdAss__InformalLoanObligation__relmntlyEmi_Inp').val(informalObjData.Relatives.monthlyEMI);
+            $('#CrdAss__InformalLoanObligation__relTenure_Inp').val(informalObjData.Relatives.tenure);
+        } else {
+            $("#CrdAss__InformalLoanObligation__relatives_check").prop("checked", false);
+            ['relationRow'].hide();
+        }
+        if (informalObjData.hasOwnProperty('Coopsociety')) {
+            $("#CrdAss__InformalLoanObligation__coopSocitey_check").attr("checked", true);
+            ['coopsocietyRow'].show();
+            $('#CrdAss__InformalLoanObligation__coopObg_Inp').val(informalObjData.Coopsociety.otherLoanObligation);
+            $('#CrdAss__InformalLoanObligation__coopEMI_Inp').val(informalObjData.Coopsociety.monthlyEMI);
+            $('#CrdAss__InformalLoanObligation__coopTenure_Inp').val(informalObjData.Coopsociety.tenure);
+        } else {
+            $("#CrdAss__InformalLoanObligation__coopSocitey_check").prop("checked", false);
+            ['coopsocietyRow'].hide();
+        }
+        if (informalObjData.hasOwnProperty('Localfinance')) {
+            $("#CrdAss__InformalLoanObligation__localFinance_check").attr("checked", true);
+            ['financeRow'].show();
+            $('#CrdAss__InformalLoanObligation__finloanObg_Inp').val(informalObjData.Localfinance.otherLoanObligation);
+            $('#CrdAss__InformalLoanObligation__finmntlyEMI_Inp').val(informalObjData.Localfinance.monthlyEMI);
+            $('#CrdAss__InformalLoanObligation__finTenure_Inp').val(informalObjData.Localfinance.tenure);
+        } else {
+            $("#CrdAss__InformalLoanObligation__localFinance_check").prop("checked", false);
+            ['financeRow'].hide();
+        }
+        if (informalObjData.hasOwnProperty('Other')) {
+            $("#CrdAss__InformalLoanObligation__other_check").attr("checked", true);
+            ['OtherRow'].show();
+            $('#CrdAss__InformalLoanObligation__OthrObg_Inp').val(informalObjData.Other.otherLoanObligation);
+            $('#CrdAss__InformalLoanObligation__othrmntEMI_Inp').val(informalObjData.Other.monthlyEMI);
+            $('#CrdAss__InformalLoanObligation__othrTenure_Inp').val(informalObjData.Other.tenure);
+        } else {
+            $("#CrdAss__InformalLoanObligation__other_check").prop("checked", false);
+            ['OtherRow'].hide();
+        }
+    }
+}
+apz.app.InformalLoanObligation.fetchinputData = function(pthis) {
+    let lcheckboxSelected = false;
+    apz.childScr = 'InformalLoanObligation';
+    if ($("#CrdAss__InformalLoanObligation__chitFund_check").is(":checked")) {
+        lcheckboxSelected = true;
+        ['chitRow'].show();
+    } else {
+        $(`#${infrmloanObg}fndloanObg_Inp`).val('');
+        $(`#${infrmloanObg}fndEMI_Inp`).val('');
+        $(`#${infrmloanObg}fndTnr_Inp`).val('');
+        ['chitRow'].hide();
+    }
+    if ($("#CrdAss__InformalLoanObligation__moneyLender_check").is(":checked")) {
+        ['lenderRow'].show();
+        lcheckboxSelected = true;
+    } else {
+        $(`#${infrmloanObg}mnyLoanObg_Inp`).val('');
+        $(`#${infrmloanObg}mnyEMI_Inp`).val('');
+        $(`#${infrmloanObg}mnytnur_Inp`).val('');
+        ['lenderRow'].hide();
+    }
+    if ($("#CrdAss__InformalLoanObligation__Friends_check").is(":checked")) {
+        ['frndsRow'].show();
+        lcheckboxSelected = true;
+    } else {
+        $(`#${infrmloanObg}frndloanObg_Inp`).val('');
+        $(`#${infrmloanObg}frndmntlyEMI_Inp`).val('');
+        $(`#${infrmloanObg}frndTenure_Inp`).val('');
+        ['frndsRow'].hide();
+    }
+    if ($("#CrdAss__InformalLoanObligation__relatives_check").is(":checked")) {
+        ['relationRow'].show();
+        lcheckboxSelected = true;
+    } else {
+        $(`#${infrmloanObg}relLoanObg_Inp`).val('');
+        $(`#${infrmloanObg}relmntlyEmi_Inp`).val('');
+        $(`#${infrmloanObg}relTenure_Inp`).val('');
+        ['relationRow'].hide();
+    }
+    if ($("#CrdAss__InformalLoanObligation__coopSocitey_check").is(":checked")) {
+        ['coopsocietyRow'].show();
+        lcheckboxSelected = true;
+    } else {
+        $(`#${infrmloanObg}coopObg_Inp`).val('');
+        $(`#${infrmloanObg}coopEMI_Inp`).val('');
+        $(`#${infrmloanObg}coopTenure_Inp`).val('');
+        ['coopsocietyRow'].hide();
+    }
+    if ($("#CrdAss__InformalLoanObligation__localFinance_check").is(":checked")) {
+        ['financeRow'].show();
+        lcheckboxSelected = true;
+    } else {
+        $(`#${infrmloanObg}finloanObg_Inp`).val('');
+        $(`#${infrmloanObg}finmntlyEMI_Inp`).val('');
+        $(`#${infrmloanObg}finTenure_Inp`).val('');
+        ['financeRow'].hide();
+    }
+    if ($("#CrdAss__InformalLoanObligation__other_check").is(":checked")) {
+        ['OtherRow'].show();
+        lcheckboxSelected = true;
+    } else {
+        $(`#${infrmloanObg}OthrObg_Inp`).val('');
+        $(`#${infrmloanObg}othrmntEMI_Inp`).val('');
+        $(`#${infrmloanObg}othrTenure_Inp`).val('');
+        ['OtherRow'].hide();
+    }
+    if ($("#CrdAss__InformalLoanObligation__nilloanObg_check").is(":checked")) {
+        lcheckboxSelected = true;
+        if ($("#CrdAss__InformalLoanObligation__chitFund_check").is(":checked")) {
+            $("#CrdAss__InformalLoanObligation__chitFund_check").prop("checked", false);
+            ['chitRow'].hide();
+        }
+        if ($("#CrdAss__InformalLoanObligation__moneyLender_check").is(":checked")) {
+            $("#CrdAss__InformalLoanObligation__moneyLender_check").prop("checked", false);
+            ['lenderRow'].hide();
+        }
+        if ($("#CrdAss__InformalLoanObligation__Friends_check").is(":checked")) {
+            $("#CrdAss__InformalLoanObligation__Friends_check").prop("checked", false);
+            ['frndsRow'].hide();
+        }
+        if ($("#CrdAss__InformalLoanObligation__relatives_check").is(":checked")) {
+            $("#CrdAss__InformalLoanObligation__relatives_check").prop("checked", false);
+            ['relationRow'].hide();
+        }
+        if ($("#CrdAss__InformalLoanObligation__coopSocitey_check").is(":checked")) {
+            $("#CrdAss__InformalLoanObligation__coopSocitey_check").prop("checked", false);
+            ['coopsocietyRow'].hide();
+        }
+        if ($("#CrdAss__InformalLoanObligation__localFinance_check").is(":checked")) {
+            $("#CrdAss__InformalLoanObligation__localFinance_check").prop("checked", false);
+            ['financeRow'].hide();
+        }
+        if ($("#CrdAss__InformalLoanObligation__other_check").is(":checked")) {
+            $("#CrdAss__InformalLoanObligation__other_check").prop("checked", false);
+            ['OtherRow'].hide();
+        }
+        ['checkBox_row'].hide();
+    } else {
+        ['checkBox_row'].show();
+    }
+    if (lcheckboxSelected) {
+        $(`#${infrmloanObg}none_Errrow`).addClass('sno');
+    } else {
+        $(`#${infrmloanObg}none_Errrow`).removeClass('sno');
+    }
+}
+apz.app.InformalLoanObligation.loanobligationService = function() {
+    if (apz.app.InformalLoanObligation.validateFields()) {
+        let loanObligationData = apz.app.InformalLoanObligation.storeCheckboxData();
+        let req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": gAppId,
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "versionNum": 1,
+                    "stageId": "6",
+                    "requestType": "VERIFY",
+                    "customerType": "Applicant",
+                    "editedFields": [],
+                    "loanObligationsWrapper": loanObligationData
+                },
+                "userId": LoggedInUserDetails.loginResponse.userDet.id,
+                "appId": gAppId,
+                "interfaceName": "UploadCALoanData"
+            }
+        }
+        apz.startLoader();
+        setTimeout(() => {
+            ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.InformalLoanObligation
+                .loanobligationServiceCB);
+        }, 1000)
+    }
+}
+apz.app.InformalLoanObligation.loanobligationServiceCB = function(params) {
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            ApzCOB.launchSubScreen('CaotherDetails', "CrdAss__Cabase__caLaunchCol", "");
+            apz.app.Cabase.SidebarSelect.moveToNextStep();
+        } else {
+            apz.stopLoader();
+            $(`#${scrId}locktxt_txtcnt`).text(errMsg);
+            ApzCOB.toggleModal(scrId + 'lockModal');
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.toggleModal(scrId + 'lockModal');
+        $(`#${scrId}locktxt_txtcnt`).html(technicalErrMsg);
+    }
+}
+apz.app.InformalLoanObligation.storeCheckboxData = function() {
+    const getCleanIntVal = (selector) => {
+        const raw = $(selector).val() || '';
+        const num = raw.replace(/,/g, '');
+        return num ? parseInt(num, 10) : 0;
+    };
+    let lobj = {};
+    if ($("#CrdAss__InformalLoanObligation__chitFund_check").is(":checked")) {
+        lobj.chitFunds = {
+            "otherLoanObligation": getCleanIntVal('#CrdAss__InformalLoanObligation__fndloanObg_Inp'),
+            "monthlyEMI": getCleanIntVal('#CrdAss__InformalLoanObligation__fndEMI_Inp'),
+            "tenure": getCleanIntVal('#CrdAss__InformalLoanObligation__fndTnr_Inp')
+        };
+    }
+    if ($("#CrdAss__InformalLoanObligation__moneyLender_check").is(":checked")) {
+        lobj.moneyLender = {
+            "otherLoanObligation": getCleanIntVal('#CrdAss__InformalLoanObligation__mnyLoanObg_Inp'),
+            "monthlyEMI": getCleanIntVal('#CrdAss__InformalLoanObligation__mnyEMI_Inp'),
+            "tenure": getCleanIntVal('#CrdAss__InformalLoanObligation__mnytnur_Inp')
+        };
+    }
+    if ($("#CrdAss__InformalLoanObligation__Friends_check").is(":checked")) {
+        lobj.Friends = {
+            "otherLoanObligation": getCleanIntVal('#CrdAss__InformalLoanObligation__frndloanObg_Inp'),
+            "monthlyEMI": getCleanIntVal('#CrdAss__InformalLoanObligation__frndmntlyEMI_Inp'),
+            "tenure": getCleanIntVal('#CrdAss__InformalLoanObligation__frndTenure_Inp')
+        };
+    }
+    if ($("#CrdAss__InformalLoanObligation__relatives_check").is(":checked")) {
+        lobj.Relatives = {
+            "otherLoanObligation": getCleanIntVal('#CrdAss__InformalLoanObligation__relLoanObg_Inp'),
+            "monthlyEMI": getCleanIntVal('#CrdAss__InformalLoanObligation__relmntlyEmi_Inp'),
+            "tenure": getCleanIntVal('#CrdAss__InformalLoanObligation__relTenure_Inp')
+        };
+    }
+    if ($("#CrdAss__InformalLoanObligation__coopSocitey_check").is(":checked")) {
+        lobj.Coopsociety = {
+            "otherLoanObligation": getCleanIntVal('#CrdAss__InformalLoanObligation__coopObg_Inp'),
+            "monthlyEMI": getCleanIntVal('#CrdAss__InformalLoanObligation__coopEMI_Inp'),
+            "tenure": getCleanIntVal('#CrdAss__InformalLoanObligation__coopTenure_Inp')
+        };
+    }
+    if ($("#CrdAss__InformalLoanObligation__localFinance_check").is(":checked")) {
+        lobj.Localfinance = {
+            "otherLoanObligation": getCleanIntVal('#CrdAss__InformalLoanObligation__finloanObg_Inp'),
+            "monthlyEMI": getCleanIntVal('#CrdAss__InformalLoanObligation__finmntlyEMI_Inp'),
+            "tenure": getCleanIntVal('#CrdAss__InformalLoanObligation__finTenure_Inp')
+        };
+    }
+    if ($("#CrdAss__InformalLoanObligation__other_check").is(":checked")) {
+        lobj.Other = {
+            "otherLoanObligation": getCleanIntVal('#CrdAss__InformalLoanObligation__OthrObg_Inp'),
+            "monthlyEMI": getCleanIntVal('#CrdAss__InformalLoanObligation__othrmntEMI_Inp'),
+            "tenure": getCleanIntVal('#CrdAss__InformalLoanObligation__othrTenure_Inp')
+        };
+    }
+    return lobj;
+};
+apz.app.InformalLoanObligation.validateFields = function() {
+    let lvalue = true;
+    let lcheckboxSelected = false;
+    if ($("#CrdAss__InformalLoanObligation__chitFund_check").is(":checked")) {
+        lcheckboxSelected = true;
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__fndloanObg_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}fndObg_Err`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}fndObg_Err`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__fndEMI_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}fndEmi_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}fndEmi_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__fndTnr_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}fndTnr_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}fndTnr_Errrow`).addClass('sno');
+        }
+    }
+    if ($("#CrdAss__InformalLoanObligation__moneyLender_check").is(":checked")) {
+        lcheckboxSelected = true;
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__mnyLoanObg_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}mnyObg_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}mnyObg_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__mnyEMI_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}mnyEmi_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}mnyEmi_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__mnytnur_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}Mnytnur_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}Mnytnur_Errrow`).addClass('sno');
+        }
+    }
+    if ($("#CrdAss__InformalLoanObligation__Friends_check").is(":checked")) {
+        lcheckboxSelected = true;
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__frndloanObg_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}frndObg_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}frndObg_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__frndmntlyEMI_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}frndEMI_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}frndEMI_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__frndTenure_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}frndtenure_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}frndtenure_Errrow`).addClass('sno');
+        }
+    }
+    if ($("#CrdAss__InformalLoanObligation__relatives_check").is(":checked")) {
+        lcheckboxSelected = true;
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__relLoanObg_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}relObg_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}relObg_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__relmntlyEmi_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}relEMI_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}relEMI_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__relTenure_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}relTenure_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}relTenure_Errrow`).addClass('sno');
+        }
+    }
+    if ($("#CrdAss__InformalLoanObligation__coopSocitey_check").is(":checked")) {
+        lcheckboxSelected = true;
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__coopObg_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}coopObg_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}coopObg_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__coopEMI_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}coopEMI_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}coopEMI_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__coopTenure_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}coopTenure_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}coopTenure_Errrow`).addClass('sno');
+        }
+    }
+    if ($("#CrdAss__InformalLoanObligation__localFinance_check").is(":checked")) {
+        lcheckboxSelected = true;
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__finloanObg_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}finloanObg_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}finloanObg_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__finmntlyEMI_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}finmntly_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}finmntly_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__finTenure_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}fintenure_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}fintenure_Errrow`).addClass('sno');
+        }
+    }
+    if ($("#CrdAss__InformalLoanObligation__other_check").is(":checked")) {
+        lcheckboxSelected = true;
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__OthrObg_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}othr_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}othr_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__othrmntEMI_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}othrmntlyEMI_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}othrmntlyEMI_Errrow`).addClass('sno');
+        }
+        if (apz.isNull($('#CrdAss__InformalLoanObligation__othrTenure_Inp').val())) {
+            lvalue = false;
+            $(`#${infrmloanObg}othrTenure_Errrow`).removeClass('sno');
+        } else {
+            $(`#${infrmloanObg}othrTenure_Errrow`).addClass('sno');
+        }
+    }
+    if ($("#CrdAss__InformalLoanObligation__nilloanObg_check").is(":checked")) {
+        lcheckboxSelected = true;
+    }
+    if (!lcheckboxSelected) {
+        lvalue = false;
+        $(`#${infrmloanObg}none_Errrow`).removeClass('sno');
+    } else {
+        $(`#${infrmloanObg}none_Errrow`).addClass('sno');
+    }
+    return lvalue;
+}
+apz.app.InformalLoanObligation.validateNetIncome = function(input) {
+    if (!isNaN(input.value) && input.value > 100000) {
+        ApzCOB.fnDisplayMsg("Amount cannot exceed ₹1,00,000.", "E");
+        input.value = '';
+    }
+}
+apz.app.InformalLoanObligation.validateZeroInput = function(input) {
+    if (input.value.length >= 1 && input.value.startsWith('0')) {
+        input.value = input.value.replace(/^0+/, '');
+    }
+}
+apz.app.InformalLoanObligation.remainingTenureMonths = function() {
+    const ids = ["fndTnr_Inp", "mnytnur_Inp", "frndTenure_Inp", "relTenure_Inp", "coopTenure_Inp", "finTenure_Inp", "othrTenure_Inp"];
+    ids.forEach(id => {
+        $("#CrdAss__InformalLoanObligation__" + id).attr("onblur", "");
+    });
+};

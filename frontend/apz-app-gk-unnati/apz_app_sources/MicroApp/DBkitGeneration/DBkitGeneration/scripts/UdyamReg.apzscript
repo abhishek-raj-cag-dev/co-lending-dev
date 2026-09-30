@@ -1,0 +1,242 @@
+var scrId = "DBkitG__UdyamReg__",
+    minUdyamDocUpload = 2,
+    raisedQueries = [];
+window.DB_CURRENT_STAGE = "UdyamReg";
+window.DB_CURRENT_STAGE_NO = 3;
+apz.app.onLoad_UdyamReg = function() {
+    
+};
+apz.app.onShown_UdyamReg = function() {
+    $(`.custdtls input`).each(function() {
+        ApzCOB.addDisableToInput(this.id)
+    });
+    apz.app.UdyamReg.PopulateDropDowns();
+    apz.app.UdyamReg.checkUdyamRegistered();
+    if (applicationStatus === "DBPUSHBACK") {
+        raisedQueries = apz.app.DBbase.paintQuery();
+        if(raisedQueries.length > 0) {
+            ["sendBackResponseRow"].show();
+        }
+    }
+};
+apz.app.UdyamReg.checkUdyamRegistered = function() {
+    window.UdyamRegistered = !apz.isNull(inSessionStore?.['cdhLeadDetails']?.urn) ? true : false;
+    //if(stage verified) //-- make UdyamRegistered - true //optional
+    if (UdyamRegistered) {
+        ['registration_select', 'initiate_block', 'registrationStatus', 'failureBlock'].hide();
+        ['registered_ul'].show();
+        $(`.custdtls`).removeClass('sno');
+    } else {
+        ['registered_ul', 'registrationStatus', 'failureBlock', 'urnBlock', 'custTypeBlock'].hide();
+        ['registration_select', 'initiate_block'].show();
+    }
+    if (inSessionStore.hasOwnProperty('udhyamDetails')) {
+        let lcoAppData = inSessionStore.udhyamDetails.filter(item => item.customerType == "Co-App");
+        lcoAppData.length > 0 ? apz.app.UdyamReg.HandleDataPainting("Co-App") : apz.app.UdyamReg.HandleDataPainting("Applicant");
+    } else {
+        apz.app.UdyamReg.paintCustDetailsApp();
+        $(`#${DbbaseScrId}nextBtn`).attr('disabled','disabled');
+    }
+};
+apz.app.UdyamReg.HandleDataPainting = function(lcustType) {
+    if (lcustType == "Applicant") {
+        apz.app.UdyamReg.paintCustDetailsApp();
+    } else {
+        apz.app.UdyamReg.paintCustDetailsCoApp();
+    }
+    let ldata = inSessionStore.udhyamDetails.filter(item => item.customerType == lcustType);
+    if (ldata.length > 0) {
+        ['registrationStatus'].show();
+        let UdhyamStatus = ldata[0].udhyamStatus;
+        if (UdhyamStatus == "Initiated") {
+            apz.app.UdyamReg.Verify(false);
+            apz.app.UdyamReg.fail(false);
+            apz.app.DBbase.scrollToId(`${scrId}success`);
+        } else if (UdhyamStatus == "Success") {
+            apz.app.UdyamReg.fail(false);
+            apz.app.UdyamReg.Verify(true);
+            apz.app.DBbase.scrollToId(`${scrId}Upload`);
+        } else if (UdhyamStatus == "Failed") {
+            apz.app.UdyamReg.Verify(false);
+            apz.app.UdyamReg.fail(true);
+            apz.app.DBbase.scrollToId(`${scrId}Upload`);
+        }
+    }
+};
+apz.app.UdyamReg.paintCustDetailsApp = function() {
+    let AppCustdata = inSessionStore.customerDetailsList.filter(item => item.customerType == "Applicant")?.[0];
+    $(`#${scrId}urn`).val(inSessionStore?.['cdhLeadDetails']?.urn); // urn from lead
+    $(`#${scrId}custType`).val(inSessionStore?.['cdhLeadDetails']?.customerType); // udyam registered cust type
+    $(`#${scrId}custName`).val(AppCustdata?.customerName);
+    $(`#${scrId}aadhaar`).val(AppCustdata?.payload?.secondaryKycId);
+    $(`#${scrId}mobile`).val(AppCustdata?.mobileNumber);
+    let kycId = AppCustdata?.payload?.alternateVoterIdValStatus === "Verified" ? AppCustdata?.payload?.alternateVoterId : AppCustdata?.payload?.primaryKycIdValStatus === "Verified" ? AppCustdata?.payload?.primaryKycId : "";
+    $(`#${scrId}primaryKyc`).val(kycId);
+    $("#DBkitG__UdyamReg__custTypeRadio_option_Co-App").attr("disabled","disabled");
+    $("#DBkitG__UdyamReg__custTypeRadio_option_Applicant").removeAttr("disabled").prop("checked",true);
+    let AppUdyamData = inSessionStore?.udhyamDetails.find(el => el.customerType === 'Applicant');
+    if (!apz.isObjectEmpty(AppUdyamData) && !apz.isNull(AppUdyamData?.remarks)) {
+        $(`#${scrId}reason`).val(AppUdyamData.remarks).change();
+    }
+};
+apz.app.UdyamReg.paintCustDetailsCoApp = function() {
+    let AppCustdata = inSessionStore.customerDetailsList.filter(item => item.customerType == "Co-App")?.[0];
+    $(`#${scrId}urn`).val(inSessionStore?.['cdhLeadDetails']?.urn);
+    $(`#${scrId}custType`).val(inSessionStore?.['cdhLeadDetails']?.customerType); // udyam registered cust type
+    $(`#${scrId}custName`).val(AppCustdata?.customerName);
+    $(`#${scrId}aadhaar`).val(AppCustdata?.payload?.secondaryKycId);
+    $(`#${scrId}mobile`).val(AppCustdata?.mobileNumber);
+    let kycId = AppCustdata?.payload?.alternateVoterIdValStatus === "Verified" ? AppCustdata?.payload?.alternateVoterId : AppCustdata?.payload?.primaryKycIdValStatus === "Verified" ? AppCustdata?.payload?.primaryKycId : "";
+    $(`#${scrId}primaryKyc`).val(kycId);
+    $("#DBkitG__UdyamReg__custTypeRadio_option_Co-App").removeAttr("disabled").prop("checked",true);
+    let coAppUdyamData = inSessionStore?.udhyamDetails.find(el => el.customerType === 'Co-App');
+    if (!apz.isObjectEmpty(coAppUdyamData) && !apz.isNull(coAppUdyamData?.remarks)) {
+        $(`#${scrId}reason`).val(coAppUdyamData.remarks).change();
+    }
+};
+apz.app.UdyamReg.PopulateDropDowns = function() {
+    let tempArr = apz.isNull(gLovs) ? [{"lovDtls":"{}"}] : gLovs.filter(item => item.lovName == "UDYAM_FAILED_REASONS");
+    let udayamReasons = JSON.parse(tempArr[0].lovDtls ?? {})["Udyam Failed Reasons"] ?? [];
+    apz.populateDropdown(document.getElementById(scrId + "reason"), ApzCOB.formatDropDownforArray(udayamReasons));
+};
+apz.app.UdyamReg.Verify = function(lparams) {
+    if(lparams) {
+        ['success_ul','failedTick_ul','failure_reason'].hide();
+        ['successTick_ul','failed_ul','failureBlock'].show();
+        apz.app.DBbase.scrollToId(`${scrId}Upload`);
+        apz.app.DBbase.paintDocumentName("Udyam Reg Success",$(`#${scrId}custTypeRadio input:checked`).val());
+         $(`#${DbbaseScrId}nextBtn`).removeAttr('disabled');
+    } else {
+        ['successTick_ul','failureBlock'].hide();
+        ['success_ul'].show();
+    }
+};
+apz.app.UdyamReg.fail = function(lparams) {
+    if(lparams) {
+        ['failed_ul','successTick_ul'].hide();
+        ['failedTick_ul','failureBlock','success_ul','failure_reason'].show();
+        apz.app.DBbase.scrollToId(`${scrId}Upload`);
+        apz.app.DBbase.paintDocumentName("Udyam Reg Failed",$(`#${scrId}custTypeRadio input:checked`).val());
+    } else {
+        ['failedTick_ul','failureBlock'].hide();
+        ['failed_ul'].show();
+    }
+};
+apz.app.UdyamReg.initiateUdyamRegistration = function() {
+    let lurl = UdyamRegUrl; // configured in service in APZCOB
+    ApzCOB.launchURL(lurl);
+    ['registrationStatus'].show();
+    apz.app.UdyamReg.Verify(false);
+    apz.app.UdyamReg.fail(false);
+    apz.app.DBbase.scrollToId(`${scrId}success`);
+    apz.app.UdyamReg.UdyamRegService("Initiated","","EDIT");
+    $(`#${DbbaseScrId}nextBtn`).removeAttr('disabled');
+};
+apz.app.UdyamReg.OnchangeCustType = function(pthis) {
+    if($(`#${scrId}custTypeRadio input:checked`).val() === "Applicant") {
+        $("#DBkitG__UdyamReg__custTypeRadio_option_Applicant").removeAttr("disabled");
+        $("#DBkitG__UdyamReg__custTypeRadio_option_Co-App").attr("disabled","disabled");
+        apz.app.UdyamReg.HandleDataPainting("Applicant")
+    } else {
+        $("#DBkitG__UdyamReg__custTypeRadio_option_Co-App").removeAttr("disabled");
+        apz.app.UdyamReg.HandleDataPainting("Co-App")
+    }
+};
+apz.app.UdyamReg.UploadDocs = function (pthis) {
+    let ldocs = apz.app.UdyamReg.fetchSelectedDocs();
+    if(ldocs.length >= maxStdDocUpload) {
+        ApzCOB.showNewCommonErrorModal("Document Uploaded limit exceeded.");
+    } else {
+        apz.app.DBbase.onClickUploadDoc("DBkitG__UdyamReg__AppBrowseFile");
+    }
+};
+apz.app.UdyamReg.fetchSelectedDocs = function() {
+    let ldocType = $(`#${scrId}successTick_ul`).is(":visible") ? "Udyam Reg Success" : "Udyam Reg Failed";
+    let lcusttype = $(`#${scrId}custTypeRadio input:checked`).val();
+    let documentResp = inSessionStore.applicationDocumentsWrapperList[0]?.applicationDocumentsList || [];
+    let ldocs = documentResp.filter(docs => docs.payload.documentType === ldocType && parseInt(docs.custDtlId) === parseInt(ApzCOB.getCustDetailID(
+        lcusttype)));
+    return ldocs;
+};
+apz.app.UdyamReg.VaidateDocumentsUpload = function() {
+    let lvalid = true;
+    if ($(`#${scrId}successTick_ul`).is(":visible") || $(`#${scrId}failedTick_ul`).is(":visible")) {
+        let ldocs = apz.app.UdyamReg.fetchSelectedDocs();
+        if(ldocs.length < minUdyamDocUpload) {
+            lvalid = false;
+            ApzCOB.showNewCommonErrorModal(`Please Upload atleast ${minUdyamDocUpload} documents.`);
+        }
+    } else {
+        lvalid = false;
+        ApzCOB.showNewCommonErrorModal("Please select Udyam Registration Status.");
+    }
+    return lvalid;
+};
+apz.app.UdyamReg.HandleNext = function(params) {
+    // handle callback
+    if (apz.app.UdyamReg.VaidateDocumentsUpload()) {
+        if ($(`#${scrId}successTick_ul`).is(":visible")) {
+            apz.app.UdyamReg.UdyamRegService("Success", "", "VERIFY_UDHYAM");
+        } else if ($(`#${scrId}failedTick_ul`).is(":visible")) {
+            let lremarks = $(`#${scrId}reason`).val();
+            let lreqType = $(`#${scrId}custTypeRadio input:checked`).val() === "Applicant" ? "EDIT" : "VERIFY_UDHYAM";
+            apz.app.UdyamReg.UdyamRegService("Failed", lremarks, lreqType);
+        }
+    }
+};
+apz.app.UdyamReg.UdyamRegService = function(status,remarks,ReqType) {
+    let req = {
+        "appId": gAppId,
+        "applicationId": gApzCOB.userDetails.applicationId,
+        "versionNum":1,
+        "customerType": $(`#${scrId}custTypeRadio input:checked`).val(),
+        "udhyamRegId": inSessionStore?.['cdhLeadDetails']?.urn || "",
+        "udhyamStatus": status, // initiated // Success // Failed
+        "remarks": remarks,
+        "requestType": ReqType, // Edit // Verify
+        "stageId": "3"
+    }
+    apz.app.DBbase.UploadDBKITService(req, apz.app.UdyamReg.UdyamRegServiceCB);
+};
+apz.app.UdyamReg.UdyamRegServiceCB = function(params) {
+    apz.stopLoader();
+    let errMsg = "Failed to proceed, Please retry later again.";
+    const apiResponse = params.res?.APZCBO__UploadDBKITLoanData_Res?.apiResponse;
+    const responseMessage = apiResponse?.ResponseHeader?.ResponseMessage;
+    if (!apz.isNull(responseMessage)) {
+        errMsg = responseMessage;
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            if ($(`#${scrId}successTick_ul`).is(":visible") || ($(`#${scrId}custTypeRadio input:checked`).val() === "Co-App" && $(`#${scrId}failedTick_ul`).is(":visible"))) {
+                apz.app.DBbase.updateUdyamSidebarStatus();
+                let nxtstageId = DBKIT_STAGES?.[apz.childScr]?.id + 1;
+                if (applicationStatus === 'DBPUSHBACK' && nxtstageId === 4 && !apz.isNull(inSessionStore?.documentList) && inSessionStore.documentList?.length > 0) {
+                    nxtstageId+=1;
+                }
+                let hypLinkId = Object.keys(window.DBKIT_STAGES).find(key => window.DBKIT_STAGES[key].id === parseInt(nxtstageId));
+                $(`#${DbbaseScrId + hypLinkId}_hyp`).click();
+            } else if(($(`#${scrId}custTypeRadio input:checked`).val() === "Applicant") && $(`#${scrId}failedTick_ul`).is(":visible")) {
+                apz.app.UdyamReg.paintCustDetailsCoApp();
+                apz.app.UdyamReg.Verify(false);
+                apz.app.UdyamReg.fail(false);
+                ['registrationStatus'].hide();
+                if (applicationStatus === 'DBPUSHBACK') {
+                    let coAppUdyamData = inSessionStore?.udhyamDetails.find(el => el.customerType === 'Co-App');
+                    if (!apz.isObjectEmpty(coAppUdyamData)) {
+                        ['registrationStatus'].show();
+                        coAppUdyamData.udhyamStatus === 'Failed' ? apz.app.UdyamReg.fail(true) : apz.app.UdyamReg.Verify(true);
+                        
+                    }
+                }
+            } else {
+                // if udhyam status - intaited
+            }
+        } else {
+            ApzCOB.showNewCommonErrorModal(errMsg);
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        ApzCOB.showNewCommonErrorModal(technicalErrMsg);
+    }
+};

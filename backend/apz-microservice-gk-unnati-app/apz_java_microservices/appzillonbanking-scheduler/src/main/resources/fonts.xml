@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fontFamilies>
+	<fontFamily name="KannadaFontNotoSans">
+		<normal>font/NotoSansKannada.ttf</normal>
+		<bold>font/NotoSansKannada.ttf</bold>
+		<italic>font/NotoSansKannada.ttf</italic>
+		<boldItalic>font/NotoSansKannada.ttf</boldItalic>
+		<pdfEncoding>Identity-H</pdfEncoding>
+		<pdfEmbedded>true</pdfEmbedded>
+	</fontFamily>
+	<fontFamily name="KannadaFontTunga">
+		<normal>font/tunga.ttf</normal>
+		<bold>font/tunga.ttf</bold>
+		<italic>font/tunga.ttf</italic>
+		<boldItalic>font/tunga.ttf</boldItalic>
+		<pdfEncoding>Identity-H</pdfEncoding>
+		<pdfEmbedded>true</pdfEmbedded>
+	</fontFamily>
+	<fontFamily name="EnglishFontCalibri">
+		<normal>font/Calibri.ttf</normal>
+		<bold>font/CalibriBold.ttf</bold>
+		<italic>font/Calibri.ttf</italic>
+		<boldItalic>font/CalibriBold.ttf</boldItalic>
+		<pdfEncoding>Identity-H</pdfEncoding>
+		<pdfEmbedded>true</pdfEmbedded>
+	</fontFamily>
+	<fontFamily name="ArialUnicode">
+		<normal>font/arial-unicode-ms.ttf</normal>
+		<pdfEncoding>Identity-H</pdfEncoding>
+		<pdfEmbedded>true</pdfEmbedded>
+	</fontFamily>
+	<fontFamily name="Calibri">
+		<normal><![CDATA[font/Calibri.ttf]]></normal>
+		<bold><![CDATA[font/CalibriBold.ttf]]></bold>
+		<pdfEncoding>Identity-H</pdfEncoding>
+		<pdfEmbedded>true</pdfEmbedded>
+		<exportFonts/>
+	</fontFamily>
+		<fontFamily name="Devanagari">
+		<normal>font/Devanagari.ttf</normal>
+		<pdfEncoding>Identity-H</pdfEncoding>
+		<pdfEmbedded>true</pdfEmbedded>
+	</fontFamily>
+	<fontFamily name="Kartika">
+		<normal>font/Kartika.ttf</normal>
+		<bold>font/Kartika.ttf</bold>
+		<pdfEncoding>Identity-H</pdfEncoding>
+		<pdfEmbedded>true</pdfEmbedded>
+	</fontFamily>
+    
+    <fontFamily name="NotoSansMalayalam">
+        <normal>font/NotoSansMalayalam-Regular.ttf</normal>
+        <bold>font/NotoSansMalayalam-Bold.ttf</bold>
+        <italic>font/NotoSansMalayalam-Regular.ttf</italic>
+        <boldItalic>font/NotoSansMalayalam-Regular.ttf</boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
+    
+    <fontFamily name="Meera">
+        <normal>font/Meera.ttf</normal>
+        <bold>font/Meera.ttf</bold>
+        <italic>font/Meera.ttf</italic>
+        <boldItalic>font/Meera.ttf</boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
+    
+    <fontFamily name="Rachana">
+        <normal>font/Rachana.ttf</normal>
+        <bold>font/Rachana.ttf</bold>
+        <italic>font/Rachana.ttf</italic>
+        <boldItalic>font/Rachana.ttf</boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
+    
+     <fontFamily name="Kalinga">
+        <normal>font/Kalinga.ttf</normal>
+        <bold>font/Kalinga.ttf</bold>
+        <italic>font/Kalinga.ttf</italic>
+        <boldItalic>font/Kalinga.ttf</boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
+    
+
+    <fontFamily name="NotoSansOriya">
+        <normal>font/NotoSansOriya-Regular.ttf</normal>
+        <bold>font/NotoSansOriya-Bold.ttf</bold>
+        <italic>font/NotoSansOriya-Regular.ttf</italic>     
+        <boldItalic>font/NotoSansOriya-Regular.ttf</boldItalic>  
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
+    
+</fontFamilies>

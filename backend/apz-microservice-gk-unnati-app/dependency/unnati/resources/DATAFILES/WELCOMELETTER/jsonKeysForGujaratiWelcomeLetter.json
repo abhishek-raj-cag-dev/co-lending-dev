@@ -1,0 +1,58 @@
+{
+  "keysForContent": {
+    "applicationName": "સ્વાગત પત્ર",
+    "customerId": "ગ્રાહક ID",
+    "date": "તારીખ",
+    "loanId": "ધીરાણ ID",
+    "disbursedAmount": "વિતરિત ધીરાણ રકમ:",
+    "branch": "<font face='Arial Unicode MS'>શાખાનું નામ અને ID</font>",
+
+    "applicantType": "અરજદારનો પ્રકાર",
+    "applicant": "અરજદાર",
+    "coApplicant": "સહ અરજદાર",
+    "name": "નામ",
+    "residingAt": "રહેઠાણ",
+
+    "greetingLine": "પ્રિય",
+    "congratulationsParagraph": "અભિનંદન! તમારા ગ્રામીણ ઉન્નતિ.ધીરાણનું વિતરણ સફળતાથી થઈ ગયું છે.",
+    "congratulationsParagraphRenewal": "અભિનંદન! તમારા ગ્રામીણ ઉન્નતિ નવિકરણ ધીરાણનું વિતરણ સફળતાથી થઈ ગયું છે.",
+    "congratulationsParagraphOpenMarket": "અભિનંદન! તમારી ગ્રામીન ઉન્નતિ ઓપન માર્કેટ લોન સફળતાપૂર્વક વિતરિત કરવામાં આવી છે.",
+	"congratulationsParagraphUnnatiLite": "અભિનંદન! તમારા ગ્રામીણ ઉન્નતિ.ધીરાણનું વિતરણ સફળતાથી થઈ ગયું છે.",
+	"congratulationsParagraphUnnatiRestart": "અભિનંદન! તમારા ગ્રામીણ ઉન્નતિ.ધીરાણનું વિતરણ સફળતાથી થઈ ગયું છે.",
+	"congratulationsParagraphUnnatiSupplementary": "અભિનંદન! તમારા ગ્રામીણ ઉન્નતિ.ધીરાણનું વિતરણ સફળતાથી થઈ ગયું છે.",
+	"congratulationsParagraphUnnatiFamilyWelFare": "અભિનંદન! તમારા ગ્રામીણ ઉન્નતિ.ધીરાણનું વિતરણ સફળતાથી થઈ ગયું છે.",
+	"congratulationsParagraphUnnatiEmergency": "અભિનંદન! તમારા ગ્રામીણ ઉન્નતિ.ધીરાણનું વિતરણ સફળતાથી થઈ ગયું છે.",
+
+    "missionParagraph": "<br>ક્રેડિટએક્સેસ ગ્રામીણ લિમિટેડ (CA ગ્રામીણ) ખાતે અમારા નાણાકીય ઉત્પાદનો અને સેવાઓ દ્વારા આર્થિક અને સામાજિક પ્રગતિને પ્રોત્સાહન આપવા માટે અમે પ્રતિબદ્ધ છીએ. અમારા ઉપર તમારા ભરોસાની અમે કદર કરીએ છીએ અને અમને વિશ્વાસ છે કે આ ધીરાણ તમને તમારા નાણાકીય લક્ષ્યો મેળવવામાં મદદ કરશે.",
+
+    "repaymentScheduleNotice": "<br>આ પત્ર સાથે તમારા ધીરાણની પરત-ચૂકવણીનું સમયપત્રક જોડેલું છે. તમારા સંદર્ભ માટે, કૃપયા તમારી ગ્રામીણ ઉન્નતિ ધીરાણ સંબંધિત વિગતો નીચે જુઓ:",
+	
+	"repaymentScheduleNoticeSup": "",
+	  
+	  "repaymentScheduleNoticeRESTR": "",
+	  
+	  "repaymentScheduleNoticeEMER": "",
+	  
+	  "repaymentScheduleNoticeFWl": "",
+
+    "loanRepaymentDetailsHeading": "ધીરાણ અને પરત-ચૂકવણીની વિગતો:",
+    "sanctionedDate": "મંજૂર કર્યા તારીખ",
+    "loanTenure": "ધીરાણની સમયાવધી",
+    "loanAmountDisbursed": "વિતરણ કરાયેલી ધીરાણની રકમ",
+    "dateOfDisbursement": "વિતરણની તારીખ",
+    "repaymentFrequency": "પરત-ચૂકવણીના આવર્તન",
+    "noOfInstallments": "#હપ્તા",
+    "repaymentStartDate": "પરત-ચૂકવણીની શરૂઆતની તારીખ",
+    "interestRate": "વ્યાજનો દર",
+    "installmentAmount": "હપ્તાની રકમ",
+    "repaymentEndDate": "પરત-ચૂકવણીની અંતિમ તારીખ",
+
+    "termsParagraph": "<font face='Arial Unicode MS'>તમારા ધીરાણનો મંજૂરી પત્ર, ધીરાણ કરાર અને અન્ય સહાયક દસ્તાવેજોમાં દર્શાવેલા નિયમો અને શરતો અનુસાર ધીરાણ મંજૂર કરાયું છે અને તેનું વિતરણ કરાયું છે. કૃપયા તમારા ખાતાની વિગતો જુઓ અને જો તમને કોઈ પ્રશ્નો અથવા ચિંતાઓ હોય તો અમારા ટોલ-ફ્રી નંબર 1800-123-153-153 ઉપર અમારો સંપર્ક કરો અથવા yourvoice@cagrameen.in ઉપર અમને ઇમેઇલ કરો. <br><br>જો અમે આપેલા ઉકેલથી તમને સંતોષ ન હોય તો AKMIના ટોલ ફ્રી નંબર (કર્ણાટકના ગ્રાહકો માટે) 1800-425-5654 ઉપર અથવા MFIN ટોલ ફ્રી નંબર (અન્ય રાજ્યના ગ્રાહકો માટે) 1800-2700-317 ઉપર તે આગળ વધારવાનો વિકલ્પ તમારી પાસે હશે.</font>",
+
+    "closingParagraph": "<br>તમારી સાથે અમારા સંબંધોને અમે મહત્ત્વ આપીએ છીએ અને લાંબા અને ફળદાયી જોડાણની અપેક્ષા રાખીએ છીએ.",
+    "feedbackCallNotice": "<br>વિતરણની તારીખથી 2 અઠવાડિયામાં તમને સેવા માટે પ્રતિભાવ આપવા માટે તમે એક કૉલ મેળવશો. કૃપયા તમારો પ્રતિભાવ આપશો.",
+
+    "signoffLine": "<font face='Arial Unicode MS'><b>સાદર,</b></font>",
+    "organizationName": "<font face='Arial Unicode MS'><b>ક્રેડિટએક્સેસ ગ્રામીણ લિમિટેડ</b></font>"
+  }
+}

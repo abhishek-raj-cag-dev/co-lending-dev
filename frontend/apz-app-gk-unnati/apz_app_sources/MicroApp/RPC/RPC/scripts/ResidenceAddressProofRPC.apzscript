@@ -1,0 +1,57 @@
+RPC_CURRENT_STAGE = 'ResidenceAddressProofRPC';
+var resiAddrPrfScrId = `RPC__${RPC_CURRENT_STAGE}__`;
+var resiScrId = 'ResidenceAddressProofRPC__'
+var addrType = "Personal", subAddrType = "Present";
+window.validPinCode = false;
+apz.app.onLoad_ResidenceAddressProofRPC = function() {
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+    apz.app.ResidenceAddressProofRPC.setMinMaxLength();
+};
+apz.app.onShown_ResidenceAddressProofRPC = function() {
+    apz.populateDropdown(document.getElementById("RPC__ResidenceAddressProofRPC__addressType_dropDown"), ApzCOB.formatDropDownforArray(
+        addressType));
+    apz.app.ResidenceAddressProofRPC.setMinMaxLength();
+    $("input").attr("autocomplete", "off");
+}
+apz.app.ResidenceAddressProofRPC.setMinMaxLength = function() {
+    const fieldMap = {
+        addressLine1Input: "AddressLine1",
+        addressLine2Input: "AddressLine2",
+        addressLine3Input: "AddressLine3",
+        pinCodeInput: "Pincode",
+        cityInput: "City",
+        districtInput: "District",
+        stateInput: "State",
+        countryInput: "Country",
+        landMarkInput: "Landmark",
+        areaInput: "Area",
+        locateCoOrdinatesInput: "LocationCoord"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: resiAddrPrfScrId + fieldId
+    })));
+};
+apz.app.ResidenceAddressProofRPC.onchangepincode = function(pthis, addressType) {
+    let { value: pincodeVal } = pthis;
+    if (apz.isNull(pincodeVal) || !pinlengthErr) {
+        validPinCode = false;
+        ["areaInput", "cityInput", "districtInput", "stateInput"].forEach(el => {
+            $(`#RPC__${RPC_CURRENT_STAGE}__${el}`).val('');
+        })
+        return;
+    }
+    window.pincodeAddresstype = addressType;
+    ApzCOB.fetchpincodeDtls(pincodeVal, RPC_CURRENT_STAGE);
+};
+apz.app.ResidenceAddressProofRPC.paint_pincode = function(params) {
+    if (window.pincodeAddresstype === "present") {
+        const prefix = `#RPC__${RPC_CURRENT_STAGE}__`;
+        $(`${prefix}cityInput`).val(params.city).blur();
+        $(`${prefix}districtInput`).val(params.district).blur();
+        $(`${prefix}stateInput`).val(params.state).blur();
+        $(`${prefix}countryInput`).val(params.country).blur();
+        $(`${prefix}areaInput`).val(params.area).blur();
+    }
+};

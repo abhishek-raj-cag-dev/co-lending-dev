@@ -1,0 +1,14 @@
+{
+  "keysForContent": {
+    "applicationName": "ଡିମାଣ୍ଡ ପ୍ରୋମିଜୋରୀ ନୋଟ୍‌",
+    "rs": "ଟ.",
+    "date": "ତାରିଖ :",
+	"place":"ସ୍ଥାନ :",
+    "note": "ଦାବି ମୁତାବକ, ମୁଁ <applicantName> ବୟସ <applicantAge> ବର୍ଷ,  ବାସସ୍ଥାନ <applicantAddress> ଏବଂ <coApplicantName> ବୟସ <coApplicantAge>ବର୍ଷ, ବାସସ୍ଥାନ <coApplicantAddress> ମିଳିତ ଭାବେ ଏବଂ <font face='Kalinga'>ସ୍ୱତନ୍ତ୍ର ଭାବେ କ୍ରେଡିଟ୍‌ ଆକ୍ସେସ୍‌ ଗ୍ରାମୀଣ ଲିମିଟେଡ୍‌ (ସିଏ ଗ୍ରାମୀଣ)କୁ ଦେୟ ଦେବା ପାଇଁ, କିମ୍ବା ପ୍ରାପ୍ତ କରାଯାଇଥିବା ବିଚାର ଦୃଷ୍ଟିରୁ ମଞ୍ଜୁରପ୍ରାପ୍ତ ରାଶି ଉପରେ ବାର୍ଷିକ ସୁଧ @ <rateOfInterest> ଶତକଡ଼ା ସହିତ ମୋଟ ଟ. <sanctionedAmount> (<sanctionedAmountInWords> କେବଳ) ର ଅର୍ଡରର ଦେୟ ଦେବା ପାଇଁ ପ୍ରତିଶୃତି ଦେଉଛନ୍ତି।",
+	"noteNew": "ଦାବି ମୁତାବକ, ମୁଁ <applicantName> ବୟସ <applicantAge> ବର୍ଷ,  ବାସସ୍ଥାନ <applicantAddress> ଏବଂ <coApplicantName> ବୟସ <coApplicantAge>ବର୍ଷ, ବାସସ୍ଥାନ <coApplicantAddress> ମିଳିତ ଭାବେ ଏବଂ <font face='Kalinga'>ସ୍ୱତନ୍ତ୍ର ଭାବେ କ୍ରେଡିଟ୍‌ ଆକ୍ସେସ୍‌ ଗ୍ରାମୀଣ ଲିମିଟେଡ୍‌ (ସିଏ ଗ୍ରାମୀଣ)କୁ ଦେୟ ଦେବା ପାଇଁ, କିମ୍ବା ପ୍ରାପ୍ତ କରାଯାଇଥିବା ବିଚାର ଦୃଷ୍ଟିରୁ ମଞ୍ଜୁରପ୍ରାପ୍ତ ରାଶି ଉପରେ ବାର୍ଷିକ ସୁଧ @ <rateOfInterest> ଶତକଡ଼ା ସହିତ ମୋଟ ଟ. <sanctionedAmount> (<sanctionedAmountInWords> କେବଳ) ର ଅର୍ଡରର ଦେୟ ଦେବା ପାଇଁ ପ୍ରତିଶୃତି ଦେଉଛନ୍ତି।",
+	"loanAccount":"ଋଣ ଆକାଉଣ୍ଟ ନମ୍ବର: ",
+    "applicantName":"1. ଆବେଦନକାରୀଙ୍କ ନାମ:",
+    "signature": "ଦସ୍ତଖତ:",
+    "coApplicantName":"ସହ-ଆବେଦନକାରୀଙ୍କ ନାମ:"
+	}
+}

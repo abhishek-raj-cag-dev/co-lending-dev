@@ -1,0 +1,40 @@
+{
+    "Select__DepositAccount_Res": {
+        "Senior Citizen Fixed Deposit": [
+            {
+                "Feature": "A fixed deposit, also known as an FD, is an investment instrument offered by banks, as well as non-banking financial companies (NBFC) to their customers to help them save money. With an FD account, you can invest a sizeable amount of money at a predetermined rate of interest for a fixed period.",
+                "Benefits": "A fixed deposit, also known as an FD, is an investment instrument offered by banks, as well as non-banking financial companies (NBFC) to their customers to help them save money. With an FD account, you can invest a sizeable amount of money at a predetermined rate of interest for a fixed period.",
+                "points": [
+                    "Maximum balance Rs. 10 lakh",
+                    "Cheque book",
+                    "Monthly Average Balance (MAB) requirement not applicable",
+                    "Higher interest"
+                ]
+            }
+        ],
+        "Standard Regular Fixed Deposit": [
+            {
+                "Feature": "A recurring deposit means making regular deposits. It is a service provided by many banks where people can make regular deposits and earn decent returns on their investments.",
+                "Benefits": "A recurring deposit means making regular deposits. It is a service provided by many banks where people can make regular deposits and earn decent returns on their investments.",
+                "points": [
+                    "Maximum balance Rs. 10 lakh",
+                    "Cheque book",
+                    "Monthly Average Balance (MAB) requirement not applicable",
+                    "Higher interest"
+                ]
+            }
+        ],
+        "Senior Citizen Recurring Deposit": [
+            {
+                "Feature": "A recurring deposit means making regular deposits. It is a service provided by many banks where people can make regular deposits and earn decent returns on their investments.",
+                "Benefits": "A recurring deposit means making regular deposits. It is a service provided by many banks where people can make regular deposits and earn decent returns on their investments.",
+                "points": [
+                    "Maximum balance Rs. 10 lakh",
+                    "Cheque book",
+                    "Monthly Average Balance (MAB) requirement not applicable",
+                    "Higher interest"
+                ]
+            }
+        ]
+    }
+}

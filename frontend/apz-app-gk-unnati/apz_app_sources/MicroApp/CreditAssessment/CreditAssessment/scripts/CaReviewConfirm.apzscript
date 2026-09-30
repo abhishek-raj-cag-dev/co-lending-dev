@@ -1,0 +1,1379 @@
+window.CA_CURRENT_STAGE = "ReviewSubmit";
+var reViewcnfrm = 'CrdAss__CaReviewConfirm__',
+    incomeDtls = '',
+    dairyData = '',
+    dairycoAppDtls = '',
+    custTypeForImages = '',
+    businessCounter = 1,
+    rejectedFromReviewonfirm = false;
+apz.app.onLoad_CaReviewConfirm = function () { }
+apz.app.onShown_CaReviewConfirm = function () {
+    apz.app.Cabase.hideShowBtnBasedOnScreen();
+    window.CA_CURRENT_STAGE_NO = CA_ALL_STAGE_FIELDS.find(stage => stage.stageName === CA_CURRENT_STAGE)?.id;
+    apz.app.CaReviewConfirm.paintData();
+    apz.app.CaReviewConfirm.paintNetIncome();
+    ['Dairy', 'Kirana', 'Tailoring', 'Other'].forEach(function (btype) {
+
+        // Initial state: expanded
+        $(`#CrdAss__CaReviewConfirm__${btype}_Up`).removeClass('sno');   // Show Up
+        $(`#CrdAss__CaReviewConfirm__${btype}_Down`).addClass('sno');    // Hide Down
+
+        $(`#CrdAss__CaReviewConfirm__${btype}_Up`)
+            .attr('onclick', `apz.app.CaReviewConfirm.toggleBusiness('${btype}','collapse')`);
+
+        $(`#CrdAss__CaReviewConfirm__${btype}_Down`)
+            .attr('onclick', `apz.app.CaReviewConfirm.toggleBusiness('${btype}','expand')`);
+    });
+}
+
+apz.app.CaReviewConfirm.toggleBusiness = function (btype, action) {
+    const rowSelector = `#${reViewcnfrm}${btype}ExpandRow`;
+    const arrowSelector = `#${reViewcnfrm}collapseArrow_ul`;
+
+    const upBtn = `#CrdAss__CaReviewConfirm__${btype}_Up`;
+    const downBtn = `#CrdAss__CaReviewConfirm__${btype}_Down`;
+
+    if (action === 'expand') {
+        $(rowSelector).removeClass('sno');
+        $(arrowSelector).removeClass('sno');
+
+        $(downBtn).addClass('sno');
+        $(upBtn).removeClass('sno');
+    } else {
+        $(rowSelector).addClass('sno');
+        $(arrowSelector).addClass('sno');
+
+        $(upBtn).addClass('sno');
+        $(downBtn).removeClass('sno');
+    }
+};
+
+
+
+apz.app.CaReviewConfirm.paintData = function () {
+    incomeDtls = JSON.parse(inSessionStore?.bcmpiIncomeDetails?.payload);
+    let incomeSourcesToPaint = apz.app.CaReviewConfirm.getPresentIncomeSources();
+    let formattedIncomeSources = incomeSourcesToPaint.join(', ');
+    $(`#${reViewcnfrm}availSourcesIncome_txtcnt`).text(formattedIncomeSources);
+    apz.app.CaReviewConfirm.paintBusinessData();
+    apz.app.CaReviewConfirm.paintAgricultureData();
+    apz.app.CaReviewConfirm.paintSalaryData();
+    apz.app.CaReviewConfirm.paintPensionData();
+    apz.app.CaReviewConfirm.paintWageData();
+    apz.app.CaReviewConfirm.paintrentalIncomeData();
+    //dynamic business rendering
+    const BusinessDetails = inSessionStore.bcmpiIncomeDetails?.bcmpiIncomeDetailsWrapper?.business;
+
+
+    const businessConfigs = [
+        {
+            key: 'dairy',
+            dataKey: 'dairy',
+            typeField: 'DairyType',
+            incomeField: 'netMonthlyIncome'
+        },
+        {
+            key: 'tailoring',
+            dataKey: 'Tailoring',
+            typeField: 'tailoringType',
+            incomeField: 'netMonthlyIncome'
+        },
+        {
+            key: 'kirana',
+            dataKey: 'Kirana',
+            typeField: 'kiranaType',
+            incomeField: 'netMonthlyIncome'
+        },
+        {
+            key: 'other',
+            dataKey: 'Other',
+            typeField: 'otherType',
+            incomeField: 'netBusinessIncome'
+        }
+    ];
+
+    businessConfigs.forEach(({ key, dataKey, typeField, incomeField }) => {
+        const records = BusinessDetails?.[dataKey] || [];
+
+        // Populate rows
+        for (let i = 1; i <= 3; i++) {
+            const record = records[i - 1];
+
+            if (record) {
+                $(`#${reViewcnfrm}${key}${i}_ownedBy`)
+                    .text(record[typeField] || 'None');
+
+                $(`#${reViewcnfrm}${key}${i}_income`)
+                    .text(ApzCOB.formatIndianRupees(record[incomeField]));
+
+                $(`#${reViewcnfrm}${key}${i}_row`)
+                    .removeClass('sno');
+            } else {
+                $(`#${reViewcnfrm}${key}${i}_row`)
+                    .addClass('sno');
+            }
+        }
+
+        // Show/Hide section
+        $(`#CrdAss__CaReviewConfirm__${key}_business`)
+            .toggleClass('sno', records.length === 0);
+    });
+    // disability changes
+    apz.app.CaReviewConfirm.paintDisabilityData();
+    if (incomeDtls.hasOwnProperty('homeMaker')) {
+        $(`#${reViewcnfrm}homeMaker`).removeClass('sno');
+        $(`#${reViewcnfrm}incomeHomemaker_txtcnt`).text(incomeDtls?.homeMaker);
+    }
+    let nilflag = true;
+    let loanObgdata = JSON.parse(inSessionStore?.bcmpiLoanObligations?.payload);
+    let othDtls = JSON.parse(inSessionStore?.bcmpiOtherDetails?.payload);
+    let removeTloanObgkey = delete loanObgdata.totalLoanObligations;
+    let loanObgkeys = Object.keys(loanObgdata).toString();
+    $(`#${reViewcnfrm}SrcInfrmlObg_txtcnt`).text(loanObgkeys);
+    if (apz.isNull(loanObgkeys)) {
+        $(`#${reViewcnfrm}SrcInfrmlObg_txtcnt`).text("Nill");
+    } else {
+        $(`#${reViewcnfrm}SrcInfrmlObg_txtcnt`).text(loanObgkeys);
+    }
+    if (loanObgdata.hasOwnProperty('chitFunds')) {
+        nilflag = false;
+        $(`#${reViewcnfrm}RechitFund`).removeClass('sno')
+        $(`#${reViewcnfrm}othrLoanObgchit_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.chitFunds?.otherLoanObligation))
+        $(`#${reViewcnfrm}chitmntlyEMI_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.chitFunds?.monthlyEMI))
+        $(`#${reViewcnfrm}chitremainTenure_txtcnt`).text(loanObgdata?.chitFunds?.tenure)
+        $(`#${reViewcnfrm}chitsrcOfloanVal`).text("chitFunds");
+    } else {
+        $(`#${reViewcnfrm}RechitFund`).addClass('sno')
+    }
+    if (loanObgdata.hasOwnProperty('moneyLender')) {
+        nilflag = false;
+        $(`#${reViewcnfrm}RemoneyLender`).removeClass('sno')
+        $(`#${reViewcnfrm}mnylndrLoanval_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.moneyLender?.otherLoanObligation))
+        $(`#${reViewcnfrm}mnyLndrEMI_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.moneyLender?.monthlyEMI))
+        $(`#${reViewcnfrm}mnyLndrTenure_txtcnt`).text(loanObgdata?.moneyLender?.tenure)
+        $(`#${reViewcnfrm}mnyLndrsrc`).text("Money lender");
+    } else {
+        $(`#${reViewcnfrm}RemoneyLender`).addClass('sno')
+    }
+    if (loanObgdata.hasOwnProperty('Friends')) {
+        nilflag = false;
+        $(`#${reViewcnfrm}Refriends`).removeClass('sno')
+        $(`#${reViewcnfrm}frndothrObg_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Friends?.otherLoanObligation))
+        $(`#${reViewcnfrm}frndEMImtly_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Friends?.monthlyEMI))
+        $(`#${reViewcnfrm}frndremainTnur_txtcnt`).text(loanObgdata?.Friends?.tenure)
+        $(`#${reViewcnfrm}frndSrcloan`).text("Friends");
+    } else {
+        $(`#${reViewcnfrm}Refriends`).addClass('sno')
+    }
+    if (loanObgdata.hasOwnProperty('Relatives')) {
+        nilflag = false;
+        $(`#${reViewcnfrm}Rerelatives`).removeClass('sno')
+        $(`#${reViewcnfrm}rltvothrObg_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Relatives?.otherLoanObligation))
+        $(`#${reViewcnfrm}rltvEMImntly_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Relatives?.monthlyEMI))
+        $(`#${reViewcnfrm}rltvremainTnur_txtcnt`).text(loanObgdata?.Relatives?.tenure)
+        $(`#${reViewcnfrm}rltvSrcloan`).text("Relatives");
+    } else {
+        $(`#${reViewcnfrm}Rerelatives`).addClass('sno')
+    }
+    if (loanObgdata?.hasOwnProperty('Coopsociety')) {
+        $(`#${reViewcnfrm}RecoopSociety`).removeClass('sno')
+        $(`#${reViewcnfrm}sctyothrObg_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Coopsociety?.otherLoanObligation))
+        $(`#${reViewcnfrm}sctyEMImntly_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Coopsociety?.monthlyEMI))
+        $(`#${reViewcnfrm}sctyremaintnur_txtcnt`).text(loanObgdata?.Coopsociety?.tenure)
+        $(`#${reViewcnfrm}sctySrcloan`).text("Co-op society");
+    } else {
+        $(`#${reViewcnfrm}RecoopSociety`).addClass('sno')
+    }
+    if (loanObgdata.hasOwnProperty('Localfinance')) {
+        nilflag = false;
+        $(`#${reViewcnfrm}RelocalFinance`).removeClass('sno')
+        $(`#${reViewcnfrm}lfinothrObg_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Localfinance?.otherLoanObligation))
+        $(`#${reViewcnfrm}lfinEMImntly_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Localfinance?.monthlyEMI))
+        $(`#${reViewcnfrm}lfinremainTnur_txtcnt`).text(loanObgdata?.Localfinance?.tenure)
+        $(`#${reViewcnfrm}lfinSrcloan`).text("Local finance");
+    } else {
+        $(`#${reViewcnfrm}RelocalFinance`).addClass('sno')
+    }
+    if (loanObgdata.hasOwnProperty('Other')) {
+        nilflag = false;
+        $(`#${reViewcnfrm}ReOthers`).removeClass('sno')
+        $(`#${reViewcnfrm}othrObg_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Other?.otherLoanObligation))
+        $(`#${reViewcnfrm}othrEMImntly_txtcnt`).text(ApzCOB.formatamountVal(loanObgdata?.Other?.monthlyEMI))
+        $(`#${reViewcnfrm}othrremainTnur_txtcnt`).text(loanObgdata?.Other?.tenure)
+        $(`#${reViewcnfrm}othrLoanSrc`).text("Other");
+    } else {
+        $(`#${reViewcnfrm}ReOthers`).addClass('sno')
+    }
+    if (nilflag) {
+        $(`#${reViewcnfrm}ReNill`).removeClass('sno')
+        $(`#${reViewcnfrm}nilSrcLoan`).text("Nil other loan obligations");
+    } else {
+        $(`#${reViewcnfrm}ReNill`).addClass('sno')
+    }
+    $(`#${reViewcnfrm}otherDetailsOwnership_txtcnt`).text(othDtls?.houseOwnership)
+    $(`#${reViewcnfrm}otherDetailsTypeOfHouse_txtcnt`).text(othDtls?.typeOfHouse)
+    $(`#${reViewcnfrm}otherDetailsTypeOfRoof_txtcnt`).text(othDtls?.typeOfRoof)
+    $(`#${reViewcnfrm}otherDetailsNoOfRoomsAvalable_txtcnt`).text(othDtls?.noOfRoomsInHouse)
+    $(`#${reViewcnfrm}LandDetailsModeOfSavings_txtcnt`).text(othDtls?.modeOfSavings)
+    $(`#${reViewcnfrm}otherNooffamMem_txtcnt`).text(othDtls?.noOfFamilyMembers)
+    $(`#${reViewcnfrm}appExServ_txtcnt`).text(othDtls?.applicantExService)
+    $(`#${reViewcnfrm}apphealth_txtcnt`).text(othDtls?.applicantHealthCondition)
+    $(`#${reViewcnfrm}appInsur_txtcnt`).text(othDtls?.applicantHealthInsurance)
+    $(`#${reViewcnfrm}co-appExServ_txtcnt`).text(othDtls?.coApplicantExService)
+    $(`#${reViewcnfrm}co-apphealth_txtcnt`).text(othDtls?.coApplicantHealthCondition)
+    $(`#${reViewcnfrm}co-appInsur_txtcnt`).text(othDtls?.coApplicantHealthInsurance)
+    $(`#${reViewcnfrm}otherEarningMem_txtcnt`).text(othDtls?.noOfOtherEarningMembers)
+    $(`#${reViewcnfrm}otherDetailsBasicAmenitie_txtcnt`).text(
+        (othDtls.basicAmenities || []).map(item => {
+            return item.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        }).join(', '));
+    $(`#${reViewcnfrm}otherDetailsAssets_txtcnt`).text(
+        (othDtls.otherAssets || []).map(item => {
+            return item.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        }).join(', '));
+    $(`#${reViewcnfrm}otherDetailsNoOf2Wheeler_txtcnt`).text(othDtls?.noOfTwoWheelerOwned)
+    function formatYesNo(value) {
+        if (value === 'Y' || value === 'Yes') return 'Yes';
+        if (value === 'N' || value === 'No') return 'No';
+        return '';
+    }
+    $(`#${reViewcnfrm}otherDetailsIfSmartphone_txtcnt`).text(formatYesNo(othDtls?.smartphoneRadio));
+    $(`#${reViewcnfrm}otherDetailsNoOfSmartPhones_txtcnt`).text(othDtls?.smartphonesOwned);
+    $(`#${reViewcnfrm}otherDetailsAnyAlmirah_txtcnt`).text(formatYesNo(othDtls?.almirah));
+    $(`#${reViewcnfrm}otherDetailsAnyFurniture_txtcnt`).text(formatYesNo(othDtls?.chair));
+    $(`#${reViewcnfrm}otherDetailsSavingModes_txtcnt`).text(othDtls?.modeOfSavings)
+    $(`#${reViewcnfrm}otherExpensesFood_txtcnt`).text(othDtls?.foodExpense)
+    $(`#${reViewcnfrm}otherExpensesEducation_txtcnt`).text(othDtls?.educationExpense)
+    $(`#${reViewcnfrm}otherExpensesCloth_txtcnt`).text(othDtls?.expenseOnClothing)
+    $(`#${reViewcnfrm}otherExpensesMedical_txtcnt`).text(othDtls?.medicalExpense);
+    $(`#${reViewcnfrm}otherExpensesHosueHolds_txtcnt`).text(othDtls?.householdExpenses)
+    $(`#${reViewcnfrm}LandDetailsAgri_txtcnt`).text(othDtls?.agriland)
+    $(`#${reViewcnfrm}LandDetailsHoldBy_txtcnt`).text(othDtls?.landOwnerName)
+    $(`#${reViewcnfrm}LandDetailsRelationship_txtcnt`).text(othDtls?.relationshipWithApplicant)
+    if (othDtls?.houseOwnership !== 'Owned') {
+        $("#CrdAss__CaReviewConfirm__RelProofDoc").removeClass("sno");
+        apz.app.CaReviewConfirm.paintDocumentName("CrdAss__CaReviewConfirm__proofCloneRow_0", "CrdAss__CaReviewConfirm__proofParentRow",
+            "proof with owner doc");
+    }
+    apz.app.CaReviewConfirm.paintDocumentName("CrdAss__CaReviewConfirm__cloneRow_0", "CrdAss__CaReviewConfirm__parentRow", "SupportDocs");
+    apz.app.CaReviewConfirm.paintDocumentName("CrdAss__CaReviewConfirm__residenceProofCloneRow_0", "CrdAss__CaReviewConfirm__residenceProofParentRow", "residenceProof");
+    apz.app.CaReviewConfirm.paintDocumentName("CrdAss__CaReviewConfirm__residencePhotoCloneRow_0", "CrdAss__CaReviewConfirm__residencePhotoParentRow", "residencePhoto");
+}
+apz.app.CaReviewConfirm.paintBusinessData = function () {
+    businessDtls = incomeDtls?.business;
+    dairyData = incomeDtls?.business?.dairy;
+    kiranaData = incomeDtls?.business?.Kirana;
+    tailoringData = incomeDtls?.business?.Tailoring;
+    otherData = incomeDtls?.business?.Other;
+    businessKeys = Object.keys(businessDtls).toString();
+    businessKeysArray = businessKeys.split(",");
+    if (businessDtls.hasOwnProperty('dairy') && dairyData.length !== 0) {
+        $(`#${reViewcnfrm}businessdairyRow`).removeClass('sno');
+        dairyData.forEach(function (item, index) {
+            if (index > 0) {
+                ApzCOB.cloneDashboardDivs('CrdAss__CaReviewConfirm__businessSub_0', $('#CrdAss__CaReviewConfirm__businessdairyCol'), index
+                    .toString());
+            }
+            let dairyKey = businessKeysArray.find(key => key === "dairy");
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairyHeading_txtcnt`).text(
+                `Business ${businessCounter}`);
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairybuisnessType1_txtcnt`).text(dairyKey);
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairyownedBy1_txtcnt`).text(item?.DairyType);
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairytotalNumberOfProducts1_txtcnt`).text(item
+                ?.totalCowsAndBuffalos);
+            // $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairynetBuisnessAmt1_txtcnt`).text(ApzCOB.formatamountVal(item?.netMonthlyIncome));
+            const DiaryFinalIncome = Math.min(
+                Number(item.netMonthlyIncome),
+                Number(item.IncomeAssessmentChecknetBusinessIncome)
+            );
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairynetBuisnessAmt1_txtcnt`).text(ApzCOB.formatamountVal(DiaryFinalIncome));
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairytitle_txtcnt`).text(ApzCOB
+                .getDescfromLitCode("LIT_dairyBusApp") + ' - ' + item?.DairyType);
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairyappbusinessLocation_txtcnt`).text(item
+                ?.dairyLocation);
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairyappbusinessTenure_txtcnt`).text(item
+                ?.dairyTenure);
+            const cowBreeds = [item?.cowBreed1, item?.cowBreed2, item?.cowBreed3]
+                .filter(breed => breed && breed.trim() !== "" && breed !== "Please Select")
+                .join(', ');
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairycowBreedVal_txtcnt`)
+                .text(cowBreeds || "--");
+            const buffaloBreeds = [item?.buffaloBreed1, item?.buffaloBreed2, item?.buffaloBreed3]
+                .filter(b => b && b.trim() !== "" && b !== "Please Select")
+                .join(', ');
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairybuffaloBreed_txtcnt`)
+                .text(buffaloBreeds || "--");
+            const buffaloCounts = [item?.noOfBuffaloBreed1, item?.noOfBuffaloBreed2, item?.noOfBuffaloBreed3].filter(c => c?.toString()
+                .trim()).join(', ');
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairybuffaloCount_txtcnt`).text(buffaloCounts || "--");
+            const cowCounts = [item?.noOfCowBreed1, item?.noOfCowBreed2, item?.noOfCowBreed3].filter(c => c?.toString().trim()).join(
+                ', ');
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairynoOfCows_txtcnt`).text(cowCounts || "--");
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairymntlyIncome_txtcnt`).text(ApzCOB.formatamountVal(item
+                ?.netMonthlyIncome));
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairyappBusiPermisesValue_txtcnt`).text(item
+                .businessAddressSameAsResidance);
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairybusinessTypeValue_txtcnt`).text(item
+                ?.dairyBusinessType);
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairyorganisationValue_txtcnt`).text(item
+                ?.organizationName);
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairycowrevenueVal_txtcnt`).text(ApzCOB.formatamountVal(item
+                ?.avgDailyRevenuePerCow));
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairybuffalorevenueVal_txtcnt`).text(ApzCOB.formatamountVal(
+                item?.avgDailyRevenuePerBuffalo));
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairycowMntlyInc_txtcnt`).text(ApzCOB.formatamountVal(item
+                ?.avgMonthlyRevenuePerCow));
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairybuffaloMntlyInc_txtcnt`).text(ApzCOB.formatamountVal(item?.avgMonthlyRevenuePerBuffalo));
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__dairynetBusinessCal_txtcnt`).text(ApzCOB.formatamountVal(item
+                ?.IncomeAssessmentChecknetBusinessIncome));
+            custTypeForImages = item?.DairyType;
+            apz.app.CaReviewConfirm.paintDocumentName(
+                `CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__DairyUploadedImage_0`,
+                `CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__Dairy_ParentBusRow`, "Dairy Doc", index);
+            businessCounter++;
+            apz.app.CaReviewConfirm.paintBusinessAddress(item, index, "dairy", `#CrdAss__CaReviewConfirm__businessSub_${index}`);
+            apz.app.CaReviewConfirm.paintDocumentName(
+                `CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__DairyOthAddrProof_0`,
+                `CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__Dairy_OthAddrParent`, "BUSINESS_ADDRESS_PROOF", index);
+        })
+    } else {
+        $(`#${reViewcnfrm}businessdairyRow`).addClass('sno');
+    }
+    if (businessDtls.hasOwnProperty('Kirana') && kiranaData.length !== 0) {
+        $(`#${reViewcnfrm}businesskiranaRow`).removeClass('sno');
+        kiranaData.forEach(function (item, index) {
+            if (index > 0) {
+                ApzCOB.cloneDashboardDivs('CrdAss__CaReviewConfirm__kiranaSubrow_0', $('#CrdAss__CaReviewConfirm__businesskiranaCol'),
+                    index.toString());
+            }
+            let kiranaKey = businessKeysArray.find(key => key === "Kirana");
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaHeading_txtcnt`).text(
+                `Business ${businessCounter}`);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaType1_txtcnt`).text('Kirana/Utility store');
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__streetVenderValue_txtcnt`).text(item?.streetVendor);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaOwnedBy1_txtcnt`).text(item?.kiranaType);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranatypeOfShop_txtcnt`).text(item
+                ?.kiranaShopType);
+            // $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranafinalBusinessInc_txtcnt`).text(ApzCOB.formatamountVal(item?.calculatedNetIncome));
+            const KiranaFinalIncome = Math.min(
+                Number(item.netMonthlyIncome),
+                Number(item.finalNetIncome)
+            );
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranafinalBusinessInc_txtcnt`)
+                .text(ApzCOB.formatamountVal(KiranaFinalIncome));
+            $(`#CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__titleKirana_txtcnt`).text(ApzCOB
+                .getDescfromLitCode("LIT_kiranaBusiness_coApp") + ' - ' + item?.kiranaType);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__KiranabusinessLocation_txtcnt`).text(item
+                ?.kiranaBusinessLocation);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaTenureValue_txtcnt`).text(item
+                ?.kiranaTenure);
+            // kirana business data paint issue
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__KTypeOfShop_txtcnt`).text(item?.kiranaShopType);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaTypeShopValue_txtcnt`).text(item
+                ?.kiranaShopType);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaMarketValue_txtcnt`).text(item
+                ?.kiranaMarketClassification);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaShopArea_txtcnt`).text(item?.areaofshop);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaUnitArea_txtcnt`).text(item?.kiranaUnit);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaGodownArea_txtcnt`).text(item
+                ?.areaOfGodown);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaUnitAreaValue_txtcnt`).text(item
+                ?.kiranaGodownUnit);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaOccLevelShopValue_txtcnt`).text(item
+                ?.kiranaOccupancyLevel);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaNetMonthIncomeVal_txtcnt`).text(ApzCOB.formatamountVal(item?.netMonthlyIncome));
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaPermsesResiValue_txtcnt`).text(item
+                ?.businessAddressSameAsResidance);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaTypeBusinessVal_txtcnt`).text(item
+                ?.kiranaBusinessType);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaNameOrganisationVal_txtcnt`).text(item
+                ?.nameOfOrganization);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaAreaInSqFtCal_txtcnt`).text(item
+                ?.areaOfTheShopInSqft);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaAreaGodownInsqFtCal_txtcnt`).text(item
+                ?.areaOfTheGodownInSqft);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaTotalAreaInSqFtVal_txtcnt`).text(item
+                ?.totalArea);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaInentArea_txtcnt`).text(item
+                ?.inventoryArea);
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaInventValue_txtcnt`).text(ApzCOB.formatamountVal(item
+                ?.inventoryValue));
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaMonthlySalesVal_txtcnt`).text(ApzCOB.formatamountVal(item?.monthlySales));
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaNetIncVal_txtcnt`).text(ApzCOB.formatamountVal(item
+                ?.calculatedNetIncome));
+            $(`#CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__kiranaFinalNetIncVal_txtcnt`).text(ApzCOB.formatamountVal(item?.finalNetIncome));
+            custTypeForImages = item?.kiranaType;
+            apz.app.CaReviewConfirm.paintDocumentName(
+                `CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__KiranaUploadedImage_0`,
+                `CrdAss__CaReviewConfirm__kiranaSubrow_${index} #CrdAss__CaReviewConfirm__Kirana_ParentBusRow`, "Kirana Doc", index);
+            businessCounter++;
+            apz.app.CaReviewConfirm.paintBusinessAddress(item, index, "kirana", `#CrdAss__CaReviewConfirm__kiranaSubrow_${index}`);
+            apz.app.CaReviewConfirm.paintDocumentName(
+                `CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__KiranaOthAddrProof_0`,
+                `CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__Kirana_OthAddrParent`, "BUSINESS_ADDRESS_PROOF", index);
+        })
+    } else {
+        $(`#${reViewcnfrm}businesskiranaRow`).addClass('sno');
+    }
+    if (businessDtls.hasOwnProperty('Tailoring') && tailoringData.length !== 0) {
+        $(`#${reViewcnfrm}businesstailoringRow`).removeClass('sno');
+        tailoringData.forEach(function (item, index) {
+            if (index > 0) {
+                ApzCOB.cloneDashboardDivs('CrdAss__CaReviewConfirm__tailoringSub_0', $('#CrdAss__CaReviewConfirm__businesstailoringCol'),
+                    index.toString());
+            }
+            let tailoringKey = businessKeysArray.find(key => key === "Tailoring");
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailoringHeading_txtcnt`).text(
+                `Business ${businessCounter}`);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tariloringTypebuss_txtcnt`).text(tailoringKey);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorOwnedby_txtcnt`).text(item?.tailoringType);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailoringrevenuePerMonth_txtcnt`).text(ApzCOB.formatamountVal(item?.revenuePerMonth));
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailoringNetIncVal_txtcnt`).text(ApzCOB.formatamountVal(item?.netBusinessIncome));
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailoringtitle_txtcnt`).text(ApzCOB
+                .getDescfromLitCode("LIT_tailorBusiness") + ' - ' + item?.tailoringType);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorisApplTailor_txtcnt`).text(item
+                ?.isApplicantATailor === 'Y' ? 'Yes' : 'No');
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorisCoAppPart_txtcnt`).text(item
+                ?.isCoApplicantPartOfTailorBusiness === 'Y' ? 'Yes' : 'No');
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorbusLocation_txtcnt`).text(item
+                ?.tailoringBusinessLocation);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorBusTenureVal_txtcnt`).text(item
+                ?.tailoringTenure);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorBusPermiseVal_txtcnt`).text(item
+                ?.tailoringPremise);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorpowerMachines_txtcnt`).text(item
+                ?.numOfPowerTailoringMachine);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailormanualMachines_txtcnt`).text(item
+                ?.numOfManualTailoringMachine);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailornoSalariedTailor_txtcnt`).text(item
+                ?.numOfSalariedTailors);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorWorkingTime_txtcnt`).text(item
+                ?.tailoringWorkType);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorstitchingFor_txtcnt`).text(item
+                ?.stitchingFor);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorNetMonthlyInc_txtcnt`).text(ApzCOB.formatamountVal(item?.netMonthlyIncome));
+            const TailorFinalIncome = Math.min(
+                Number(item.netMonthlyIncome),
+                Number(item.netBusinessIncome)
+            );
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailoringNetIncVal_txtcnt`).text(ApzCOB.formatamountVal(TailorFinalIncome));
+            /*$(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorTypeOfStich_txtcnt`).text(
+                (item.tailorShopItems || []).map(i => i.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())).join(', ')
+                );*/
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorPremiseVal_txtcnt`).text(item
+                ?.tailoringPremise);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorBusinessType_txtcnt`).text(item
+                ?.tailoringBusinessType);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorNameOrganisation_txtcnt`).text(item
+                ?.organizationName);
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorRevenueCal_txtcnt`).text(ApzCOB.formatamountVal(item
+                ?.revenuePerDay));
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorRevenuePerMonthcal_txtcnt`).text(ApzCOB.formatamountVal(item?.revenuePerMonth));
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__totalmtlyRevenueCal_txtcnt`).text(ApzCOB.formatamountVal(item?.totalMonthlyIncome));
+            $(`#CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__tailorNetBusiness_txtcnt`).text(ApzCOB.formatamountVal(item
+                ?.netBusinessIncome));
+            custTypeForImages = item?.tailoringType;
+            apz.app.CaReviewConfirm.paintDocumentName(
+                `CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__TailoringUploadedImage_0`,
+                `CrdAss__CaReviewConfirm__tailoringSub_${index} #CrdAss__CaReviewConfirm__Tailoring_ParentBusRow`, "Tailoring Doc", index);
+            businessCounter++;
+            apz.app.CaReviewConfirm.paintBusinessAddress(item, index, "tailor", `#CrdAss__CaReviewConfirm__tailoringSub_${index}`);
+            apz.app.CaReviewConfirm.paintDocumentName(
+                `CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__TailorOthAddrProof_0`,
+                `CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__Tailor_OthAddrParent`, "BUSINESS_ADDRESS_PROOF", index);
+        })
+    } else {
+        $(`#${reViewcnfrm}businesstailoringRow`).addClass('sno');
+    }
+    if (businessDtls.hasOwnProperty('Other') && otherData.length !== 0) {
+        $(`#${reViewcnfrm}businessotherRow`).removeClass('sno');
+        otherData.forEach(function (item, index) {
+            if (index > 0) {
+                ApzCOB.cloneDashboardDivs('CrdAss__CaReviewConfirm__otherSubrow_0', $('#CrdAss__CaReviewConfirm__businessotherCol'), index
+                    .toString());
+            }
+            let otherKey = businessKeysArray.find(key => key === "Other");
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__otherHeading_txtcnt`).text(
+                `Business ${businessCounter}`);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__otherTypeVal_txtcnt`).text(otherKey);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__otherOwnedVal_txtcnt`).text(item?.otherType);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__otherLineBus_txtcnt`).text(item
+                ?.lineOfOtherBusiness);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__otherNetBusInc_txtcnt`).text(ApzCOB.formatamountVal(item
+                ?.netBusinessIncome));
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__otherTitle_txtcnt`).text(ApzCOB
+                .getDescfromLitCode("LIT_otherBusiness_coApp") + ' - ' + item?.otherType);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__OtherLineBusiness_txtcnt`).text(item
+                ?.lineOfOtherBusiness);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__otherTenure_txtcnt`).text(item
+                ?.otherBusinessTenure);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__otherPremise_txtcnt`).text(item
+                ?.businessAddressSameAsResidance);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__typeBusOther_txtcnt`).text(item
+                ?.otherBusinessType);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__otherOrganisation_txtcnt`).text(item
+                ?.nameOfOrganization);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__otherSalesPerDay_txtcnt`).text(item?.salesPerDay);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__othernoOfDaysMonth_txtcnt`).text(item
+                ?.numberOfOperatingDays);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__othermonthSales_txtcnt`).text(ApzCOB.formatamountVal(item?.monthlySales));
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__otherOperExp_txtcnt`).text(item?.operatingExpense);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__othergrossInc_txtcnt`).text(ApzCOB.formatamountVal(item?.grossIncome));
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__otherrentLease_txtcnt`).text(item?.rentOrLease);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__salaryWageNoEmplyee_txtcnt`).text(item
+                ?.numberOfEmployees);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__salaryPaidPerMonth_txtcnt`).text(item
+                ?.salaryPaidPerMonth);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__totalSalary_txtcnt`).text(ApzCOB.formatamountVal(item?.totalSalary));
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__utilitiesTransCom_txtcnt`).text(item
+                ?.transportAndCommunication);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__utilitiesWaterBill_txtcnt`).text(item?.waterBill);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__utilitiesElectricityBill_txtcnt`).text(item
+                ?.electricityBill);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__utilitiesPipedBill_txtcnt`).text(item?.gasBill);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__utilitiesTeleBill_txtcnt`).text(item
+                ?.telephoneBill);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__utilitiesOthers_txtcnt`).text(item?.otherBills);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__totalutilities_txtcnt`).text(item
+                ?.totalUtilities);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__obligationsOtherExp_txtcnt`).text(item?.otherBusinessExpense);
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__obligationsTotalExp_txtcnt`).text(ApzCOB.formatamountVal(item
+                ?.totalBusinessExpenses));
+            $(`#CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__obligationsNetBusiness_txtcnt`).text(ApzCOB.formatamountVal(item?.netBusinessIncome));
+            custTypeForImages = item?.otherType;
+            apz.app.CaReviewConfirm.paintDocumentName(
+                `CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__OtherUploadedImage_0`,
+                `CrdAss__CaReviewConfirm__otherSubrow_${index} #CrdAss__CaReviewConfirm__Other_ParentBusRow`, "Other Doc", index);
+            businessCounter++;
+            apz.app.CaReviewConfirm.paintBusinessAddress(item, index, "oth", `#CrdAss__CaReviewConfirm__otherSubrow_${index}`);
+            apz.app.CaReviewConfirm.paintDocumentName(
+                `CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__OtherOthAddrProof_0`,
+                `CrdAss__CaReviewConfirm__businessSub_${index} #CrdAss__CaReviewConfirm__Other_OthAddrParent`, "BUSINESS_ADDRESS_PROOF", index);
+        })
+    } else {
+        $(`#${reViewcnfrm}businessotherRow`).addClass('sno');
+    }
+    $('input[id*="othAddressRadioBtn"][id$="_option_presentOther"]').each(function (index) {
+        $(this).attr("name", $(this).attr("name") + "_" + index);
+        $(this).prop("checked", true);
+    });
+}
+apz.app.CaReviewConfirm.paintBusinessAddress = function (
+    item,
+    index,
+    typePrefix,
+    parentSelector
+) {
+    let addrMainRowId = "";
+    let addrOtherRowId = "";
+    let addrPrevRow1 = "";
+    let addrPrevRow2 = "";
+    let addrDocParentId = "";
+    if (typePrefix === "dairy") {
+        addrMainRowId = "sc_row_1507";
+        addrOtherRowId = "otherDairyAddrRow";
+        addrPrevRow1 = "sc_row_1504";
+        addrPrevRow2 = "sc_row_1505";
+        addrDocParentId = "Dairy_OthAddrParent";
+    } else if (typePrefix === "kirana") {
+        addrMainRowId = "sc_row_1541";
+        addrOtherRowId = "otherKiranaAddrRow";
+        addrPrevRow1 = "sc_row_1610";
+        addrPrevRow2 = "sc_row_1539";
+        addrDocParentId = "Kirana_OthAddrParent";
+    } else if (typePrefix === "tailor") {
+        addrMainRowId = "sc_row_1576";
+        addrOtherRowId = "otherTailorAddrRow";
+        addrPrevRow1 = "sc_row_1573";
+        addrPrevRow2 = "sc_row_1574";
+        addrDocParentId = "Tailor_OthAddrParent";
+    } else if (typePrefix === "oth") {
+        addrMainRowId = "sc_row_1614";
+        addrOtherRowId = "otherAddressRow";
+        addrPrevRow1 = "sc_row_1611";
+        addrPrevRow2 = "sc_row_1612";
+        addrDocParentId = "Other_OthAddrParent";
+    }
+
+    if (!apz.app.CaReviewConfirm.isNewAddressFlow()) {
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${addrMainRowId}`).addClass("sno");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${addrOtherRowId}`).addClass("sno");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${addrPrevRow1}`).addClass("sno");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${addrPrevRow2}`).addClass("sno");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${addrDocParentId}`).addClass("sno");
+    } else {
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${addrMainRowId}`).removeClass("sno");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${addrPrevRow1}`).removeClass("sno");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${addrPrevRow2}`).removeClass("sno");
+    }
+
+    const occupationWrapper =
+        inSessionStore?.addressDetailsWrapperList?.[0]
+            ?.addressDetailsList?.find(
+                x => x.addressType === "Occupation"
+            );
+    const officeAddresses =
+        occupationWrapper?.payload?.addressList || [];
+    let businessAddress = officeAddresses.find(
+        addr => addr.businessIndex == item.businessIndex
+    );
+
+    // If no matching businessIndex found, use first available address
+    if (!businessAddress && officeAddresses.length > 0) {
+        businessAddress = officeAddresses[0];
+    }
+
+    // No address available at all
+    if (!businessAddress) {
+        return;
+    }
+    var sameAs = item.addressSameAs;
+    if (sameAs === "Co-AppSecondaryKyc") {
+        sameAs = "CoApplicantSecondaryKyc";
+    }
+    const addressLabelMap = {
+        "ApplicantVoter": "Applicant's voter ID address",
+        "Co-AppVoter": "Co-applicant's voter ID address",
+        "ApplicantAadhaar": "Applicant's aadhaar card address",
+        "Co-AppAadhaar": "Co-applicant's aadhaar card address",
+        "ApplicantSecondaryKyc": "Applicant's secondary KYC address",
+        "CoApplicantSecondaryKyc": "Co-applicant's secondary KYC address",
+        "Other": "Other address",
+        "Others": "Other address"
+    };
+    const addressLabel = `${parentSelector} #CrdAss__CaReviewConfirm__${typePrefix}AddressLabel_txtcnt`;
+    $(addressLabel).text(addressLabelMap[sameAs] || "Business address");
+
+    let otherRowId = "";
+    if (typePrefix === "dairy") {
+        otherRowId = "otherDairyAddrRow";
+    } else if (typePrefix === "kirana") {
+        otherRowId = "otherKiranaAddrRow";
+    } else if (typePrefix === "tailor") {
+        otherRowId = "otherTailorAddrRow";
+    } else if (typePrefix === "oth") {
+        otherRowId = "otherAddressRow";
+    }
+    const otherRow = `${parentSelector} #CrdAss__CaReviewConfirm__${otherRowId}`;
+
+    const addressText =
+        `${parentSelector} #CrdAss__CaReviewConfirm__${typePrefix}AddressText_txtcnt`;
+
+    const fullAddress = [
+        businessAddress.addressLine1,
+        businessAddress.addressLine2,
+        businessAddress.addressLine3,
+        businessAddress.city,
+        businessAddress.district,
+        businessAddress.state,
+        businessAddress.pinCode
+    ]
+        .filter(Boolean)
+        .join(", ");
+
+    // OTHER ADDRESS
+    if (
+        sameAs === "Others" ||
+        sameAs === "Other"
+    ) {
+        $(otherRow).removeClass("sno");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${typePrefix}AddressLine1_txtcnt`)
+            .text(businessAddress.addressLine1 || "--");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${typePrefix}AddressLine2_txtcnt`)
+            .text(businessAddress.addressLine2 || "--");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${typePrefix}AddressLine3_txtcnt`)
+            .text(businessAddress.addressLine3 || "--");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${typePrefix}Pincode_txtcnt`)
+            .text(businessAddress.pinCode || "--");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${typePrefix}City_txtcnt`)
+            .text(businessAddress.city || "--");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${typePrefix}District_txtcnt`)
+            .text(businessAddress.district || "--");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${typePrefix}State_txtcnt`)
+            .text(businessAddress.state || "--");
+        $(`${parentSelector} #CrdAss__CaReviewConfirm__${typePrefix}AddressProofBis_txtcnt`)
+            .text(businessAddress.currentAddressProof || "--");
+    } else {
+        $(otherRow).addClass("sno");
+        $(addressText).text(fullAddress || "--");
+    }
+};
+apz.app.CaReviewConfirm.paintAgricultureData = function () {
+    if (incomeDtls.hasOwnProperty('agriculture') || apz.isObjectEmpty(incomeDtls.agriculture)) {
+        $(`#${reViewcnfrm}agricultureDetailRow`).addClass('sno');
+    }
+    if (!apz.isObjectEmpty(incomeDtls.agriculture) && incomeDtls.agriculture.hasOwnProperty('applicant')) {
+        $(`#${reViewcnfrm}agricultureDetailRow`).removeClass('sno');
+        $(`#${reViewcnfrm}agriBothchecked`).addClass('sno');
+        $(`#${reViewcnfrm}Apptitle`).addClass('sno');
+        $(`#${reViewcnfrm}agriApplicantRow`).removeClass('sno');
+        $(`#${reViewcnfrm}agriCoapplicantRow`).addClass('sno');
+        $(`#${reViewcnfrm}agrOwnedby_txtcnt`).text("applicant");
+        $(`#${reViewcnfrm}agrlandType_txtcnt`).text(incomeDtls?.agriculture?.applicant?.typeOfAgriculture);
+        $(`#${reViewcnfrm}agrcropType_txtcnt`).text(incomeDtls?.agriculture?.applicant?.cropType);
+        $(`#${reViewcnfrm}agriCrop_txtcnt`).text(incomeDtls?.agriculture?.applicant?.crop);
+        $(`#${reViewcnfrm}agriclutureLandrange_txtcnt`).text(incomeDtls?.agriculture?.applicant?.land);
+        $(`#${reViewcnfrm}agriclutureLand_txtcnt`).text(incomeDtls?.agriculture?.applicant?.landInAcres);
+        $(`#${reViewcnfrm}maxPeracre_txtcnt`).text(incomeDtls?.agriculture?.applicant?.maxYeildPerAcre);
+        $(`#${reViewcnfrm}agrIncMntly_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.agriculture?.applicant?.monthlyIncome));
+        $(`#${reViewcnfrm}agrConIncMntly_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.agriculture?.applicant?.consideredIncome));
+        $(`#${reViewcnfrm}agrDeclIncMntly_txtcnt`).text(incomeDtls?.agriculture?.applicant?.declaredIncome);
+        custTypeForImages = "Applicant";
+        apz.app.CaReviewConfirm.paintDocumentName("CrdAss__CaReviewConfirm__AggAppCloneRow_0", "CrdAss__CaReviewConfirm__AggAppParentRow",
+            "Agriculture Doc")
+    }
+    if (incomeDtls.agriculture.hasOwnProperty('coApplicant')) {
+        $(`#${reViewcnfrm}agricultureDetailRow`).removeClass('sno');
+        $(`#${reViewcnfrm}agriBothchecked`).addClass('sno');
+        $(`#${reViewcnfrm}agriApplicantRow`).addClass('sno');
+        $(`#${reViewcnfrm}CoApptitle`).addClass('sno');
+        $(`#${reViewcnfrm}agriCoapplicantRow`).removeClass('sno');
+        $(`#${reViewcnfrm}agrCoownedby_txtcnt`).text("CoApplicant");
+        $(`#${reViewcnfrm}agrColandType_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.typeOfAgriculture);
+        $(`#${reViewcnfrm}agrCocropType_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.cropType);
+        $(`#${reViewcnfrm}agrCocrop_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.crop);
+        $(`#${reViewcnfrm}CoagriclutureLandrange_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.land);
+        $(`#${reViewcnfrm}CoagriclutureLand_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.landInAcres);
+        $(`#${reViewcnfrm}ComaxPeracre_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.maxYeildPerAcre);
+        $(`#${reViewcnfrm}CoagrIncMntly_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.agriculture?.coApplicant?.monthlyIncome));
+        $(`#${reViewcnfrm}CoagrConIncMntly_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.agriculture?.coApplicant?.consideredIncome));
+        $(`#${reViewcnfrm}CoagrDeclIncMntly_txtcnt`).text(incomeDtls?.agriculture?.coApplicant?.declaredIncome);
+        custTypeForImages = "Co-Applicant"
+        apz.app.CaReviewConfirm.paintDocumentName("CrdAss__CaReviewConfirm__AggCoAppCloneRow_0", "CrdAss__CaReviewConfirm__AggCoAppParentRow",
+            "Agriculture Doc")
+    }
+    if (!apz.isObjectEmpty(incomeDtls.agriculture) && incomeDtls.agriculture.hasOwnProperty('applicant') && incomeDtls.agriculture.hasOwnProperty(
+        'coApplicant')) {
+        $(`#${reViewcnfrm}agriBothchecked`).removeClass('sno');
+        $(`#${reViewcnfrm}agriApplicantRow`).removeClass('sno');
+        $(`#${reViewcnfrm}agriCoapplicantRow`).removeClass('sno');
+        $(`#${reViewcnfrm}Apptitle`).removeClass('sno');
+        $(`#${reViewcnfrm}CoApptitle`).removeClass('sno');
+    }
+}
+apz.app.CaReviewConfirm.paintSalaryData = function () {
+    if (incomeDtls.hasOwnProperty('salary') || apz.isObjectEmpty(incomeDtls.salary)) {
+        $(`#${reViewcnfrm}salaryDetailRow`).addClass('sno');
+    }
+    if (!apz.isObjectEmpty(incomeDtls.salary) && incomeDtls.salary.hasOwnProperty('applicant')) {
+        $(`#${reViewcnfrm}salaryDetailRow`).removeClass('sno');
+        $(`#${reViewcnfrm}salaryCheckedBoth`).addClass('sno');
+        $(`#${reViewcnfrm}salaryApplicatntRow`).removeClass('sno');
+        $(`#${reViewcnfrm}SalaryCoapprow`).addClass('sno');
+        $(`#${reViewcnfrm}appEarnedby_txtcnt`).text("Applicant");
+        $(`#${reViewcnfrm}salAppTitle`).addClass('sno');
+        $(`#${reViewcnfrm}appWork_txtcnt`).text(incomeDtls.salary?.applicant?.workPlace);
+        $(`#${reViewcnfrm}appTenureEmp_txtcnt`).text(incomeDtls?.salary?.applicant?.yearTenure + ' years' + ' ' + incomeDtls?.salary?.applicant
+            ?.monthTenure + '' + ' months');
+        $(`#${reViewcnfrm}appEmployment_txtcnt`).text(incomeDtls?.salary?.applicant?.natureOfEmployment);
+        $(`#${reViewcnfrm}salaryAppgross_txtcnt`).text(incomeDtls?.salary?.applicant?.grossSalary);
+        $(`#${reViewcnfrm}appsalaryNet_txtcnt`).text(incomeDtls?.salary?.applicant?.netSalary);
+        $(`#${reViewcnfrm}appmodeOfSalary_txtcnt`).text(incomeDtls?.salary?.applicant?.modeOfSalary);
+        custTypeForImages = "Applicant";
+        apz.app.CaReviewConfirm.paintDocumentName("CrdAss__CaReviewConfirm__salaryAppCloneRow_0", "CrdAss__CaReviewConfirm__salaryAppParentRow",
+            "Salary Doc")
+    }
+    if (!apz.isObjectEmpty(incomeDtls.salary) && incomeDtls.salary.hasOwnProperty('coApplicant')) {
+        $(`#${reViewcnfrm}salaryDetailRow`).removeClass('sno');
+        $(`#${reViewcnfrm}salaryCheckedBoth`).addClass('sno');
+        $(`#${reViewcnfrm}salaryApplicatntRow`).addClass('sno');
+        $(`#${reViewcnfrm}salCoApptitle`).addClass('sno');
+        $(`#${reViewcnfrm}SalaryCoapprow`).removeClass('sno');
+        $(`#${reViewcnfrm}CoEarnedby_txtcnt`).text("CoApplicant");
+        $(`#${reViewcnfrm}CoappWork_txtcnt`).text(incomeDtls?.salary?.coApplicant?.workPlace);
+        $(`#${reViewcnfrm}CotenureEmp_txtcnt`).text(incomeDtls?.salary?.coApplicant?.yearTenure + ' years' + ' ' + incomeDtls?.salary?.coApplicant
+            ?.monthTenure + ' ' + ' months');
+        $(`#${reViewcnfrm}CoEmpNature_txtcnt`).text(incomeDtls?.salary?.coApplicant?.natureOfEmployment);
+        $(`#${reViewcnfrm}CogrossSalary_txtcnt`).text(incomeDtls?.salary?.coApplicant?.grossSalary);
+        $(`#${reViewcnfrm}CoNetSalary_txtcnt`).text(incomeDtls?.salary?.coApplicant?.netSalary);
+        $(`#${reViewcnfrm}CosalaryMode_txtcnt`).text(incomeDtls?.salary?.coApplicant?.modeOfSalary);
+        custTypeForImages = "Co-Applicant";
+        apz.app.CaReviewConfirm.paintDocumentName("CrdAss__CaReviewConfirm__salaryCoAppCloneRow_0",
+            "CrdAss__CaReviewConfirm__salaryCoAppParentRow", "Salary Doc")
+    }
+    if (!apz.isObjectEmpty(incomeDtls.salary) && incomeDtls.salary.hasOwnProperty('applicant') && incomeDtls.salary.hasOwnProperty(
+        'coApplicant')) {
+        $(`#${reViewcnfrm}salaryCheckedBoth`).removeClass('sno');
+        $(`#${reViewcnfrm}salaryApplicatntRow`).removeClass('sno');
+        $(`#${reViewcnfrm}SalaryCoapprow`).removeClass('sno');
+        $(`#${reViewcnfrm}salAppTitle`).removeClass('sno');
+        $(`#${reViewcnfrm}salCoApptitle`).removeClass('sno');
+    }
+}
+apz.app.CaReviewConfirm.paintPensionData = function () {
+    if (incomeDtls.hasOwnProperty('pension') || apz.isObjectEmpty(incomeDtls.pension)) {
+        $(`#${reViewcnfrm}PensionRow`).addClass('sno');
+    }
+    if (!apz.isObjectEmpty(incomeDtls.pension) && incomeDtls.pension.hasOwnProperty('applicant')) {
+        $(`#${reViewcnfrm}PensionRow`).removeClass('sno');
+        $(`#${reViewcnfrm}pensionCheckedBoth`).addClass('sno');
+        $(`#${reViewcnfrm}pensionAppRow`).removeClass('sno');
+        $(`#${reViewcnfrm}pensionCoApprow`).addClass('sno');
+        $(`#${reViewcnfrm}pensionAppIncome_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.pension?.applicant?.applicantPensionIncome));
+        custTypeForImages = "Applicant";
+        apz.app.CaReviewConfirm.paintDocumentName("CrdAss__CaReviewConfirm__pensionAppCloneRow_0", "CrdAss__CaReviewConfirm__pensionAppParentRow",
+            "Pension Doc")
+    }
+    if (!apz.isObjectEmpty(incomeDtls.pension) && incomeDtls.pension.hasOwnProperty('coApplicant')) {
+        $(`#${reViewcnfrm}PensionRow`).removeClass('sno');
+        $(`#${reViewcnfrm}pensionCheckedBoth`).addClass('sno');
+        $(`#${reViewcnfrm}pensionAppRow`).addClass('sno');
+        $(`#${reViewcnfrm}pensionCoApprow`).removeClass('sno');
+        $(`#${reViewcnfrm}pensionCoAPpInc_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.pension?.coApplicant?.coApplicantPensionIncome));
+        custTypeForImages = "Co-Applicant";
+        apz.app.CaReviewConfirm.paintDocumentName("CrdAss__CaReviewConfirm__pensionCoAppCloneRow_0",
+            "CrdAss__CaReviewConfirm__pensionCoAppParentRow", "Pension Doc")
+    }
+    if (!apz.isObjectEmpty(incomeDtls.pension) && incomeDtls.pension.hasOwnProperty('applicant') && incomeDtls.pension.hasOwnProperty(
+        'coApplicant')) {
+        $(`#${reViewcnfrm}pensionCheckedBoth`).removeClass('sno');
+        $(`#${reViewcnfrm}pensionAppRow`).removeClass('sno');
+        $(`#${reViewcnfrm}pensionCoApprow`).removeClass('sno');
+    }
+}
+apz.app.CaReviewConfirm.paintWageData = function () {
+    if (incomeDtls.hasOwnProperty('wage') || apz.isObjectEmpty(incomeDtls.wage)) {
+        $(`#${reViewcnfrm}WagedtlsRow`).addClass('sno');
+    }
+    if (!apz.isObjectEmpty(incomeDtls.wage) && incomeDtls.wage.hasOwnProperty('applicant')) {
+        $(`#${reViewcnfrm}WagedtlsRow`).removeClass('sno');
+        $(`#${reViewcnfrm}wagecheckedBoth`).addClass('sno');
+        $(`#${reViewcnfrm}wageApprow`).removeClass('sno');
+        $(`#${reViewcnfrm}wageCoapprow`).addClass('sno');
+        $(`#${reViewcnfrm}wageEarnedBy_txtcnt`).text('Applicant');
+        if (incomeDtls.wage.applicant.hasOwnProperty('farmWorker')) {
+            $(`#${reViewcnfrm}FarmWorkerRow`).removeClass('sno');
+            $(`#${reViewcnfrm}farmwageTActivity_txtcnt`).text('Farm Worker');
+            $(`#${reViewcnfrm}farmEarnedPerDay_txtcnt`).text(incomeDtls?.wage?.applicant?.farmWorker?.wageEarnedPerDay);
+            $(`#${reViewcnfrm}farmNoOfDayInMonth_txtcnt`).text(incomeDtls?.wage?.applicant?.farmWorker?.noOfDaysInMonth);
+            $(`#${reViewcnfrm}farmTotalPerMonth_txtcnt`).text(incomeDtls?.wage?.applicant?.farmWorker?.totalWagePerMonth);
+            $(`#${reViewcnfrm}farmselfDeclaredWagePerMonth_txtcnt`).text(incomeDtls?.wage?.applicant?.farmWorker?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.applicant.hasOwnProperty('constructions')) {
+            $(`#${reViewcnfrm}ConstructionsRow`).removeClass('sno');
+            $(`#${reViewcnfrm}consTAction_txtcnt`).text('Constructions');
+            $(`#${reViewcnfrm}consWEarnedperday_txtcnt`).text(incomeDtls?.wage?.applicant?.constructions?.wageEarnedPerDay);
+            $(`#${reViewcnfrm}consNoofdaysmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.constructions?.noOfDaysInMonth);
+            $(`#${reViewcnfrm}consTWpermnth_txtcnt`).text(incomeDtls?.wage?.applicant?.constructions?.totalWagePerMonth);
+            $(`#${reViewcnfrm}consSDWpermnth_txtcnt`).text(incomeDtls?.wage?.applicant?.constructions?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.applicant.hasOwnProperty('contractLabour')) {
+            $(`#${reViewcnfrm}contractLabourRow`).removeClass('sno');
+            $(`#${reViewcnfrm}contractTAction_txtcnt`).text('Contract Labour');
+            $(`#${reViewcnfrm}contractWEarned_txtcnt`).text(incomeDtls?.wage?.applicant?.contractLabour?.wageEarnedPerDay);
+            $(`#${reViewcnfrm}contractNdays_txtcnt`).text(incomeDtls?.wage?.applicant?.contractLabour?.noOfDaysInMonth);
+            $(`#${reViewcnfrm}contractTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.contractLabour?.totalWagePerMonth);
+            $(`#${reViewcnfrm}contractSDTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.contractLabour?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.applicant.hasOwnProperty('maid')) {
+            $(`#${reViewcnfrm}maidRow`).removeClass('sno');
+            $(`#${reViewcnfrm}maidTAction_txtcnt`).text('Maid');
+            $(`#${reViewcnfrm}maidWEarned_txtcnt`).text(incomeDtls?.Wage?.applicant?.maid?.wageEarnedPerDay);
+            $(`#${reViewcnfrm}maidNdays_txtcnt`).text(incomeDtls?.Wage?.applicant?.maid?.noOfDaysInMonth);
+            $(`#${reViewcnfrm}maidTWmnth_txtcnt`).text(incomeDtls?.Wage?.applicant?.maid?.totalWagePerMonth);
+            $(`#${reViewcnfrm}maidSDTWmnth_txtcnt`).text(incomeDtls?.Wage?.applicant?.maid?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.applicant.hasOwnProperty('hotelWorker')) {
+            $(`#${reViewcnfrm}hotelWorkerRow`).removeClass('sno');
+            $(`#${reViewcnfrm}HwTAction_txtcnt`).text('Hotel Worker');
+            $(`#${reViewcnfrm}HwwageEarned_txtcnt`).text(incomeDtls?.wage?.applicant?.hotelWorker?.wageEarnedPerDay);
+            $(`#${reViewcnfrm}HwNdays_txtcnt`).text(incomeDtls?.wage?.applicant?.hotelWorker?.noOfDaysInMonth);
+            $(`#${reViewcnfrm}HwTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.hotelWorker?.totalWagePerMonth);
+            $(`#${reViewcnfrm}HwSDTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.hotelWorker?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.applicant.hasOwnProperty('other')) {
+            $(`#${reViewcnfrm}wageOthersrow`).removeClass('sno');
+            $(`#${reViewcnfrm}WothTAction_txtcnt`).text('Other');
+            $(`#${reViewcnfrm}WothOActivity_txtcnt`).text(incomeDtls?.wage?.applicant?.other?.otherAct);
+            $(`#${reViewcnfrm}WothWEarned_txtcnt`).text(incomeDtls?.wage?.applicant?.other?.wageEarnedPerDay);
+            $(`#${reViewcnfrm}WothNdays_txtcnt`).text(incomeDtls?.wage?.applicant?.other?.noOfDaysInMonth);
+            $(`#${reViewcnfrm}WothTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.other?.totalWagePerMonth);
+            $(`#${reViewcnfrm}WothSDTWmnth_txtcnt`).text(incomeDtls?.wage?.applicant?.other?.selfDeclaredWage);
+        }
+    }
+    if (!apz.isObjectEmpty(incomeDtls.wage) && incomeDtls.wage.hasOwnProperty('coApplicant')) {
+        $(`#${reViewcnfrm}WagedtlsRow`).removeClass('sno');
+        $(`#${reViewcnfrm}wagecheckedBoth`).addClass('sno');
+        $(`#${reViewcnfrm}wageApprow`).addClass('sno');
+        $(`#${reViewcnfrm}wageCoapprow`).removeClass('sno');
+        $(`#${reViewcnfrm}wageEarnedBy_txtcnt`).text('CoApplicant');
+        if (incomeDtls.wage.coApplicant.hasOwnProperty('farmWorker')) {
+            $(`#${reViewcnfrm}coFarmWorkerRow`).removeClass('sno');
+            $(`#${reViewcnfrm}CofarmwageTActivity_txtcnt`).text('Farm Worker');
+            $(`#${reViewcnfrm}CofarmEarnedPerDay_txtcnt`).text(incomeDtls?.wage?.coApplicant?.farmWorker?.wageEarnedPerDay);
+            $(`#${reViewcnfrm}CofarmNoOfDayInMonth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.farmWorker?.noOfDaysInMonth);
+            $(`#${reViewcnfrm}CofarmTotalPerMonth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.farmWorker?.totalWagePerMonth);
+            $(`#${reViewcnfrm}CofarmselfDeclaredWagePerMonth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.farmWorker?.selfDeclaredWage);
+            $(`#${reViewcnfrm}CofarmSDTotalPerMonth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.farmWorker?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.coApplicant.hasOwnProperty('constructions')) {
+            $(`#${reViewcnfrm}coConstructionsRow`).removeClass('sno');
+            $(`#${reViewcnfrm}COconsTAction_txtcnt`).text('Constructions');
+            $(`#${reViewcnfrm}COconsWEarnedperday_txtcnt`).text(incomeDtls?.wage?.coApplicant?.constructions?.wageEarnedPerDay);
+            $(`#${reViewcnfrm}COconsNoofdaysmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.constructions?.noOfDaysInMonth);
+            $(`#${reViewcnfrm}COconsTWpermnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.constructions?.totalWagePerMonth);
+            $(`#${reViewcnfrm}COconsSDWpermnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.constructions?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.coApplicant.hasOwnProperty('contractLabour')) {
+            $(`#${reViewcnfrm}COcontractLabourRow`).removeClass('sno');
+            $(`#${reViewcnfrm}COcontractTAction_txtcnt`).text('Contract Labour');
+            $(`#${reViewcnfrm}COcontractWEarned_txtcnt`).text(incomeDtls?.wage?.coApplicant?.contractLabour?.wageEarnedPerDay);
+            $(`#${reViewcnfrm}COcontractNdays_txtcnt`).text(incomeDtls?.wage?.coApplicant?.contractLabour?.noOfDaysInMonth);
+            $(`#${reViewcnfrm}COcontractTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.contractLabour?.totalWagePerMonth);
+            $(`#${reViewcnfrm}COcontractSDTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.contractLabour?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.coApplicant.hasOwnProperty('maid')) {
+            $(`#${reViewcnfrm}COmaidRow`).removeClass('sno');
+            $(`#${reViewcnfrm}ComaidTAction_txtcnt`).text('Maid');
+            $(`#${reViewcnfrm}ComaidWEarned_txtcnt`).text(incomeDtls?.wage?.coApplicant?.maid?.wageEarnedPerDay);
+            $(`#${reViewcnfrm}ComaidNdays_txtcnt`).text(incomeDtls?.wage?.coApplicant?.maid?.noOfDaysInMonth);
+            $(`#${reViewcnfrm}ComaidTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.maid?.totalWagePerMonth);
+            $(`#${reViewcnfrm}ComaidSDTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.maid?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.coApplicant.hasOwnProperty('hotelWorker')) {
+            $(`#${reViewcnfrm}CohotelWorkerRow`).removeClass('sno');
+            $(`#${reViewcnfrm}CoHwTAction_txtcnt`).text('Hotel Worker');
+            $(`#${reViewcnfrm}CoHwwageEarned_txtcnt`).text(incomeDtls?.wage?.coApplicant?.hotelWorker?.wageEarnedPerDay);
+            $(`#${reViewcnfrm}CoHwNdays_txtcnt`).text(incomeDtls?.wage?.coApplicant?.hotelWorker?.noOfDaysInMonth);
+            $(`#${reViewcnfrm}CoHwTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.hotelWorker?.totalWagePerMonth);
+            $(`#${reViewcnfrm}CoHwSDTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.hotelWorker?.selfDeclaredWage);
+        }
+        if (incomeDtls.wage.coApplicant.hasOwnProperty('other')) {
+            $(`#${reViewcnfrm}wageCoOthersrow`).removeClass('sno');
+            $(`#${reViewcnfrm}WothCoTAction_txtcnt`).text('Other');
+            $(`#${reViewcnfrm}WothCoOActivity_txtcnt`).text(incomeDtls?.wage?.coApplicant?.other?.otherAct);
+            $(`#${reViewcnfrm}WothCoWEarned_txtcnt`).text(incomeDtls?.wage?.coApplicant?.other?.wageEarnedPerDay);
+            $(`#${reViewcnfrm}WothCoNdays_txtcnt`).text(incomeDtls?.wage?.coApplicant?.other?.noOfDaysInMonth);
+            $(`#${reViewcnfrm}WothCoTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.other?.totalWagePerMonth);
+            $(`#${reViewcnfrm}WothCoSDTWmnth_txtcnt`).text(incomeDtls?.wage?.coApplicant?.other?.selfDeclaredWage);
+        }
+    }
+    if (!apz.isObjectEmpty(incomeDtls.wage) && incomeDtls.wage.hasOwnProperty('applicant') && incomeDtls.wage.hasOwnProperty('coApplicant')) {
+        $(`#${reViewcnfrm}wageEarnedBy_txtcnt`).text('Both');
+        $(`#${reViewcnfrm}wagecheckedBoth`).removeClass('sno');
+        $(`#${reViewcnfrm}wageApprow`).removeClass('sno');
+        $(`#${reViewcnfrm}wageCoapprow`).removeClass('sno');
+    }
+}
+apz.app.CaReviewConfirm.paintrentalIncomeData = function () {
+    if (incomeDtls.hasOwnProperty('rentalIncome') || apz.isObjectEmpty(incomeDtls.rentalIncome)) {
+        $(`#${reViewcnfrm}rentalIncomeRow`).addClass('sno');
+    }
+    if (!apz.isObjectEmpty(incomeDtls.rentalIncome) && incomeDtls.rentalIncome.hasOwnProperty('applicant')) {
+        $(`#${reViewcnfrm}rentalIncomeRow`).removeClass('sno');
+        $(`#${reViewcnfrm}rentalcheckboth`).addClass('sno');
+        $(`#${reViewcnfrm}rentalApprow`).removeClass('sno');
+        $(`#${reViewcnfrm}rentalCoapprow`).addClass('sno');
+        $(`#${reViewcnfrm}rentalAppInomeMonth_txtcnt`).text(incomeDtls?.rentalIncome?.applicant?.monthlyRentalIncome);
+        $(`#${reViewcnfrm}AppbuildingType_txtcnt`).text(incomeDtls?.rentalIncome?.applicant?.buildingType);
+        $(`#${reViewcnfrm}rentalAppConInomeMonth_txtcnt`).text(incomeDtls?.rentalIncome?.applicant?.consideredMonthlyIncome);
+        custTypeForImages = "Applicant";
+        apz.app.CaReviewConfirm.paintDocumentName("CrdAss__CaReviewConfirm__rentalIncomeAppCLoneRow_0",
+            "CrdAss__CaReviewConfirm__rentalIncomeAppParentRow", "Rentalincome_Agg Doc")
+    }
+    if (!apz.isObjectEmpty(incomeDtls.rentalIncome) && incomeDtls.rentalIncome.hasOwnProperty('coApplicant')) {
+        $(`#${reViewcnfrm}rentalIncomeRow`).removeClass('sno');
+        $(`#${reViewcnfrm}rentalcheckboth`).addClass('sno');
+        $(`#${reViewcnfrm}rentalApprow`).addClass('sno');
+        $(`#${reViewcnfrm}rentalCoapprow`).removeClass('sno');
+        $(`#${reViewcnfrm}rentCoAppIncomeMonth_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.rentalIncome?.coApplicant?.monthlyRentalIncome));
+        $(`#${reViewcnfrm}cobuildingType_txtcnt`).text(incomeDtls?.rentalIncome?.applicant?.buildingType);
+        $(`#${reViewcnfrm}rentalCoAppConInomeMonth_txtcnt`).text(ApzCOB.formatamountVal(incomeDtls?.rentalIncome?.coApplicant?.consideredMonthlyIncome));
+        custTypeForImages = "Co-Applicant";
+        apz.app.CaReviewConfirm.paintDocumentName("CrdAss__CaReviewConfirm__rentalIncomeCoAppCLoneRow_0",
+            "CrdAss__CaReviewConfirm__rentalIncomeCoAppParentRow", "Rentalincome_Agg Doc")
+    }
+    if (!apz.isObjectEmpty(incomeDtls.rentalIncome) && incomeDtls.rentalIncome.hasOwnProperty('applicant') && incomeDtls.rentalIncome
+        .hasOwnProperty('coApplicant')) {
+        $(`#${reViewcnfrm}rentalcheckboth`).removeClass('sno');
+        $(`#${reViewcnfrm}rentalApprow`).removeClass('sno');
+        $(`#${reViewcnfrm}rentalCoapprow`).removeClass('sno');
+    }
+}
+apz.app.CaReviewConfirm.launchNextStage = function () {
+    let req = {
+        "apiRequest": {
+            "requestObj": {
+                "appId": gAppId,
+                "applicationId": gApzCOB.userDetails.applicationId,
+                "versionNum": 1,
+                "stageId": CA_CURRENT_STAGE_NO,
+                "requestType": "Verify",
+                "customerType": "Applicant",
+                "editedFields": []
+            },
+            "userId": LoggedInUserDetails.loginResponse.userDet.id,
+            "appId": gAppId,
+            "interfaceName": "UploadCALoanData"
+        }
+    }
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.CaReviewConfirm.launchNextStageCB);
+    }, 1000)
+}
+apz.app.CaReviewConfirm.launchNextStageCB = function (params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+            .APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            let errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            ApzCOB.launchSubScreen('CaInPrincipleDecision', "CrdAss__Cabase__caLaunchCol", "");
+            apz.app.Cabase.SidebarSelect.moveToNextStep();
+            // apz.app.Cabase.BRECbService();
+        } else {
+            apz.stopLoader();
+            ApzCOB.showCaModals({
+                text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.Cabase.closeCaErrMdl()"
+                }
+            }, "Error");
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showCaModals({
+            text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.CaReviewConfirm.paintDocumentName = function (clonebleDiv, parentdiv, documentType, bssDocIndex) {
+    if (apz.isObjectEmpty(inSessionStore) || !inSessionStore.hasOwnProperty('applicationDocumentsWrapperList')) return;
+    let i = 1;
+    let documentResp = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList
+    if (documentResp.length > 0) {
+        if (documentType === 'residencePhoto') {
+            window.SupportDocs = documentResp.filter(doc => doc.payload.documentType === documentType && parseInt(doc.custDtlId) === parseInt(gApzCOB
+                .userDetails.custDtlId));
+        } else if (documentType == "BUSINESS_ADDRESS_PROOF") {
+            window.SupportDocs = documentResp.filter(
+                doc => doc.payload?.documentType?.includes(documentType)
+            );
+        } else if (documentType !== "proof with owner doc" && documentType !== 'SupportDocs') {
+            let docNo = !apz.isNull(bssDocIndex) ? bssDocIndex + 1 : businessCounter;
+            window.SupportDocs = documentResp.filter(doc => doc.payload.documentType === documentType && doc.payload.docNo == docNo);
+        } else {
+            window.SupportDocs = documentResp.filter(doc => doc.payload.documentType === documentType && parseInt(doc.custDtlId) === parseInt(gApzCOB
+                .userDetails.custDtlId));
+        }
+        if (SupportDocs.length > 0) {
+            let cloneDiv = clonebleDiv;
+            let parentDiv = $("#" + parentdiv);
+            parentDiv.html('');
+            SupportDocs = SupportDocs.filter((doc) => {
+                return !(
+                    doc.payload?.incomeType === "Business" &&
+                    doc.payload?.uploadedBy === "KM"
+                );
+            });
+            SupportDocs.forEach((doc, index) => {
+                let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
+                if (doc.payload.documentType !== "proof with owner doc" && doc.payload.documentType !== 'SupportDocs') {
+                    $(`#${parentdiv} #${newId} a.ett-hypl span`).text(`${doc.payload.documentType.split(" Doc")[0]}_${index + 1}.jpg`);
+                } else {
+                    let baseName = doc.payload.documentFileName.match(/^[^\d]+/)[0];
+                    $(`#${parentdiv} #${newId} a.ett-hypl span`).text(`${baseName}_${i}.jpg`);
+                    i++;
+                }
+                $(`#${parentdiv} #${newId}`).attr('data-id', doc.appDocId);
+                $(`#${parentdiv} #${newId} .updel .scb-col15 .ett-para span`).text(`${Math.floor(doc.payload.docSize / 1024)} KB`);
+                $(`#${parentdiv} #${newId}`).removeClass('sno');
+            })
+            if (documentType === "residenceProof") {
+                $("#CrdAss__CaReviewConfirm__residence_proof").removeClass('sno');
+            }
+            if (documentType === "residencePhoto") {
+                $("#CrdAss__CaReviewConfirm__residence_photo").removeClass('sno');
+            }
+        }
+    }
+}
+apz.app.CaReviewConfirm.viewDocument = function (pthis) {
+    let documentId = $(pthis).parents('.shwdtl').attr('data-id');
+    if (!documentId) {
+        documentId = $(pthis).parents('.uploadimg').attr('data-id');
+    }
+    let docDetails = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.find(doc => parseInt(doc.appDocId) === parseInt(
+        documentId));
+    if (!apz.isObjectEmpty(docDetails)) {
+        let fileName = docDetails?.payload?.documentFileName;
+        let callBackFn = apz.app.CaReviewConfirm.viewDocumentCB;
+        window.ImageLocationDetails = {
+            latitude: docDetails?.payload.latitude || "",
+            longitude: docDetails?.payload.longitude || "",
+            uploadedTs: docDetails?.payload.uploadedTs || "",
+            documentFileName: docDetails?.payload.documentFileName || ""
+        };
+        ApzCOB.downloadFileFromServer(fileName, callBackFn);
+    }
+}
+apz.app.CaReviewConfirm.viewDocumentCB = function (params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.base64)) {
+        $(`#${reViewcnfrm}imgView`).attr('src', 'data:image/png;base64,' + params.base64);
+        if (Object.keys(window.ImageLocationDetails).length > 0) {
+            apz.app.BaseScreens.paintImageLocationDetails(`#${reViewcnfrm}imgView`, window.ImageLocationDetails);
+        }
+        ApzCOB.toggleModal(`${reViewcnfrm}docViewModal`);
+    } else {
+        ApzCOB.fnDisplayMsg("Document is not available")
+    }
+}
+apz.app.CaReviewConfirm.getPresentIncomeSources = function () {
+    incomeDtls = JSON.parse(inSessionStore?.bcmpiIncomeDetails?.payload);
+    const incomeDtlsKeys = Object.keys(incomeDtls || {});
+    const ignoreKeys = ["applicantTotalIncome", "coApplicantTotalIncome", "otherFamilyIncome", "fieldAssessedIncome", "fieldAssessedIncomeDate",
+        "homeMaker"
+    ];
+    const incomeSources = [];
+    incomeDtlsKeys.forEach(key => {
+        if (ignoreKeys.includes(key)) return;
+        const value = incomeDtls[key];
+        const isObjectWithData = typeof value === "object" && value !== null && (
+            (Array.isArray(value) && value.length > 0) || Object.values(value).some(v => v && (typeof v === "object" ? Object.keys(v)
+                .length > 0 : true)));
+        if (isObjectWithData) {
+            const readableName = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+            incomeSources.push(readableName);
+        }
+    });
+    return incomeSources;
+};
+apz.app.CaReviewConfirm.paintNetIncome = function () {
+    const safeGet = (obj, path) => path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj);
+    const sumFields = (objA, keyA, objB, keyB) => {
+        const a = Number(safeGet(objA, keyA)) || 0;
+        const b = Number(safeGet(objB, keyB)) || 0;
+        return a + b;
+    };
+    const textOrBlank = val => val > 0 ? `₹ ${val}` : "";
+    const agriIncome1 = sumFields(incomeDtls.agriculture?.applicant, "consideredIncome", incomeDtls.agriculture?.coApplicant, "consideredIncome");
+    const agriIncome2 = sumFields(incomeDtls.agriculture?.applicant, "declaredIncome", incomeDtls.agriculture?.coApplicant, "declaredIncome");
+    const agriIncome = Math.min(agriIncome1, agriIncome2)
+    $("#CrdAss__CaReviewConfirm__OtherInc1_income").text(ApzCOB.formatIndianRupees(agriIncome));
+    const salaryIncome = sumFields(incomeDtls.salary?.applicant, "netSalary", incomeDtls.salary?.coApplicant, "netSalary");
+    $("#CrdAss__CaReviewConfirm__OtherInc2_income").text(ApzCOB.formatIndianRupees(salaryIncome));
+    const pensionIncome = sumFields(incomeDtls.pension?.applicant, "applicantPensionIncome", incomeDtls.pension?.coApplicant,
+        "coApplicantPensionIncome");
+    $("#CrdAss__CaReviewConfirm__OtherInc4_income").text(ApzCOB.formatIndianRupees(pensionIncome));
+    const sumWageIncome = (wageData = {}) => {
+        const categories = ["farmWorker", "contractLabour", "constructions", "maid", "hotelWorker", "other"];
+        return categories.reduce((sum, cat) => {
+            const val = Number(safeGet(wageData, `${cat}.totalWagePerMonth`)) || 0;
+            return sum + val;
+        }, 0);
+    };
+    const sumWageIncomeSelf = (wageData = {}) => {
+        const categories = ["farmWorker", "contractLabour", "constructions", "maid", "hotelWorker", "other"];
+        return categories.reduce((sum, cat) => {
+            const val = Number(safeGet(wageData, `${cat}.selfDeclaredWage`)) || 0;
+            return sum + val;
+        }, 0);
+    };
+    const wageIncome1 = sumWageIncome(incomeDtls.wage?.applicant) + sumWageIncome(incomeDtls.wage?.coApplicant);
+    const wageIncome2 = sumWageIncomeSelf(incomeDtls.wage?.applicant) + sumWageIncomeSelf(incomeDtls.wage?.coApplicant);
+    const wageIncome = Math.min(wageIncome1, wageIncome2);
+    $("#CrdAss__CaReviewConfirm__OtherInc3_income").text(ApzCOB.formatIndianRupees(wageIncome));
+    const rentIncome = sumFields(incomeDtls.rentalIncome?.applicant, "consideredMonthlyIncome", incomeDtls.rentalIncome?.coApplicant,
+        "consideredMonthlyIncome");
+    $("#CrdAss__CaReviewConfirm__OtherInc5_income").text(ApzCOB.formatIndianRupees(rentIncome));
+    const businessData = incomeDtls.business || {};
+    const getBusinessIncomeSumByType = (arrayKey, typeKey, incomeField = "netBusinessIncome") => {
+        const list = businessData[arrayKey] || [];
+        return list.reduce((sum, item) => {
+            const type = item?.[typeKey];
+            const income = Number(item?.[incomeField]) || 0;
+            if (type === "Applicant" || type === "Co-Applicant" || type === "Both") {
+                return sum + income;
+            }
+            return sum;
+        }, 0);
+    };
+    const tailoringIncome1 = getBusinessIncomeSumByType("Tailoring", "tailoringType", "netBusinessIncome");
+    const tailoringIncome2 = getBusinessIncomeSumByType("Tailoring", "tailoringType", "netMonthlyIncome");
+    const tailoringIncome = Math.min(tailoringIncome1, tailoringIncome2);
+    $("#CrdAss__CaReviewConfirm__business3_income").text(ApzCOB.formatIndianRupees(tailoringIncome));
+    const kiranaIncome1 = getBusinessIncomeSumByType("Kirana", "kiranaType", "finalNetIncome");
+    const kiranaIncome2 = getBusinessIncomeSumByType("Kirana", "kiranaType", "netMonthlyIncome");
+    const kiranaIncome = Math.min(kiranaIncome1, kiranaIncome2);
+    $("#CrdAss__CaReviewConfirm__business2_income").text(ApzCOB.formatIndianRupees(kiranaIncome));
+    const otherIncome = getBusinessIncomeSumByType("Other", "otherType", "netBusinessIncome");
+    $("#CrdAss__CaReviewConfirm__business4_income").text(ApzCOB.formatIndianRupees(otherIncome));
+    const dairyIncome1 = getBusinessIncomeSumByType("dairy", "DairyType", "IncomeAssessmentChecknetBusinessIncome");
+    const dairyIncome2 = getBusinessIncomeSumByType("dairy", "DairyType", "netMonthlyIncome");
+    const dairyIncome = Math.min(dairyIncome1, dairyIncome2);
+
+    $("#CrdAss__CaReviewConfirm__business1_income").text(ApzCOB.formatIndianRupees(dairyIncome));
+    $("#CrdAss__CaReviewConfirm__OtherInc10_income").text("₹ 0");
+    const totalIncome = agriIncome + salaryIncome + pensionIncome + wageIncome + rentIncome + tailoringIncome + kiranaIncome + otherIncome +
+        dairyIncome;
+    $("#CrdAss__CaReviewConfirm__totalHousehldIncValue").text(`₹ ${ApzCOB.formatamountVal(totalIncome)}`);
+    $("#CrdAss__CaReviewConfirm__totalDeclaredIncValue").text(
+        `₹ ${ApzCOB.formatamountVal(parseInt(JSON.parse(inSessionStore?.bcmpiIncomeDetails?.payload || "{}")?.totalDeclaredIncome) || 0)}`);
+    //$("#CrdAss__CaReviewConfirm__tot_income_app").text(`₹ ` + incometot.applicantTotalIncome);
+
+    const useDeclared = incomeDtls.totalDeclaredIncome <= incomeDtls.fieldAssessedIncome;
+
+    // $("#CrdAss__CaReviewConfirm__tot_income_app").text(`₹ ${ApzCOB.formatamountVal(useDeclared? incomeDtls.applicantTotalDeclaredIncome: incomeDtls.applicantTotalIncome)}`,);
+    // $("#CrdAss__CaReviewConfirm__tot_income_coapp").text(`₹ ${ApzCOB.formatamountVal(useDeclared? incomeDtls.coApplicantTotalDeclaredIncome : incomeDtls.coApplicantTotalIncome)}`,);
+
+    // Handled applicant and co-applicant income data paint issue for different response
+    const applicantIncome = useDeclared
+        ? (incomeDtls.applicantTotalDeclaredIncome ??
+            incomeDtls.applicantTotalIncome)
+        : incomeDtls.applicantTotalIncome;
+    const coApplicantIncome = useDeclared
+        ? (incomeDtls.coApplicantTotalDeclaredIncome ??
+            incomeDtls.coApplicantTotalIncome)
+        : incomeDtls.coApplicantTotalIncome;
+    $("#CrdAss__CaReviewConfirm__tot_income_app").text(
+        `₹ ${ApzCOB.formatamountVal(applicantIncome)}`,
+    );
+    $("#CrdAss__CaReviewConfirm__tot_income_coapp").text(
+        `₹ ${ApzCOB.formatamountVal(coApplicantIncome)}`,
+    );
+    $("#CrdAss__CaReviewConfirm__tot_income_appCoapp").text(`₹ ${ApzCOB.formatamountVal(incomeDtls.otherIncome)}`,);
+    $("#CrdAss__CaReviewConfirm__tot_income_family").text(`₹ ${ApzCOB.formatamountVal(incomeDtls.otherFamilyIncome)}`,);
+    $("#CrdAss__CaReviewConfirm__tot_income_assessment").text(`₹ ${ApzCOB.formatamountVal(Math.min(incomeDtls.fieldAssessedIncome, incomeDtls.totalDeclaredIncome))}`,);
+
+    const dateObj = incomeDtls.fieldAssessedIncomeDate?.date;
+    const formattedDate = dateObj ? `${String(dateObj.day).padStart(2, '0')}-${String(dateObj.month).padStart(2, '0')}-${dateObj.year}` : '';
+    $("#CrdAss__CaReviewConfirm__income_ass_date").text(formattedDate);
+    apz.app.CaReviewConfirm.paintIncomeOwnershipDetails();
+};
+apz.app.CaReviewConfirm.getIncomeSourceOwnership = function () {
+    const result = {};
+    const checkPresence = (app, coApp) => {
+        const hasApplicant = !!app && Object.keys(app).length > 0;
+        const hasCoApplicant = !!coApp && Object.keys(coApp).length > 0;
+        if (hasApplicant && hasCoApplicant) return "Both";
+        if (hasApplicant) return "Applicant";
+        if (hasCoApplicant) return "Co-Applicant";
+        return "None";
+    };
+    result.agriculture = checkPresence(incomeDtls.agriculture?.applicant, incomeDtls.agriculture?.coApplicant);
+    result.salary = checkPresence(incomeDtls.salary?.applicant, incomeDtls.salary?.coApplicant);
+    result.pension = checkPresence(incomeDtls.pension?.applicant, incomeDtls.pension?.coApplicant);
+    result.rentalIncome = checkPresence(incomeDtls.rentalIncome?.applicant, incomeDtls.rentalIncome?.coApplicant);
+    result.wage = checkPresence(incomeDtls.wage?.applicant, incomeDtls.wage?.coApplicant);
+    result.tailoring = (incomeDtls.business?.Tailoring || []).map(item => item.tailoringType);
+    result.kirana = (incomeDtls.business?.Kirana || []).map(item => item.kiranaType);
+    result.otherBusiness = (incomeDtls.business?.Other || []).map(item => item.otherType);
+    result.dairy = (incomeDtls.business?.dairy || []).map(item => item.DairyType);
+    const homeMaker = incomeDtls.homeMaker;
+    result.homeMaker = homeMaker === "Applicant" || homeMaker === "Co-Applicant" ? homeMaker : "None";
+    return result;
+}
+apz.app.CaReviewConfirm.paintIncomeOwnershipDetails = function () {
+    const ownership = apz.app.CaReviewConfirm.getIncomeSourceOwnership();
+    const formatOwnership = (value) => {
+        if (Array.isArray(value)) return value.join(', ');
+        return value || "None";
+    };
+    $(`#${reViewcnfrm}OtherInc1_ownedBy`).text(ownership.agriculture);
+    $(`#${reViewcnfrm}OtherInc2_ownedBy`).text(ownership.salary);
+    $(`#${reViewcnfrm}OtherInc4_ownedBy`).text(ownership.pension);
+    $(`#${reViewcnfrm}OtherInc5_ownedBy`).text(ownership.rentalIncome);
+    $(`#${reViewcnfrm}OtherInc3_ownedBy`).text(ownership.wage);
+    $(`#${reViewcnfrm}business3_ownedBy`).text(formatOwnership(ownership.tailoring) || 'None');
+    $(`#${reViewcnfrm}business2_ownedBy`).text(formatOwnership(ownership.kirana) || 'None');
+    $(`#${reViewcnfrm}business4_ownedBy`).text(formatOwnership(ownership.otherBusiness) || 'None');
+    $(`#${reViewcnfrm}business1_ownedBy`).text(formatOwnership(ownership.dairy)?.replace(/^,\s*/, '') || 'None');
+    ['agriculture', 'salary', 'pension', 'rentalIncome', 'wage'].forEach(field => {
+        if (ownership[field] === 'None') {
+            $(`#${reViewcnfrm}${field}_row`).addClass('sno');
+        }
+    });
+    const values = [
+        ownership.rentalIncome,
+        ownership.wage,
+        ownership.pension,
+        ownership.agriculture,
+        ownership.salary
+    ];
+
+    const allEmptyOrZero = values.every(
+        value => value === 0 || value === '' || value === null || value === undefined
+    );
+    if (allEmptyOrZero) {
+        $("#CrdAss__CaReviewConfirm__otherIncome_form").addClass('sno')
+        $("#CrdAss__CaReviewConfirm__otherIncome_title").addClass('sno')
+
+    }
+};
+apz.app.CaReviewConfirm.paintDisabilityData = function () {
+    // reset default values first
+    ["appDisaSts", "typeofImpair", "otherImpairment_Type", "udid", "percentImp", "co-appDisaSts", "co-typeofImpair", "co-otherImpairment_Type",
+        "co-udid", "co-percentImp"
+    ].forEach(id => {
+        $(`#${reViewcnfrm}${id}`).text("--");
+    });
+    gApzCOB.requestNodes.customerDetailsList.forEach((cust) => {
+        let currCusDtlId = cust.custDtlId;
+        let curindex = inSessionStore.customerDetailsList.findIndex(el => String(el.custDtlId) === String(currCusDtlId));
+        if (curindex === -1) {
+            return;
+        }
+        let payloadData = inSessionStore.customerDetailsList[curindex].payload || {};
+        // payload may be string
+        if (typeof payloadData === "string") {
+            payloadData = JSON.parse(payloadData);
+        }
+        const isCoApp = cust.customerType === "Co-App";
+        const prefix = isCoApp ? "co-" : "";
+        // disability status
+        const disSts = payloadData.isDisabled;
+        $(`#${reViewcnfrm}${prefix}appDisaSts`).text(disSts === "Y" ? "Yes" : "No");
+        // disability list
+        let typImpairArr = payloadData.disabilityList || [];
+        // other impairment value
+        let otherImpairmentValue = "--";
+        typImpairArr = typImpairArr.map(item => {
+            if (item === "Others" && payloadData.disabliltyOtherValue) {
+                otherImpairmentValue = payloadData.disabliltyOtherValue;
+                return `Others (${payloadData.disabliltyOtherValue})`;
+            }
+            return item;
+        });
+        const typImpair = typImpairArr.length > 0 ? typImpairArr.join(", ") : "--";
+        // paint values
+        $(`#${reViewcnfrm}${prefix}typeofImpair`).text(typImpair);
+        $(`#${reViewcnfrm}${prefix}otherImpairment_Type`).text(otherImpairmentValue);
+        $(`#${reViewcnfrm}${prefix}udid`).text(payloadData.UDID || "--");
+        $(`#${reViewcnfrm}${prefix}percentImp`).text(payloadData.disabilityPercentage || "--");
+    });
+};
+
+apz.app.CaReviewConfirm.isNewAddressFlow = function () {
+    var flag = inSessionStore?.applicationMaster?.assignedTo;
+    if (flag === 'Y') return true;
+    if (flag === 'N') return false;
+
+    var occupationAddresses = inSessionStore?.addressDetailsWrapperList?.[0]
+        ?.addressDetailsList?.filter(el => el.addressType === 'Occupation') || [];
+
+    var hasBusinessIndexedAddress = occupationAddresses.some(function (occAddr) {
+        return (occAddr?.payload?.addressList || []).some(function (addr) {
+            return addr.businessIndex !== undefined && addr.businessIndex !== null && addr.businessIndex !== '';
+        });
+    });
+
+    return hasBusinessIndexedAddress;
+};

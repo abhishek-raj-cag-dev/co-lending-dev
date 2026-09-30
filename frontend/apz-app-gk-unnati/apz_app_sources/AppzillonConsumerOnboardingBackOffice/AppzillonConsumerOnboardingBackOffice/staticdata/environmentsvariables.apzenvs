@@ -1,0 +1,44 @@
+{
+  "typeclass": "ENVIRONMENTSVARIABLES",
+  "name": "environmentsvariables",
+  "type": "ENVIRONMENTSVARIABLES",
+  "childs": [],
+  "environmentsvariablesfile": [
+    {
+      "keyname": "SERVERIP"
+    },
+    {
+      "keyname": "SERVERPORT"
+    },
+    {
+      "keyname": "SERVERIPPORT"
+    },
+    {
+      "keyname": "SERVICEIPPORT"
+    },
+    {
+      "keyname": "OCRSERVICEIPPORT"
+    },
+    {
+      "keyname": "SERVICEIPPORT2"
+    },
+    {
+      "keyname": "SERVERURL"
+    },
+    {
+      "keyname": "TRANSFERSERVICEIPPORT"
+    },
+    {
+      "keyname": "ONBOARDINGSERVICEIPPORT"
+    },
+    {
+      "keyname": "NOTIFSERVICEIPPORT"
+    },
+    {
+      "keyname": "PAYMENTSERVICEIPPORT"
+    },
+    {
+      "keyname": "ONBOARDINGSERVERIPPORT"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+var scrId = "DBkitG__DocExecutionUnnati__";
+var currApplLanguage = '';
+window.mergedBase64 = '';
+window.APPROVED_DOCS = [];
+apz.app.onLoad_DocExecutionUnnati = function() {
+    
+}
+apz.app.onShown_DocExecutionUnnati = function() {
+    apz.app.DBbase.nextBtnEnableDisable('disable');
+    stlanguages = ["Kannada", "Marathi", "Hindi", "Tamil"];
+    apz.populateDropdown(document.getElementById(`${scrId}languageDropdown`),ApzCOB.formatDropDownforArray(disbDocLanguages));
+    currApplLanguage = ApzCOB.getPayloadDatafromWrapper("language", "Applicant", "loanDetails");
+    $('#DBkitG__DocExecutionUnnati__gr_row_7').addClass('sno');
+    $(`#${scrId}languageDropdown`).val(currApplLanguage).change();
+    ApzCOB.DBDocGenerateAndDownload('', 'Fetch', 'LOAN_APPLICATION', currApplLanguage, 'Y', '', '');
+    if (ApplicationType === "OpenMarket") {
+        $("#DBkitG__DocExecutionUnnati__el_txt_1_txtcnt").text("Document Execution - Unnati Open Market");
+    } else if (ApplicationType === "NEW") {
+        $("#DBkitG__DocExecutionUnnati__el_txt_1_txtcnt").text("Document Execution - Unnati");
+    } else if (ApplicationType === "RENEWAL") {
+        $("#DBkitG__DocExecutionUnnati__el_txt_1_txtcnt").text("Document Execution - Unnati Renewal");
+    }
+};
+apz.app.DocExecutionUnnati.paintData = function(mergedBase64) {
+    $('iframe').remove();
+    const iframe = document.createElement('iframe');
+    iframe.width = "700";
+    iframe.height = "600";
+    if (HTMLDOCARRAY.includes(currApplLanguage)) {
+        var trimmed = mergedBase64.trim();
+        if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html") || trimmed.startsWith("<body")) {
+            iframe.srcdoc = mergedBase64;
+        } else {
+            iframe.src = "data:application/pdf;base64," + mergedBase64;
+        }
+    } else {
+        iframe.src = "data:application/pdf;base64," + mergedBase64;
+    }
+    document.getElementById(`${scrId}eSignImgDoc_ul`).appendChild(iframe);
+    $(`#${scrId}eSignImgDoc_li`).addClass('sno');
+    apz.stopLoader();
+};
+apz.app.DocExecutionUnnati.onChangeLanguage = function(pthis) {
+    apz.app.DBbase.nextBtnEnableDisable('disable');
+};
+apz.app.DocExecutionUnnati.onFocusBusinessActivity = function(pthis) {
+    $(`#${scrId}languageDropdown`).attr('title', pthis?.value);
+};
+apz.app.DocExecutionUnnati.manualProcessDownloadDoc = function() {
+    if(!apz.isNull(mergedBase64)) {
+        ApzCOB.convertBase64ToPDF(mergedBase64, `${gApzCOB.userDetails.applicationId + '_DBKIT'}`);
+        ApzCOB.showNewCommonSuccessModal('Document downloaded successfully!');
+        apz.app.DBbase.nextBtnEnableDisable('enable');
+        $(`#${DbbaseScrId}DocExecutionManualRow`).removeClass('sno');
+    } else {
+        ApzCOB.DBDocGenerateAndDownload('', 'Generated', 'LOAN_APPLICATION', currApplLanguage, 'Y', apz.app.DBbase.downloadFilesCB, '');
+    }
+    // ApzCOB.DBDocGenerateAndDownload('', 'Generated', 'LOAN_APPLICATION', currApplLanguage, 'N', '', '');//Individual Download
+};
+apz.app.DocExecutionUnnati.manualProcessDownloadDocCB = function(docListArray) {
+    docListArray?.forEach(el => {
+        docName = DisbursementDocs.find(d => d.id === el.order).docType;
+        ApzCOB.convertBase64ToPDF(el.base64, `${gApzCOB.userDetails.applicationId + docName}`);
+    })
+    $(`#${DbbaseScrId}DocExecutionManualRow`).removeClass('sno');
+};
+apz.app.DocExecutionUnnati.onClickRegenerate = function() {
+    apz.app.DBbase.nextBtnEnableDisable('disable');
+    $(`#${DbbaseScrId}DocExecutionManualRow`).addClass('sno');
+    inSessionStore.documentList = [];
+    currApplLanguage = $(`#${scrId}languageDropdown`).val();
+    ApzCOB.DBDocGenerateAndDownload('', 'Generated', 'LOAN_APPLICATION', currApplLanguage, 'Y', '', '');
+};

@@ -1,0 +1,159 @@
+.rep-dwl {
+    display: grid; 
+    grid-template-columns: auto auto auto;
+    gap: 16px;
+}
+
+.rep-dwl > .srb {
+    width: auto;
+    display: inline;
+}
+
+.rep-dwl a.ett-hypl {
+    display: flex;
+    gap: 4px;
+    font-weight: 600;
+    text-decoration: none !important;
+}
+
+.crt-form.hor.pri.aprrej .flb, .aprrej .ett-para {
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.aprrej .srb span {
+    width: auto;
+    display: flex;
+    flex-direction: row;
+}
+.aprrej .srb {
+    display: flex;
+    gap: 4px;
+}
+
+.aprrej .srb span .approved p {
+    color: #039855;
+    
+}
+.aprrej .srb span .rejected p {
+    color: #D92D20;
+    
+} 
+.sanctionamt .srb span {
+    gap: 4px;
+}
+.inprincipledecision .tab-label-lists .ett-bttn{
+   width:auto;
+   height: 48px;
+   padding: 8px 16px;
+   letter-spacing: 0.4px;
+   font-weight: 400;
+}
+.inprincipledecision .tab-label-lists{margin: 16px 0px;padding:0;border-bottom: 1px solid #d4d4d4;margin-bottom:0px;}
+.inprincipledecision .tab-label-lists .ett-bttn::before{border-bottom:none;width: 100%;}
+.tab-label-lists .ett-bttn.active::before{border-bottom: 4px solid #527D24;}
+
+.inprincipledecision .tab-label-lists .ett-bttn.active {
+    font-weight: 600;
+}
+
+.pst-simp.pa0 > div.metrichdr {
+    padding: 8px 24px;
+}
+.pst-simp.pa0 > div.metrichdr .ett-para{
+    color:#737373;
+    font-weight:600; 
+     font-size: 12px;
+    line-height: 16px; 
+
+}
+
+.pst-simp.pa0 > div.lmvalues {
+    background: #1C41B014;
+    border-radius: 16px;
+    padding: 12px 24px;
+}
+
+.pst-simp.pa0 > div.lmvalues dl {
+border:0;
+padding:0; 
+} 
+.pst-simp.pa0 > div.lmvalues dd{font-weight: 400;font-size: 14px;line-height: 20px;letter-spacing: 0.2px;color: #231F20;}
+.pst-simp.pa0 > div.lmvalues .srb{
+margin-bottom:16px
+}
+.pst-simp.pa0 > div.lmvalues .srb:last-child{
+
+margin:0}
+
+
+
+
+
+div#CrdAss__CaInPrincipleDecision__ct_nav_10 {}
+
+.pst-simp.pa0 > div.aprrej.bmhdr {
+    padding: 16px 0;
+    border-top: 1px solid #d4d4d4;
+    margin-top: 24px;
+    
+}
+
+.pst-simp.pa0 > div.rec-amt {
+
+    padding: 8px 24px;
+    background: #fff;
+    border-radius: 12px;
+}
+.rec-amt .ett-para{ 
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+letter-spacing: 0.2px;
+
+}
+.rec-amt .ett-inpt.pri {
+    text-align: right;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.4px;
+    color: #231F20;
+}
+.tab-sec {
+    height: 45vh;
+    overflow: auto;
+}
+.crt-form.hor.pri .srb.eoc.elblsa p {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.4px;
+    color: #737373;
+}
+
+
+.inpdecision .ett-labl.pri {
+    margin-bottom: 0;
+}
+.careviewconf.rcblk .rcblk {
+    padding: 0;
+}
+body.crdas .ett-hypl.pri {
+    color: #004886;
+}
+.inpdecision.rcblk {
+    padding: 24px;
+}
+.inpdecision .uploadimg {
+    margin: 0;
+}
+
+.pst-simp.pa0 > div.lmvalues .eror dd {
+    color: #D92D20;
+}
+
+.pst-simp.pa0 > div.lmvalues dd.pri-suc {
+    color: #039855 !important;
+}

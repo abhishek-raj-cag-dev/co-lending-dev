@@ -1,0 +1,206 @@
+@media screen and (min-width:1280px){
+     .sanction-dev .casidebar {
+        margin-left: unset;
+        position: unset;
+    }
+     .sanction-dev .cabasediv {
+         display: flex;
+         flex-direction: row-reverse;
+         gap: 0;
+    }
+     .sanction-dev .cabasediv > div:first-child{
+         margin-left: 16px;
+    }
+     .sanction-dev{
+         .shwdtl .crt-form .srb:first-child {
+             width: 100%;
+        }
+         .shwdtl .crt-form .srb {
+             width: calc(33% - 13px);
+        }
+         .cabasediv .casidebar{
+             width:346px ;
+             max-width: 346px;
+             min-width: 346px;
+        }
+         .cabasediv .casidebarwrap {
+             height: 100%;
+             background: #f5f5f5;
+             overflow: auto;
+             position:fixed;
+        }
+         .cabasediv .casidebarwrap .sidelist .listopt .scb-col100{
+             gap:0px
+        }
+         body.sanction-dev .listopt .ett-hypl.pri {
+             letter-spacing: 0;
+             line-height: 20px;
+        }
+         .vw-log-btn {
+            position: fixed;
+            bottom: 100px;
+            margin-right: 32px;
+        }
+         .vw-log-btn .ett-bttn.sec{
+            //  position:absolute;
+            //  width:100%;
+            //  bottom:24px 
+        }
+    }
+    .sanction-dev .caheader .header-logo-col ul li .ett-bttn{
+            display:none;
+            }
+    .sanction-dev .sidebarclose > span .srb .ett-bttn{
+            display:none;
+            }
+    .sanction-dev  .srb.sidebarclose{
+            margin:0px;
+            }
+    .sanction-dev .srb.wrapped.shwdtl > span.scb-col100 > .srb {
+            width:calc(33% - 13px)
+            }
+            .sanction-dev .pst-simp.pa0 > div.vw-log-btn.mt1 {
+        position: fixed;
+        bottom: 76px; 
+        margin-right: 32px; 
+        background: #f5f5f5;
+        padding: 24px;
+        margin-left: -32px;
+        width: 346px;
+            }
+}
+
+
+
+
+ body.unati.crdas.sanction-dev .base-screen{
+     padding:0px;
+}
+ .sanction-dev .cabody {
+     padding: 32px;
+     background: #EFF8FF;
+}
+ body.pri.LoginBase.unati.crdas.sanction-dev {
+     background: #fff;
+} 
+ .sanction-dev .srb.btm-seperator {
+     border-bottom: 0px;
+     margin: 0;
+    padding-bottom: 0;
+}
+.unati.crdas.sanction-dev .caheader {
+    height: 84px;
+}
+.egl-lon {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    gap: 16px;
+}
+.sanction-dev .tab-label-lists .ett-bttn {
+    min-width: unset;
+    width: auto;
+    max-width:unset;
+}
+
+.sanction-dev .tab-label-lists .ett-bttn::before{width: 100%;}
+
+.sanction-dev .tab-label-lists{margin: 16px 0;border-bottom: 1px solid #d4d4d4;}
+
+.sanction-dev .tab-label-lists .ett-bttn::before{border-bottom: 0px;}
+.sanction-dev .cabasediv .casidebar.sideon {
+    margin: 0;
+}
+body.sanction-dev .listopt .ett-hypl.pri {
+    align-items: self-start;
+}
+
+
+@media screen and (max-width:1280px){
+.sanction-dev .srb.sidebarclose{
+margin-bottom:0px
+}
+}
+.crdas.sanction-dev .lon-hdr {
+    position: unset;
+    padding: unset;
+    margin:unset;
+}
+.pst-simp.pa0 > div.suc-sec {
+    min-width: 454px;
+    width: 454px;
+    border-radius: 18px;
+    background: #fff;
+    padding: 16px 24px;
+    box-shadow: 0px 8px 16px 0px #00000029;
+    margin: auto;
+}
+
+.suc-sec svg.icon-rejectsuc {
+    background: #E7F6EC;
+    border-radius: 14px;
+    width: 55px;
+    height: 55px;
+    padding: 12px;
+}
+
+.suc-sec .ett-bttn.sec {
+    gap: 8px;
+    padding-top: 12px;
+    padding-right: 24px;
+    padding-bottom: 12px;
+    padding-left: 24px;
+    background: transparent;
+    -webkit-text-fill-color: #004886;
+    border: 1px solid #004886;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border-radius: 100px;
+    min-width: 100%;
+}
+.suc-sec .ett-bttn.pri{height: 44px;display: flex;align-items: center;justify-content: center;font-size: 14px;border-radius: 100px;background: #004886;/* background: transparent; */-webkit-text-fill-color: #fff;min-width: 100%;}
+
+.suc-btns.san-sucscreen > .scb-col100 {
+    display: flex;
+    gap: 16px;
+    margin-top: 24px;
+}
+.dev-san-suc .lon-hdr .srb.custno.pri .ett-para {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 26px;
+}
+.dev-san-suc .lon-hdr .srb.custno.pri > span {
+    width: auto;
+}
+
+.dev-san-suc .srb.btm-seperator > span {
+    display: flex;
+    align-items:center;
+    justify-content: center;
+    gap: 4px;
+    flex-direction: column;
+}
+.dev-san-suc .srb.btm-seperator > span ul{display:flex;width: auto;align-items: center;}
+body.unati.crdas .dev-san-suc .srb.btm-seperator > span .ett-labl.pri{
+    font-size: 14px !important;
+    color: #000;
+    font-weight: 500; 
+} 
+.suc-sec .inflbl a.ett-hypl svg {
+    margin-right: 8px;
+}
+
+.suc-sec .inflbl a.ett-hypl {
+    font-weight: 600;
+}
+
+body.unati .suc-sec .suc-message p.ett-para {
+    font-weight: 600;
+}
+.mt4{
+    margin-top:4px;
+}

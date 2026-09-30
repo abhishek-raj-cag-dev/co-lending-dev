@@ -1,0 +1,14 @@
+{
+  "keysForContent": {
+    "applicationName": "দাবি মানার প্রতিশ্রুতি সংক্রান্ত বিজ্ঞপ্তি",
+    "rs": "টাকা.",
+    "date": "তারিখ:",
+    "place": "স্থান:",
+    "note": "দাবি অনুযায়ী, আমি <applicantName>, বয়স <applicantAge> বছর, <applicantAddress>-এ বসবাসকারী এবং <coApplicantName>, বয়স <coApplicantAge> বছর, <coApplicantAddress>-এ বসবাসকারী, যৌথভাবে এবং এককভাবে ক্রেডিট এক্সেস গ্রামীণ লিমিটেড (সিএ গ্রামীণ)-কে অর্থ প্রদান করার প্রতিশ্রুতি দিচ্ছি, অথবা প্রাপ্ত অর্থের উপর বার্ষিক <rateOfInterest> শতাংশ সুদ সহ <sanctionedAmount> ( <sanctionedAmountInWords> শুধুমাত্র   ) প্রদান করার প্রতিশ্রুতি দিচ্ছি।",
+	"noteNew": "দাবি অনুযায়ী, আমি <applicantName>, বয়স <applicantAge> বছর, <applicantAddress>-এ বসবাসকারী এবং <coApplicantName>, বয়স <coApplicantAge> বছর, <coApplicantAddress>-এ বসবাসকারী, যৌথভাবে এবং এককভাবে ক্রেডিট এক্সেস গ্রামীণ লিমিটেড (সিএ গ্রামীণ)-কে অর্থ প্রদান করার প্রতিশ্রুতি দিচ্ছি, অথবা প্রাপ্ত অর্থের উপর বার্ষিক <rateOfInterest> শতাংশ সুদ সহ <sanctionedAmount> ( <sanctionedAmountInWords> শুধুমাত্র   ) প্রদান করার প্রতিশ্রুতি দিচ্ছি।",
+    "loanAccount": "ঋণ অ্যাকাউন্ট নম্বর",
+    "applicantName": "1. আবেদনকারীর নাম:",
+    "signature": "স্বাক্ষর:",
+    "coApplicantName": "2. সহ-আবেদনকারীর নাম:"
+  }
+}

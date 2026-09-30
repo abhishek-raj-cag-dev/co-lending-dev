@@ -1,0 +1,1035 @@
+var scrId = "DBkitG__eNach__",
+    bankAccField = ["accountName", "accountNumber", "ifsc", "bankName", "branchName", "accountType", "reEnterAccountNumber"],
+    appeNachMethod = ApzCOB.getDescfromLitCode('LIT_APP_eNACH_METHOD_TXT'),
+    coAppeNachMethod = ApzCOB.getDescfromLitCode('LIT_COAPP_eNACH_METHOD_TXT'),
+    searchVal = '',
+    formattedBanks = [],
+    eNachBankData = [],
+    raisedQueries = [],
+    isQueryRaised = false,
+    propsToCheck = ["aadhaar_instant_code", "debit_card_code", "net_banking_code", "aadhaar_otp_code"];
+window.DB_CURRENT_STAGE = "eNach";
+window.validAccNum = false, window.validIFSC = false, window.acclengthErr = false, window.ifsclengthErr = false, window.urlLaunched = false, window.AppRetryAttempts = 0, window.CoAppRetryAttempts = 0, window.appEnachData = {}, window.coAppEnachData = {}, window.firstStatusCall = '';
+apz.app.onLoad_eNach = function() {
+    $('#DBkitG__eNach__bankDtlsForm input').attr("autocomplete", "off");
+};
+apz.app.onShown_eNach = function() {
+    if (!Array.isArray(inSessionStore.enachDetails)) {
+        inSessionStore.enachDetails = [];
+    }
+    apz.app.DBbase.nextBtnEnableDisable('disable');
+    let queryLength = apz.app.DBbase.paintQuery('isRaised');
+    isQueryRaised = queryLength?.length > 0 ? true : false;
+    apz.app.eNach.setMinMaxLength();
+    window.custType = 'Applicant';
+    apz.childScr = 'eNach';
+    apz.populateDropdown(document.getElementById(`${scrId}accountType`),ApzCOB.formatDropDownforArray(accTypes));
+    bankAccField.forEach(function(el) {
+        ApzCOB.addDisableToInput(`${scrId + el}`);
+    });
+    apz.app.eNach.paintBankData('Applicant');
+    $(`#${scrId}accountType`).change();
+    $(`#${scrId}accountType_span.sub-elt1`).removeClass('sno');
+    //Disable cut,copy,paste
+    $(`#${scrId}reEnterAccountNumber,#${scrId}accountNumber`).on('copy paste cut', function(e) {
+        e.preventDefault();
+    });
+    ["eNachSuccRow","eNachFailRow", "tryeNachBtnsBottom", "updateBankDetRow"].hide();
+    ["eNachMethod", "initiateeNachBtnRow"].show();
+    $(`#${DbbaseScrId}sendbackBtn`).addClass('sno');
+    window.appEnachData = inSessionStore.enachDetails.find(el => el.customerType === 'Applicant') ?? {};
+    window.coAppEnachData = inSessionStore.enachDetails.find(el => el.customerType === 'Co-App') ?? {};
+    if (inSessionStore.enachDetails?.length > 0) {
+        apz.app.eNach.updateEnachretrystatus();
+    } else {
+        apz.app.eNach.painteNachScenarios();
+    }
+    apz.app.eNach.checkifeNachEnabledBank();
+    if (applicationStatus === "DBPUSHBACK") {
+        apz.app.DBbase.nextBtnEnableDisable('enable');
+        raisedQueries = apz.app.DBbase.paintQuery();
+        if (raisedQueries.length > 0) {
+            isQueryRaised = true;
+            ["sendBackResponseRow", "tryeNachBtnsTop"].show();
+        }
+    }
+    window.setCoappstatus = ApzCOB.getPayloadDatafromWrapper("accntVerified", "Co-App", "bankDetailsWrapperList");
+    if (setCoappstatus === 'Verified' || setCoappstatus === 'Failed') {
+        coAppverified = true;
+    } else {
+        coAppverified = false;
+    }
+    apz.app.eNach.setAppTag();
+    if ($("#DBkitG__eNach__accountNumber").hasClass("disabled")) {
+        $("#DBkitG__eNach__verifyACC").addClass("sno");
+    } else {
+        $("#DBkitG__eNach__verifyACC").removeClass("sno");
+    }
+};
+apz.app.eNach.setAppTag = function() {
+    if (!$(`#${scrId}editIcon`).is(':visible')) {
+        if (ApzCOB.getPayloadDatafromWrapper("accntVerified", "Applicant", "bankDetailsWrapperList") == 'Verified') {
+            $("#" + scrId + "bankACCVerified").removeClass("sno");
+            $("#" + scrId + "verifiedAcc").removeClass('sno');
+            $("#" + scrId + "verifiedAcc").addClass('suc');
+            $("#" + scrId + "InvaildBankACC").addClass("sno");
+            $("#" + scrId + "invalidAcc").addClass('sno');
+            $("#" + scrId + "invalidAcc").removeClass('failed');
+        } else {
+            $("#" + scrId +"bankACCVerified").addClass('sno');
+            $("#" + scrId + "verifiedAcc").addClass('sno');
+            $("#" + scrId + "verifiedAcc").removeClass('suc');
+        }
+        if ($("#DBkitG__eNach__accountNumber").hasClass("disabled")) {
+            $("#DBkitG__eNach__verifyACC").addClass("sno");
+        } else {
+            $("#DBkitG__eNach__verifyACC").removeClass("sno");
+        }
+    }
+}
+apz.app.eNach.setMinMaxLength = function() {
+    window.fieldMap = {
+        accountName: "Name",
+        ifsc: "IFSC",
+        bankName: "BankName",
+        branchName: "BankName",
+        accountNumber: "AccountNumberRPC",
+        reEnterAccountNumber: "AccountNumberRPC"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: scrId + fieldId
+    })));
+};
+apz.app.eNach.resetEnachOptions = function() {
+    let enachTypes = [];
+    eNachBankData = ALL_eNACH_BANKS.filter(el => [el.new_ifsc?.toUpperCase()?.trim(), el.old_ifsc?.toUpperCase()?.trim()].includes(currApplicantBankAcc?.toUpperCase()?.trim())) || [];
+    ["eNachMethod"].hide();
+    let currApplicant = (custType === 'Applicant') ? 'Applicant' : 'Co-Applicant';
+    if (eNachBankData.length > 0) {
+        enachTypes = propsToCheck.filter(prop => eNachBankData.some(bank => bank[prop] !== "NA"));
+    }
+    if (enachTypes.length > 0) {
+        ["eNachMethod"].show();
+        $(`#${scrId}eNachMethodRadio input`).each(function(index, element) {
+            $(`#${element.id}_lbl_`).addClass('sno');
+        })
+        enachTypes.forEach(function(el) {
+            $(`#${scrId}eNachMethodRadio_option_${el}_lbl_`).removeClass('sno');
+        })
+        $(`#${scrId}eNachMethodRadio_option_NotAvailable_lbl_`).removeClass('sno');
+        let checkedId = $('#DBkitG__eNach__eNachMethodRadio input:checked');
+        let selectedValue = checkedId.val();
+        if (enachTypes.includes('debit_card_code') && apz.isNull(selectedValue) && checkedId.is('visible')) {
+            $(`#${scrId}eNachMethodRadio_option_debit_card_code`).prop('checked', true); //Default value
+        }
+        if (selectedValue === 'NotAvailable') {
+            $(`#${scrId}eNachMethodRadio_option_NotAvailable`).click();
+        }
+    }
+    if (custType == 'Applicant') {
+        $(`#${scrId}verifyACC`).addClass('sno');
+    }
+};
+apz.app.eNach.checkifeNachEnabledBank = function() {
+    let enachTypes = [];
+    eNachBankData = ALL_eNACH_BANKS.filter(el => [el.new_ifsc?.toUpperCase()?.trim(), el.old_ifsc?.toUpperCase()?.trim()].includes(currApplicantBankAcc?.toUpperCase()?.trim())) || [];
+    ["eNachMethod"].hide();
+    let currApplicant = (custType === 'Applicant') ? 'Applicant' : 'Co-Applicant';
+    if (eNachBankData.length > 0) {
+        enachTypes = propsToCheck.filter(prop => eNachBankData.some(bank => bank[prop] !== "NA"));
+    } else {
+        if ($('#DBkitG__eNach__updateBankDetRow').is(':visible')) {
+        } else {
+            let popUpObj = {
+                text: `${currApplicant} bank account is not compatible for e-NACH. Please update the bank details.`,
+                Btn: {
+                    text: "OK",
+                    onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`); /*apz.app.eNach.onClickUpdateBankDetails();*/"
+                }
+            }
+            if (custType === 'Co-Applicant') {
+                ['editIcon_ul', 'updateEditCol'].show();
+                apz.app.eNach.saveEnachDetials('Co-App','');
+            } else if (custType === 'Applicant') {
+                apz.app.eNach.saveEnachDetials('Applicant','');
+                $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').click();
+            }
+            ["updateBankDataBtn_ul"].hide();
+            if (!$(`#${BaseScrId}newCommonErrModal`).is(':visible')) {
+                ApzCOB.showNewCommonErrorModal(popUpObj);
+            }
+        }
+        return false;
+    }
+    if (enachTypes.length > 0) {
+        ["eNachMethod"].show();
+        $(`#${scrId}eNachMethodRadio input`).each(function(index, element) {
+            $(`#${element.id}_lbl_`).addClass('sno');
+        })
+        enachTypes.forEach(function(el) {
+            $(`#${scrId}eNachMethodRadio_option_${el}_lbl_`).removeClass('sno');
+        })
+        $(`#${scrId}eNachMethodRadio_option_NotAvailable_lbl_`).removeClass('sno');
+        let selectedValue = $('#DBkitG__eNach__eNachMethodRadio input:checked').val();
+        if (enachTypes.includes('debit_card_code') && apz.isNull(selectedValue)) {
+            $(`#${scrId}eNachMethodRadio_option_debit_card_code`).prop('checked', true); //Default value
+        }
+    } else {
+        if ($('#DBkitG__eNach__updateBankDetRow').is(':visible')) {
+            //
+        } else {
+            let popUpObj = {
+                text: ApzCOB.getDescfromLitCode("LIT_eNACH_METHOD_NOT_AVAILABLE"),
+                Btn: {
+                    text: "OK",
+                    onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`); apz.app.eNach.onClickUpdateBankDetails();"
+                }
+            }
+            if (custType === 'Co-Applicant') {
+                ['editIcon_ul', 'updateEditCol'].show();
+            } else if (custType === 'Applicant') {
+                $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').click();
+            }
+            ["updateBankDataBtn_ul"].hide();
+            if (!$(`#${BaseScrId}newCommonErrModal`).is(':visible')) {
+                ApzCOB.showNewCommonErrorModal(popUpObj);
+            }
+        }
+        return false;
+    }
+    return true;
+};
+apz.app.eNach.onClickRetryApplicant = function(pthis, retry) {
+    $(`#${DbbaseScrId}CAFooter_nav button`).addClass('sno');
+    $(`#${DbbaseScrId}backBtn,#${DbbaseScrId}nextBtn,#${DbbaseScrId}rejectBtn`).removeClass('sno');
+    window.custType = 'Applicant';
+    $(`#${scrId}eNachMethodText`).text('Applicant - Method of e-NACH');
+    $(`#${scrId}registrationTxt`).text('e-NACH registration - Applicant');
+    ['editIcon_ul', "updateBankDetRow", "updateBankDataBtn_ul"].hide();
+    apz.app.eNach.paintBankData(custType);
+    bankAccField.forEach(function(el) {
+        ApzCOB.addDisableToInput(`${scrId + el}`);
+        $(`#${scrId}${el}Lbl`).removeClass('req');
+        $(`#${scrId}${el}Row mand`).removeClass('mand');
+    });
+    $('button.selected').removeClass('selected');
+    $(`#${scrId}retryeNachBtn1,#${scrId}retryeNachBtn2`).addClass('selected');
+    ['tryeNachBtnsBottom', 'eNachSuccRow', 'eNachFailRow'/*, 'updateEditCol'*/, 'reEnterAccountNumberRow'].hide();
+    ['tryeNachBtnsTop', 'failedMsgRow', 'eNachMethod', 'initiateeNachBtnRow', 'initiateeNachRow'].show();
+    $(`#${scrId}accountNumber`).attr('type','password');
+    let selectedValue = $('#DBkitG__eNach__eNachMethodRadio input:checked').val();
+    if (selectedValue === 'NotAvailable') {
+        $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').prop('checked', false);
+        $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').click();
+    }
+    if (inSessionStore?.enachDetails?.length === 0) {
+        ['updateEditCol'/*, 'updateBankDataBtn_ul'*/].show();
+        ['editIcon_ul', "updateBankDataBtn_ul"].hide();
+    } else if (inSessionStore.enachDetails.length > 0) {
+        window.appEnachData = inSessionStore.enachDetails.find(el => el.customerType === 'Applicant') ?? {};
+        if(!apz.isObjectEmpty(appEnachData)) {
+            if (!apz.isNull(retry)) {
+                ['tryeNachBtnsBottom'].hide();
+                ['tryeNachBtnsTop'].show();
+                ApzCOB.removeDisableToInput(`${scrId}initiateeNachBtn`);
+                $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+                    ApzCOB.removeDisableToInput(this.id);
+                });
+                selectedValue = $('#DBkitG__eNach__eNachMethodRadio input:checked').val();
+                if (selectedValue === 'NotAvailable') {
+                    $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').prop('checked', false);
+                    $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').click();
+                }
+                return;
+            }
+        } else {
+            ['updateEditCol'/*, 'updateBankDataBtn_ul'*/].show();
+            ['editIcon_ul', "updateBankDataBtn_ul"].hide();
+        }
+    }
+    ApzCOB.removeDisableToInput(`${scrId}initiateeNachBtn`);
+    apz.app.eNach.checkifeNachEnabledBank();
+    $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+        ApzCOB.removeDisableToInput(this.id);
+    });
+    selectedValue = $('#DBkitG__eNach__eNachMethodRadio input:checked').val();
+    if (selectedValue === 'NotAvailable') {
+        $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').prop('checked', false);
+        $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').click();
+    }
+    if (applicationStatus === "DBPUSHBACK" && isQueryRaised) {
+        ["sendBackResponseRow"].show();
+    }
+    apz.app.eNach.setAppTag();
+};
+apz.app.eNach.onClickTryCoApplicant = function(pthis, retry) {
+    window.custType = 'Co-App';
+    $(`#${scrId}eNachMethodText`).text('Co-applicant - Method of e-NACH');
+    $(`#${scrId}registrationTxt`).text('e-NACH registration - Co-applicant');
+    ['updateBankDataBtn_ul'].hide();
+    ['editIcon_ul'].show();
+    $('button.selected').removeClass('selected');
+    $(`#${scrId}tryCoAppeNachBtn1,#${scrId}tryCoAppeNachBtn2`).addClass('selected');
+    ['tryeNachBtnsBottom', 'eNachSuccRow', 'eNachFailRow'/*, 'updateEditCol'*/].hide();
+    ['tryeNachBtnsTop', 'failedMsgRow','initiateeNachBtnRow', 'initiateeNachRow'].show();
+    ApzCOB.removeDisableToInput(`${scrId}initiateeNachBtn`);
+    $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+        ApzCOB.removeDisableToInput(this.id);
+    });
+    let selectedValue = $('#DBkitG__eNach__eNachMethodRadio input:checked').val();
+    if (selectedValue === 'NotAvailable') {
+        $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').prop('checked', false);
+        $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').click();
+    }
+    bankAccField.forEach(function(el) {
+        ApzCOB.addDisableToInput(`${scrId + el}`);
+        $(`#${scrId}${el}Lbl`).removeClass('req');
+        $(`#${scrId}${el}Row mand`).removeClass('mand');
+    });
+    let coAppBankData = {};
+    coAppBankData = inSessionStore.bankDetailsWrapperList.find(el => el.bankDetails.custDtlId === ApzCOB.getCustDetailID('Co-App')) ?? {};
+    if (!apz.isObjectEmpty(coAppBankData)) {
+        apz.app.eNach.paintBankData(custType);
+        apz.app.eNach.checkifeNachEnabledBank();
+        if (!apz.isNull(retry)) {
+            ['tryeNachBtnsBottom'].hide();
+            ['tryeNachBtnsTop'].show();
+            ApzCOB.removeDisableToInput(`${scrId}initiateeNachBtn`);
+            $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+                ApzCOB.removeDisableToInput(this.id);
+            });
+            let selectedValue = $('#DBkitG__eNach__eNachMethodRadio input:checked').val();
+            if (selectedValue === 'NotAvailable') {
+                $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').prop('checked', false);
+                $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').click();
+            }
+            return;
+        } else {
+            if (applicationStatus === "DBPUSHBACK") {
+                apz.app.eNach.painteNachScenarios();
+            }
+        }
+    } else {
+        apz.app.eNach.onClickEditBankData();
+    }
+    if (applicationStatus === "DBPUSHBACK" && isQueryRaised) {
+        ["sendBackResponseRow"].show();
+    }
+    apz.app.eNach.setCoappTag();
+};
+apz.app.eNach.setCoappTag = function() {
+    if (coAppverified) {
+        if (setCoappstatus == 'Verified') {
+            $("#" + scrId + "bankACCVerified").removeClass("sno");
+            $("#" + scrId + "verifiedAcc").removeClass('sno');
+            $("#" + scrId + "verifiedAcc").addClass('suc');
+            $("#" + scrId + "InvaildBankACC").addClass("sno");
+            $("#" + scrId + "invalidAcc").addClass('sno');
+            $("#" + scrId + "invalidAcc").removeClass('failed');
+        } else if (setCoappstatus == 'Failed') {
+            $("#" + scrId + "bankACCVerified").addClass('sno');
+            $("#" + scrId + "verifiedAcc").addClass('sno');
+            $("#" + scrId + "verifiedAcc").removeClass('suc');
+        }
+    } else if (!coAppverified) {
+        if ($(`#${scrId}verifiedAcc_txtcnt`).is(':visible')) {
+            $(`#${scrId}bankACCVerified`).addClass('sno');
+            $("#" + scrId + "verifiedAcc").addClass('sno');
+            $("#" + scrId + "verifiedAcc").removeClass('suc');
+        }
+    }
+}
+apz.app.eNach.paintBankData = function(custType) {
+    window.currApplicantBankAcc = ApzCOB.getPayloadDatafromWrapper('ifsc', custType, 'bankDetailsWrapperList');
+    window.currApplicantBankAcc = currApplicantBankAcc?.split(0, 3)?.[0];
+    bankAccField.forEach(function(el) {
+        if (el == "accountType") {
+            $(`#${scrId + el}`).val(ApzCOB.getPayloadDatafromWrapper(el, custType, 'bankDetailsWrapperList') ?? '').change();
+            apz.app.eNach.validateBankDetails();
+        } else {
+            $(`#${scrId + el}`).val(ApzCOB.getPayloadDatafromWrapper(el, custType, 'bankDetailsWrapperList') ?? '').focus();
+        }
+        if (custType == 'Applicant') {
+            apz.app.eNach.setAppTag();
+        } else {
+            apz.app.eNach.setCoappTag();
+        }
+    });
+    apz.app.eNach.resetEnachOptions();
+}
+apz.app.eNach.onClickInitiateeNachReg = function(pthis, ptype) {
+    if(!apz.app.eNach.checkifeNachEnabledBank()) {
+        return;
+    }
+    let selectedValue = '';
+    selectedValue = $('#DBkitG__eNach__eNachMethodRadio input:checked').val();
+    let isSelectedValVisible = $(`#DBkitG__eNach__eNachMethodRadio_option_${selectedValue}`).is(":visible");
+    if(apz.isNull(selectedValue) || !isSelectedValVisible) {
+        ApzCOB.showNewCommonErrorModal("Please select e-Nach method");
+        return;
+    } else if (selectedValue === 'NotAvailable')  {
+        $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').prop('checked', false);
+        $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').click();
+    }
+    if (ptype === "Retry" || ptype === 'Co-App') {
+        ['tryeNachBtnsBottom', 'eNachSuccRow', 'eNachFailRow'/*, 'updateEditCol'*/].hide();
+        ['tryeNachBtnsTop', 'failedMsgRow'].show();
+        ApzCOB.removeDisableToInput(`${scrId}initiateeNachBtn`);
+        $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+            ApzCOB.removeDisableToInput(this.id);
+        });
+        if(ptype === 'Co-App') {
+            apz.app.eNach.handleCoAppeNach();
+        } else {
+            $(`#${scrId}eNachMethodText`).text('Applicant - Method of e-NACH');
+            $(`#${scrId}registrationTxt`).text('e-NACH registration - Applicant');
+            ['editIcon_ul', 'updateBankDataBtn_ul'].hide();
+        }
+        return;
+    }
+    let accNum = $(`#${scrId}accountNumber`).val();
+    let selectedMethodBankData = eNachBankData?.find(el => el[selectedValue]);
+    //Call Service for Initiate
+    ApzCOB.initiateeNachRegistration(custType, accNum, selectedMethodBankData[selectedValue], selectedValue);
+};
+apz.app.eNach.updateEnachretrystatus = function() {
+    if (inSessionStore.enachDetails?.length === 0) return;
+    window.appEnachData = inSessionStore.enachDetails.find(el => el.customerType === 'Applicant') ?? {};
+    window.coAppEnachData = inSessionStore.enachDetails.find(el => el.customerType === 'Co-App') ?? {};
+    let ApplresDesc = (appEnachData?.resDesc || '').toLowerCase();
+    let CoAppresDesc = (coAppEnachData?.resDesc || '').toLowerCase();
+    if (!apz.isObjectEmpty(coAppEnachData) && CoAppresDesc === 'pending') {
+        window.firstStatusCall = 'Co-App';
+        ApzCOB.checkTransactionStatus(coAppEnachData.enachReqId, coAppEnachData.customerType, 'No');
+    } else if (!apz.isObjectEmpty(appEnachData) && ApplresDesc === 'pending') {
+        window.firstStatusCall = 'Applicant';
+        ApzCOB.checkTransactionStatus(appEnachData.enachReqId, appEnachData.customerType, 'No');
+    } else {
+        apz.app.eNach.painteNachScenarios();
+    }
+}
+apz.app.eNach.painteNachScenarios = function() {
+    if (inSessionStore.enachDetails.length === 0) return;
+    let paintApplicantData = false; //Latest Enach changes
+    window.appEnachData = inSessionStore.enachDetails.find(el => el.customerType === 'Applicant') ?? {};
+    window.coAppEnachData = inSessionStore.enachDetails.find(el => el.customerType === 'Co-App') ?? {};
+    let isCoBankEdited = ApzCOB.getPayloadDatafromWrapper('rpcEditCheck', 'Co-App', 'bankDetailsWrapperList');
+    if (inSessionStore.enachDetails.length > 1) { //Latest Enach changes
+        let appTS = ApzCOB.formatDateTimeObj(appEnachData.updatedTs);
+        let coAppTS = ApzCOB.formatDateTimeObj(coAppEnachData.updatedTs);
+        let newestDate = apz.app.eNach.getNewestDate(appTS, coAppTS);
+        if (['success', 'initiated'].includes(appEnachData.resDesc?.toLowerCase()) && ['success', 'initiated'].includes(coAppEnachData.resDesc?.toLowerCase())) {
+            paintApplicantData = (newestDate === appTS) ? true : false;
+        } else if (['success', 'initiated'].includes(appEnachData.resDesc?.toLowerCase()) && !['success', 'initiated'].includes(coAppEnachData.resDesc?.toLowerCase())) {
+            // paintApplicantData = (newestDate === appTS) ? true : false;
+            paintApplicantData = true;
+        }
+    }
+    //Latest Enach changes
+    if ((!apz.isObjectEmpty(coAppEnachData) || (isCoBankEdited && applicationStatus === 'DBPUSHBACK')) && !paintApplicantData) {
+        window.custType = 'Co-App';
+        $(`#${scrId}eNachMethodText`).text('Co-applicant - Method of e-NACH');
+        $(`#${scrId}registrationTxt`).text('e-NACH registration - Co-applicant');
+        apz.app.eNach.paintBankData('Co-App');
+        ['updateBankDataBtn_ul'].hide();
+        ['editIcon_ul'].show();
+        if (coAppEnachData.hasOwnProperty('reqErrorDesc') && coAppEnachData?.reqErrorDesc === 'Success') {
+            if (coAppEnachData.hasOwnProperty('resDesc')) {
+                let transacStatus = coAppEnachData.resDesc.toLowerCase();
+                if (transacStatus === 'success' || transacStatus === 'initiated') {
+                    $(`#${scrId}eNachMethodRadio_option_${coAppEnachData.enachType}`).prop('checked', true);
+                    $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+                        ApzCOB.addDisableToInput(this.id);
+                    });
+                    ApzCOB.addDisableToInput(`${scrId}initiateeNachBtn`);
+                    apz.app.eNach.paintSuccessScenario(custType);
+                    let coAppeNachDocs = apz.app.eNach.fetchSelectedDocs(custType);
+                    ['updateBankDetRow'].show();
+                    ['updateBankAccDtlsLblRow', 'attachPassbookLblRow'].hide();
+                    $(`#${scrId}clickToUploadHyp_txtcnt`).text('Click here to upload Co-Applicant passbook or cheque');
+                    if (coAppeNachDocs.length > 0) {
+                        apz.app.DBbase.paintDocumentName('DBBankUpdate', custType);
+                        if (coAppeNachDocs.length > 2) {
+                            apz.app.DBbase.nextBtnEnableDisable('enable');
+                        }
+                    }
+                } else if (transacStatus === 'failed') {
+                    $(`#${scrId}eNachMethodRadio_option_${coAppEnachData.enachType}`).prop('checked', true);
+                    $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+                        ApzCOB.addDisableToInput(this.id);
+                    });
+                    ApzCOB.addDisableToInput(`${scrId}initiateeNachBtn`);
+                    apz.app.eNach.paintFailureScenario(custType);
+                }
+            }
+        }
+    } else if (!apz.isObjectEmpty(appEnachData)) {
+        $(`#${scrId}eNachMethodText`).text('Applicant - Method of e-NACH');
+        $(`#${scrId}registrationTxt`).text('e-NACH registration - Applicant');
+        ['updateBankDataBtn_ul'].hide();
+        ['editIcon_ul'].hide();
+        if (appEnachData.hasOwnProperty('reqErrorDesc') && appEnachData?.reqErrorDesc === 'Success') {
+            if (appEnachData.hasOwnProperty('resDesc')) {
+                let transacStatus = appEnachData.resDesc.toLowerCase();
+                if (transacStatus === 'success' || transacStatus === 'initiated') {
+                    $(`#${scrId}eNachMethodRadio_option_${appEnachData?.enachType}`).prop('checked', true);
+                    $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+                        ApzCOB.addDisableToInput(this.id);
+                    });
+                    ApzCOB.addDisableToInput(`${scrId}initiateeNachBtn`);
+                    apz.app.eNach.paintSuccessScenario(custType);
+                    apz.app.DBbase.nextBtnEnableDisable('enable');
+                } else if (transacStatus === 'failed') {
+                    $(`#${scrId}eNachMethodRadio_option_${appEnachData?.enachType}`).prop('checked', true);
+                    $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+                        ApzCOB.addDisableToInput(this.id);
+                    });
+                    ApzCOB.addDisableToInput(`${scrId}initiateeNachBtn`);
+                    apz.app.eNach.paintFailureScenario(custType);
+                }
+            }
+        } else {
+            $(`#${scrId}eNachMethodRadio_option_${appEnachData.enachType}`).prop('checked', true);
+            $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+                ApzCOB.addDisableToInput(this.id);
+            });
+        }
+    }
+    apz.app.eNach.checkifeNachEnabledBank();
+};
+apz.app.eNach.handleCoAppeNach = function() {
+    ['updateBankDataBtn_ul'].hide();
+    ['editIcon_ul'].show();
+    let coAppCustId = ApzCOB.getCustDetailID('Co-App');
+    let coAppBankData = {};
+    if (applicationStatus === "DBPUSHBACK" && isQueryRaised) {
+        ["sendBackResponseRow"].show();
+    }
+    coAppBankData = inSessionStore.bankDetailsWrapperList.find(el => el.bankDetails.custDtlId === coAppCustId) || {};
+    if(!apz.isObjectEmpty(coAppBankData)) {
+        bankAccField.forEach(function(el) {
+            ApzCOB.addDisableToInput(`${scrId + el}`);
+        });
+        apz.app.eNach.paintBankData('Co-App');
+        apz.app.eNach.checkifeNachEnabledBank();
+        $(`#${scrId}accountType`).change();
+        $(`#${scrId}accountType_span.sub-elt1`).addClass('sno');
+        ['updateEditCol', 'editIcon_ul', 'initiateeNachRow'].show();
+        ['updateBankDataBtn_ul', 'reEnterAccountNumberRow'].hide();
+        ApzCOB.removeDisableToInput(`${scrId}initiateeNachBtn`);
+        $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+            ApzCOB.removeDisableToInput(this.id);
+        });
+        let selectedValue = $('#DBkitG__eNach__eNachMethodRadio input:checked').val();
+        if (selectedValue === 'NotAvailable') {
+            $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').prop('checked', false);
+            $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').click();
+        }
+        //paint co-app bank data
+        ["reEnterAccountNumberRow"].hide();
+        $(`#${scrId}accountNumber`).attr('type','text');
+        // hide dropdown arrow mark
+        $(`#${scrId}accountType_span.sub-elt1`).addClass('sno');
+        $(`#${scrId}eNachMethodText`).text('Co-applicant - Method of e-NACH');
+        $(`#${scrId}registrationTxt`).text('e-NACH registration - Co-applicant');
+    } else {
+        bankAccField.forEach(function(el) {
+            ApzCOB.removeDisableToInput(`${scrId + el}`);
+            $(`#${scrId + el}`).val('');
+            if (!['bankName', 'branchName'].includes(el)) {
+                $(`#${scrId}${el}Lbl`).addClass('req');
+                $(`#${scrId}${el}Row mand`).removeClass('mand');
+            }
+        });
+        $(`#${scrId}accountType`).val(PleaseSelect).change();
+        ["reEnterAccountNumberRow"].show();
+        $(`#${scrId}accountNumber`).attr('type','password');
+        [/*"updateEditCol", */"initiateeNachRow"].hide();
+        ApzCOB.AddOrRemoveDisableFields([`${scrId}bankName`, `${scrId}branchName`], true);
+        $(`#${scrId}registrationTxt`).text('Co-applicant bank account details');
+        $(`#${scrId}accountType_span.sub-elt1`).removeClass('sno');
+        $(`#${DbbaseScrId}CAFooter_nav button`).addClass('sno');
+        $(`#${DbbaseScrId}saveBtn,#${DbbaseScrId}cancelBtn`).removeClass('sno');
+        if($("#DBkitG__eNach__editIcon").is(":visible")){
+            $("#DBkitG__eNach__verifyACC").addClass("sno");
+        }else{
+            $("#DBkitG__eNach__verifyACC").removeClass("sno");
+        }
+    }
+};
+apz.app.eNach.onClickEditBankData = function() {
+    ['updateBankDataBtn_ul', 'updateEditCol'].hide();
+    ['editIcon_ul'].show();
+    let coAppCustId = ApzCOB.getCustDetailID('Co-App');
+    let coAppBankData = {};
+    bankAccField.forEach(function(el) {
+        ApzCOB.removeDisableToInput(`${scrId + el}`);
+        $(`#${scrId + el}`).val('');
+        if (!['bankName', 'branchName'].includes(el)) {
+            $(`#${scrId}${el}Lbl`).addClass('req');
+            $(`#${scrId}${el}Row mand`).removeClass('mand');
+        }
+    });
+    $(`#${scrId}accountType`).val(PleaseSelect).change();
+    $(`#${scrId}accountType_span.sub-elt1`).addClass('sno');
+    ["reEnterAccountNumberRow"].show();
+    $(`#${scrId}accountNumber`).attr('type', 'password');
+    [/*"updateEditCol", */"initiateeNachRow","updateBankDetRow", "sendBackResponseRow"].hide();
+    ApzCOB.AddOrRemoveDisableFields([`${scrId}bankName`, `${scrId}branchName`], true);
+    $(`#${scrId}registrationTxt`).text('Co-applicant bank account details');
+    $(`#${scrId}accountType_span.sub-elt1`).removeClass('sno');
+    $(`#${DbbaseScrId}CAFooter_nav button`).addClass('sno');
+    $(`#${DbbaseScrId}saveBtn,#${DbbaseScrId}cancelBtn`).removeClass('sno');
+    if ($(`#${scrId}verifiedAcc_txtcnt`).is(':visible')) {
+        $(`#${scrId}bankACCVerified`).addClass('sno');
+        $("#" + scrId + "verifiedAcc").addClass('sno');
+        $("#" + scrId + "verifiedAcc").removeClass('suc');
+    }
+    if ($(`#${scrId}invalidAcc_txtcnt`).is(':visible')) {
+        $(`#${scrId}InvaildBankACC`).addClass('sno');
+        $("#" + scrId + "invalidAcc").addClass('sno');
+        $("#" + scrId + "invalidAcc").removeClass('failed');
+    }
+};
+apz.app.eNach.onChangeAccNumber = function() {
+    let accNo = $(`#${scrId}accountNumber`).val()
+    let accVerified = $(`#${scrId}verifiedAcc_txtcnt`).is(':visible')
+    let accInvalid = $(`#${scrId}invalidAcc_txtcnt`).is(':visible')
+    if (apz.isNull(accNo)) {
+        $(`#${scrId}verifyACC`).removeClass('sno');
+    }
+    if (!apz.isNull(accNo) && (!accVerified || !accInvalid)) {
+        $(`#${scrId}verifyACC`).removeClass('sno');
+    }
+    if (accVerified && !apz.isNull(accNo)) {
+        $(`#${scrId}bankACCVerified`).addClass('sno');
+        $("#" + scrId + "verifiedAcc").addClass('sno');
+        $("#" + scrId + "verifiedAcc").removeClass('suc');
+        $(`#${scrId}verifyACC`).removeClass('sno');
+    }
+    if (accInvalid && !apz.isNull(accNo)) {
+        $(`#${scrId}InvaildBankACC`).addClass('sno');
+        $("#" + scrId + "invalidAcc").addClass('sno');
+        $("#" + scrId + "invalidAcc").removeClass('failed');
+        $(`#${scrId}verifyACC`).removeClass('sno');
+    }
+    if($("#DBkitG__eNach__accountNumber").hasClass("disabled")){
+       $("#DBkitG__eNach__verifyACC").addClass("sno");
+    }else{
+       $("#DBkitG__eNach__verifyACC").removeClass("sno");
+    }
+}
+apz.app.eNach.onClickUpdateBankDetails = function() {
+    if ($(`#${dbErrorModalID}`).is(':visible')) {
+        ApzCOB.toggleModal(`${dbErrorModalID}`);
+    }
+    if (custType==='Applicant') {
+        ['updateBankDetRow'].show();
+        $(`#${scrId}clickToUploadHyp_txtcnt`).text('Click here to upload any other additional documents');
+        ['eNachDetailsRow', 'initiateeNachRow', 'eNachEnabledBanksRow'].hide();
+        $(`#${DbbaseScrId}CAFooter_nav button`).addClass('sno');
+        $(`#${DbbaseScrId}submitToRPCBtn,#${DbbaseScrId}cancelBtn`).removeClass('sno');
+        apz.app.DBbase.paintDocumentName('DBBankUpdate', 'Applicant');
+    } else {
+        ['updateBankDetRow'].hide();
+        apz.app.eNach.onClickEditBankData();
+    }
+};
+apz.app.eNach.onClickCancel = function() {
+    if ($(`#${scrId}updateBankDetRow`).is(':visible')) {
+        if(!apz.app.eNach.checkifeNachEnabledBank()) {
+            $('#DBkitG__eNach__eNachMethodRadio_option_NotAvailable').click();
+            $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+                ApzCOB.addDisableToInput(this.id);
+            });
+        }
+        ['updateBankDetRow'].hide();
+        ['eNachDetailsRow', 'initiateeNachRow', 'eNachEnabledBanksRow', 'eNachMethod'].show();
+        $(`#${DbbaseScrId}CAFooter_nav button`).addClass('sno');
+        $(`#${DbbaseScrId}backBtn,#${DbbaseScrId}nextBtn,#${DbbaseScrId}rejectBtn`).removeClass('sno');
+    } else {
+        //close bank data entry
+        bankAccField.forEach(function(el) {
+            ApzCOB.addDisableToInput(`${scrId + el}`);
+            $(`#${scrId}${el}Lbl`).removeClass('req');
+            $(`#${scrId}${el}Row mand`).removeClass('mand');
+        });
+        apz.app.eNach.paintBankData('Co-App');
+        ["reEnterAccountNumberRow"].hide();
+        $(`#${scrId}accountNumber`).attr('type','text');
+        ["updateEditCol", "initiateeNachRow", "editIcon_ul"].show();
+        ['updateBankDataBtn_ul'].hide();
+        $(`#${scrId}registrationTxt`).text('e-NACH registration - Co-applicant');
+        ['editIcon_ul'].show();
+        $(`#${scrId}accountType_span.sub-elt1`).addClass('sno');
+        $(`#${DbbaseScrId}CAFooter_nav button`).addClass('sno');
+        $(`#${DbbaseScrId}backBtn,#${DbbaseScrId}nextBtn,#${DbbaseScrId}rejectBtn`).removeClass('sno');
+        apz.app.eNach.onClickTryCoApplicant();
+        let coAppBankName = ApzCOB.getPayloadDatafromWrapper('accountName', 'Co-App', 'bankDetailsWrapperList');
+        if (apz.isNull(coAppBankName)) {
+            apz.app.eNach.onClickRetryApplicant();
+        }
+    }
+};
+apz.app.eNach.onClickeNachEnabledBanks = function() {
+    ApzCOB.toggleModal(`${scrId}eNachBanksModal`);
+    apz.app.eNach.painteNachBanks();
+};
+apz.app.eNach.painteNachBanks = function() {
+    formattedBanks = [];
+    if (ALL_eNACH_BANKS?.length === 0) return;
+    let uniqueBankNames = ALL_eNACH_BANKS.map(el => el.bank_name)?.unique();
+    if (uniqueBankNames?.length === 0) return;
+    uniqueBankNames.forEach((bankName, index) => {
+        const bankEntries = (ALL_eNACH_BANKS).filter(b => b?.bank_name === bankName);
+        if (bankEntries.length > 0) {
+            const firstEntry = bankEntries[0];
+            formattedBanks.push({
+                srNo: index + 1,
+                bank_name: firstEntry?.bank_name || '',
+                net_banking_code: firstEntry['net_banking_code'] !== 'NA' ? "Y" : "N",
+                debit_card_code: firstEntry['debit_card_code'] !== 'NA' ? "Y" : "N",
+                aadhaar_otp_code: firstEntry['aadhaar_otp_code'] !== 'NA' ? "Y" : "N",
+                bank_code: firstEntry?.code || ''
+            });
+        }
+    });
+    if (formattedBanks.length === 0) {
+        $(`#${scrId}noRecodsForm`).removeClass("sno");
+        return;
+    }
+    apz.data.scrdata.DBkitG__IPainteNachBanks_Res = [];
+    apz.data.scrdata.DBkitG__IPainteNachBanks_Res = formattedBanks;
+    apz.data.loadData("IPainteNachBanks", apz.currAppId);
+    $(`#${scrId}noRecodsForm`).addClass("sno");
+};
+//smartsearch
+apz.app.eNach.search = async function(ev) {
+    let p1 = new Promise(resolve => {
+        setTimeout(async () => {
+            let txtVal = await apz.app.eNach.getValue();
+            if (txtVal !== "" && searchVal !== txtVal || txtVal === "" && showAllList) {
+                showAllList = txtVal === "" ? false : true;
+                searchVal = txtVal;
+                resolve(txtVal)
+            }
+        }, 1)
+    });
+    p1.then(async function(val) {
+        window.searchLength = formattedBanks.filter(ldata => {
+            const fieldsToSearch = [ldata.bank_name];
+            return fieldsToSearch.some(field => field?.toString().toUpperCase().includes(val.toUpperCase()));
+        });
+        if (apz.data.scrdata.DBkitG__IPainteNachBanks_Res.length === window.searchLength.length) {
+            return
+        }
+        apz.data.scrdata.DBkitG__IPainteNachBanks_Res = [...window.searchLength];
+        apz.app.eNach.hideNShow();
+        $(`#${scrId}eNachBanksList`).scrollTop(0, 0);
+        $(`#${scrId}eNachBanksList .wrapped.undefined.ssp`).remove()
+    })
+};
+apz.app.eNach.getValue = function() {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(document.getElementById(`${scrId}searcheNachBank`)?.value?.trim())
+        }, 1e3)
+    })
+};
+apz.app.eNach.hideNShow = function() {
+    if (window.searchLength.length === 0) {
+        $(`#${scrId}eNachBanksList`).addClass("sno");
+        $(`#${scrId}noRecodsForm`).removeClass("sno");
+    } else {
+        apz.data.loadData("IPainteNachBanks", apz.currAppId);
+        $(`#${scrId}eNachBanksList`).removeClass("sno");
+        $(`#${scrId}noRecodsForm`).addClass("sno");
+    }
+};
+apz.app.eNach.onchangeMethodofeNach = function(pthis) {
+    let selectedValue = ''
+    selectedValue = $('#DBkitG__eNach__eNachMethodRadio input:checked').val();
+    if (selectedValue === 'NotAvailable') {
+        ['tryeNachBtnsBottom'].show();
+        ['retryeNachBtn2_ul','initiateeNachBtnRow'].hide();
+    } else {
+        ['tryeNachBtnsBottom'].hide();
+        ['retryeNachBtn2_ul','initiateeNachBtnRow'].show();
+    }
+};
+apz.app.eNach.validateAccountNum = function(pthis){
+    $(`#${scrId}reEnterAccountNumber`).blur();
+};
+apz.app.eNach.validateAccountNumReEnter = function(pthis) {
+    window.validAccNum = true;
+    if(!acclengthErr) return;
+    let accNumberVal = $(`#${scrId}accountNumber`).val();
+    let reAccNumberVal = pthis.value;
+    $(pthis).next(".err").remove();
+    $(`#${pthis.id}_li .err`).remove();
+    $(pthis).closest('span.srb.pri.err-inpt').removeClass("err-inpt");
+    if(!apz.isNull(reAccNumberVal) && !apz.isNull(accNumberVal) && accNumberVal !== reAccNumberVal) {
+        window.validAccNum = false;
+        $(`#${scrId}reEnterAccountNumber`).addClass('err-inpt');
+        let accNumErrMsg = "<span class='err' style='color: red; font-size: 12px;'>Account number does not match</span>";
+        $(accNumErrMsg).insertAfter($(pthis));
+    }
+};
+apz.app.eNach.saveBankWrapperData = function() {
+    if (!$(`#${scrId}verifiedAcc_txtcnt`).is(':visible')) {
+        ApzCOB.fnDisplayMsg("please verify bank account Number", "E");
+        window.coAppaccStatus = '';
+        return;
+    }
+    if(!apz.app.eNach.validateBankDetails()) return;
+    let coAppBankData = {}, coAppBankId = '', rpcEditFlag = false; 
+    if (!apz.isNull(inSessionStore.bankDetailsWrapperList) && inSessionStore.bankDetailsWrapperList.length > 0) {
+        coAppBankData = inSessionStore.bankDetailsWrapperList.find(el => el.bankDetails.custDtlId === ApzCOB.getCustDetailID('Co-App'));
+        if (!apz.isNull(coAppBankData) && coAppBankData.hasOwnProperty('bankDetails')) {
+            coAppBankId = coAppBankData.bankDetails?.bankDtlId ?? '';
+        }
+    }
+    if (applicationStatus === "DBPUSHBACK" && isQueryRaised) {
+        rpcEditFlag = true;
+    }
+    let bankDetailsObj = {
+        "bankDetails": {
+            "bankDtlId": coAppBankId,
+            "custDtlId": '',
+            "payload": {
+                "accountType": $(`#${scrId}accountType`).val(),
+                "accountName": $(`#${scrId}accountName`).val(),
+                "ifsc": $(`#${scrId}ifsc`).val(),
+                "bankName": $(`#${scrId}bankName`).val(),
+                "branchName": $(`#${scrId}branchName`).val(),
+                "accountNumber": $(`#${scrId}accountNumber`).val(),
+                "reEnterAccountNumber": $(`#${scrId}reEnterAccountNumber`).val(),
+                "editBankDetails": 'No',
+                "accntVerified" : coAppaccStatus,
+                "rpcEditCheck": rpcEditFlag
+            }
+        }
+    }
+    window.BANK_DETAILS = [];
+    window.BANK_DETAILS.push(bankDetailsObj);
+    requestObj = {
+        bankDetailsWrapperList: BANK_DETAILS,
+        appId: gAppId,
+        applicationId: gApzCOB.userDetails.applicationId,
+        versionNum: 1,
+        stageId: "Co-Applicant Bank Details",
+        requestType: "Edit",
+        customerType: 'Co-App',
+        editedFields: [],
+    };
+    ApzCOB.uploadWrapperData(requestObj);
+};
+apz.app.eNach.coAppBankDataSave = function() {
+    $(`#${DbbaseScrId}CAFooter_nav button`).addClass('sno');
+    $(`#${DbbaseScrId}backBtn,#${DbbaseScrId}nextBtn,#${DbbaseScrId}rejectBtn`).removeClass('sno');
+    apz.app.eNach.handleCoAppeNach();
+    ['eNachSuccRow', 'eNachFailRow'].hide();
+    if (applicationStatus === "DBPUSHBACK" && isQueryRaised)  {
+        ["sendBackResponseRow"].show();
+    }
+};
+apz.app.eNach.fetchSelectedDocs = function(lcustType) {
+    let custType = '';
+    if ($('#DBkitG__DBbase__submitToRPCBtn').is(':visible')) {
+        custType = 'Applicant';
+    } else {
+        custType = 'Co-App';
+    }
+    if(lcustType) {
+        custType = lcustType;
+    }
+    let documentResp = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+    let ldocs = documentResp.filter(docs => docs.payload.documentType === 'DBBankUpdate' && parseInt(docs.custDtlId) === parseInt(ApzCOB.getCustDetailID(custType))) ?? [];
+    return ldocs;
+};
+apz.app.eNach.updateENachRespinSessionStore = function(eNachRespObj) {
+    if(typeof inSessionStore.enachDetails === "undefined") inSessionStore.enachDetails = [];
+    index = inSessionStore?.enachDetails.findIndex(item => item.customerType === eNachRespObj.customerType);
+    if (index !== -1) {
+        inSessionStore.enachDetails[index] = {
+            // ...inSessionStore.enachDetails[index], // to preserve old nodes like resCode
+            ...eNachRespObj
+        };
+    } else {
+        inSessionStore.enachDetails.push(eNachRespObj);
+    }
+};
+apz.app.eNach.paintSuccessScenario = function(customerType) {
+    apz.app.DBbase.nextBtnEnableDisable('enable');
+    ['bankDtlsForm', 'eNachMethod', 'initiateeNachBtnRow', 'eNachSuccRow'].show();
+    ['eNachFailRow', 'tryeNachBtnsBottom', 'tryeNachBtnsTop', 'failedMsgRow', 'updateEditCol'].hide();
+    ApzCOB.addDisableToInput(`${scrId}initiateeNachBtn`);
+    $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+        ApzCOB.addDisableToInput(this.id);
+    });
+    let eNachRespObj = inSessionStore.enachDetails.find(el => el.customerType === customerType) ?? {};
+    window.eNachReqId = eNachRespObj?.pgTranId;
+    window.custType = eNachRespObj?.customerType;
+    let name = $(`#${scrId}accountName`).val();
+    let accNum = $(`#${scrId}accountNumber`).val();
+    $(`#${scrId}succNameTxt`).text(name);
+    $(`#${scrId}succAccNumTxt`).text(accNum);
+    $(`#${scrId}succRefNoTxt`).text(eNachReqId);
+    if (custType === 'Co-App') {
+        ['updateBankDetRow'].show();
+        apz.app.DBbase.paintDocumentName('DBBankUpdate', custType);
+        ['updateBankAccDtlsLblRow', 'attachPassbookLblRow'].hide();
+        $(`#${scrId}clickToUploadHyp_txtcnt`).text('Click here to upload Co-Applicant passbook or cheque');
+        let coAppEdited = ApzCOB.getPayloadDatafromWrapper("rpcEditCheck", "Co-App", 'bankDetailsWrapperList');
+        if (applicationStatus === "DBPUSHBACK" && !coAppEdited && isQueryRaised) {
+            ["updateEditCol", "editIcon_ul", "tryeNachBtnsTop"].show();
+            ["updateBankDataBtn_ul"].hide();
+            apz.app.DBbase.nextBtnEnableDisable('disable');
+        } else {
+            ["updateEditCol", "tryeNachBtnsTop"].hide();
+        }
+    }
+};
+apz.app.eNach.paintFailureScenario = function(custType) {
+    ['bankDtlsForm', 'eNachFailRow', 'tryeNachBtnsBottom', 'eNachMethod', 'initiateeNachBtnRow'].show();
+    ['eNachSuccRow', 'tryeNachBtnsTop', 'failedMsgRow'/*, 'updateEditCol'*/].hide();
+    ApzCOB.addDisableToInput(`${scrId}initiateeNachBtn`);
+    $('#DBkitG__eNach__eNachMethodRadio input').each(function() {
+        ApzCOB.addDisableToInput(this.id);
+    });
+    let refNum = ApzCOB.getPayloadDatafromWrapper("pgTranId", custType, 'enachDetails'); //paint from response
+    $(`#${scrId}failRefNoTxt`).text(refNum);
+    $(`#${scrId}dorMantMsg`).text(`Applicant account is dormant`);
+    if (custType === 'Co-App') {
+        ['updateBankDataBtn_ul'].hide();
+        $(`#${scrId}dorMantMsg`).text(`Co-Applicant account is dormant`);
+        ['editIcon_ul'].show();
+        $('#DBkitG__eNach__retryeNachBtn2_txtcnt').text('Retry e-NACH for applicant');
+        $('#DBkitG__eNach__tryCoAppeNachBtn2_txtcnt').text('Retry e-NACH for co-applicant');
+        $('#DBkitG__eNach__retryeNachBtn2_txtcnt,#DBkitG__eNach__retryeNachBtn1_txtcnt').text('Retry e-NACH for applicant');
+        $('#DBkitG__eNach__tryCoAppeNachBtn2_txtcnt,#DBkitG__eNach__tryCoAppeNachBtn1_txtcnt').text('Retry e-NACH for co-applicant');
+        $('#DBkitG__eNach__retryeNachBtn2,#DBkitG__eNach__retryeNachBtn1').attr('onclick', "apz.app.eNach.onClickRetryApplicant(this, 'Retry');");
+        $('#DBkitG__eNach__tryCoAppeNachBtn2,#DBkitG__eNach__tryCoAppeNachBtn1').attr('onclick',"apz.app.eNach.onClickTryCoApplicant(this, 'Retry');");
+    }
+};
+apz.app.eNach.validateBankDetails = function() {
+    let isValid = true;
+    $(`#${scrId}bankDtlsForm input`).each(function() {
+        if ([`${scrId}bankName`, `${scrId}branchName`].includes(this.id)) return;
+        let inputId = $(`#${this.id}`),
+        isDropDown = inputId.hasClass("sub-elt"),
+        isEmpty = false;
+        inputId.next(".err").remove();
+        inputId.parent().find('.err').remove();
+        inputId.parent().parent().find('.err').remove(); //Dropdown
+        if (!isDropDown) {
+            isEmpty = !inputId.val()?.trim();
+        } else {
+            isEmpty = inputId.val().trim().toLocaleLowerCase() === PleaseSelect.toLocaleLowerCase();
+        }
+        if (isEmpty) {
+            isValid = false;
+            isDropDown ? $(RpcErrorMessage).insertAfter(inputId.parent()) : $(RpcErrorMessage).insertAfter(inputId);
+        }
+    });
+    if ($('#DBkitG__eNach__reEnterAccountNumber').val() !== $('#DBkitG__eNach__accountNumber').val()) {
+        isValid = false;
+        $('#DBkitG__eNach__reEnterAccountNumber').blur();
+    }
+    return isValid;
+};
+apz.app.eNach.validateOnClickNext = function() {
+    let lnavigate = true;
+    if (apz.isNull(inSessionStore.enachDetails) || inSessionStore?.enachDetails?.length === 0) {
+        lnavigate = false;
+        ApzCOB.showNewCommonErrorModal("Please Inititate eNach!");
+        return;
+    } else if (inSessionStore.enachDetails.length > 0) {
+        let appRespData = ApzCOB.getPayloadDatafromWrapper("resDesc", 'Applicant', 'enachDetails') || '';
+        let coappRespData = ApzCOB.getPayloadDatafromWrapper("resDesc", 'Co-App', 'enachDetails') || '';
+        if(custType === 'Co-App' && !apz.isNull(coappRespData)) {
+            if (coappRespData?.toLowerCase() === 'success' || coappRespData?.toLowerCase() === 'initiated') {
+                let coAppeNachDocs = apz.app.eNach.fetchSelectedDocs(custType);
+                if(coAppeNachDocs.length < minStdDocUpload) {
+                    lnavigate = false;
+                    ApzCOB.showNewCommonErrorModal(`Please upload atleast ${minStdDocUpload} document!`);
+                    return;
+                }
+            }
+        }
+    }
+    return lnavigate;
+};
+apz.app.eNach.saveEnachDetials = function(custType, data) {
+    var bankDtlId, accountType, accountName, ifsc, bankName, accountNumber, rpcEditCheck, branchName, applicationId, enachType;
+    bankDtlId = ApzCOB.getPayloadDatafromWrapper("bankDtlId", custType, 'bankDetailsWrapperList') ?? '';
+    accountType = ApzCOB.getPayloadDatafromWrapper("accountType", custType, 'bankDetailsWrapperList') ?? '';
+    accountName = ApzCOB.getPayloadDatafromWrapper("accountName", custType, 'bankDetailsWrapperList') ?? '';
+    ifsc = ApzCOB.getPayloadDatafromWrapper("ifsc", custType, 'bankDetailsWrapperList') ?? '';
+    bankName = ApzCOB.getPayloadDatafromWrapper("bankName", custType, 'bankDetailsWrapperList') ?? '';
+    branchName = ApzCOB.getPayloadDatafromWrapper("branchName", custType, 'bankDetailsWrapperList') ?? '';
+    accountNumber = ApzCOB.getPayloadDatafromWrapper("accountNumber", custType, 'bankDetailsWrapperList') ?? '';
+    rpcEditCheck = ApzCOB.getPayloadDatafromWrapper("rpcEditCheck", custType, 'bankDetailsWrapperList') ?? '';
+    if (apz.isNull(data)) {
+        enachType = "eNach not compatible"
+    } else {
+        enachType = data;
+    }
+    if (custType === 'Co-App') {
+        stageId = 'Co-Applicant Bank Details';
+    } else if (custType === 'Applicant') {
+        stageId = 'Applicant Bank Details';
+    }
+    let bankDetailsObj = {
+        "bankDetails": {
+            "bankDtlId": bankDtlId,
+            "custDtlId": '',
+            "payload": {
+                "accountType": accountType,
+                "accountName": accountName,
+                "ifsc": ifsc,
+                "bankName": bankName,
+                "branchName": branchName,
+                "accountNumber": accountNumber,
+                "reEnterAccountNumber": accountNumber,
+                "editBankDetails": 'No',
+                "rpcEditCheck": rpcEditCheck,
+                "eNachStatus": enachType
+            }
+        }
+    }
+    window.BANK_DETAILS = [];
+    window.BANK_DETAILS.push(bankDetailsObj);
+    requestObj = {
+        bankDetailsWrapperList: BANK_DETAILS,
+        appId: gAppId,
+        applicationId: inSessionStore.applicationMaster.applicationId,
+        versionNum: 1,
+        stageId: stageId,
+        requestType: "Edit",
+        customerType: custType,
+        editedFields: [],
+    };
+    ApzCOB.uploadWrapperData(requestObj);
+};
+apz.app.eNach.getNewestDate = function(date1, date2) {
+    // apz.app.eNach.getNewestDate('03/11/2025 - 08:09:43', '04/11/2025 - 07:15:20');
+    const parseDate = str => {
+        const [d, t] = str.split(' - ');
+        const [day, month, year] = d.split('/').map(Number);
+        const [hours, minutes, seconds] = t.split(':').map(Number);
+        return new Date(year, month - 1, day, hours, minutes, seconds); // local time, unambiguous
+    };
+    return parseDate(date1) > parseDate(date2) ? date1 : date2;
+};
+apz.app.eNach.onfocusAccNo = function() {
+    let Verifiedacc = $(`#${scrId}verifiedAcc_txtcnt`).is(':visible')
+    let isaccDisable = $("#DBkitG__eNach__accountNumber").hasClass("disabled");
+    if (!isaccDisable) {
+        $(`#${scrId}verifyACC`).removeClass('sno');
+    }
+    if (custType == 'Applicant') {
+        $(`#${scrId}verifyACC`).addClass('sno');
+    }
+}

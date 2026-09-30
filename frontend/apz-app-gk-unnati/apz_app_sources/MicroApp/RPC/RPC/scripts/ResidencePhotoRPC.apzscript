@@ -1,0 +1,11 @@
+RPC_CURRENT_STAGE = 'ResidencePhotoRPC'
+var residPhotoScrId = "RPC__ResidencePhotoRPC__";
+var typeofHouseRadio =  `${residPhotoScrId}typeofHouses`;
+var addrType = "Personal", subAddrType = "Present";
+apz.app.onLoad_ResidencePhotoRPC = function() {
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+};
+apz.app.onShown_ResidencePhotoRPC = function() {
+    //('Residence Photo');
+}

@@ -1,0 +1,159 @@
+package com.iexceed.plugins.nativeextensibility;
+
+/*
+import android.app.Activity;
+import android.webkit.WebView;
+import org.json.JSONObject;
+public class NativeService {
+    public static JSONObject nativeServiceEntry(WebView wv,Activity act,JSONObject json)
+    {
+        return null;
+        //your code goes here
+    }
+}
+*/
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.res.Resources;
+import android.os.Build;
+import android.util.Log;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
+
+import androidx.annotation.RequiresApi;
+
+import com.iexceed.plugins.ApzPluginUtil;
+import com.iexceed.plugins.suremdm.CustomActivity;
+import com.signzy.imageanalysis.SignzyImageAnalysis;
+import com.signzy.imagequality.model.SignzyAnalysisResult;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class NativeService {
+  private static Context context;
+  private static Activity activity;
+  private static WebView mainWebView;
+  private static String mCallback;
+  private static String action;
+  private static Activity mact;
+
+  public NativeService(Context c, Activity a, WebView w) {
+    context = c;
+    activity = a;
+    mainWebView = w;
+  }
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  public static JSONObject nativeServiceEntry(WebView wv, Activity act, JSONObject jsonText) throws JSONException {
+    //your code goes here
+    JSONObject json = jsonText;
+    String action;
+    mact = act;
+    try {
+      /* json = new JSONObject(jsonText); */
+      action = json.getString("action");
+      mCallback = json.getString("id");
+      if (action.equalsIgnoreCase("sureMDM")) {
+
+        try {
+          // String signature = json.getString("signature");
+          Intent intent = new Intent(act, CustomActivity.class);
+          intent.putExtra("Action", action);
+          // intent.putExtra("signature",signature);
+          act.startActivity(intent);
+          json.put("status", "success");
+          ApzPluginUtil.sendSuccess(mCallback, json, false, act, wv, true);
+        } catch (Exception e) {
+          e.printStackTrace();
+          json.put("status", "failure");
+          ApzPluginUtil.sendError(mCallback, "error", json, act, wv, true);
+        }
+
+      } else if ((action.equalsIgnoreCase("GET_IMAGE_QUALITY"))) {
+        String imageFileBase64 = json.getString("imageFileBase64");
+        String docType = json.getString("docType");
+
+        try {
+
+          SignzyAnalysisResult result = getSignzyAnalysisResult(imageFileBase64, docType);
+
+          Log.d("TAG", "Analysis Results: " + result.toString());
+          String code = result.getError();
+          String msg = result.getErrorMessage();
+          JSONObject jsonObject = new JSONObject();
+          if (code == null) {
+            try {
+              jsonObject.put("blurScore", result.getBlurScore());
+              jsonObject.put("clearScore", result.getClearScore());
+              ApzPluginUtil.sendSuccess(mCallback, jsonObject, false, act, wv, true);
+            } catch (Resources.NotFoundException | JSONException e) {
+              try {
+                jsonObject.put("error", e.getMessage());
+              } catch (JSONException ex) {
+                throw new RuntimeException(ex);
+              }
+              ApzPluginUtil.sendError(mCallback, "error", jsonObject, act, wv, true);
+            }
+          } else {
+            try {
+              jsonObject.put("errorCode", code);
+              jsonObject.put("errorMessage", msg);
+              ApzPluginUtil.sendError(mCallback, "error", jsonObject, act, wv, true);
+            } catch (Resources.NotFoundException | JSONException e) {
+              try {
+                jsonObject.put("error", e.getMessage());
+              } catch (JSONException ex) {
+                throw new RuntimeException(ex);
+              }
+              ApzPluginUtil.sendError(mCallback, "error", jsonObject, act, wv, true);
+            }
+          }
+
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    } catch (JSONException e) {
+      json.put("error", e.toString());
+      e.printStackTrace();
+    }
+
+    return json;
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  @JavascriptInterface
+  public void nativeServiceExt(JSONObject jsonText) {
+    try {
+      nativeServiceEntry(mainWebView, activity, jsonText);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  public static SignzyAnalysisResult getSignzyAnalysisResult(String base64Str, String docType) {
+    SignzyImageAnalysis signzyImageAnalysis = new SignzyImageAnalysis(mact.getApplicationContext());
+    return signzyImageAnalysis.runImageQualityAnalysis(base64Str, docType);
+  }
+
+  /*@RequiresApi(api = Build.VERSION_CODES.N)
+  public void saveToDownloadsLegacy(String base64String, String fileName) {
+      try {
+          String base64 = base64String.split(",")[1];
+          byte[] bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+
+          File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+          File file = new File(path, fileName);
+
+          FileOutputStream fos = new FileOutputStream(file);
+          fos.write(bytes);
+          fos.close();
+
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
+  }*/
+
+}

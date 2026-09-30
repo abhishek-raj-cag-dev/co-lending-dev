@@ -1,0 +1,361 @@
+var RPCDBUdyamRegScrId = 'RPCDBV__RPCDBUdyamReg__',
+    AppCustdata = '',
+    CoAppCustdata = '',
+    lsuccessAppData = '',
+    lsuccessCoAppData = '',
+    lfailedAppData = '',
+    lfailedCoAppData = '',
+    udyamcheckedReasons = '',
+    uQueries = '',
+    appValidKYC = '', coAppValidKYC = '';
+apz.app.onShown_RPCDBUdyamReg = function() {
+    $(`.custdtls input`).each(function() {
+        ApzCOB.addDisableToInput(this.id)
+    });
+    apz.app.RPCDBVerify.hideNshowBtns();
+    apz.app.RPCDBUdyamReg.PopulateDropDowns();
+    apz.app.RPCDBUdyamReg.checkUdyamRegistered();
+    apz.app.RPCDBUdyamReg.paintQueryresponse();
+    apz.app.RPCDBUdyamReg.bindDropDownEvents();
+    apz.app.RPCDBVerify.setModifedtag();
+    if (stageDocuments.length == 1) {
+        $(`#RPCDBV__RPCDBVerify__frontView_Img`).attr('disabled', true);
+        $(`#RPCDBV__RPCDBVerify__backView_Img`).attr('disabled', true);
+    } else {
+        $(`#RPCDBV__RPCDBVerify__backView_Img`).attr('disabled', false);
+    }
+    apz.app.RPCDBVerify.setModifedtag();
+    apz.app.RPCDBUdyamReg.copyInpVal(['RPCDBV__RPCDBUdyamReg__primaryKyc', 'RPCDBV__RPCDBUdyamReg__coAppprimaryKyc']);
+}
+apz.app.RPCDBUdyamReg.paintQueryresponse = function(){
+    uQueries = inSessionStore?.dbKitStatDetails.filter(e => e.stageID == 3);
+    if(uQueries?.length > 0) {
+        $("#RPCDBV__RPCDBUdyamReg__UQuery").removeClass('sno');
+        $("#RPCDBV__RPCDBUdyamReg__UqueryFrm").removeClass('sno');
+        $("#RPCDBV__RPCDBUdyamReg__UqueryRow").removeClass('sno');
+        $("span#RPCDBV__RPCDBUdyamReg__UselectedQuerydata").html("");
+        apz.app.RPCDBVerify.queriestimeStamp(uQueries);
+        $("#RPCDBV__RPCDBUdyamReg__UqueryDisplay_txtcnt").text("Queries (RPC DB verification , " + LoggedInUserDetails?.loginResponse?.userDet?.id + " " + formattedTimestamp + ")");
+        window.udyamcheckedQueries = apz.app.RPCDBVerify.getQueryReasons(RPCDBV_CURRENT_STAGE_NO,apz.childScr)
+        for (let q = 0; q < udyamcheckedQueries.length; q++) {
+            if (udyamcheckedQueries[q]?.Q.split('?')[0]  === 'oth') {
+                window.udyamcheckedReasons = udyamcheckedQueries[q]?.Q.split('?')[1];
+            } else {
+                window.udyamcheckedReasons = udyamcheckedQueries[q]?.Q;
+            }
+            $("span#RPCDBV__RPCDBUdyamReg__UselectedQuerydata").append('<p>' + (q + 1) + ". " + udyamcheckedReasons + '</p>')
+        }
+        $("span#RPCDBV__RPCDBUdyamReg__udyamSelectedresData").html("");
+        if (udyamcheckedQueries[0]?.R) {
+            $("span#RPCDBV__RPCDBUdyamReg__udyamResrow").removeClass('sno');
+            $("#RPCDBV__RPCDBUdyamReg__uResponsedisplay_txtcnt").text("Response (DB kit generation - " + latestUserId + " " + udyamcheckedQueries[0]?.RTS + ")")
+            $("span#RPCDBV__RPCDBUdyamReg__udyamSelectedresData").append('<p>' + (1) + ". " + udyamcheckedQueries[0]?.R + '</p>')
+            $("span#RPCDBV__RPCDBUdyamReg__udyamSelectedresData").removeClass('sno'); // i for query block 
+            if ($('#RPCDBV__RPCDBUdyamReg__appStatus').is(':visible')) {
+                $('#RPCDBV__RPCDBUdyamReg__udyamstatusModified_ul').removeClass('sno');
+            } else {
+                $('#RPCDBV__RPCDBUdyamReg__udyamstatusModified_ul').addClass('sno');
+            }
+            if ($('#RPCDBV__RPCDBUdyamReg__CoappStatus').is(':visible')) {
+                $('#RPCDBV__RPCDBUdyamReg__coaapModified_ul').removeClass('sno');
+            } else {
+                $('#RPCDBV__RPCDBUdyamReg__coaapModified_ul').addClass('sno');
+            }
+        } else {
+            $("span#RPCDBV__RPCDBUdyamReg__udyamSelectedresData").addClass('sno');
+            $("span#RPCDBV__RPCDBUdyamReg__udyamResrow").addClass('sno');
+        }
+        
+    } else {
+        $("#RPCDBV__RPCDBUdyamReg__UQuery").addClass('sno');
+        $("#RPCDBV__RPCDBUdyamReg__UqueryFrm").addClass('sno');
+        $("#RPCDBV__RPCDBUdyamReg__UqueryRow").addClass('sno');
+        //$("span#RPCDBV__RPCDBUdyamReg__UselectedQuerydata").append('<p>' + (q + 1) + ". " + udyamcheckedReasons + '</p>');
+    }
+}
+apz.app.onLoad_RPCDBUdyamReg = function() {
+    $('body').addClass(' unati crdas dbkit ');
+};
+apz.app.RPCDBUdyamReg.checkUdyamRegistered = function() {
+    window.UdyamRegistered = !apz.isNull(inSessionStore?.['cdhLeadDetails']?.urn)  ? true : false;
+    AppCustdata = inSessionStore.customerDetailsList.filter(item => item.customerType == "Applicant")?.[0];
+    CoAppCustdata = inSessionStore.customerDetailsList.filter(item => item.customerType == "Co-App")?.[0];
+    appValidKYC = (!apz.isNull(AppCustdata?.payload?.alternateVoterId) && AppCustdata?.payload?.alternateVoterIdValStatus === "Verified") ? AppCustdata?.payload?.alternateVoterId : AppCustdata?.payload?.primaryKycIdValStatus === "Verified" ? AppCustdata?.payload?.primaryKycId : "";
+    coAppValidKYC = (!apz.isNull(CoAppCustdata?.payload?.alternateVoterId) && CoAppCustdata?.payload?.alternateVoterIdValStatus === "Verified") ? CoAppCustdata?.payload?.alternateVoterId : CoAppCustdata?.payload?.primaryKycIdValStatus === "Verified" ? CoAppCustdata?.payload?.primaryKycId : "";
+    if (UdyamRegistered) {
+        ['registration_select', 'registrationStatus', 'failureBlock'].hide();
+        ['registered_ul'].show();
+        $(`.custdtls`).removeClass('sno');
+        $('#RPCDBV__RPCDBVerify__gr_row_50').removeClass('semi');
+        $('#RPCDBV__RPCDBVerify__gr_col_55').addClass('sno');
+        $('#RPCDBV__RPCDBVerify__gr_row_48').addClass('nodoc');
+        apz.app.RPCDBUdyamReg.paintCustDetailsApp();
+    } else {
+        lsuccessAppData = inSessionStore.udhyamDetails.filter(item => item.customerType == "Applicant" && item.udhyamStatus == "Success");
+        lsuccessCoAppData = inSessionStore.udhyamDetails.filter(item => item.customerType == "Co-App" && item.udhyamStatus == "Success");
+        lfailedAppData = inSessionStore.udhyamDetails.filter(item => item.customerType == "Applicant" && item.udhyamStatus == "Failed");
+        lfailedCoAppData = inSessionStore.udhyamDetails.filter(item => item.customerType == "Co-App" && item.udhyamStatus == "Failed");
+        ['registered_ul', 'registrationStatus', 'failureBlock', 'urnBlock', 'custTypeBlock'].hide();
+        ['registration_select'].show();
+        apz.app.RPCDBUdyamReg.paintSuccfailData();
+    }
+};
+apz.app.RPCDBVerify.paintudayamDocs = function() {
+    $(`#${DBVerifyscrId}rotate_ul , #${DBVerifyscrId}zoomout_ul,#${DBVerifyscrId}zoomin_ul`).removeClass('sno');
+     window.ImageLocationDetails = {
+                    latitude: stageDocuments[0]?.payload?.latitude || "",
+                    longitude: stageDocuments[0]?.payload?.longitude || "",
+                    uploadedTs: stageDocuments[0]?.payload?.uploadedTs || "",
+                    documentFileName: stageDocuments[0]?.payload?.documentFileName || ""
+                };
+    ApzCOB.downloadFileFromServer(stageDocuments[0]?.payload.documentFileName, apz.app.RPCDBVerify.paintDocSectionDocs, '');
+};
+apz.app.RPCDBUdyamReg.paintSuccfailData = function() {
+    $('#RPCDBV__RPCDBVerify__gr_row_50').addClass('semi');
+    $('#RPCDBV__RPCDBVerify__gr_col_55').removeClass('sno');
+    $('#RPCDBV__RPCDBVerify__gr_row_48').removeClass('nodoc');
+    $('#RPCDBV__RPCDBUdyamReg__gr_row_2').addClass('twocol');
+    $('#RPCDBV__RPCDBUdyamReg__gr_row_2').removeClass('threecol');
+     $('#RPCDBV__RPCDBVerify__frntbckBtnRow').removeClass('sno');
+    $(`#RPCDBV__RPCDBVerify__docdisplayName`).text('Udyam status screenshot');
+    window.stageDocuments = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.filter(el => (el.payload.documentType ===
+        "Udyam Reg Success" || el.payload.documentType === "Udyam Reg Failed"));
+    apz.app.RPCDBVerify.paintudayamDocs();
+    $("#RPCDBV__RPCDBUdyamReg__custTypeRadio_option_").attr("disabled", "disabled");
+    $("#RPCDBV__RPCDBUdyamReg__custTypeRadio_option__span_").addClass('sno');
+    $("#RPCDBV__RPCDBUdyamReg__custTypeRadio_option_Applicant").removeAttr("disabled").prop("checked", true);
+    $("#RPCDBV__RPCDBUdyamReg__custTypeCoappRadio_option_Applicant").attr("disabled", "disabled");
+    $("#RPCDBV__RPCDBUdyamReg__custTypeCoappRadio_option__span_").addClass('sno');
+    $("#RPCDBV__RPCDBUdyamReg__custTypeCoappRadio_option_Co-Applicant").removeAttr("disabled").prop("checked", true);
+    $(`#RPCDBV__RPCDBVerify__queryBtn`).removeClass('sno');
+    if (lsuccessAppData.length > 0) {
+        $(`#${RPCDBUdyamRegScrId}custType`).val(lsuccessAppData[0]?.customerType); // udyam registered cust type
+        $(`#${RPCDBUdyamRegScrId}custName`).val(AppCustdata?.customerName);
+        $(`#${RPCDBUdyamRegScrId}aadhaar`).val(AppCustdata?.payload?.secondaryKycId || '---');
+        $(`#${RPCDBUdyamRegScrId}mobile`).val(AppCustdata?.mobileNumber || '---');
+        $(`#${RPCDBUdyamRegScrId}primaryKyc`).val(appValidKYC);
+        $("#RPCDBV__RPCDBUdyamReg__custTypeRadio_option_Co-App").attr("disabled", "disabled");
+        $("#RPCDBV__RPCDBUdyamReg__custTypeRadio_option__span_").addClass('sno');
+        $("#RPCDBV__RPCDBUdyamReg__custTypeRadio_option_Applicant").removeAttr("disabled").prop("checked", true);
+        $(`#${RPCDBUdyamRegScrId}registrationStatus`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}successTick_ul`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}failedTick_ul`).addClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppdtlsRow`).addClass('sno');
+        $(`#${RPCDBUdyamRegScrId}CoAppregStatus`).addClass('sno');
+        return;
+        // show success app docs
+    } else {
+        // painting app failure details 
+        $(`#${RPCDBUdyamRegScrId}custName`).val(AppCustdata?.customerName);
+        $(`#${RPCDBUdyamRegScrId}aadhaar`).val(AppCustdata?.payload?.secondaryKycId || '---');
+        $(`#${RPCDBUdyamRegScrId}mobile`).val(AppCustdata?.mobileNumber || '---');
+        $(`#${RPCDBUdyamRegScrId}primaryKyc`).val(appValidKYC);
+        $(`#${RPCDBUdyamRegScrId}registrationStatus`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}failedTick_ul`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}failureBlock`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}successTick_ul`).addClass('sno');
+        $(`#${RPCDBUdyamRegScrId}reason`).val(lfailedAppData[0]?.remarks);
+        // painting  Coapp Succ details 
+        $(`#${RPCDBUdyamRegScrId}coAppNamerow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppaadharrow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppmobileRow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppprimaryKycrow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppcustType`).val(lsuccessCoAppData[0]?.customerType);
+        $(`#${RPCDBUdyamRegScrId}coAppcustName`).val(CoAppCustdata?.customerName);
+        $(`#${RPCDBUdyamRegScrId}coAppaadhaar`).val(CoAppCustdata?.payload?.secondaryKycId || '---');
+        $(`#${RPCDBUdyamRegScrId}coAppmobile`).val(CoAppCustdata?.mobileNumber || '---');
+        $(`#${RPCDBUdyamRegScrId}coAppprimaryKyc`).val(coAppValidKYC);
+        $(`#${RPCDBUdyamRegScrId}Coregistration_select`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}CoappregistrationStatus`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}CoappStatus`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}CoappsuccessTick_ul`).removeClass('sno');
+        //paint coApp succ doc data
+        apz.app.RPCDBUdyamReg.PopulateDropDowns();
+        setTimeout(function() {
+            apz.setElmValue("RPCDBV__RPCDBUdyamReg__reason", lfailedAppData[0]?.remarks);
+            $("#RPCDBV__RPCDBUdyamReg__reason_ext").css("height", "45px");
+        }, 500);
+    }
+    if (lsuccessCoAppData.length > 0) {
+        $(`#${RPCDBUdyamRegScrId}Coregistration_select`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppNamerow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppaadharrow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppmobileRow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppprimaryKycrow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppcustType`).val(lsuccessCoAppData[0]?.customerType);
+        $(`#${RPCDBUdyamRegScrId}coAppcustName`).val(CoAppCustdata?.customerName);
+        $(`#${RPCDBUdyamRegScrId}coAppaadhaar`).val(CoAppCustdata?.payload?.secondaryKycId || '---');
+        $(`#${RPCDBUdyamRegScrId}coAppmobile`).val(CoAppCustdata?.mobileNumber || '---');
+        $(`#${RPCDBUdyamRegScrId}coAppprimaryKyc`).val(coAppValidKYC);
+        $(`#${RPCDBUdyamRegScrId}Coregistration_select`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}CoappregistrationStatus`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}CoappsuccessTick_ul`).removeClass('sno');
+        // show success app docs
+    } else {
+        // painting app failure details
+        
+        $(`#${RPCDBUdyamRegScrId}custName`).val(AppCustdata?.customerName);
+        $(`#${RPCDBUdyamRegScrId}aadhaar`).val(AppCustdata?.payload?.secondaryKycId || '---');
+        $(`#${RPCDBUdyamRegScrId}mobile`).val(AppCustdata?.mobileNumber || '---');
+        $(`#${RPCDBUdyamRegScrId}primaryKyc`).val(appValidKYC);
+        $(`#${RPCDBUdyamRegScrId}registrationStatus`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}failureBlock`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}failedTick_ul`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}reason`).val(lfailedAppData[0]?.remarks);
+        // painting Coapp failure details
+        $(`#${RPCDBUdyamRegScrId}Coregistration_select`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppNamerow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppCusttyprow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppaadharrow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppmobileRow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppprimaryKycrow`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}CoappsuccessTick_ul`).addClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppcustName`).val(CoAppCustdata?.customerName);
+        $(`#${RPCDBUdyamRegScrId}coAppaadhaar`).val(CoAppCustdata?.payload?.secondaryKycId || '---');
+        $(`#${RPCDBUdyamRegScrId}coAppmobile`).val(CoAppCustdata?.mobileNumber || '---');
+        $(`#${RPCDBUdyamRegScrId}coAppprimaryKyc`).val(coAppValidKYC);
+        $(`#${RPCDBUdyamRegScrId}Coregistration_select`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}CoappregistrationStatus`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}CoappfailedTick_ul`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}CoappStatus`).removeClass('sno');
+        $(`#${RPCDBUdyamRegScrId}coAppfailureBlock`).removeClass('sno');
+        // $(`#${RPCDBUdyamRegScrId}CoAppreason`).val(lfailedCoAppData[0]?.remarks);
+         apz.app.RPCDBUdyamReg.PopulateDropDowns();
+         apz.setElmValue(`RPCDBV__RPCDBUdyamReg__CoAppreason`, lfailedCoAppData[0]?.remarks);
+         $("#RPCDBV__RPCDBUdyamReg__CoAppreason_ext").css("height", "45px");
+    }
+}
+apz.app.RPCDBUdyamReg.paintCustDetailsApp = function() {
+    $(`#${RPCDBUdyamRegScrId}urn`).val(inSessionStore.leadDetails?.urn); // urn from lead
+    $(`#${RPCDBUdyamRegScrId}custName`).val(AppCustdata?.customerName);
+    $(`#${RPCDBUdyamRegScrId}aadhaar`).val(AppCustdata?.payload?.secondaryKycId || '---');
+    $(`#${RPCDBUdyamRegScrId}mobile`).val(AppCustdata?.mobileNumber || '---');
+    $(`#${RPCDBUdyamRegScrId}primaryKyc`).val(appValidKYC);
+    $(`#${RPCDBUdyamRegScrId}coAppNamerow`).addClass('sno');
+    $(`#${RPCDBUdyamRegScrId}coAppCusttyprow`).addClass('sno');
+    $(`#${RPCDBUdyamRegScrId}coAppaadharrow`).addClass('sno');
+    $(`#${RPCDBUdyamRegScrId}coAppmobileRow`).addClass('sno');
+    $(`#${RPCDBUdyamRegScrId}coAppprimaryKycrow`).addClass('sno');
+    $("#RPCDBV__RPCDBUdyamReg__custTypeRadio_option_Co-App").attr("disabled", "disabled");
+    $("#RPCDBV__RPCDBUdyamReg__custTypeRadio_option__span_").addClass('sno');
+    $("#RPCDBV__RPCDBUdyamReg__custTypeRadio_option_Applicant").removeAttr("disabled").prop("checked", true);
+};
+apz.app.RPCDBUdyamReg.PopulateDropDowns = function() {
+    let tempArr = apz.isNull(gLovs) ? [{"lovDtls":"{}"}] : gLovs.filter(item => item.lovName == "UDYAM_FAILED_REASONS");
+    let udayamReasons = JSON.parse(tempArr[0].lovDtls ?? {})["Udyam Failed Reasons"] ?? [];
+    apz.populateDropdown(document.getElementById(RPCDBUdyamRegScrId + "reason"), ApzCOB.formatDropDownforArray(udayamReasons));
+    apz.populateDropdown(document.getElementById(RPCDBUdyamRegScrId + "CoAppreason"), ApzCOB.formatDropDownforArray(udayamReasons));
+};
+apz.app.UdyamReg.fetchSelectedDocs = function() {
+    let ldocType = $(`#${RPCDBUdyamRegScrId}successTick_ul`).is(":visible") ? "Udyam Reg Success" : "Udyam Reg Failed";
+    let lcusttype = $(`#${RPCDBUdyamRegScrId}custTypeRadio input:checked`).val();
+    let documentResp = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+    let ldocs = documentResp.filter(docs => docs.payload.documentType === ldocType && parseInt(docs.custDtlId) === parseInt(ApzCOB
+        .getCustDetailID(lcusttype)));
+    return ldocs;
+};
+apz.app.RPCDBUdyamReg.launchNextsrcn = function() {
+    ApzCOB.launchSubScreen("RPCDBDocExecutionUnnati", `${DBVerifyscrId}RPCDbkitLaunchDiv`);
+}
+apz.app.RPCDBUdyamReg.launchPrevious = function() {
+    ApzCOB.launchSubScreen("RPCDBeNach", `${DBVerifyscrId}RPCDbkitLaunchDiv`);
+}
+apz.app.RPCDBUdyamReg.onChangeReason = function(pthis) {
+    let val = $(`#${RPCDBUdyamRegScrId}reason`).val();
+    if (inSessionStore?.udhyamDetails) {
+        let appItem = inSessionStore.udhyamDetails.find(item => item.customerType === "Applicant");
+        if (appItem) {
+            appItem.remarks = val;
+        } else {
+            inSessionStore.udhyamDetails.push({
+                applicationId: inSessionStore?.applicationId || inSessionStore?.applicationMaster?.applicationId,
+                appId: inSessionStore?.appId || inSessionStore?.applicationMaster?.appId,
+                customerType: "Applicant",
+                udhyamStatus: "Failed",
+                remarks: val
+            });
+        }
+    }
+};
+apz.app.RPCDBUdyamReg.onChangeCoAppReason = function(pthis) {
+    let val = $(`#${RPCDBUdyamRegScrId}CoAppreason`).val();
+    if (inSessionStore?.udhyamDetails) {
+        let coAppItem = inSessionStore.udhyamDetails.find(item => item.customerType === "Co-App");
+        if (coAppItem) {
+            coAppItem.remarks = val;
+        } else {
+            inSessionStore.udhyamDetails.push({
+                applicationId: inSessionStore?.applicationId || inSessionStore?.applicationMaster?.applicationId,
+                appId: inSessionStore?.appId || inSessionStore?.applicationMaster?.appId,
+                customerType: "Co-App",
+                udhyamStatus: "Failed",
+                remarks: val
+            });
+        }
+    }
+};
+apz.app.RPCDBUdyamReg.bindDropDownEvents = function() {
+    $(`#${RPCDBUdyamRegScrId}reason`).off('change.udyam').on('change.udyam', function() {
+        apz.app.RPCDBUdyamReg.onChangeReason(this);
+    });
+    $(`#${RPCDBUdyamRegScrId}CoAppreason`).off('change.udyam').on('change.udyam', function() {
+        apz.app.RPCDBUdyamReg.onChangeCoAppReason(this);
+    });
+};
+apz.app.RPCDBUdyamReg.copyInpVal = function(inputIds) {
+    $.each(inputIds, function(index, inputId) {
+        const $input = $('#' + inputId);
+        const $icon = $input.siblings('.icon-copy');
+        if (!$input.length || !$icon.length) {
+            return;
+        }
+        $input.prop('disabled', false).prop('readonly', true).removeAttr('disabled').removeClass('disabled');
+        $input.css('background-color', 'rgba(15, 33, 88, 0.08)');
+        $input.closest('.select-disabled').removeAttr('disabled').removeClass('select-disabled');
+        $icon.off('click.copyValue');
+        $icon.on('click.copyValue', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const input = $input[0];
+            if (!input || !input.value) {
+                return;
+            }
+            input.focus();
+            input.select();
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(input.value).then(function() {
+                    apz.app.RPCDBUdyamReg.showCopiedPopover($icon);
+                }).catch(function() {
+                    document.execCommand('copy');
+                    apz.app.RPCDBUdyamReg.showCopiedPopover($icon);
+                });
+            } else {
+                document.execCommand('copy');
+                apz.app.RPCDBUdyamReg.showCopiedPopover($icon);
+            }
+        });
+    });
+};
+apz.app.RPCDBUdyamReg.showCopiedPopover = function($input) {
+    if (!$input || !$input.length) {
+        return;
+    }
+    $('.copy-popover').remove();
+    const $popover = $('<div>', { class: 'copy-popover', text: 'Copied' });
+    $('body').append($popover);
+    $popover.css({ display: 'block', position: 'absolute', zIndex: 999999, visibility: 'hidden' });
+    const inputOffset = $input.offset();
+    const inputWidth = $input.outerWidth();
+    const inputHeight = $input.outerHeight();
+    const popoverWidth = $popover.outerWidth();
+    const popoverHeight = $popover.outerHeight();
+    const inputCenter = inputOffset.left + (inputWidth / 2);
+    const left = inputCenter - (popoverWidth / 2);
+    const top = inputOffset.top - popoverHeight - 8;
+    $popover.css({ top: top + 'px', left: left + 'px', visibility: 'visible' });
+    setTimeout(function() {
+        $popover.fadeOut(200, function() {
+            $(this).remove();
+        });
+    }, 2000);
+};

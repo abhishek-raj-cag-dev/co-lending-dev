@@ -1,0 +1,7 @@
+window.PreviewGenscrId = 'cmnPre__PreviewDBGenreation__';
+apz.app.onLoad_PreviewDBGenreation = function() {
+    $('body').addClass(' unati crdas dbkit ');
+}
+apz.app.onShown_PreviewDBGenreation = function() {
+    $(`#${cmnPreviewscrId}PreviewGenDB`).addClass('active');
+}

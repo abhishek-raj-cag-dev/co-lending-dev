@@ -1,0 +1,287 @@
+var SearchApplicationScrId = 'Dashbo__SearchApplication__';
+var screenType = [];
+var growNo = "";
+apz.app.onLoad_SearchApplication = function() {
+    $("#" + BaseScrId + "landingRowHeader").removeClass('sno');
+    // apz.app.SearchApplication.search();
+};
+apz.app.onShown_SearchApplication = function() {
+    $('body').removeClass("LoginBase");
+    $("#" + BaseScrId + "searchByNumCol").addClass('sno');
+    $("#" + BaseScrId + "applnStatus").addClass('sno');
+    $("#" + BaseScrId + "footerbtnRow").addClass('sno');
+    $('#' + BaseScrId + 'headerText').text("Searched by - " + window.searchValue);
+    if (apz.data.scrdata.Dashbo__PaintData_Res.SearchApp.length > 0) {
+        apz.data.scrdata.Dashbo__PaintData_Res.SearchApp.forEach(function(widgetData, index) {
+            widgetData.submittedDate = ApzCOB.dateformatter(new Date(widgetData.submittedDate), "d M Y");
+            widgetData.productIcon = apz.app.BaseScreens.getProductIcon(widgetData.productGroupCode);
+        });
+        apz.data.loadData("PaintData", apz.currAppId);
+        apz.app.SearchApplication.paintPayeeImageText();
+        window.itsfromsearch=true;
+        // $("#" + SearchApplicationScrId + "noRecodsForm").addClass("sno");
+        $("#" + SearchApplicationScrId + "viewList").removeClass("sno");
+        $("#" + SearchApplicationScrId + "viewListHeader").removeClass("sno");
+        apz.app.SearchApplication.LoadSearchApp();
+        /*$.each(apz.data.scrdata.Dashbo__PaintData_Res.SearchApp, function(a, b) {
+            var apStatusId = $('#Dashbo__PaintData__o__SearchApp__applicationStatus_' + a)
+            if (apStatusId.text() === "INPROGRESS") {
+                apStatusId.addClass('war')
+                screenType.push("InProgress")
+            }
+            if (apStatusId.text() === "REJECTED") {
+                apStatusId.addClass('err')
+                screenType.push("Rejected")
+            }
+            if (apStatusId.text() === "PENDING") {
+                apStatusId.addClass('suc')
+                screenType.push("Completed")
+            }
+            if (apStatusId.text() === "APPROVED") {
+                apStatusId.addClass('appr')
+                screenType.push('Approvals')
+            }
+            if (apStatusId.text() === "AssignLead") {
+                // apStatusId.addClass('war')
+                screenType.push('AssignedLeads')
+            }
+        })*/
+    }
+    /*else {
+        $("#" + SearchApplicationScrId + "viewList").addClass("sno");
+        $("#" + SearchApplicationScrId + "viewListHeader").addClass("sno");
+        $("#" + SearchApplicationScrId + "noRecodsForm").removeClass("sno");
+    }*/
+};
+/*apz.app.SearchApplication.search = function() {
+    approveRejectAction = gaction;
+    var req = {
+        "apiRequest": {
+            "interfaceName": "SearchApplication",
+            "requestObj": {
+                "appId": apz.appId,
+                "mobileOrApplnId": $("#" + BaseScrId + "searchByNum").val(), //you can send either mobile number or application id
+                "userId": apz.userId
+            }
+        }
+    }
+    apz.startLoader();
+    ApzCOB.serverBuildParam(apz.appId, "SearchApplication", "N", "N", req, false, apz.app.SearchApplication.searchCB);
+};
+//Approve Reject Service Callback
+apz.app.SearchApplication.searchCB = function(params) {
+    apz.stopLoader();
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.data.scrdata.Dashbo__PaintData_Res = {}
+            apz.data.scrdata.Dashbo__PaintData_Res.SearchApp = [];
+            var response = JSON.parse(params.res.APZCBO__SearchApplication_Res.apiResponse.ResponseBody.responseObj)
+            var temp = []
+            if (response.length > 0) {
+                $.each(response, function(a, b) {
+                    var obj = {};
+                    obj.createdBy = b.createdBy
+                    obj.applicationStatus = b.applicationStatus;
+                    obj.applicationId = b.applicationId;
+                    obj.productCode = b.productCode;
+                    obj.submittedDate = b.createTs.date.day + "-" + b.createTs.date.month + "-" + b.createTs.date.year
+                    temp.push(obj)
+                })
+                apz.data.scrdata.Dashbo__PaintData_Res.SearchApp = temp
+            }
+        }
+    } catch (e) {
+        apz.stopLoader();
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_TECHNICALDIFF"), "E");
+    }
+};
+*/
+apz.app.SearchApplication.fetchApplication = function(pthis) {
+    window.clickList = true;
+    growNo = parseInt($(pthis).attr('rowno'))
+    // gSearchDetails[rownNo]
+    gApzCOB.userDetails.applicationId = gSearchDetails[growNo].applicationId
+    gApzCOB.userDetails.versionNum = gSearchDetails[growNo].versionNum;
+    // $('#' + BaseScrId + 'headerText').text(customerName + " (" + gApzCOB.userDetails.applicationId + ")");
+    //ApzCOB.FetchApplication(growNo);
+    gApzCOB.mainProductGroupCode = gSearchDetails[growNo].productGroupCode;
+    gApzCOB.product = gSearchDetails[growNo].productGroupCode;
+    gApzCOB.ExistingCustomer = gSearchDetails[growNo].applicationType === 'ETB' ? true : false;
+    gApzCOB.userDetails.customerId = gSearchDetails[growNo].customerId;
+    //gApzCOB.userDetails.applicationId = apz.data.scrdata.Widget__IPaintWidgetInProgress_Res.WidgetData[growNo].applicationId;
+    gApzCOB.userDetails.appId = gSearchDetails[growNo].appId;
+    if (apz.isNull(gSearchDetails[growNo].createdBy)) {
+        gApzCOB.userDetails.createdBy = 'Customer'
+    } else {
+        gApzCOB.userDetails.createdBy = gSearchDetails[growNo].createdBy;
+    }
+    apz.app.SearchApplication.setCurrentApplnStatus(growNo);
+    apz.app.BaseScreens.getCommomCodeBasedOnProduct();
+    if (gApzCOB.mainProductGroupCode === 'CASA') {
+        apz.app.SearchApplication.LoadOnClickForCASAProducts();
+        /*if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+            ApzCOB.FetchCustomerDetails(growNo);
+        } else {
+            ApzCOB.FetchApplication(growNo);
+        }*/
+    } else if (gApzCOB.mainProductGroupCode === 'DEPOSIT') {
+        apz.app.SearchApplication.LoadOnClickForDeposirProducts();
+        /*if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+            ApzCOB.FetchCustomerDetails(growNo);
+        } else {
+            if (gApzCOB.ExistingCustomer) {
+                ApzCOB.DepositFetchApplication(growNo);
+            } else {
+                ApzCOB.FetchApplication(growNo);
+            }
+        }*/
+    } else if (gApzCOB.mainProductGroupCode === 'LOAN') {
+        apz.app.SearchApplication.LoadOnClickForLoanProducts();
+        /*if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+            //ApzCOB.FetchCustomerDetailsforLoan(growNo);
+            ApzCOB.FetchApplication(growNo);
+        } else {
+            if (gApzCOB.ExistingCustomer) {
+                ApzCOB.LoanFetchApplication(growNo);
+            } else {
+                ApzCOB.FetchApplication(growNo);
+            }
+        }*/
+    } else if (gApzCOB.mainProductGroupCode === 'CARDS') {
+        apz.app.SearchApplication.LoadOnClickForCARDSProducts();
+        /*if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+            ApzCOB.FetchCustomerDetailsForcards(growNo);
+        } else {
+            ApzCOB.CardsFetchApplication(growNo);
+        }*/
+    } else {
+        if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+            ApzCOB.FetchCustomerDetails(growNo);
+        } else {
+            ApzCOB.FetchApplication(growNo);
+        }
+    }
+    /* var screenType = apz.app.Dashboard.setScreenType();
+    ApzCOB.launchMicroApp('Dashbo', 'ReviewConfirm', gAppId + '__BaseScreens__BaseDIV', {
+        "screenType": screenType,
+        "rowNum": rowNo
+    });*/
+}
+apz.app.SearchApplication.setCurrentApplnStatus = function(growNo) {
+    // var applnStatus = apz.data.scrdata.Widget__IPaintWidgetInProgress_Res.WidgetData[growNo].applicationStatus;
+    var applnStatus = gSearchDetails[growNo].applicationStatus;
+    if (applnStatus === 'INPROGRESS') {
+        window.currentApplication = "InProgress";
+        window.applnStatus = "InProgress";
+    } else if (applnStatus === 'REJECTED') {
+        window.currentApplication = "Rejected";
+        window.applnStatus = "Rejected";
+    } else if (applnStatus === 'PENDING') {
+        window.currentApplication = "Approvals";
+        window.applnStatus = "Pending";
+    } else if (applnStatus === 'APPROVED') {
+        window.currentApplication = "Completed";
+        window.applnStatus = "Completed";
+    }
+}
+apz.app.SearchApplication.paintPayeeImageText = function() {
+    var tempArr = [];
+    apz.data.scrdata.Dashbo__PaintData_Res.SearchApp.forEach(function(e, i) {
+        var obj = {};
+        obj = e;
+        if (apz.isNull(obj.createdBy)) {
+            obj.createdBy = "Customer";
+        } else {
+            obj.createdBy = e.createdBy;
+        }
+        obj.productIcon = apz.app.BaseScreens.getProductIcon(e.productGroupCode);
+        tempArr.push(obj)
+            /*     $('#' + SearchApplicationScrId + "nameIcon" + '_' + i).addClass('sno');
+                  $('#' + SearchApplicationScrId + "nameIconText" + '_' + i).removeClass('sno');
+                  $('#' + SearchApplicationScrId + "nameIconText" + '_' + i + '_txtcnt').text(e.createdBy.substring(0, 1).toLocaleUpperCase());
+              } else {
+                  if (apz.data.scrdata.Dashbo__PaintData_Res.SearchApp[i].iconCode.indexOf('data:image/jpg;base64,data:image/jpg;base64,') > -1) {
+                      var imgstr = apz.data.scrdata.Dashbo__PaintData_Res.SearchApp[i].iconCode;
+                      imgstr = imgstr.replace('data:image/jpg;base64,data:image/jpg;base64,', 'data:image/jpg;base64,');
+                      $("#" + SearchApplicationScrId + "nameIcon" + "_" + i)[0].src = imgstr;
+                  } else {
+                      $("#" + SearchApplicationScrId + "nameIcon" + "_" + i)[0].src = apz.data.scrdata.Dashbo__PaintData_Res.SearchApp[i].iconCode;
+                  }
+                  $('#' + SearchApplicationScrId + "nameIconText" + '_' + i).addClass('sno');
+              }*/
+    });
+    apz.data.scrdata.Dashbo__PaintData_Res.SearchApp = tempArr
+    apz.data.loadData("PaintData", apz.currAppId);
+};
+apz.app.SearchApplication.genericSort = function(pFilter, sortParam1, sortParam2) {
+    if (pFilter === 'submittedDate') {
+        return new Date(sortParam1.submittedDate) - new Date(sortParam2.submittedDate);
+    } else if (pFilter === 'createdBy') {
+        return sortParam1.createdBy > sortParam2.createdBy ? 1 : -1;
+    } else if (pFilter === 'product') {
+        return sortParam1.productGroupCode > sortParam2.productGroupCode ? 1 : -1;
+    }
+    return -1;
+};
+apz.app.SearchApplication.LoadSearchApp = function() {
+    $.each(apz.data.scrdata.Dashbo__PaintData_Res.SearchApp, function(a, b) {
+        var apStatusId = $('#Dashbo__PaintData__o__SearchApp__applicationStatus_' + a)
+        if (apStatusId.text() === "INPROGRESS") {
+            apStatusId.addClass('war')
+            screenType.push("InProgress")
+        }
+        if (apStatusId.text() === "REJECTED") {
+            apStatusId.addClass('err')
+            screenType.push("Rejected")
+        }
+        if (apStatusId.text() === "PENDING") {
+            apStatusId.addClass('suc')
+            screenType.push("Completed")
+        }
+        if (apStatusId.text() === "APPROVED") {
+            apStatusId.addClass('appr')
+            screenType.push('Approvals')
+        }
+        if (apStatusId.text() === "AssignLead") {
+            // apStatusId.addClass('war')
+            screenType.push('AssignedLeads')
+        }
+    })  
+};
+apz.app.SearchApplication.LoadOnClickForCASAProducts = function() {
+    if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+        ApzCOB.FetchCustomerDetails(growNo);
+    } else {
+        ApzCOB.FetchApplication(growNo);
+    }
+};
+apz.app.SearchApplication.LoadOnClickForDeposirProducts = function() {
+    if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+        ApzCOB.FetchCustomerDetails(growNo);
+    } else {
+        if (gApzCOB.ExistingCustomer) {
+            ApzCOB.DepositFetchApplication(growNo);
+        } else {
+            ApzCOB.FetchApplication(growNo);
+        }
+    }
+};
+apz.app.SearchApplication.LoadOnClickForLoanProducts = function() {
+    if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+        //ApzCOB.FetchCustomerDetailsforLoan(growNo);
+        ApzCOB.FetchApplication(growNo);
+    } else {
+        if (gApzCOB.ExistingCustomer) {
+            ApzCOB.LoanFetchApplication(growNo);
+        } else {
+            ApzCOB.FetchApplication(growNo);
+        }
+    }
+};
+apz.app.SearchApplication.LoadOnClickForCARDSProducts = function() {
+    if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+        ApzCOB.FetchCustomerDetailsForcards(growNo);
+    } else {
+        ApzCOB.CardsFetchApplication(growNo);
+    }
+};

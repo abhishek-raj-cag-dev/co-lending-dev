@@ -1,0 +1,14 @@
+{
+  "keysForContent": {
+    "applicationName": "கடன் உறுதி கோரும் ஆவணம்",
+    "rs": "ரூ ",
+    "date": "தேதி:",
+	"place":"இடம்:",
+    "note": "கோரிக்கையின் பேரில், நான் <applicantAge> வயதுடைய <applicantName>, <applicantAddress> யில் வசிக்கும் மற்றும் <coApplicantAge> வயதுடைய <coApplicantName>, <coApplicantAddress> யில் வசிக்கின்றனர் கூட்டாகவும் தனித்தனியாகவும் கிரெடிட்ஆக்சஸ் கிராமீன் லிமிடெட் (CA கிராமீன்)-க்கு பணம் செலுத்துவதாக உறுதியளிக்கிறேன், அல்லது பெறப்பட்ட பரிசீலனையின் அடிப்படையில் அனுமதிக்கப்பட்ட தொகையில் ஆண்டுக்கு <rateOfInterest> சதவீத வட்டியுடன் ரூ. <sanctionedAmount> (<sanctionedAmountInWords> மட்டும்) தொகையை ஆர்டர் செய்கிறேன்.",
+	"noteNew": "கோரிக்கையின் பேரில், நான் <applicantAge> வயதுடைய <applicantName>, <applicantAddress> யில் வசிக்கும் மற்றும் <coApplicantAge> வயதுடைய <coApplicantName>, <coApplicantAddress> யில் வசிக்கின்றனர் கூட்டாகவும் தனித்தனியாகவும் கிரெடிட்ஆக்சஸ் கிராமீன் லிமிடெட் (CA கிராமீன்)-க்கு பணம் செலுத்துவதாக உறுதியளிக்கிறேன், அல்லது பெறப்பட்ட பரிசீலனையின் அடிப்படையில் அனுமதிக்கப்பட்ட தொகையில் ஆண்டுக்கு <rateOfInterest> சதவீத வட்டியுடன் ரூ. <sanctionedAmount> (<sanctionedAmountInWords> மட்டும்) தொகையை ஆர்டர் செய்கிறேன்.",
+	"loanAccount":"கடன் கணக்கு எண்:",
+    "applicantName": "1. விண்ணப்பதாரரின் பெயர்: ",
+    "signature": "கையெழுத்து",
+    "coApplicantName": "2. இணை விண்ணப்பதாரர் பெயர்: "
+	}
+}

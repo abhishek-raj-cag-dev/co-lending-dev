@@ -1,0 +1,432 @@
+apz.startLoader();
+RPC_CURRENT_STAGE = 'OtherInformationRPC';
+RPC_CURRENT_STAGE_NO = RPC_STAGES[RPC_CURRENT_STAGE]?.id;
+var scrid = "RPC__OtherInformationRPC__";
+var genderDDValues = ["Male", "Female"];
+var otherReasonsDDValues = ["Not interested", "Already having insurance", "Premium amount is high", "Other"];
+var newMinAge = 18;
+var newMaxAge = 60;
+window.custNomineeDtls ='';
+window.noInsuranceDtls = '';
+window.insuranceList  = '';
+window.applicantDtls = '';
+window.noCustNmnee = false;
+window.hasCustNominee ='';
+//window.scrid = "RPC__IPaintCustAppInsDetails__o__custAppInsDetails__";
+apz.app.onLoad_OtherInformationRPC = function() {
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+};
+apz.app.onShown_OtherInformationRPC = function() {
+    apz.stopLoader();
+    // var element = document.getElementById("RPC__OtherInformationRPC__gr_col_2");
+    // element.style.marginLeft = "233px";
+    // $("#" + scrid + "Applicant").click();
+    $(`#${scrid}applicantEditbtn`).attr("onclick", "ApzCOB.editFunction(this)");
+};
+apz.app.OtherInformationRPC.tabSwitch = function(params) {
+    var applic = ["ct_frm_8", "ct_frm_6", "ct_frm_3", "ct_frm_1"];
+    var coApplic = ["ct_frm_9", "ct_frm_10", ];
+    if (params.textContent == 'Co-Applicant') {
+        $("#" + scrid + "Applicant").removeClass("active");
+        $("#" + scrid + "Co_Applicant").addClass("active");
+        for (let i = 0; i < coApplic.length - 1; i++) {
+            $("#" + scrid + coApplic[i]).removeClass("sno");
+        }
+        for (let i = 0; i < applic.length - 1; i++) {
+            $("#" + scrid + applic[i]).addClass("sno");
+        }
+    } else {
+        $("#" + scrid + "Applicant").addClass("active");
+        $("#" + scrid + "Co_Applicant").removeClass("active");
+        for (let i = 0; i < applic.length - 1; i++) {
+            $("#" + scrid + applic[i]).removeClass("sno");
+        }
+        for (let i = 0; i < coApplic.length - 1; i++) {
+            $("#" + scrid + coApplic[i]).addClass("sno");
+        }
+    }
+};
+apz.app.OtherInformationRPC.formhandle = function() {
+    
+};
+apz.app.OtherInformationRPC.downloadCBReport = function() {
+    let custDetailID = ApzCOB.getCustDetailID(custType);
+    CB_LOAN_ID = '';
+    CB_LOAN_ID = inSessionStore.cibilDetailsWrapperList.filter(el => el.cibilDetails.custDtlId === custDetailID)[0].cibilDetails.payload.cbLoanId;
+    ApzCOB.downloadBRECbReport(custDetailID);
+}
+apz.app.OtherInformationRPC.removeLoanDetails = function() {
+    const elementId1 = `#RPC__${RPC_CURRENT_STAGE}__ct_frm_5`;
+    const elementId2 = `#RPC__${RPC_CURRENT_STAGE}__ct_frm_4`;
+    const elementId3 = `#RPC__${RPC_CURRENT_STAGE}__coApplicantInsurance`;
+    const elementId5 = `#RPC__${RPC_CURRENT_STAGE}__insuranceReqd`;
+
+    if (custType === "Applicant") {
+        $(elementId1).removeClass('sno');
+        $(elementId2).removeClass('sno');
+        $(elementId3).addClass('sno');
+        $(elementId5).removeClass('sno');
+    } else {
+        $(elementId1).addClass('sno');
+        $(elementId2).addClass('sno');
+        $(elementId3).removeClass('sno');
+        $(elementId5).addClass('sno');
+    }
+
+    if ($(`#RPC__${RPC_CURRENT_STAGE}__kendraId`).hasClass("sno") || $(`#RPC__${RPC_CURRENT_STAGE}__kendraName`).hasClass("sno")) {
+        $(`#RPC__${RPC_CURRENT_STAGE}__ct_frm_1`).addClass("sno");
+    } else {
+        $(`#RPC__${RPC_CURRENT_STAGE}__ct_frm_1`).removeClass("sno");
+    }
+
+    apz.app.OtherInformationRPC.updateCbTriggeredDate();
+};
+apz.app.OtherInformationRPC.updateCbTriggeredDate = function () {
+    let custDtlId = custType === 'Applicant' ? Number(gApzCOB.userDetails.custDtlId) : gApzCOB.userDetails.CoApplicantCustomerId;
+    const cibilDetails = inSessionStore.cibilDetailsWrapperList.find(cibil => Number(cibil.cibilDetails.custDtlId) === Number(custDtlId))?.cibilDetails;
+    if (typeof cibilDetails.cbDate === 'object') {
+        const dateObj = cibilDetails.cbDate;
+        const cbFormattedDate = `${String(dateObj.day).padStart(2, '0')}/${String(dateObj.month).padStart(2, '0')}/${dateObj.year}`;
+        $(`#${scrid}cbTriggeredDate`).text("Last CB Triggered Date - "+ cbFormattedDate);
+    }
+    let roiVal = ApzCOB.getPayloadDatafromWrapper('roi', 'Co-App', 'cibilDetailsWrapperList');
+    $(`#RPC__${RPC_CURRENT_STAGE}__roiInput`).val(roiVal);
+};
+
+apz.app.OtherInformationRPC.fnLoadAMLQuestions = function() {
+    apz.data.scrdata.RPC__loadAMLQuestions_Req = {};
+    apz.data.scrdata.RPC__loadAMLQuestions_Req.amlQuestions = []
+    if (apz.isNull(DBKIT_MASTERDATA) || Object.keys(DBKIT_MASTERDATA).length === 0) {
+    ApzCOB.FetchDBKITMasterData("KMSOURCING")
+    }
+    if (apz.isNull(DBKIT_MASTERDATA)  || Object.keys(DBKIT_MASTERDATA).length === 0) {
+        let amlQuestionFilePath = apz.getDataFilesPath() + "/amlQuestionaire.json"
+        let amlQuesDataSet = apz.getFile(amlQuestionFilePath)
+        apz.data.scrdata.RPC__loadAMLQuestions_Req.amlQuestions = JSON.parse(amlQuesDataSet)
+    } else {
+        apz.data.scrdata.RPC__loadAMLQuestions_Req.amlQuestions = JSON.parse(DBKIT_MASTERDATA.find(({ stageName }) => stageName === "OtherInformation")?.queries)
+    }
+    let amlQuestions = apz.data.scrdata.RPC__loadAMLQuestions_Req.amlQuestions;
+    apz.data.loadData("loadAMLQuestions", "RPC")
+    for (let i = 0; i < amlQuestions.length; i++) {
+        $("#RPC__loadAMLQuestions__i__amlQuestions__question_" + i).empty();
+        $("#RPC__loadAMLQuestions__i__amlQuestions__question_" + i).append(`${amlQuestions[i].question}`);
+        var $li = $('#' + scrid + 'amlQuestionList_row_' + i);
+        var onclickCode = $li.attr('onclick');
+        if (onclickCode) {
+            onclickCode = onclickCode.replace('apz.data.selectRow(this, event);', '').replace('apz.data.rowClicked(this,event);', '');
+            $li.attr('onclick', onclickCode);
+        }
+    }
+}
+
+apz.app.OtherInformationRPC.setAMLQuestionnaireData = function(data) {
+    if (!data || !data.amlQuestionList || data.amlQuestionList.length === 0) return;
+    const questionRows = document.querySelectorAll('[id^="RPC__OtherInformationRPC__amlQuestionList_row_"]');
+    if (!questionRows || questionRows.length === 0) return;
+    data.amlQuestionList.forEach((item, index) => {
+        const row = questionRows[index];
+        if (!row) return;
+        const rowNo = index;
+        const questionEl = document.querySelector(`#RPC__loadAMLQuestions__i__amlQuestions__question_${rowNo}`);
+        const questionHeader = questionEl?.querySelector('h3')?.innerText?.trim();
+        if (!questionHeader || questionHeader !== item.questionType) {
+            console.warn("Question mismatch at row:", rowNo);
+            return;
+        }
+        if (item.applicant) {
+            const applicantRadio = row.querySelector(
+                `input[name="RPC__OtherInformationRPC__radoChk1_${rowNo}_${rowNo}"][value="${item.applicant}"]`);
+            if (applicantRadio) applicantRadio.checked = true;
+        }
+        if (item.coApplicant) {
+            const coApplicantRadio = row.querySelector(
+                `input[name="RPC__OtherInformationRPC__radoChk2_${rowNo}_${rowNo}"][value="${item.coApplicant}"]`);
+            if (coApplicantRadio) coApplicantRadio.checked = true;
+        }
+        document.querySelectorAll("#RPC__OtherInformationRPC__amlQuestionList input[type='radio']").forEach(radio => radio.disabled =
+            true);
+    });
+};
+apz.app.OtherInformationRPC.formatDobToMDY = function(dob) {
+        if (!dob) return '';
+        const [year, ...rest] = dob.split('-');
+        return [...rest, year].join('/');
+}
+apz.app.OtherInformationRPC.fnLoadInsuranceDetails = function() {
+    window.insuranceList = inSessionStore?.insuranceDetailsWrapperList || [];
+    let insuredName = '';
+    let custNominee = ApzCOB.getcustNominee();
+    // custNomineeDtls = insuranceList.find(el => el?.insuranceDetails?.insuredCustType === 'Cust-Nominee')?.insuranceDetails?.payload || {};
+    applicantDtls = insuranceList.find(el => el?.insuranceDetails?.insuredCustType === 'Applicant')?.insuranceDetails || {};
+    // noInsuranceDtls = insuranceList.find(el => apz.isNull(el?.insuranceDetails?.insuredCustType))?.insuranceDetails?.payload || {};
+    // isCustNominee =  insuranceList?.find(el => el?.insuranceDetails?.insuredCustType === 'Cust-Nominee')?.insuranceDetails?.insuredCustType
+    window.hasCustNominee = custNominee.length > 0;
+    // window.hasApplicant = Object.keys(applicantDtls).length > 0;
+    // window.hasNoInsurance = Object.keys(noInsuranceDtls).length > 0;
+    // window.insDtls = custNomineeDtls?.insuredName ? custNomineeDtls : noInsuranceDtls?.insuredName ? noInsuranceDtls : applicantDtls;
+    const insuranceTypeMap = {
+        bothInsurance: 'Both',
+        noInsurance: 'No Insurance',
+    };
+    const insuranceType = insuranceTypeMap[applicantDtls.insuranceType] || applicantDtls.insuranceType;
+    const nomineeDtls = hasCustNominee ? custNominee[0]?.insuranceDetails?.payload : applicantDtls?.payload;
+    const payload = applicantDtls?.payload;
+    $("#RPC__OtherInformationRPC__insuranceTypeRadioBtn_option_jointInsurance_span_").text(insuranceType);
+    $("#RPC__OtherInformationRPC__insuranceTypeRadioBtn_option_jointInsurance").prop("checked", true);
+    const loanAmount = Number((payload?.loanAmount || '0').replace(/,/g, ''));
+    $('#RPC__OtherInformationRPC__sumAssured').val(loanAmount >= 200000 ? '200000' : (payload?.loanAmount || '---'));
+    if(applicantDtls.insuranceType == 'noInsurance'){
+        $('#RPC__OtherInformationRPC__sumAssured').val('---')
+    }
+    $('#RPC__OtherInformationRPC__insurerName').val(payload?.insurerName || '---');
+    $('#RPC__OtherInformationRPC__insurancePremium').val(payload?.insurancePremium || '---');
+    $(`#${scrid}nomineeNameInput`).val(nomineeDtls?.nomineeName || '');
+    $(`#${scrid}ageInput`).val(nomineeDtls?.age || '');
+    $(`#${scrid}mobileNumberInput`).val(nomineeDtls?.mobileNumber || '').addClass('disabled');
+    apz.populateDropdown(
+        document.getElementById(`${scrid}genderInput`),
+        apz.app.OtherInformationRPC.buildDDValues(genderDDValues)
+    );
+    $(`#${scrid}genderInput`).val(nomineeDtls?.gender || '').change();
+    ApzCOB.addDisableToInput(`${scrid}genderInput`)
+    apz.populateDropdown(
+        document.getElementById(`${scrid}nomineeRelationInput`),
+        apz.app.OtherInformationRPC.buildDDValues(relations)
+    );
+    $(`#${scrid}nomineeRelationInput`).val(nomineeDtls?.nomineeRelation || '').change();
+    ApzCOB.addDisableToInput(`${scrid}nomineeRelationInput`);
+    $(`#${scrid}nomineeDobInput`).val(apz.app.OtherInformationRPC.formatDobToMDY(nomineeDtls?.nomineeDob));
+    if(applicantDtls.insuranceType != "bothInsurance"){
+        if(applicantDtls.insuranceType !== 'noInsurance'){
+          $('#RPC__OtherInformationRPC__ReasonRow label.pri').text('Reason for not opting Co-Applicant insurance');
+        }
+        $(`#${scrid}insuranceNotOptingReasons`).val(payload?.reason || '');
+        if (payload?.reason === 'Other') {
+            $(`#${scrid}otherReasonRow`).removeClass('sno');
+            $(`#${scrid}otherReasonInput`).val(payload?.otherReason || '')
+        } else {
+            $(`#${scrid}otherReasonRow`).addClass('sno');
+        }
+        $("#RPC__OtherInformationRPC__othFrm").removeClass("sno");
+    } else {
+         $("#RPC__OtherInformationRPC__othFrm").addClass("sno");
+    }
+    if (hasCustNominee) {
+        $(`#${scrid}appNomHeader, #${scrid}cstmInsuredDtlsFRM`).removeClass('sno');
+    } else {
+        $(`#${scrid}appNomHeader, #${scrid}cstmInsuredDtlsFRM`).addClass('sno');
+        if(applicantDtls.insuranceType === "bothInsurance"){
+            $("#RPC__OtherInformationRPC__jiontInsuranceNote").removeClass("sno");
+        }else if(applicantDtls.insuranceType === "applicant"){
+            $("#RPC__OtherInformationRPC__applicantInsuranceNote").removeClass("sno");
+        }
+        if (applicantDtls.insuranceType !== "noInsurance"  && custType === 'Applicant') {
+            apz.app.OtherInformationRPC.paintInsdetails();
+        }
+    }
+    // const showReasonSection = (dtls) => {
+    //     apz.populateDropdown(document.getElementById(scrid + "insuranceNotOptingReasons"), apz.app.OtherInformationRPC.buildDDValues(
+    //         otherReasonsDDValues));
+    //     if (dtls.insuredName == 'APPLICANT' && !apz.isNull(applicantDtls)) {
+    //         $(`#${scrid}insuranceNotOptingReasons`).val(applicantDtls?.reason || '').change();
+    //     } else {
+    //         $(`#${scrid}insuranceNotOptingReasons`).val(dtls?.reason || '').change();
+    //     }
+    //     ApzCOB.addDisableToInput(`${scrid}insuranceNotOptingReasons`);
+    //     $(`#${scrid}othFrm`).removeClass('sno');
+    //     if (dtls?.reason === 'Other') {
+    //         $(`#${scrid}otherReasonRow`).removeClass('sno');
+    //         if (dtls.insuredName == 'APPLICANT' && !apz.isNull(applicantDtls)) {
+    //             $(`#${scrid}otherReasonInput`).val(applicantDtls?.otherReason || '').addClass('disabled');
+    //         } else {
+    //             $(`#${scrid}otherReasonInput`).val(dtls?.otherReason || '').addClass('disabled');
+    //         }
+    //     } else {
+    //         $(`#${scrid}otherReasonRow`).addClass('sno');
+    //     }
+    // };
+    // switch (insDtls?.insuredName) {
+    //     case 'JOINT':
+    //         insuredName = 'jointInsurance';
+    //         $("#RPC__OtherInformationRPC__jiontInsuranceNote").removeClass("sno");
+    //         $("#RPC__OtherInformationRPC__applicantInsuranceNote").addClass("sno");
+    //         if (hasCustNominee) {
+    //             $(`#${scrid}appNomHeader, #${scrid}cstmInsuredDtlsFRM`).removeClass('sno');
+    //         } else {
+    //             $(`#${scrid}appNomHeader, #${scrid}cstmInsuredDtlsFRM`).addClass('sno');
+    //         }
+    //         $("#RPC__OtherInformationRPC__othFrm").addClass("sno");
+    //         break;
+    //     case 'APPLICANT':
+    //         insuredName = 'Applicant';
+    //         $("#RPC__OtherInformationRPC__applicantInsuranceNote").removeClass("sno");
+    //         $("#RPC__OtherInformationRPC__jiontInsuranceNote").addClass("sno");
+    //         if (hasCustNominee) {
+    //             $(`#${scrid}appNomHeader, #${scrid}cstmInsuredDtlsFRM`).removeClass('sno');
+    //         } else {
+    //             $(`#${scrid}appNomHeader, #${scrid}cstmInsuredDtlsFRM`).addClass('sno');
+    //         }
+    //         showReasonSection(insDtls);
+    //         break;
+    //     case 'No Insurance':
+    //         insuredName = 'No Insurance';
+    //         $("#RPC__OtherInformationRPC__jiontInsuranceNote").addClass("sno");
+    //         $("#RPC__OtherInformationRPC__applicantInsuranceNote").addClass("sno");
+    //         $(`#${scrid}appNomHeader, #${scrid}cstmInsuredDtlsFRM`).addClass('sno');
+    //         showReasonSection(insDtls);
+    //         break;
+    // }
+    // $("#RPC__OtherInformationRPC__insuranceTypeRadioBtn_option_jointInsurance_span_").text(insuredName);
+    // $("#RPC__OtherInformationRPC__insuranceTypeRadioBtn_option_jointInsurance").prop("checked", true);
+    // $("#RPC__OtherInformationRPC__insuranceTypeRadioBtn_option_Applicant").addClass("sno");
+    // $('#RPC__OtherInformationRPC__sumAssured').val(insDtls?.loanAmount || '---');
+    // $('#RPC__OtherInformationRPC__insurerName').val(insDtls?.insurerName || '---');
+    // $('#RPC__OtherInformationRPC__insurancePremium').val(insDtls?.insurancePremium || '---');
+    // $(`#${scrid}nomineeNameInput`).val(insDtls?.nomineeName || '');
+    // $(`#${scrid}ageInput`).val(insDtls?.age || '');
+    // $(`#${scrid}mobileNumberInput`).val(insDtls?.mobileNumber || '').addClass('disabled');
+    // apz.populateDropdown(document.getElementById(scrid + "genderInput"), apz.app.OtherInformationRPC.buildDDValues(genderDDValues));
+    // $(`#${scrid}genderInput`).val(insDtls?.gender || '').change();
+    // ApzCOB.addDisableToInput(`${scrid}genderInput`);
+    // apz.populateDropdown(document.getElementById(scrid + "nomineeRelationInput"), apz.app.OtherInformationRPC.buildDDValues(relations));
+    // $(`#${scrid}nomineeRelationInput`).val(insDtls?.nomineeRelation || '').change();
+    // ApzCOB.addDisableToInput(`${scrid}nomineeRelationInput`);
+    // let dob = insDtls?.nomineeDob ? insDtls.nomineeDob.split('-').slice(1).concat(insDtls.nomineeDob.split('-')[0]).join('/') : '';
+    // $(`#${scrid}nomineeDobInput`).val(dob);
+    apz.app.OtherInformationRPC.setMinMaxLength();
+    apz.app.OtherInformationRPC.paintaddDocname();
+};
+apz.app.OtherInformationRPC.paintInsdetails = function() {
+    if (applicantDtls.insuranceType == 'bothInsurance') {
+        window.coApplicantDtls = insuranceList.find(el => el?.insuranceDetails?.insuredCustType === "Co-App")?.insuranceDetails || {};
+        $(`#${scrid}AppheaderFrm`).removeClass('sno');
+        $(`#${scrid}appDtlsFRM`).removeClass('sno');
+        $(`#${scrid}coAppheaderFRM`).removeClass('sno');
+        $(`#${scrid}coappDtlsFRM`).removeClass('sno');
+        $(`#${scrid}CoappNameInput`).val(coApplicantDtls?.payload?.nomineeName)
+        $(`#${scrid}CoappgenderInput`).val(coApplicantDtls?.payload?.gender)
+        $(`#${scrid}CoappDobInput`).val(ApzCOB.convertDateFormat(coApplicantDtls?.payload?.nomineeDob, 'dd/mm/yyyy'))
+        $(`#${scrid}CoappageInput`).val(coApplicantDtls?.payload?.age)
+        $(`#${scrid}CoappRelationInput`).val(coApplicantDtls?.payload?.nomineeRelation)
+    } else {
+        $(`#${scrid}AppheaderFrm`).removeClass('sno');
+        $(`#${scrid}appDtlsFRM`).removeClass('sno');
+    }
+    $(`#${scrid}appNameInput`).val(applicantDtls?.payload?.nomineeName)
+    $(`#${scrid}appgenderInput`).val(applicantDtls?.payload?.gender)
+    $(`#${scrid}appDobInput`).val(ApzCOB.convertDateFormat(applicantDtls?.payload?.nomineeDob, 'dd/mm/yyyy'))
+    $(`#${scrid}appageInput`).val(applicantDtls?.payload?.age)
+    $(`#${scrid}appRelationInput`).val(applicantDtls?.payload?.nomineeRelation)
+}
+apz.app.OtherInformationRPC.paintaddDocname = function() {
+    let additionalDocArray = inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList?.filter(doc => doc?.payload
+        ?.isAdiDoc === 'Y') || [];
+    if (additionalDocArray.length > 0) {
+        const groupedDocuments = additionalDocArray.reduce((acc, doc) => {
+            const docName = doc?.payload?.documentName || "Unknown";
+            if (!acc[docName]) {
+                acc[docName] = [];
+            }
+            acc[docName].push(doc);
+            return acc;
+        }, {});
+        Object.keys(groupedDocuments).forEach((docName, index) => {
+            let currentDocs = groupedDocuments[docName];
+            fldSelectElementID = "RPC__OtherInformationRPC__additionalDocSection_0";
+            fldParentDiv = $(`#RPC__OtherInformationRPC__cloneColumn`);
+            fieldCurrentIndex = index + 1;
+            fieldNewId = ApzCOB.cloneDashboardDivs(fldSelectElementID, fldParentDiv, fieldCurrentIndex);
+            $(`#${fieldNewId}`).removeClass("sno");
+            $(`#${fieldNewId} #RPC__OtherInformationRPC__addDpcLbl`).text('Additional document' + fieldCurrentIndex);
+            $(`#${fieldNewId} #RPC__OtherInformationRPC__nameOfAdditionalDoc`).val(docName).addClass('disabled');
+            $(`#${fieldNewId} #RPC__OtherInformationRPC__nameOfAdditionalDoc`).attr("disabled", true);
+        });
+    } else {
+        $(`#RPC__OtherInformationRPC__AddDocHeader`).addClass('sno');
+        $(`#RPC__OtherInformationRPC__docNameFrm`).addClass('sno');
+    }
+}
+apz.app.OtherInformationRPC.buildDDValues = function(items) {
+    let params = [];
+    items.forEach((desc, index) => {
+        params.push({
+            val: desc,
+            desc: desc,
+        });
+    });
+    if (!items.includes("Please Select")) {
+        params.unshift({
+            val: "",
+            desc: "Please Select"
+        });
+    }
+    return params;
+};
+apz.app.OtherInformationRPC.setMinMaxLength = function() {
+    const fieldMapCustApp = {
+        nomineeNameInput: "nomineeName",
+        genderInput: "gender",
+        mobileNumberInput: "mobileNumber",
+        nomineeDobInput: "nomineeDob",
+        ageInput: "age",
+        nomineeRelationInput: "nomineeRelation"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMapCustApp).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: scrid + fieldId
+    })));
+};
+apz.app.OtherInformationRPC.insNotOptDropDownValue = function() {
+    let selectedReasons = $("#" + scrid + "insuranceNotOptingReasons").val();
+    if (selectedReasons === "Other") {
+        $("#" + scrid + "otherReasonRow").removeClass("sno");
+    } else {
+        $("#" + scrid + "otherReasonRow").addClass("sno");
+    }
+};
+apz.app.OtherInformationRPC.ageCalculator = function (pthis) {
+    var age = ApzCOB.getAge($(pthis).val());
+    if (pthis.id === 'RPC__OtherInformationRPC__nomineeDobInput') {
+        if (age > newMinAge && age < newMaxAge) {
+            $('#' + scrid + 'ageInput').val(age).change();
+            ApzCOB.removeErrMessgae(scrid + 'age', "element");
+        } else {
+            $('#' + scrid + 'ageInput').val('');
+            $(pthis).val("")
+            ApzCOB.fnDisplayMsg(`Please select valid age(min:${newMinAge},max:${newMaxAge})`, "E");
+        }
+    } 
+};
+apz.app.OtherInformationRPC.fnValidateMobileNumber = function (pthis) {
+    if (!apz.isNull($("#" + pthis.id).val())) {
+        let mobRegex = "^[6789]\\d{9}$";
+        let err = ApzCOB.commonRegex(mobRegex, $("#" + pthis.id).val());
+        if (!err) {
+            $("#" + pthis.id).val('');
+            $("#" + pthis.id + "_ul").next().removeClass("sno");
+            let errTxtFieldId = $("#" + pthis.id + "_ul").next()?.find('.icon-Error')?.next() ?? $('#dummyid');
+            errTxtFieldId?.text(`Please enter a valid mobile number`);
+        } else {
+            $("#" + pthis.id).removeClass("err");
+            $("#" + pthis.id + "_ul").next().addClass("sno");
+        }
+    }
+}
+apz.app.OtherInformationRPC.clickOfEdit = function() {
+    $(`#${scrid}nomineeName`).removeClass('disabled');
+    $(`#${scrid}mobileNumberInput`).removeClass('disabled');
+    if (hasCustNominee) {
+        $(`#RPC__OtherInformationRPC__mobNO`).addClass('req');
+    }
+    ApzCOB.removeDisableToInput(`${scrid}nomineeNameInput`);
+    ApzCOB.removeDisableToInput(`${scrid}genderInput`);
+    ApzCOB.removeDisableToInput(`${scrid}nomineeRelationInput`);
+    ApzCOB.removeDisableToInput(`${scrid}nomineeDobInput`);
+    $(`#${scrid}nomineeDobInput`).datepicker("option", "maxDate", Date.parse(DATE_TODAY));
+    $('input.hasDatepicker').datepicker("option", {
+        maxDate: Date.parse(DATE_TODAY),
+        yearRange: "-100:+0"
+    });
+}

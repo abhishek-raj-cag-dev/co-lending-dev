@@ -1,0 +1,70 @@
+var customerData = [];
+var sancBaseElemID = "Dashbo__AdditionalLoanPreview__";
+
+apz.app.onLoad_AdditionalLoanPreview = function () {
+  document.body.className += " crdas sanction-dev unati";
+
+  let loginResponse = LoggedInUserDetails.loginResponse;
+  let loginName = loginResponse?.userDet?.name;
+  let loginUserId = loginResponse?.userDet?.id;
+  $(`#${sancBaseElemID}alploggedInUserName_txtcnt`).text(`${loginName} (${loginUserId})`);
+  $(`#${sancBaseElemID}alploggedInRole_txtcnt`).text(`Role:${loginResponse?.addInfo1}`);
+
+  customerData = window.dashTaskData?.map?.DashboardApplications?.content.find((item) =>String(item.customerId) === String(gApzCOB.userDetails.customerId),);
+  if (customerData) {
+    var pname = apz.data.scrdata.Select__IpaintProductDetails_Res.data.find((item) => item.productCode === customerData.productCode,)?.productName;
+    var ProductName = pname ? pname : null;
+    $("#Dashbo__AdditionalLoanPreview__el_txt_18_txtcnt").text(customerData.customerName + "/" + customerData.customerId,);
+    $("#Dashbo__AdditionalLoanPreview__el_txt_19_txtcnt").text(customerData.applicationId != "null" ? customerData.applicationId : "-",);
+    $("#Dashbo__AdditionalLoanPreview__el_txt_20_txtcnt").text(customerData.branchName,);
+    // $("#Dashbo__AdditionalLoanPreview__el_txt_21_txtcnt").text(customerData.branchName,);
+    $("#Dashbo__AdditionalLoanPreview__el_txt_22_txtcnt").text( customerData.kendraName,);
+    $("#Dashbo__AdditionalLoanPreview__el_txt_23_txtcnt").text(customerData.kendraId,);
+    $("#Dashbo__AdditionalLoanPreview__el_txt_24_txtcnt").text(ProductName);
+    $("#Dashbo__AdditionalLoanPreview__el_txt_25_txtcnt").text(customerData.currentStage,);
+    $("#Dashbo__AdditionalLoanPreview__el_txt_26_txtcnt").text(customerData.applicationStatus,);
+  }
+};
+
+apz.app.AdditionalLoanPreview.chdToApplicationMaster = function () {
+  let req = {
+    apiRequest: {
+      interfaceName: "AdditionalLoan",
+      appId: gAppId,
+      requestObj: {
+        appId: gAppId,
+        versionNum: versionNum,
+        userId: LoggedInUserDetails.loginResponse?.userDet?.id,
+        product: gApzCOB.productCode,
+        customerId: customerData.customerId,
+        applicationId: customerData.applicationId,
+      },
+    },
+  };
+  ApzCOB.serverBuildParam(gAppId,"AdditionalLoan","N","N",req,false,apz.app.AdditionalLoanPreview.chdToApplicationMasterCB,);
+};
+apz.app.AdditionalLoanPreview.chdToApplicationMasterCB = function (params) {
+  try {
+    if (ApzCOB.handleServiceCallBacks(params)) {
+    // if (!apz.isNull(params.res.APZCBO__AdditionalLoan_Res.apiResponse.ResponseHeader.ResponseCode) && params.res.APZCBO__AdditionalLoan_Res.apiResponse.ResponseHeader.ResponseCode == 0  ) {
+      ApzCOB.showNewCommonSuccessModal({
+        text: "Application moved to Sanction tray successfully.",
+        Btn: {
+          text: "OK",
+          onClick:
+            "ApzCOB.closeCommonModal(`newCommonSuccModal`); apz.app.Dashboard.LaunchDashboard();"
+        },
+      });
+ 
+      return;
+    } else {
+      apz.stopLoader();
+      ApzCOB.fnDisplayMsg("Unable to move the application to Sanction tray. Please try again.",   "E",   "", );
+      // ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+    }
+  } catch (e) {
+    ApzCOB.traceFrontEndError(e,"");
+    apz.stopLoader();
+  }
+ 
+};

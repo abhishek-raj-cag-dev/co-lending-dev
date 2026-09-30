@@ -1,0 +1,61 @@
+var rpcHeaderScreenID = 'RPC__RpcApplicationHeader__';
+apz.app.onLoad_RpcApplicationHeader = function() {
+    // $("#RPC__makerChecker__CustomerId_txtcnt").text(inSessionStore.customerDetailsList[0].customerName);
+    // $("#RPC__makerChecker__ApplicationNo").text(inSessionStore.applicationId);
+    // $("#RPC__makerChecker__Branchinfo").text(inSessionStore.applicationMaster.branchName);
+    // $("#RPC__makerChecker__LoanId").text(inSessionStore.loanDetails.loanDtlId);
+    // $("#RPC__makerChecker__LoanAmt").text(inSessionStore.loanDetails.loanAmount);
+};
+apz.app.onShown_RpcApplicationHeader = function() {
+    apz.app.RpcApplicationHeader.paintDetails();
+}
+apz.app.RpcApplicationHeader.paintDetails = function() {
+    ApzCOB.addApplicationTag();
+    var mainStage = `scr__RPC__${RPC_CURRENT_STAGE}__main`;
+    const rpcHeaderScreenID = 'RPC__RpcApplicationHeader__';
+    if (!apz.isObjectEmpty(inSessionStore)) {
+        const {
+            applicationMaster: { memberId = "", applicationId = "", branchId = "", branchName = "", productCode = "" } = {},
+            customerDetailsList = [],
+            loanDetails: { loanAmount = "" } = {}
+        } = inSessionStore;
+        let applicantData = customerDetailsList.find(cust => cust.customerType === "Applicant");
+        const productName = subProductResponse?.filter(el => el.productCode === productCode)?.[0]?.productName;
+        const customerName = applicantData?.customerName || "";
+        const formattedAmount = ApzCOB.fn_FormatAmount(loanAmount) ?? "-";
+        const setText = (id, value) => $(`#${mainStage} #${rpcHeaderScreenID}${id}`).text(value);
+        let wipTag = '';
+        let IS_WIP_REINITIATE = false;
+        if(applicantData.payload.hasOwnProperty('oldReinitiate')){
+            IS_WIP_REINITIATE = applicantData.payload.oldReinitiate
+        }
+        if(IS_WIP_REINITIATE){
+         wipTag =  '<span class="wipTag">WIP-CASE</span>';
+        }
+        
+        $(`#${mainStage} #${rpcHeaderScreenID}CustomerId_txtcnt`).html(`${wipTag} <br/> ${customerName} / ${memberId}`);
+        // setText("CustomerId_txtcnt", `${customerName} / ${memberId}`);
+        setText("ApplicationNo_txtcnt", applicationId);
+        setText("Branchinfo_txtcnt", `${branchId} / ${branchName}`);
+        setText("LoanAmt_txtcnt", `₹ ${formattedAmount}`);
+        setText("productTypeInput_txtcnt", productName);
+        window.ApplicationType = 'NEW';
+        if (productCode === '1002') {
+            window.ApplicationType = 'RENEWAL';
+        }
+        if(productCode === '1001') {
+            window.ApplicationType = 'OpenMarket';
+        }
+        ApzCOB.getProductData()
+    }
+    window.rework = `#${rpcHeaderScreenID}currentRoleType`;
+    var role = gApzCOB.selectedRole.replace(/_/g, ' ');
+    if (data.isRework === 'true') {
+        $(rework).text(role + " - Rework");
+    } else {
+        $(rework).text(role + " - New");
+    }
+    if(inSessionStore.applicationMaster.productCode === '1003') {
+     $("#RPC__RpcApplicationHeader__productTypeInput_txtcnt").text("Unnati Lite");
+    }
+}

@@ -1,0 +1,68 @@
+var successTxtMsg = '',
+    sucScreenId = 'Sanct__SanctionSuc__';
+window.IS_SANCTION_SMS = false;
+apz.app.onLoad_SanctionSuc = function() {
+  $('body').addClass('sanction-suc-scr');  
+}
+
+apz.app.onShown_SanctionSuc = function() {
+    let applicantData = inSessionStore.customerDetailsList.find(cust => parseInt(cust.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId));
+    $(`#${sucScreenId}applicantName_txtcnt`).text(`${applicantData.customerName} / ${inSessionStore.applicationMaster.memberId}`);
+    if(inSessionStore.applicationMaster.productCode === '1001') {
+        $(`#${sucScreenId}applicantName_txtcnt`).text(`${applicantData.customerName} / ${inSessionStore.cdhLeadDetails.t24CustId}`);
+    }
+    $(`#${sucScreenId}applicationId`).text(`Application No - ${gApzCOB.userDetails.applicationId}`);
+    if(!apz.isNull(LOANID)){
+     $(`#${sucScreenId}loanID`).text(`Loan Id - ${LOANID}`);
+    }
+    $(`#${sucScreenId}sanctionDocSec,#${sucScreenId}downloadAllDoc`).addClass('sno');
+    if (applicationStatus === 'PENDINGDEVIATION') {
+        successTxtMsg = "Credit Assessment Deviation approved successfully";
+    } else  if(applicationStatus === "PENDINGREASSESSMENT") {
+         successTxtMsg = "Re-assessment completed successfully";
+    } else  if(applicationStatus === "PENDINGPRESANCTION") {
+         successTxtMsg = "Pre-sanction approved successfully";
+    } else  if(applicationStatus === "CACOMPLETED"|| applicationStatus === "RESANCTION") {
+        window.IS_SANCTION_SMS = true;
+        const applicantCustData = ApzCOB.getApplicantCustData() || [];
+        if (applicantCustData.length > 0) {
+            const mobileNo = applicantCustData[0].mobileNumber;
+            if (!apz.isNull(mobileNo) && mobileNo.trim() !== "") {
+            ApzCOB.sanctionSMSService(mobileNo,"sanction");
+            }
+        }
+        successTxtMsg = "Unnati loan sanction completed!";
+        if (inSessionStore?.applicationMaster?.productCode === '1002') {
+            successTxtMsg = "Unnati renewal loan sanction completed!";
+        }
+        if (inSessionStore?.applicationMaster?.productCode === '1001') {
+            successTxtMsg = "Unnati Open Market loan sanction completed!";
+        }
+        $(`#${sucScreenId}sanctionDocSec,#${sucScreenId}downloadAllDoc`).removeClass('sno');
+    }
+     $(`#${sucScreenId}successText_txtcnt`).text(successTxtMsg)
+}
+apz.app.SanctionSuc.downloadSanctionDoc = function(docType){
+const isBoth = docType === 'BOTH';
+window.CB_LOAN_ID = `${isBoth ? 'SanctionLetter' : docType}_${gApzCOB.userDetails.applicationId}`;
+window.selDocType = isBoth ? docType : '';
+apz.app.SanctionSuc.downloadSanctionDocCall(isBoth ? 'SanctionLetter' : docType);
+}
+apz.app.SanctionSuc.downloadSanctionDocCall = function(params) {
+req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": "APZCBO",
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "reportType": params,
+                    "generateReport": false
+                },
+                "interfaceName": "GenerateAndDownloadReport"
+            }
+        }
+        if(applicationStatus === 'RESANCTION'){
+            req.apiRequest.requestObj.generateReport = true;
+        }
+        apz.startLoader();
+        ApzCOB.serverBuildParam(gAppId, "GenerateAndDownloadReport", "N", "N", req, false, ApzCOB.downloadBRECbReportCB); 
+}

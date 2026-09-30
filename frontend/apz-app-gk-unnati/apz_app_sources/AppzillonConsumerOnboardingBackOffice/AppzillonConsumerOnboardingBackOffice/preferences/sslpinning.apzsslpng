@@ -1,0 +1,1 @@
+{"typeclass":"SSLPINNING","name":"sslpinning","type":"SSLPINNING","trustallcertificates":"N","certificatepinning":"Y","certfiles":[{"filename":"wildcard_grameenkoota_in.crt"},{"filename":"grameenkoota_in.crt"}]}

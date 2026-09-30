@@ -1,0 +1,147 @@
+.rpcdbvmain .caloandtl.threecol .crt-form > .srb.hdrsec {
+    width: 100%;
+}
+
+.rpcdbvmain .crt-form .srb .udyambadge .srb.badgg.enverificationbg{height: 24px; padding:4px 12px;border-radius: 48px;background:#D9E4ED;
+border:none;font-weight: 600;font-size: 12px;line-height: 16px;letter-spacing:0px}
+ .rpcdbvmain .crt-form .srb .udyambadge .srb.badgg.enverificationbg .flb{
+color:#004886;
+font-weight:600;
+}
+
+.rpcdbvmain .dbenach .enachsuc > .scb-col100 {
+    flex-direction: row;
+    display: flex;
+    justify-content:space-between;
+}
+.rpcdbvmain .dbenach .enachsuc > .scb-col100 .srb {
+    width: auto;
+}
+
+.rpcdbvmain .dbenach .enachsuc > .scb-col100 .srb:last-child .suc-reg {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+@media screen and (min-width:1366px){
+.rpcdbvmain .dbenach .enachsuc{min-width: 60%;}
+}
+@media screen and (max-width:1366px){
+.rpcdbvmain .dbenach .enachsuc{min-width: 460px}
+}
+.dbenach .aprrej.hdrsec > .scb-col100 .srb {
+    display: unset;
+    width: auto;
+    gap: 16px;
+}
+
+.dbenach .aprrej.hdrsec > .scb-col100 {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.rpcdbvmain .caloandtl.threecol.crt-form > .srb.hdrsec {
+    width: 100%;
+}
+.queryhdr.eror, .queryhdr.succes {
+    margin-top: 0;
+     margin-bottom: 12px;
+}
+.queryhdr.succes p.ett-para.pri{
+    color:#039855 !important;
+}
+
+.enachsrhbank .ecn > .icl{ width:auto}
+
+
+//  when the preview doc present  twocol at launch-area
+.rpcdbvmain .twocol.launch-area .caloandtl.threecol.crt-form  > .srb{width: calc(50% - 12px);}
+
+
+.rpcdbvmain .twocol.launch-area .caloandtl.threecol .crt-form > .srb{width: calc(50% - 12px);}
+.rpcdbvmain .twocol.launch-area .caloandtl.threecol .crt-form.lmvalues > .srb{width: 100%;}
+.rpcdbvmain .twocol.launch-area .caloandtl.threecol .crt-form.sanc-com > .srb{width: 100%;}
+.rpcdbvmain .twocol.launch-area .caloandtl.threecol.crt-form > .srb.hdrsec {
+    width: 100%;
+}
+.rpcdbvmain .twocol .dbenach .enachsuc {
+    min-width: 85%;
+}
+.rpcdbvmain .twocol .dbenach .enachsuc.enachfail,.rpcdbvmain .dbenach .enachsuc.enachfail  {
+    min-width: 320px;
+}
+.rpcdbvmain .twocol.launch-area .caloandtl.threecol .crt-form > .srb.hdrsec {
+    width: 100%;
+}
+
+
+
+
+
+.enach-tbl-hdr {
+border-bottom:1px solid #000;
+border-top: 1px solid #000;
+background: #004886;
+}
+
+.enach-tbl-data{
+border-bottom:1px solid #000;
+}
+body.unati .enach-tbl-hdr p.ett-para {
+  color: #fff;
+}
+body.unati .enach-tbl-hdr ul li > span {
+  border-right: 1px solid #000;
+}
+body.unati .enach-tbl-hdr ul li > span:first-child {
+  border-left: 1px solid #000;
+}
+.enach-tbl-data.crt-list > ul.tsp > li {
+  border-bottom: 1px solid #000;
+  /*Swaroop KM sourcing changes-start*/
+  border-bottom: 1px solid #000;
+  display: flex;
+  /*Swaroop KM sourcing changes-end*/
+}
+.enach-tbl-data.crt-list > ul.tsp > li > span {
+  border-right: 1px solid #000;
+}
+.enach-tbl-data.crt-list > ul.tsp > li > span:first-child {
+  border-left: 1px solid #000;
+}
+body.unati .enach-tbl-hdr ul li > span.scb-col15 {
+  text-align: center;
+}
+body.unati .enach-tbl-data ul li > span.scb-col15 {
+  text-align: center;
+}
+.enach-tbl-data.crt-list > ul.tsp > li:last-child {
+  border: none;
+}
+
+.unati.crdas .mdl-query.enachbankdtl .modal-window .modal-cnt {
+    height: calc(100vh - 150px);
+    min-height: unset;
+    max-height: unset;
+    overflow: auto;
+}
+body.unati.crdas .etb-rdio.hor.pri .select-disabled input[type=radio] + label {
+    color: #737373;
+}
+iframe{
+    width:100%;
+}
+.aprrej .srb.query-clmn span {
+    flex-direction: column;
+}
+.caloandtl .crt-form.aprrej .hdrsec .srb.qry-pnt {
+    width: auto;
+}
+.unati .ett-para.var1.err {
+    font-weight: 600 !important;
+    font-size: 14px;
+    line-height: 20px;
+    color:#000000 !important;
+}
+

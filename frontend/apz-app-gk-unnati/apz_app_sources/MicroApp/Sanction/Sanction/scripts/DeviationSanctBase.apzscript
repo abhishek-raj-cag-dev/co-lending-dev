@@ -1,0 +1,873 @@
+var QCParentDiv = $(`#Sanct__DeviationSanctBase__queryCategory`),
+    QCelementID = "Sanct__DeviationSanctBase__QCCloneRow_0",
+    QLParentDiv = $(`#Sanct__DeviationSanctBase__queryList`),
+    QLelementID = "Sanct__DeviationSanctBase__QLCloneRow_0",
+    sancBaseElemID = 'Sanct__DeviationSanctBase__',
+    checkboxID = "query",
+    statusObject = {};
+window.sanctionQueries = [];
+window.selectedQueries = [];
+window.Sucmessage = "";
+window.LOANID = '';
+var isAdditionalProduct = window.AdditionalProducts.includes(inSessionStore?.applicationMaster?.productCode);
+var isAdditionalProdOptionalCoApp = window.AdditionalProductsOptionalCoApp.includes(inSessionStore?.applicationMaster?.productCode);
+apz.app.onLoad_DeviationSanctBase = function() {
+    apz.app.DeviationSanctBase.updateHeaderDetails();
+    apz.app.DeviationSanctBase.paintApplicationHeader();
+    $('body').addClass('crdas sanction-dev unati');
+    $('#APZCBO__BaseScreens__baseScroll').removeClass('custom-form-launch var2');
+    $('#APZCBO__BaseScreens__landingRowHeader').addClass('sno');
+    if(isAdditionalProduct){
+        $(`#${sancBaseElemID}sc_row_68`).addClass('sno'); 
+        $(`#${sancBaseElemID}camsheet_row`).addClass('sno');
+        $(`#${sancBaseElemID}loan_application_row`).addClass('sno');
+        if(isAdditionalProdOptionalCoApp){
+        $(`#${sancBaseElemID}ApplicantCBreport_row`).addClass('sno');
+        $(`#${sancBaseElemID}CoApplicantCBreport_row`).addClass('sno');
+        $(`#${sancBaseElemID}CBreport_row`).removeClass('sno');
+        }
+    }
+};
+apz.app.onShown_DeviationSanctBase = function() {
+    let productCodes = ['1009', '1002', '1001', '1003'];
+    let sendbackBtn = document.getElementById('Sanct__DeviationSanctBase__sendback_btn');
+    if (sendbackBtn) {
+        productCodes.includes(inSessionStore.applicationMaster.productCode) ? sendbackBtn.classList.remove('sno') : sendbackBtn.classList.add('sno');
+    }
+    ApzCOB.launchSubScreen("Saloandetails", `${sancBaseElemID}SaLaunchDiv`, "");
+    $('#Sanct__DeviationSanctBase__queryModal_close').click(() => {
+        apz.app.DeviationSanctBase.cancel();
+    });
+    if(inSessionStore.applicationMaster.productCode === '1003') {
+     $("#Sanct__DeviationSanctBase__productName_txtcnt").text("Unnati Lite");
+    }
+}
+apz.app.DeviationSanctBase.updateHeaderDetails = function() {
+     ApzCOB.addApplicationTag();
+    let loginResponse = LoggedInUserDetails.loginResponse;
+    let loginName = loginResponse?.userDet?.name;
+    let loginUserId = loginResponse?.userDet?.id;
+    $(`#${sancBaseElemID}loggedInUserName_txtcnt`).text(`${loginName} (${loginUserId})`);
+    $(`#${sancBaseElemID}loggedInRole_txtcnt`).text(`Role:${loginResponse?.addInfo1}`);
+}
+apz.app.DeviationSanctBase.paintApplicationHeader = function() {
+    if (apz.isObjectEmpty(inSessionStore)) return;
+    let applicationDetails = inSessionStore?.applicationMaster;
+    let customerDetails = inSessionStore?.customerDetailsList.find(cust => cust.custDtlId === gApzCOB.userDetails.custDtlId);
+    let productCode = inSessionStore?.applicationMaster?.productCode;
+    let productName = "";
+    if (ProductData.length > 0) {
+        let prodInfo = ProductData.find(prod => prod.productCode === productCode);
+        if (!apz.isObjectEmpty(inSessionStore)) {
+            productName = prodInfo.productName;
+        }
+    }
+    $(`#${sancBaseElemID}Cust_Name`).text(`${customerDetails.customerName} / ${applicationDetails.memberId}`);
+    $(`#${sancBaseElemID}application_no`).text(`Application No - ${applicationDetails?.applicationId}`);
+    $(`#${sancBaseElemID}branchId_Name`).text(`Branch Info - ${applicationDetails?.branchId} / ${applicationDetails?.branchName}`);
+    $(`#${sancBaseElemID}kendraId_Name`).text(`Kendra ID / Name - ${applicationDetails?.kendraId} / ${applicationDetails?.kendraName}`);
+    $(`#${sancBaseElemID}productName_txtcnt`).text(` ${productName}`);
+}
+apz.app.DeviationSanctBase.sideBarlaunch = function() {
+    $(`#${sancBaseElemID}sidebar_col`).toggleClass("sideon");
+}
+apz.app.DeviationSanctBase.sideBarclose = function() {
+    $(`#${sancBaseElemID}sidebar_col`).removeClass("sideon");
+}
+apz.app.DeviationSanctBase.sanctionPushback = function() {
+    let stageType = '';
+    if (applicationStatus === 'PENDINGDEVIATION') {
+        stageType = 'Deviation';
+    } else if (applicationStatus === 'PENDINGREASSESSMENT') {
+        stageType = "ReAssessment";
+    } else if (applicationStatus === 'CACOMPLETED') {
+        statusObject.lAction = 'PUSHBACK';
+        stageType = 'Sanction';
+    } 
+    ApzCOB.fetchRpcStageFields(stageType, apz.app.DeviationSanctBase.fetchRpcStageFieldsCB);
+}
+apz.app.DeviationSanctBase.fetchRpcStageFieldsCB = function(params) {
+    apz.stopLoader();
+    let queryCategories = JSON.parse(params.res.APZCBO__RPCStageFields_Res[0].queries);
+    let lAction = 'Send back';
+    if (applicationStatus === 'CACOMPLETED' || applicationStatus === 'RESANCTION') {
+        lAction = statusObject.lAction;
+        queryCategories = queryCategories[lAction];
+    }
+    window.sanctionQueries = queryCategories; 
+    const $cloneRow = $(`#${sancBaseElemID}QCCloneRow_0`);
+    $cloneRow.empty();
+    queryCategories.stages.forEach((el, index) => {
+        if (window.AdditionalProducts.includes(inSessionStore.applicationMaster.productCode) && (el.id == 2 || el.id == 3)) {
+            return;
+        }
+        const queryCategoryElem = `
+            <span class="srb pri">
+                <span class="scb-col5">
+                    <span id="sanctionQueryCateory_${el.id}" class="etb-chek ett-chek hor pri queryList">
+                        <span class="queryItems">
+                            <input id="cat${el.id}" type="checkbox" value="${el.id}" onchange="apz.app.DeviationSanctBase.paintQuery(this)">
+                            <label id="cat${el.id}_label" class="flb" for="cat${el.id}"></label>
+                        </span>
+                    </span>
+                </span>
+                <span class="scb-col95">
+                    <p id="query${el.id}_label" class="ett-para pri fs14 ltr-sp4 var2">${el.name}</p>
+                </span>
+            </span>
+        `;
+        $cloneRow.html(queryCategoryElem);
+        const clonedId = ApzCOB.cloneDashboardDivs(QCelementID, QCParentDiv, index + 1);
+        $(`#${clonedId}`).addClass("querycategory").removeClass("sno");
+    });
+    apz.app.DeviationSanctBase.closeCnfmMdl();
+    $(`#${sancBaseElemID}queryModal_window .modal-header h1`).text(lAction);
+    ApzCOB.toggleModal(`${sancBaseElemID}queryModal`);
+    $cloneRow.empty(); // Clean up original after cloning
+}
+apz.app.DeviationSanctBase.paintQuery = function(pthis) {
+    let queryCategoryElem;
+    if (pthis.checked) {
+        $('.sendback_query_err').remove();
+        if (pthis.value === "OTH") {
+            $(`#${sancBaseElemID}queryList`).removeClass("pb-70")
+            $(`#${sancBaseElemID}otherQueryReasonForm`).removeClass("sno mt24");
+            $(`#${sancBaseElemID}otherQueryReasonForm`).addClass("pb-70");
+        } else {
+            $(`#${sancBaseElemID}QLCloneRow_0`).html('')
+            sanctionQueries.stages.find(id => {
+                if (id.id === parseInt(pthis.value)) {
+                    const queryHeadingElem =
+                        `<span id="sanctionQueryCateoryheding_1" class="queryheading"><label id="query1_label" class="flb" for="query1">${id.name}</label></span>`;
+                    $('#Sanct__DeviationSanctBase__QLCloneRow_0').append(queryHeadingElem);
+                }
+            })
+            sanctionQueries.queries.forEach((query, index) => {
+                if (query.catID === parseInt(pthis.value)) {
+                    sanctionQueries.queries[index].queries.forEach((el, index) => {
+                        queryCategoryElem = `<span class="srb pri">
+  <span class="scb-col5">
+        <span id ="sanctionQuery${el.id}" for="cat${el.id}" class=" etb-chek ett-chek hor pri queryList">
+          <span class="queryItems">
+             <input id="query${query.catID}_${el.id}" class="" type="CHECKBOX" enabled="enabled" value="${el.id}" onchange = "apz.app.DeviationSanctBase.checkQuery(this)">
+             <label class="flb" for="query${query.catID}_${el.id}"></label>
+         </span>
+          </span>
+          </span>
+   <span class="scb-col95">
+      <p id="query${el.id}_label" class="ett-para pri fs14 ltr-sp4 var2" >${el.value}</p>
+   </span>
+</span>`;
+                        $('#Sanct__DeviationSanctBase__QLCloneRow_0').append(queryCategoryElem);
+                    })
+                    let clonedId = ApzCOB.cloneDashboardDivs(QLelementID, QLParentDiv, index + 1);
+                    $(`#${clonedId}`).addClass("query");
+                    $(`#${clonedId}`).removeClass("sno");
+                }
+            })
+            $(`#${sancBaseElemID}QLCloneRow_0`).html('')
+        }
+    } else {
+        if (pthis.value === 'OTH') {
+            $(`#${sancBaseElemID}otherQueryReasonForm`).addClass("sno");
+            $(`#${sancBaseElemID}queryList`).addClass("pb-70");
+        }
+        $(`#${sancBaseElemID}QLCloneRow_${pthis.value}`).addClass("sno");
+        window.selectedQueries = [];
+    }
+}
+apz.app.DeviationSanctBase.checkQuery = function(pthis) {
+    $('.sendback_query_err').remove();
+    if (!pthis.checked) {
+        window.selectedQueries = [];
+    }
+}
+apz.app.DeviationSanctBase.saveSanctionQuery = function() {
+    window.selectedQueries = [];
+    $('.sendback_query_err').remove();
+    sanctionQueries.stages.forEach((category, catIndex) => {
+        if (category.id === "OTH" && $("#catOTH").is(":checked")) {
+            let value = $(`#${sancBaseElemID}otherQueryReasonInp`).val();
+            if (apz.isNull(value)) {
+                ApzCOB.addErrMessage(`${sancBaseElemID}otherQueryReasonInp`, "element");
+            } else {
+                let lobj = {
+                    catID: category.id,
+                    value: value
+                };
+                selectedQueries.push(lobj);
+            }
+        }
+        if (sanctionQueries.queries[catIndex] && sanctionQueries.queries[catIndex].queries) {
+            sanctionQueries.queries[catIndex].queries.forEach((query, queryIndex) => {
+                let checkboxSelector = `#${checkboxID}${category.id}_${query.id}`;
+                if ($(checkboxSelector).is(":checked")) {
+                    let lobj = {
+                        catID: category.id,
+                        queryID: query.id,
+                        value: query.value
+                    };
+                    selectedQueries.push(lobj);
+                }
+            });
+        }
+    });
+    if (selectedQueries.length > 0) {
+        let queryList = [];
+        queryList = selectedQueries.map(item => {
+            return item.catID === "OTH" ? `${item.catID}?${item.value}` : `${item.catID}?${item.queryID}`;
+        });
+        let finalQueryData = queryList.join('|');
+        statusObject.lAction = statusObject.lAction ?? "PUSHBACK";
+        statusObject.remarks = finalQueryData;
+        statusObject.nextStatus = statusObject.nextStatus ?? "RPCVERIFIED";
+        apz.app.DeviationSanctBase.sanctionStageMovementCall();
+    } else {
+        window.selectedQueries = [];
+        let errtext = '<span class="sendback_query_err">Please select atleast one query</span>';
+        $(`#${sancBaseElemID}SA_querySave`).parent().prepend(errtext);
+    }
+}
+apz.app.DeviationSanctBase.cancel = function() {
+    let checkBoxArray = document.querySelectorAll("input[type=CHECKBOX]");
+    checkBoxArray.forEach(el => {
+        if ($(el).prop('checked')) {
+            $(el).prop('checked', false);
+        }
+    })
+    $(`#${sancBaseElemID}queryCategory`).html('');
+    $(`#${sancBaseElemID}queryList .query`).remove();
+    $(`#${sancBaseElemID}otherQueryReasonForm`).addClass('sno');
+    $('.sendback_query_err').remove();
+    $('.err-msg').removeClass('sno');
+    statusObject = {};
+    ApzCOB.toggleModal(`${sancBaseElemID}queryModal`);
+}
+apz.app.DeviationSanctBase.validateInput = function() {
+    let inputField = $(`#${sancBaseElemID}otherQueryReasonInp`);
+    let value = inputField.val().trim();
+    if (value !== "") {
+        ApzCOB.removeErrMessgae(`${sancBaseElemID}otherQueryReasonInp`, "element");
+    }
+    window.selectedQueries = [];
+}
+apz.app.DeviationSanctBase.CBReportDownload = function(custType) {
+     window.CB_LOAN_ID = '';
+     window.selDocType = '';
+    let custDetailID = '';
+    if (custType === 'CamSheetReport' || custType === 'LoanApplicationReport') {
+        window.CB_LOAN_ID = `${custType}_${gApzCOB.userDetails.applicationId}`
+        req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": "APZCBO",
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "reportType": custType,
+                    "generateReport": true
+                },
+                "interfaceName": "GenerateAndDownloadReport"
+            }
+        }
+        apz.startLoader();
+        ApzCOB.serverBuildParam(gAppId, "GenerateAndDownloadReport", "N", "N", req, false, ApzCOB.downloadBRECbReportCB);
+    } else {
+        custDetailID = ApzCOB.getCustDetailID(custType);
+        window.CB_LOAN_ID = inSessionStore.cibilDetailsWrapperList.filter(el => el.cibilDetails.custDtlId === custDetailID)[0].cibilDetails.payload
+            .cbLoanId;
+    if (apz.isNull(CB_LOAN_ID) && window.isAdditionalProduct) {
+              CB_LOAN_ID = window.isAdditionalProdOptionalCoApp ? "A01" + gApzCOB.userDetails.applicationId : (( window.isAdditionalProduct && custType == "Applicant") ? "A01" + gApzCOB.userDetails.applicationId : "C01" + gApzCOB.userDetails.applicationId);
+    }
+        ApzCOB.downloadBRECbReport(custDetailID);
+    }
+}
+apz.app.DeviationSanctBase.closeErrMdl = function() {
+    $(`#Sanct__DeviationSanctBase__SA_Error_modal_close`).click();
+}
+apz.app.DeviationSanctBase.closeCnfmMdl = function() {
+    $(`#Sanct__DeviationSanctBase__conFormation_mdl_close`).click();
+}
+apz.app.DeviationSanctBase.closeSucmMdl = function() {
+    $(`#Sanct__DeviationSanctBase__Succ_modal_close`).click();
+}
+apz.app.DeviationSanctBase.confirmBtn = function(pthis) {
+    let errMsg = "";
+    let lAction = $(pthis).text();
+    let remarks = '';
+    if (applicationStatus === 'PENDINGDEVIATION') {
+        if (!apz.isObjectEmpty(DEVIATION_DATA) && DEVIATION_DATA.hasOwnProperty('deviation')) {
+            if (DEVIATION_DATA.deviation.length > 0) {
+                let anyDevPending = DEVIATION_DATA.deviation.filter(dev => dev.approvedStatus === "PENDING" && dev.authority ===
+                    LoggedInUserDetails.loginResponse.addInfo1) || [];
+                if (anyDevPending.length > 0) {
+                    errMsg = "Please approve all the credit assesment deviation";
+                } else {
+                    if (lAction === "Confirm")
+                        if (DEVIATION_DATA.reAssesment.length > 0) {
+                            lAction = "SUBMITREASSESSMENT";
+                        } else {
+                            lAction = "SUBMIT";
+                        }
+                }
+            }
+        } else {
+            errMsg = "Credit assesment deviation not found.Please try again later";
+        }
+    } else if (applicationStatus === 'PENDINGREASSESSMENT') {
+        if (!apz.isObjectEmpty(DEVIATION_DATA) && DEVIATION_DATA.hasOwnProperty('reAssesment')) {
+            if (DEVIATION_DATA.reAssesment.length > 0) {
+                let anyReAssesmentPending = DEVIATION_DATA.reAssesment.filter(dev => dev.approvedStatus === "PENDING") || [];
+                //    && dev.authority === LoggedInUserDetails.loginResponse.addInfo1
+                if (anyReAssesmentPending.length > 0) {
+                    if (
+    LoggedInUserDetails.loginResponse.addInfo1 !== "CCM" &&
+    anyReAssesmentPending.length === 1 &&
+    anyReAssesmentPending[0].authority === "CCM"
+) {
+    errMsg = "Case submitted for Central Credit Assessment. Pending with CCM";
+} else {
+    errMsg = "Please complete all the re-assesment deviation";
+}
+                } else {
+                    lAction = "SUBMIT";
+                }
+            }
+        } else {
+            errMsg = "Re-assesment deviation not found.Please try again later";
+        }
+    } else if (applicationStatus === 'CACOMPLETED' || applicationStatus === 'RESANCTION') {
+        $(`#${screenMainId}sanctionComments`).removeClass('err-border');
+        remarks = $(`#${screenMainId}sanctionComments`).val();
+                    if (apz.isNull(remarks)) {
+                    $(`#${screenMainId}sanctionComments`).addClass('err-border');
+                    errMsg = "Please enter sanction comments";
+                    } else {
+                    lAction = "SUBMIT";
+                    } 
+    } else if (applicationStatus === 'PENDINGPRESANCTION') {
+        $(`#${screenMainId}preSanctionComments`).removeClass('err-border');
+        remarks = $(`#${screenMainId}preSanctionComments`).val();
+                    if (apz.isNull(remarks)) {
+                    $(`#${screenMainId}preSanctionComments`).addClass('err-border');
+                    errMsg = "Please enter pre-sanction comments";
+                    } else {
+                    lAction = "SUBMIT";
+                    } 
+    }
+    if (errMsg) {
+        let newMsg = '';
+        let onClick =  "apz.app.DeviationSanctBase.closeErrMdl()";
+           newMsg =  errMsg;
+        ApzCOB.showRpcModals({
+            text: newMsg,
+            Btn1: {
+                text: 'OK',
+                onClick: onClick
+            }
+        }, "Error");
+    } else {
+        statusObject.lAction = lAction;
+        statusObject.remarks = "";
+        statusObject.nextStatus = "CACOMPLETED";
+        if (applicationStatus === "PENDINGDEVIATION" || applicationStatus === "PENDINGREASSESSMENT") {
+            apz.app.DeviationSanctBase.sanctionStageMovementCall();
+        } else if (applicationStatus === "CACOMPLETED" || applicationStatus === 'RESANCTION' || applicationStatus === "PENDINGPRESANCTION") {
+            let msg = '';
+            if(applicationStatus === "PENDINGPRESANCTION"){
+                statusObject.remarks = remarks;
+                msg = 'Are you sure you want to approve the loan under Pre-Sanction?';
+            } else {
+               statusObject.nextStatus = "SANCTIONED";
+               loanAmt = ApzCOB.getPayloadDatafromWrapper('eligibleAmt', 'Co-App', 'cibilDetailsWrapperList');
+               statusObject.remarks = `${loanAmt} | ${remarks}`; 
+               msg = 'Do you want to sanction the loan?'
+            }
+            ApzCOB.showRpcModals({
+                text: msg,
+                Btn1: {
+                    text: "Yes",
+                    onClick: `apz.app.DeviationSanctBase.sanctionStageMovementCall()`
+                },
+                Btn2: {
+                    text: "No",
+                    onClick: "apz.app.DeviationSanctBase.closeCnfmMdl()"
+                }
+            }, "confirmation");
+        }
+    }
+}
+apz.app.DeviationSanctBase.sanctionStageMovementCall = function() {
+    if (!apz.isNull(gApzCOB.applnWorkFlowRes)) {
+        gApzCOB.applnWorkFlowRes.filter(function(workFlow) {
+            workFlow.action.split(',').filter(function(s) {
+                if (workFlow.appId === gAppId && statusObject.lAction.split(" ").join("") === s.toLocaleUpperCase()) {
+                    gApzCOB.workflow.currentRole = workFlow.currentRole;
+                    gApzCOB.workflow.action = workFlow.action;
+                    gApzCOB.workflow.workflowId = workFlow.workFlowId;
+                    gApzCOB.workflow.stage = workFlow.fromStageId;
+                    statusObject.nextStatus = workFlow.nextWorkflowStatus;
+                }
+            });
+        });
+    };
+    let req = {
+        apiRequest: {
+            // "interfaceName": approveRejectAction === 'APPROVED' ? "CreateApplication" : "",
+            interfaceName: "",
+            appId: gAppId,
+            requestObj: {
+                appId: gApzCOB.userDetails.appId,
+                status: statusObject.nextStatus,
+                userId: `${gApzCOB.LoggedInUserDetails.loginResponse.addInfo1}(${gApzCOB.LoggedInUserDetails.loginResponse.userDet.id})`,
+                applicationId: gApzCOB.userDetails.applicationId,
+                versionNum: 1,
+                custDtlId: gApzCOB.userDetails.custDtlId,
+                remarks: statusObject.remarks,
+                presactionLoanAmount: applicationStatus === "PENDINGPRESANCTION" ? $('#Sanct__Saloandetails__sanLoanInput').val() :"",
+                workflow: {
+                    currentRole: gApzCOB.workflow.currentRole,
+                    action: gApzCOB.workflow.action,
+                    workflowId: gApzCOB.workflow.workflowId,
+                    stage: gApzCOB.workflow.stage
+                }
+            }
+        }
+    };
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "Stagemoment", "N", "N", req, false, apz.app.DeviationSanctBase.confirmBtnCB);
+    }, 0)
+}
+apz.app.DeviationSanctBase.confirmBtnCB = function(params) {
+    apz.stopLoader();
+    let errMsg = "Stage movement failed.!";
+    const apiResponse = params.res?.APZCBO__Stagemoment_Res?.apiResponse;
+    const responseMessage = apiResponse?.ResponseHeader?.ResponseMessage;
+    if (!apz.isNull(responseMessage)) {
+        errMsg = responseMessage;
+    }
+    const {
+        lAction
+    } = statusObject;
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            const showSuccessModal = (message) => {
+                const modalOptions = {
+                    text: message,
+                    Btn1: {
+                        text: "OK",
+                        onClick: "apz.app.DeviationSanctBase.launchSanctionDashboard()"
+                    }
+                };
+                ApzCOB.showRpcModals(modalOptions, 'Success');
+            };
+            if (lAction === 'PUSHBACK') {
+                apz.app.DeviationSanctBase.cancel();
+                showSuccessModal("Application Sent Back Successfully to Credit Assessment.!");
+            } else if (lAction === 'REJECT') {
+                apz.app.DeviationSanctBase.cancel();
+                let errMsg = `Application No ${gApzCOB.userDetails.applicationId} rejected successfully.`;
+                let IsMaitriCase = ApzCOB.checkIsMaitriCase();
+                errMsg = `${errMsg} <br/> ${IsMaitriCase ? maitriMovementText : UnnatiMovementText}`;
+                showSuccessModal(errMsg);
+            } else {
+                let message = '';
+                const parsed = JSON.parse(apiResponse?.ResponseBody?.responseObj ?? '{}');
+                if (typeof parsed.message === 'string' && parsed.message.includes(':')) {
+                    window.LOANID = parsed.message.split(':')[1].trim();
+                }
+                apz.app.DeviationSanctBase.closeCnfmMdl();
+                ApzCOB.launchMicroApp('Sanct', 'SanctionSuc', `${gAppId}__BaseScreens__BaseDIV`, '');
+            }
+            statusObject = {};
+        } else {
+            let SanctionErrMsg = "";
+            if (lAction === 'PUSHBACK') {
+                SanctionErrMsg = "Pushback failed.Please try again";
+                apz.app.DeviationSanctBase.cancel();
+            } else if (lAction === 'REJECT') {
+                SanctionErrMsg = "Application Reject failed.Please try again";
+                apz.app.DeviationSanctBase.cancel();
+            } else if (lAction === "SUBMIT") {
+                let isJSON = ApzCOB.isJSONString(apiResponse?.ResponseBody?.responseObj);
+                if (isJSON) {
+                    let error = JSON.parse(apiResponse?.ResponseBody?.responseObj);
+                    SanctionErrMsg = `Sanction failed.Please try again.! <br/> API : ${error.apiName} <br/> Error : ${error.errorMessage}`
+                } else if(!apz.isNull(apiResponse?.ResponseBody?.responseObj)) {
+                    SanctionErrMsg = apiResponse.ResponseBody.responseObj;
+                } else if (applicationStatus === 'PENDINGDEVIATION') {
+                    SanctionErrMsg = "Deviation submit failed.Please try again.!";
+                } else if (applicationStatus === 'PENDINGREASSESSMENT') {
+                    SanctionErrMsg = "Re-Assessment submission failed.Please try again.!";
+                } else if (applicationStatus === 'PENDINGPRESANCTION') {
+                    SanctionErrMsg = "Pre-Sanction approval failed.Please try again.!";
+                }
+                apz.app.DeviationSanctBase.closeCnfmMdl();
+            }
+            const modalOptions = {
+                text: SanctionErrMsg,
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+                }
+            };
+            ApzCOB.showRpcModals(modalOptions, 'Error');
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+         apz.app.DeviationSanctBase.closeCnfmMdl();
+        apz.stopLoader();
+        ApzCOB.showRpcModals({
+            text: technicalErrMsg,
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+            }
+        }, "Error");
+    }
+}
+apz.app.DeviationSanctBase.launchSanctionDashboard = function() {
+    IS_DASHBOARD_COUNT_ENABLED = [];
+    DASHBOARD_COUNT_DATA = [];
+    apz.app.Login.OnClickMakerChecker("");
+}
+apz.app.DeviationSanctBase.sanctionCnfm = function(actionType) {
+    let cnfmMsg = '';
+    if (actionType === "REJECT") {
+        cnfmMsg = 'Do you want to reject the application?';
+    } else if (actionType === "PUSHBACK") {
+        cnfmMsg = 'Do you want to pushback the application?';
+    }
+    let popUpObj = {};
+    popUpObj.text = cnfmMsg;
+    popUpObj.Btn1 = {
+        "text": "Yes",
+        "onClick": `apz.app.DeviationSanctBase.sanctionCnfmCB('${actionType}')`
+    }
+    popUpObj.Btn2 = {
+        "text": "No",
+        "onClick": "apz.app.DeviationSanctBase.closeCnfmMdl()"
+    }
+    ApzCOB.showRpcModals(popUpObj, "confirmation");
+}
+apz.app.DeviationSanctBase.sanctionCnfmCB = function(actionType) {
+    let nextStatus = "";
+    let stageType = "Sanction";
+    if (actionType === "REJECT") {
+        nextStatus = "REJECTED";
+    } else if (actionType === "PUSHBACK") {
+        nextStatus = "RPCVERIFIED";
+        const stageMap = {
+            PENDINGDEVIATION: "Deviation",
+            PENDINGREASSESSMENT: "ReAssessment",
+            CACOMPLETED: "Sanction",
+            PENDINGPRESANCTION : 'ReAssessment'
+        };
+        stageType = stageMap[applicationStatus] || stageType;
+
+    }
+    if (LoggedInUserDetails.loginResponse.addInfo1 === 'CCM' && applicationStatus === 'PENDINGREASSESSMENT' ){
+        stageType = 'ReAssessmentCCM';
+
+    }
+    statusObject = {
+        lAction: actionType,
+        remarks: '',
+        nextStatus: nextStatus
+    };
+    ApzCOB.fetchRpcStageFields(stageType, apz.app.DeviationSanctBase.fetchRpcStageFieldsCB);
+}
+apz.app.DeviationSanctBase.sanctionReportDownloadCB = function(params) {
+    let b64Data = "";
+    let errMsg = "Document download failed.!";
+    const interface = ApzCOB.GetInterfaceResMap(params);
+    const apiResponse = params?.res?.[interface]?.apiResponse;
+    if (apz.isObjectEmpty(apiResponse)) return;
+    errMsg = apiResponse?.ResponseHeader?.ResponseMessage ?? errMsg;
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            const responseStr = apiResponse?.ResponseBody?.responseObj;
+            const response = responseStr ? JSON.parse(responseStr) : {};
+            function proceedAfterPDFReady() {
+                ApzCOB.convertBase64ToPDF(b64Data, CB_LOAN_ID);
+                if (!apz.isNull(selDocType)) {
+                    if (selDocType === 'BOTH') {
+                        $('#Sanct__SanctionSuc__el_hpl_1').click();
+                    }
+                }
+            }
+            if (response?.base64) {
+                CBBASE64 = b64Data = response.base64;
+                let currAppState = inSessionStore.leadDetails?.glBranchState || inSessionStore.cdhLeadDetails?.glBranchState || '';
+                let currApplLanguage = language.find(item => item.key.toLowerCase().includes(currAppState.toLowerCase()))?.value ?? '';
+                let currDocType = params.req.apiRequest.requestObj?.reportType ?? (params.req.apiRequest.requestObj?.hasOwnProperty('user_id') ? 'CBREPORT' : '');
+                if(["Malayalam", "Odia"].includes(currApplLanguage) && !['CamSheetReport', 'CBREPORT'].includes(currDocType)) {
+                    let convertedBase64 = response.base64;
+                    convertedBase64 = convertedBase64.replace(/\n/g, "");
+                    convertedBase64 = convertedBase64.replace(/\r/g, "");
+                    let decodedHtml = convertedBase64;
+                    let dialog = `<div id="pdfDialog" style="position:absolute; left:-9999px; visibility:visible;"></div>`;
+                    $("div[id=pdfDialog]").remove();
+                    $(document.body).append(dialog);
+                    $("#pdfDialog").html(decodedHtml);
+                    (async () => {
+                        apz.startLoader();
+                        const pages = document.querySelectorAll(".jrPage");
+                        if (pages.length === 0) {
+                            CBBASE64 = b64Data = response.base64;
+                            console.log("No '.jrPage' elements found");
+                            apz.stopLoader();
+                            return;
+                        }
+                        const opt = {
+                            margin: [5, 5, 5, 5],
+                            filename: "download.pdf",
+                            image: {
+                                type: "jpeg",
+                                quality: 1.0
+                            },
+                            html2canvas: {
+                                scale: 1.5,
+                                useCORS: true,
+                                logging: false,
+                            },
+                            jsPDF: {
+                                unit: "mm",
+                                format: "a4",
+                                orientation: "portrait",
+                                compress: true,
+                            },
+                        };
+                        const {
+                            jsPDF
+                        } = window.jspdf;
+                        const pdf = new jsPDF(opt.jsPDF);
+                        for (let i = 0; i < pages.length; i++) {
+                            if (i !== 0) pdf.addPage();
+                            const canvas = await html2canvas(pages[i], opt.html2canvas);
+                            const imgData = canvas.toDataURL("image/jpeg", 1.0);
+                            const pageWidth = pdf.internal.pageSize.getWidth();
+                            const pageHeight = pdf.internal.pageSize.getHeight();
+                            pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, pageHeight);
+                        }
+                        const pdfBase64 = pdf.output("datauristring");
+                        CBBASE64 = b64Data = pdfBase64.split(",")[1];
+                        proceedAfterPDFReady();
+                        apz.stopLoader();
+                    })();
+                } else {
+                    CBBASE64 = b64Data = response.base64;
+                    proceedAfterPDFReady();
+                }
+            } else {
+                showErrorModal("Report Not Found.!");
+            }
+        } else {
+            apz.stopLoader();
+            showErrorModal(errMsg);
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        showErrorModal(errMsg);
+    }
+
+    function showErrorModal(message) {
+        ApzCOB.showRpcModals({
+            text: message,
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+            }
+        }, "Error");
+    }
+};
+apz.app.DeviationSanctBase.PreviewCreditAssessmentDocs = function() {
+    ApzCOB.toggleModal(`${sancBaseElemID}PrevDocMdl`);
+    apz.app.DeviationSanctBase.paintDocuments();
+};
+apz.app.DeviationSanctBase.paintDocuments = function() {
+    let lcat = ["Dairy Doc","Kirana Doc","Tailoring Doc","Other Doc","Agriculture Doc","Salary Doc","Pension Doc","Rentalincome_Agg Doc"];
+    $(`#${sancBaseElemID}image_prev_sec`).addClass('sno');
+    $(`#${sancBaseElemID}image_list_sec`).removeClass('sno');
+    let mainParentDiv = $(`#${sancBaseElemID}main_parent_row`);
+    let mainCloneDiv = `${sancBaseElemID}docs_row_0`;
+    mainParentDiv.html('');
+    let cloneDiv = `${sancBaseElemID}image_block_0`;
+    
+    if (apz.isObjectEmpty(inSessionStore) || !inSessionStore.hasOwnProperty('applicationDocumentsWrapperList')) return;
+    let documentResp = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList
+    if (documentResp.length > 0) {
+        let FilteredDocs = documentResp.filter(docs => lcat.indexOf(docs.payload.documentType) != -1);
+        if (FilteredDocs.length >= 0) {
+            
+            let lDocTypes = [...new Set(FilteredDocs.map(item => item.payload.documentType))]
+            lDocTypes.forEach((doc,index) => {
+                let newId = ApzCOB.cloneDashboardDivs(mainCloneDiv, mainParentDiv, index + 1);
+                $(`#${newId} .doctitle p span`).text(apz.app.DeviationSanctBase.getDocNames(doc));
+                let parentDiv = $(`#${newId} .imgBase`);
+                parentDiv.html('');
+                FilteredDocs.forEach((ldoc, index) => {
+                    if(ldoc.payload.documentType == doc) {
+                        let newSubId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
+                        $(`#${newId} #${newSubId} .docName a.ett-hypl span`).text(ldoc.payload.documentFileName);
+                        $(`#${newId} #${newSubId}`).attr('data-id', ldoc.appDocId);
+                        $(`#${newId} #${newSubId}`).attr('data-doc-type', doc);
+                        $(`#${newId} #${newSubId} .docSize`).text((ldoc.payload.docSize / 1024)?.toFixed(0));
+                    }
+                });
+            });
+        } else {
+            ApzCOB.showRpcModals({
+                text: "No Credit assessment documents found.",
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+                }
+            }, "Error");
+            ApzCOB.toggleModal(`${sancBaseElemID}PrevDocMdl`);
+        }
+    } else {
+        ApzCOB.showRpcModals({
+            text: "No documents found.",
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+            }
+        }, "Error");
+        ApzCOB.toggleModal(`${sancBaseElemID}PrevDocMdl`);
+        return;
+    }
+}
+apz.app.DeviationSanctBase.getDocNames = function(ldocName) {
+    let name = ldocName;
+    switch(ldocName) {
+        case "Dairy Doc" :  name = "Business - Dairy"; break;
+        case "Kirana Doc" :  name = "Business - Kirana"; break;
+        case "Tailoring Doc" :  name = "Business - Tailoring"; break;
+        case "Other Doc" :  name = "Business - Other"; break;
+        case "Agriculture Doc" :  name = "Agriculture"; break;
+        case "Salary Doc" :  name = "Salary"; break;
+        case "Pension Doc" :  name = "Pension"; break;
+        case "Rentalincome_Agg Doc" :  name = "Rental Agreement"; break;
+    }
+    return name;
+};
+apz.app.DeviationSanctBase.ViewDoc = function(pthis) {
+    let documentId = $(pthis).parents('.uploadimg').attr('data-id');
+    let docDetails = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.find(doc => parseInt(doc.appDocId) === parseInt(documentId));
+    if(!apz.isObjectEmpty(docDetails)){
+        let fileName = docDetails?.payload?.documentFileName;
+        let callBackFn = apz.app.DeviationSanctBase.reAssesmentDocViewCB;
+        ApzCOB.downloadFileFromServer(fileName,callBackFn);
+    }
+};
+apz.app.DeviationSanctBase.reAssesmentDocViewCB = function(params){
+    apz.stopLoader();
+    if (!apz.isNull(params.base64)) {
+        $(`#${sancBaseElemID}imgPrevView`).attr('src', 'data:image/png;base64,' + params.base64);
+        $(`#${sancBaseElemID}image_list_sec`).addClass('sno');
+        $(`#${sancBaseElemID}image_prev_sec`).removeClass('sno');
+    }
+};
+apz.app.DeviationSanctBase.imagePrevBack = function() {
+    $(`#${sancBaseElemID}image_prev_sec`).addClass('sno');
+    $(`#${sancBaseElemID}image_list_sec`).removeClass('sno');
+};
+apz.app.DeviationSanctBase.directReject = function(pthis, gaction) {
+    apz.startLoader();
+    ApzCOB.userDetailsData();
+    apz.app.BaseScreens.stageBasedOnAction(pthis, gaction);
+    let rMarks = `CB FAILED. Reason: ${window.rejectRsn || ''}`;
+    window.approveRejectAction = "REJECTED";
+        let req = {
+        apiRequest: {
+            // "interfaceName": approveRejectAction === 'APPROVED' ? "CreateApplication" : "",
+            interfaceName: "",
+            appId: gAppId,
+            requestObj: {
+                appId: gApzCOB.userDetails.appId,
+                status: approveRejectAction,
+                userId: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                applicationId: gApzCOB.userDetails.applicationId,
+                versionNum: gApzCOB.userDetails.versionNum,
+                custDtlId: gApzCOB.userDetails.custDtlId,
+                remarks: rMarks,
+                workflow: {
+                    currentRole: gApzCOB.workflow.currentRole,
+                    action: gApzCOB.workflow.action,
+                    workflowId: gApzCOB.workflow.workflowId,
+                    stage: gApzCOB.workflow.stage,
+                },
+            },
+        },
+    };
+    ApzCOB.serverBuildParam(gAppId, "Stagemoment", "N", "N", req, false, apz.app.DeviationSanctBase.directRejectCB);
+};
+apz.app.DeviationSanctBase.directRejectCB = function(params) {
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            let dispMsg = (window.rejectionReason) ? `CB Failed.!<br/>Reject Reason: ${window.rejectionReason}.<br/>Application Rejected Successfully.!` : "CB Failed.! Application Rejected Successfully.!";
+            let modalOptions = {
+                text: dispMsg,
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.Login.OnClickMakerChecker('');"
+                }
+            };
+            ApzCOB.showRpcModals(modalOptions, 'Error'); //MUI-567
+        }  else {
+            apz.stopLoader(); 
+            ApzCOB.showRpcModals({
+                text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+                }
+            }, "Error");
+        }
+    }  catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showRpcModals({
+            text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.DeviationSanctBase.closeErrMdl()"
+            }
+        }, "Error");
+    }
+    apz.stopLoader();
+}
+apz.app.DeviationSanctBase.disableBtnsOnReject = function(){
+    apz.app.DeviationSanctBase.closeSucmMdl();
+    $(`#${sancBaseElemID}reject_btn,#${sancBaseElemID}sendback_btn,#${sancBaseElemID}confirmBtn`).addClass('sno');
+    apz.app.Saloandetails.paintBMLoanDetals();
+    apz.app.Saloandetails.showSanctionAmtDetails();
+}
+apz.app.DeviationSanctBase.showApplicationDetails = function(params) {
+    window.previousScreenId = apz.childScr;
+    window.previousMicroAppId = apz.currAppId;
+    if(apz.deviceType !== "WEB"){
+        apz.app.DeviationSanctBase.sideBarclose();
+    }
+    if(params === "ApplicationDetails") {
+        // ApzCOB.launchMicroApp("cmnPre", "PreviewApplicantDetails", "Sanct__DeviationSanctBase__SaLaunchDiv", "");
+        ApzCOB.toggleModal("APZCBO__BaseScreens__preview_modal")
+        ApzCOB.launchMicroApp("cmnPre", "PreviewApplicantDetails", "APZCBO__BaseScreens__preview_modal_content", "");
+       
+    }
+    if(params === "CreditAssessmentDetails") {
+        // ApzCOB.launchMicroApp("cmnPre", "PreviewCA", "Sanct__DeviationSanctBase__SaLaunchDiv", "");
+        ApzCOB.toggleModal("APZCBO__BaseScreens__preview_modal")
+        ApzCOB.launchMicroApp("cmnPre", "PreviewCA", "APZCBO__BaseScreens__preview_modal_content", "");
+    }
+};
+apz.app.DeviationSanctBase.sideBarOpen = function() {
+    $("#Sanct__DeviationSanctBase__sidebar_col").addClass("sideon");
+    $("#Sanct__DeviationSanctBase__sidebar_col").show();
+}
+apz.app.DeviationSanctBase.sideBarclose = function() {
+    $("#Sanct__DeviationSanctBase__sidebar_col").hide();
+    $("#Sanct__DeviationSanctBase__sidebar_col").removeClass("sideon");
+}

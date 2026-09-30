@@ -1,0 +1,2435 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:camel="http://camel.apache.org/schema/spring" xmlns:util="http://www.springframework.org/schema/util" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/util         http://www.springframework.org/schema/util/spring-util.xsd         http://www.springframework.org/schema/beans           http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring           http://camel.apache.org/schema/spring/camel-spring.xsd        http://activemq.apache.org/schema/core           http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+<camelContext xmlns="http://camel.apache.org/schema/spring" id="Admin_appzillonframeworks">
+<endpoint id="APZCBO__APZCBO__advancesearch" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/advanceSearch"/>
+<endpoint id="APZCBO__APZCBO__ApplicationDedupe" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/newgenWipDedupe"/>
+<endpoint id="APZCBO__APZCBO__applyCreditCard" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/creditcard/applyCreditCard"/>
+<endpoint id="APZCBO__APZCBO__ApplyRejectApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/common/applyrejectapplication"/>
+<endpoint id="APZCBO__APZCBO__ApproveDeviationRaApplications" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/common/approveDeviationRaApplications"/>
+<endpoint id="APZCBO__APZCBO__Stagemoment" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/common/approverejectapplication"/>
+<endpoint id="APZCBO__APZCBO__SanctionMaster" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/SanctionMaster"/>
+<endpoint id="APZCBO__APZCBO__CommonAPI" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/common/commonapi"/>
+<endpoint id="APZCBO__APZCBO__ApproveRenewalApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/common/approverenewalapplication"/>
+<endpoint id="APZCBO__APZCBO__AssignApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/assignapplication"/>
+<endpoint id="APZCBO__APZCBO__BRECBCheck" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/BRECBCheck"/>
+<endpoint id="APZCBO__APZCBO__BRECBReport" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/BRECBReport"/>
+<endpoint id="APZCBO__APZCBO__DownloadLoanApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/downloadLoanApplication"/>
+<endpoint id="APZCBO__APZCBO__SignzyPennylessCheck" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/SignzyPennylessCheck"/>
+<endpoint id="APZCBO__APZCBO__IncomeAssessmentCheck" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/incomeAssessmentCheck"/>
+<endpoint id="APZCBO__APZCBO__MergeAndDownloadPDF" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/mergeImageToPdfAndDownload"/>
+<endpoint id="APZCBO__APZCBO__CardFetchApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/creditcard/fetchapplication"/>
+<endpoint id="APZCBO__APZCBO__CardVerifyApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/creditcard/checkapplication"/>
+<endpoint id="APZCBO__APZCBO__CollectionServiceCheck" uri="http://${APZ:SERVICEIPPORT2}/appzillonbankingcob/cob/collectionServiceCheck"/>
+<endpoint id="APZCBO__APZCBO__MasterSearchApi" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/masterSearchApi"/>
+<endpoint id="APZCBO__APZCBO__CommonCodeParams" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/core/fetchCommonParams"/>
+<endpoint id="APZCBO__APZCBO__CreateApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/createapplication"/>
+<endpoint id="APZCBO__APZCBO__CreateDeposit" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/deposit/createdeposit"/>
+<endpoint id="APZCBO__APZCBO__CreateLoan" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/applyloan"/>
+<endpoint id="APZCBO__APZCBO__UploadRPCLoanData" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/uploadLoan"/>
+<endpoint id="APZCBO__APZCBO__UploadCALoanData" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/bcmpiUploadData"/>
+<endpoint id="APZCBO__APZCBO__UploadDBKITLoanData" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/dbkitUploadData"/>
+<endpoint id="APZCBO__APZCBO__FetchDBKITMasterData" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/dbkitMasterData"/>
+<endpoint id="APZCBO__APZCBO__FetchBCMPIMasterData" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/bcmpiMasterData"/>
+<endpoint id="APZCBO__APZCBO__DedupeVoterID" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/kycDedupe"/>
+<endpoint id="APZCBO__APZCBO__FetchIFSC" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/fetchIFSC"/>
+<endpoint id="APZCBO__APZCBO__DeleteDocument" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/deletedocument"/>
+<endpoint id="APZCBO__APZCBO__DepositDiscardApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/deposit/discardapplication"/>
+<endpoint id="APZCBO__APZCBO__DepositFetchApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/deposit/fetchapplication"/>
+<endpoint id="APZCBO__APZCBO__DepositFetchNominee" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/deposit/fetchnominee"/>
+<endpoint id="APZCBO__APZCBO__DepositVerifyApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/deposit/checkapplication"/>
+<endpoint id="APZCBO__APZCBO__DiscardApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/discardandcreateapplication"/>
+<endpoint id="APZCBO__APZCBO__DiscardCardApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/creditcard/discardandcreateapplication"/>
+<endpoint id="APZCBO__APZCBO__DiscardCoApplicant" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/discardcoapplicant"/>
+<endpoint id="APZCBO__APZCBO__DownloadApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/downloadapplication"/>
+<endpoint id="APZCBO__APZCBO__DownloadApplicationCards" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/creditcard/downloadapplication"/>
+<endpoint id="APZCBO__APZCBO__DownloadApplicationDeposit" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/deposit/downloadapplication/"/>
+<endpoint id="APZCBO__APZCBO__DownloadApplicationLoan" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/downloadapplication"/>
+<endpoint id="APZCBO__APZCBO__FetchApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchapplication"/>
+<endpoint id="APZCBO__APZCBO__FetchBanks" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchbanks"/>
+<endpoint id="APZCBO__APZCBO__FetchBranches" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchbranches"/>
+<endpoint id="APZCBO__APZCBO__FetchCities" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchcities"/>
+<endpoint id="APZCBO__APZCBO__FetchCountries" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchcountries"/>
+<endpoint id="APZCBO__APZCBO__FetchCustomerDetails" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/deposit/fetchcustomerdetails"/>
+<endpoint id="APZCBO__APZCBO__fetchcustomerdetailsforcards" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/creditcard/fetchcustomerdetails"/>
+<endpoint id="APZCBO__APZCBO__FetchCustomerDetailsforLoan" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/fetchcustomerdetails"/>
+<endpoint id="APZCBO__APZCBO__FetchDashboard" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchdashboard"/>
+<endpoint id="APZCBO__APZCBO__FetchEligibleCards" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/creditcard/fetcheligiblecards"/>
+<endpoint id="APZCBO__APZCBO__FetchFAQ" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/core/fetchfaq"/>
+<endpoint id="APZCBO__APZCBO__FetchLanguageLIT" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchlitbylanguage"/>
+<endpoint id="APZCBO__APZCBO__FetchLovs" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchlov"/>
+<endpoint id="APZCBO__APZCBO__FetchNominee" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchnominee"/>
+<endpoint id="APZCBO__APZCBO__fetchpincode" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/common/pinCode"/>
+<endpoint id="APZCBO__APZCBO__FetchProductDetails" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/core/fetchproductdetails"/>
+<endpoint id="APZCBO__APZCBO__FetchProducts" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/core/fetchproducts"/>
+<endpoint id="APZCBO__APZCBO__FetchROI" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/deposit/fetchroi"/>
+<endpoint id="APZCBO__APZCBO__FetchRole" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchrole"/>
+<endpoint id="APZCBO__APZCBO__GenerateAndDownloadReport" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/generateAndDownloadReport"/>
+<endpoint id="APZCBO__APZCBO__FetchRPCRoleData" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchRPCRoleData"/>
+<endpoint id="APZCBO__APZCBO__FetchStageNesl" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/enach/cagl/nesl/fetch-stage"/>
+<endpoint id="APZCBO__APZCBO__NeslStageTrackerStoreAPI" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/enach/cagl/nesl/stage"/>
+<endpoint id="APZCBO__APZCBO__FetchStateMaster" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchStateMaster"/>
+<endpoint id="APZCBO__APZCBO__FetchStates" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchstates"/>
+<endpoint id="APZCBO__APZCBO__FetchTATReport" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchTATReport"/>
+<endpoint id="APZCBO__APZCBO__GetExistingLoan" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/fetchExistingLoan"/>
+<endpoint id="APZCBO__APZCBO__HighMarkRenewalServiceCB" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/highmarkRenewalCheckCallback"/>
+<endpoint id="APZCBO__APZCBO__HighMarkService" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/highmarkCheck"/>
+<endpoint id="APZCBO__APZCBO__FetchInsurancePremiumMaster" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/fetchInsurancePremiumMaster"/>
+<endpoint id="APZCBO__APZCBO__HighMarkServiceCB" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/highmarkCheckCallback"/>
+<endpoint id="APZCBO__APZCBO__LoanDiscardApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/discardapplication"/>
+<endpoint id="APZCBO__APZCBO__LoanFetchApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/fetchapplication"/>
+<endpoint id="APZCBO__APZCBO__LoanVerifyApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/checkapplication"/>
+<endpoint id="APZCBO__APZCBO__ModifyRejectedApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/common/modifyrejectapplication"/>
+<endpoint id="APZCBO__APZCBO__OCRService" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/extractocrdata"/>
+<endpoint id="APZCBO__APZCBO__OCRServiceAndUploadFile" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/ocranduploaddocument"/>
+<endpoint id="APZCBO__APZCBO__OtpSmsService" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/common/sendSmsAndEmail"/>
+<endpoint id="APZCBO__APZCBO__PopulateApplicationWorkflow" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/populateapplnworkFlow"/>
+<endpoint id="APZCBO__APZCBO__RejectReinitiate" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/common/initiaterejectedapplication"/>
+<endpoint id="APZCBO__APZCBO__SearchApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/searchapplications"/>
+<endpoint id="APZCBO__APZCBO__SendbackDataFetch" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/sendbackDataFetch"/>
+<endpoint id="APZCBO__APZCBO__UpdateApplicantscount" uri="${APZ:ONBOARDINGSERVICEIPPORT}/appzillonbankingcob/cob/updateapplicantscount"/>
+<endpoint id="APZCBO__APZCBO__UploadFile" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/uploaddocument"/>
+<endpoint id="APZCBO__APZCBO__ValidateVoterID" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/validatekyc"/>
+<endpoint id="APZCBO__APZCBO__verifyApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/checkapplication"/>
+<endpoint id="APZCBO__APZCBO__VerifyNationalID" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/verifynationalid"/>
+<endpoint id="APZCBO__Dashbo__ApproveRejectApplication" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/common/approverejectapplication"/>
+<endpoint id="APZCBO__Dashbo__FetchStatusReport" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/statusreport"/>
+<endpoint id="APZCBO__Dashbo__ViewAll" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/viewall"/>
+<endpoint id="APZCBO__Dashbo__ViewRejectedHistory" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/rejecthistory"/>
+<endpoint id="APZCBO__NomDet__DeleteNominee" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/deletenominee"/>
+<endpoint id="APZCBO__NomDet__DepositDeleteNominee" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/deposit/deletenominee"/>
+<endpoint id="APZCBO__NomDet__DepositFetchNominee" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/deposit/fetchnominee"/>
+<endpoint id="APZCBO__NomDet__FetchNominee" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/fetchnominee"/>
+<endpoint id="APZCBO__NomDet__ModifyNominee" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/modifynominee"/>
+<endpoint id="APZCBO__APZCBO__LoanCreation" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/loanCreation"/>
+<endpoint id="APZCBO__APZCBO__RppService" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/enach/rppservice"/>
+<endpoint id="APZCBO__APZCBO__TransactionStatus" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/enach/transactionstatus"/>
+<endpoint id="APZCBO__APZCBO__DbKitDocGenerationAndDownload" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/dbKitDocGenerationAndDownload"/>
+
+<endpoint id="APZCBO__APZCBO__BIPImgProcess" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/BIPImgProcess"/>
+
+
+<endpoint id="APZCBO__APZCBO__AdharRedactOcr" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/adharRedactOcr"/>
+<endpoint id="APZCBO__APZCBO__Kycpassport" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/kycpassport"/>
+<endpoint id="APZCBO__APZCBO__KycDrivingLicense" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/kycDrivingLicense"/>
+<endpoint id="APZCBO__APZCBO__DrivingLicenseOcr" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/drivingLicenseOcr"/>
+<endpoint id="APZCBO__APZCBO__PanCheckOcr" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/panCheckOcr"/>
+<endpoint id="APZCBO__APZCBO__SignzyPennyCheck" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/SignzyPennyCheck"/>
+<endpoint id="APZCBO__APZCBO__VoterFrontOcr" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/voterFrontOcr"/>
+<endpoint id="APZCBO__APZCBO__VoterBackOcr" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/loan/voterBackOcr"/>
+
+<endpoint id="APZCBO__APZCBO__SubEstampEsign" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/enach/submitEstampESign"/>
+<endpoint id="APZCBO__APZCBO__ESignLinkAPI" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/enach/getEsignLink"/>
+<endpoint id="APZCBO__APZCBO__DDESignedDocAPI" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/enach/ddeSignedDoc"/>
+<endpoint id="APZCBO__APZCBO__ReturnDDEFetch" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/enach/loanDocStatus"/>
+<endpoint id="APZCBO__APZCBO__RetriggerEsignAPI" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/enach/retriggerEsign"/>
+<endpoint id="APZCBO__APZCBO__StampDutyCalAPI" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/enach/stampDutyCalc"/>
+<endpoint id="APZCBO__APZCBO__GetEsignDocAPI" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/enach/transDocData"/>
+<endpoint id="APZCBO__APZCBO__StampCompAPI" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/enach/cagl/esign-stamp"/>
+<endpoint id="APZCBO__APZCBO__AdditionalLoan" uri="http://${APZ:SERVICEIPPORT}/appzillonbankingcob/cob/callreplicateupdate"/>
+
+</camelContext>
+
+<!-- Generated beans goes here -->
+
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__AdditionalLoan_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__AdditionalLoan_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__AdditionalLoan_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__AdditionalLoan_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__AdditionalLoan_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__SubEstampEsign_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.HttpServicesImpl" id="APZCBO_APZCBO__SubEstampEsign_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__SubEstampEsign_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__SubEstampEsign_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__SubEstampEsign_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__StampCompAPI_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.HttpServicesImpl" id="APZCBO_APZCBO__StampCompAPI_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__StampCompAPI_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__StampCompAPI_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__StampCompAPI_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__ESignLinkAPI_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.HttpServicesImpl" id="APZCBO_APZCBO__ESignLinkAPI_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__ESignLinkAPI_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__ESignLinkAPI_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__ESignLinkAPI_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DDESignedDocAPI_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.HttpServicesImpl" id="APZCBO_APZCBO__DDESignedDocAPI_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DDESignedDocAPI_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DDESignedDocAPI_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DDESignedDocAPI_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__GetEsignDocAPI_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.HttpServicesImpl" id="APZCBO_APZCBO__GetEsignDocAPI_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__GetEsignDocAPI_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__GetEsignDocAPI_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__GetEsignDocAPI_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__StampDutyCalAPI_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.HttpServicesImpl" id="APZCBO_APZCBO__StampDutyCalAPI_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__StampDutyCalAPI_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__StampDutyCalAPI_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__StampDutyCalAPI_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__RetriggerEsignAPI_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.HttpServicesImpl" id="APZCBO_APZCBO__RetriggerEsignAPI_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__RetriggerEsignAPI_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__RetriggerEsignAPI_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__RetriggerEsignAPI_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__ReturnDDEFetch_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.HttpServicesImpl" id="APZCBO_APZCBO__ReturnDDEFetch_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__ReturnDDEFetch_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__ReturnDDEFetch_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__ReturnDDEFetch_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+
+
+<bean class="com.iexceed.appzillon.services.MailService" id="Admin_appzillonMailRequest_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.MailServicesImpl" id="Admin_appzillonMailRequest_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="Admin_appzillonMailRequest_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="Admin_appzillonMailRequest_intf">
+<property name="beanId" value="Admin_appzillonMailRequest_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.impl.TextMessagingServicesImpl" id="Admin_sendSMSImpl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.TranslationBeanImpl" id="Admin_paramImpl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.NLPImpl" id="Admin_NLPImpl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.ConversationalUIImpl" id="Admin_ConversationalUIImpl" scope="request"/>
+<bean class="com.iexceed.appzillon.dao.MailDetails" id="Admin_appzillonMailRequest" scope="request">
+<property name="from" value=" iexceedtestemail@gmail.com"/>
+<property name="password" value="iexceed@123"/>
+<property name="hostName" value="smtp.gmail.com"/>
+<property name="portNumber" value="465"/>
+<property name="userName" value=" iexceedtestemail@gmail.com"/>
+<property name="protocol" value="smtps"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__advancesearch_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__advancesearch_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__advancesearch_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__advancesearch_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__advancesearch_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__ApplicationDedupe_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__ApplicationDedupe_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__ApplicationDedupe_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__ApplicationDedupe_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__ApplicationDedupe_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__applyCreditCard_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__applyCreditCard_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__applyCreditCard_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__applyCreditCard_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__applyCreditCard_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__ApplyRejectApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__ApplyRejectApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__ApplyRejectApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__ApplyRejectApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__ApplyRejectApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__ApproveDeviationRaApplications_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__ApproveDeviationRaApplications_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__ApproveDeviationRaApplications_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__ApproveDeviationRaApplications_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__ApproveDeviationRaApplications_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__Stagemoment_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__Stagemoment_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__Stagemoment_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__Stagemoment_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__Stagemoment_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__CommonAPI_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__CommonAPI_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__CommonAPI_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__CommonAPI_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__CommonAPI_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__ApproveRenewalApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__ApproveRenewalApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__ApproveRenewalApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__ApproveRenewalApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__ApproveRenewalApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.SQLServices" id="APZCBO_APZCBO__AppVersion_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.SQLServicesImpl" id="APZCBO_APZCBO__AppVersion_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__AppVersion_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__AppVersion_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__AppVersion_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__AssignApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__AssignApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__AssignApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__AssignApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__AssignApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AuthenticationServices" id="APZCBO_APZCBO__AuthenticationService_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__AuthenticationService_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__AuthenticationService_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__AuthenticationService_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__BRECBCheck_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__BRECBCheck_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__BRECBCheck_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__BRECBCheck_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__BRECBCheck_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DownloadLoanApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DownloadLoanApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DownloadLoanApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DownloadLoanApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DownloadLoanApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__BRECBReport_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__BRECBReport_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__BRECBReport_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__BRECBReport_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__BRECBReport_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__SignzyPennylessCheck_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__SignzyPennylessCheck_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__SignzyPennylessCheck_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__SignzyPennylessCheck_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__SignzyPennylessCheck_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__IncomeAssessmentCheck_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__IncomeAssessmentCheck_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__IncomeAssessmentCheck_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__IncomeAssessmentCheck_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__IncomeAssessmentCheck_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__MergeAndDownloadPDF_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__MergeAndDownloadPDF_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__MergeAndDownloadPDF_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__MergeAndDownloadPDF_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__MergeAndDownloadPDF_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__CardFetchApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__CardFetchApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__CardFetchApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__CardFetchApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__CardFetchApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__CardVerifyApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__CardVerifyApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__CardVerifyApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__CardVerifyApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__CardVerifyApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__CollectionServiceCheck_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__CollectionServiceCheck_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__CollectionServiceCheck_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__CollectionServiceCheck_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__CollectionServiceCheck_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__MasterSearchApi_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__MasterSearchApi_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__MasterSearchApi_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__MasterSearchApi_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__MasterSearchApi_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__CommonCodeParams_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__CommonCodeParams_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__CommonCodeParams_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__CommonCodeParams_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__CommonCodeParams_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__CreateApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__CreateApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__CreateApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__CreateApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__CreateApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__CreateDeposit_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__CreateDeposit_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__CreateDeposit_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__CreateDeposit_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__CreateDeposit_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__UploadRPCLoanData_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__UploadRPCLoanData_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__UploadRPCLoanData_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__UploadRPCLoanData_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__UploadRPCLoanData_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__UploadCALoanData_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__UploadCALoanData_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__UploadCALoanData_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__UploadCALoanData_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__UploadCALoanData_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__UploadDBKITLoanData_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__UploadDBKITLoanData_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__UploadDBKITLoanData_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__UploadDBKITLoanData_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__UploadDBKITLoanData_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchDBKITMasterData_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchDBKITMasterData_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchDBKITMasterData_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchDBKITMasterData_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchDBKITMasterData_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchBCMPIMasterData_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchBCMPIMasterData_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchBCMPIMasterData_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchBCMPIMasterData_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchBCMPIMasterData_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__CreateLoan_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__CreateLoan_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__CreateLoan_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__CreateLoan_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__CreateLoan_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DedupeVoterID_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DedupeVoterID_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DedupeVoterID_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DedupeVoterID_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DedupeVoterID_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchIFSC_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchIFSC_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchIFSC_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchIFSC_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchIFSC_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DeleteDocument_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DeleteDocument_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DeleteDocument_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DeleteDocument_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DeleteDocument_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DepositDiscardApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DepositDiscardApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DepositDiscardApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DepositDiscardApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DepositDiscardApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DepositFetchApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DepositFetchApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DepositFetchApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DepositFetchApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DepositFetchApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DepositFetchNominee_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DepositFetchNominee_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DepositFetchNominee_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DepositFetchNominee_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DepositFetchNominee_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DepositVerifyApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DepositVerifyApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DepositVerifyApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DepositVerifyApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DepositVerifyApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DiscardApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DiscardApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DiscardApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DiscardApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DiscardApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DiscardCardApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DiscardCardApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DiscardCardApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DiscardCardApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DiscardCardApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DiscardCoApplicant_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DiscardCoApplicant_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DiscardCoApplicant_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DiscardCoApplicant_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DiscardCoApplicant_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DownloadApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DownloadApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DownloadApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DownloadApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DownloadApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DownloadApplicationCards_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DownloadApplicationCards_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DownloadApplicationCards_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DownloadApplicationCards_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DownloadApplicationCards_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DownloadApplicationDeposit_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DownloadApplicationDeposit_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DownloadApplicationDeposit_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DownloadApplicationDeposit_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DownloadApplicationDeposit_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DownloadApplicationLoan_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DownloadApplicationLoan_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DownloadApplicationLoan_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DownloadApplicationLoan_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DownloadApplicationLoan_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchBanks_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchBanks_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchBanks_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchBanks_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchBanks_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchBranches_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchBranches_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchBranches_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchBranches_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchBranches_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchCities_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchCities_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchCities_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchCities_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchCities_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchCountries_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchCountries_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchCountries_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchCountries_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchCountries_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchCustomerDetails_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchCustomerDetails_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchCustomerDetails_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchCustomerDetails_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchCustomerDetails_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__fetchcustomerdetailsforcards_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__fetchcustomerdetailsforcards_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__fetchcustomerdetailsforcards_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__fetchcustomerdetailsforcards_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__fetchcustomerdetailsforcards_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchCustomerDetailsforLoan_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchCustomerDetailsforLoan_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchCustomerDetailsforLoan_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchCustomerDetailsforLoan_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchCustomerDetailsforLoan_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchDashboard_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchDashboard_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchDashboard_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchDashboard_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchDashboard_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchEligibleCards_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchEligibleCards_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchEligibleCards_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchEligibleCards_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchEligibleCards_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchFAQ_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchFAQ_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchFAQ_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchFAQ_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchFAQ_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchLanguageLIT_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchLanguageLIT_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchLanguageLIT_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchLanguageLIT_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchLanguageLIT_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchLovs_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchLovs_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchLovs_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchLovs_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchLovs_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchNominee_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchNominee_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchNominee_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchNominee_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchNominee_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__fetchpincode_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__fetchpincode_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__fetchpincode_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__fetchpincode_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__fetchpincode_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchProductDetails_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchProductDetails_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchProductDetails_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchProductDetails_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchProductDetails_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchProducts_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchProducts_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchProducts_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchProducts_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchProducts_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchROI_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchROI_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchROI_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchROI_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchROI_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchRole_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchRole_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchRole_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchRole_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchRole_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__GenerateAndDownloadReport_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__GenerateAndDownloadReport_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__GenerateAndDownloadReport_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__GenerateAndDownloadReport_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__GenerateAndDownloadReport_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchRPCRoleData_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchRPCRoleData_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchRPCRoleData_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchRPCRoleData_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchRPCRoleData_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchStageNesl_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.HttpServicesImpl" id="APZCBO_APZCBO__FetchStageNesl_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchStageNesl_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchStageNesl_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchStageNesl_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__NeslStageTrackerStoreAPI_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.HttpServicesImpl" id="APZCBO_APZCBO__NeslStageTrackerStoreAPI_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__NeslStageTrackerStoreAPI_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__NeslStageTrackerStoreAPI_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__NeslStageTrackerStoreAPI_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchStateMaster_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchStateMaster_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchStateMaster_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchStateMaster_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchStateMaster_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchStates_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchStates_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchStates_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchStates_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchStates_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchTATReport_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchTATReport_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchTATReport_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchTATReport_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchTATReport_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__GetExistingLoan_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__GetExistingLoan_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__GetExistingLoan_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__GetExistingLoan_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__GetExistingLoan_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__HighMarkRenewalServiceCB_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__HighMarkRenewalServiceCB_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__HighMarkRenewalServiceCB_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__HighMarkRenewalServiceCB_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__HighMarkRenewalServiceCB_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__HighMarkService_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__HighMarkService_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__HighMarkService_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__HighMarkService_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__HighMarkService_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__FetchInsurancePremiumMaster_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__FetchInsurancePremiumMaster_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__FetchInsurancePremiumMaster_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__FetchInsurancePremiumMaster_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__FetchInsurancePremiumMaster_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__HighMarkServiceCB_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__HighMarkServiceCB_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__HighMarkServiceCB_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__HighMarkServiceCB_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__HighMarkServiceCB_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__LoanDiscardApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__LoanDiscardApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__LoanDiscardApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__LoanDiscardApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__LoanDiscardApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__LoanFetchApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__LoanFetchApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__LoanFetchApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__LoanFetchApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__LoanFetchApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__LoanVerifyApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__LoanVerifyApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__LoanVerifyApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__LoanVerifyApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__LoanVerifyApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__ModifyRejectedApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__ModifyRejectedApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__ModifyRejectedApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__ModifyRejectedApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__ModifyRejectedApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__OCRService_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__OCRService_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__OCRService_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__OCRService_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__OCRService_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__OCRServiceAndUploadFile_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__OCRServiceAndUploadFile_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__OCRServiceAndUploadFile_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__OCRServiceAndUploadFile_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__OCRServiceAndUploadFile_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__OtpSmsService_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__OtpSmsService_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__OtpSmsService_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__OtpSmsService_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__OtpSmsService_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__PopulateApplicationWorkflow_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__PopulateApplicationWorkflow_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__PopulateApplicationWorkflow_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__PopulateApplicationWorkflow_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__PopulateApplicationWorkflow_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__RejectReinitiate_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__RejectReinitiate_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__RejectReinitiate_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__RejectReinitiate_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__RejectReinitiate_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.SQLServices" id="APZCBO_APZCBO__RPCStageFields_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.SQLServicesImpl" id="APZCBO_APZCBO__RPCStageFields_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__RPCStageFields_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__RPCStageFields_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__RPCStageFields_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.SQLServices" id="APZCBO_APZCBO__fetcheNachBanks_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.SQLServicesImpl" id="APZCBO_APZCBO__fetcheNachBanks_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__fetcheNachBanks_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__fetcheNachBanks_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__fetcheNachBanks_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__SearchApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__SearchApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__SearchApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__SearchApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__SearchApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__SendbackDataFetch_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__SendbackDataFetch_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__SendbackDataFetch_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__SendbackDataFetch_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__SendbackDataFetch_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__UpdateApplicantscount_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__UpdateApplicantscount_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__UpdateApplicantscount_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__UpdateApplicantscount_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__UpdateApplicantscount_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__UploadFile_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__UploadFile_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__UploadFile_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__UploadFile_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__UploadFile_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__ValidateVoterID_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__ValidateVoterID_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__ValidateVoterID_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__ValidateVoterID_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__ValidateVoterID_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__verifyApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__verifyApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__verifyApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__verifyApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__verifyApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__VerifyNationalID_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__VerifyNationalID_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__VerifyNationalID_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__VerifyNationalID_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__VerifyNationalID_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillonbanking.workflow.service.impl.WorkflowServiceImpl" id="APZCBO_APZCBO__WorkFlowService_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__WorkFlowService_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__WorkFlowService_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__WorkFlowService_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.MailService" id="APZCBO_appzillonMailRequest_service" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.MailServicesImpl" id="APZCBO_appzillonMailRequest_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_appzillonMailRequest_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_appzillonMailRequest_intf">
+<property name="beanId" value="APZCBO_appzillonMailRequest_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.impl.TextMessagingServicesImpl" id="APZCBO_sendSMSImpl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.TranslationBeanImpl" id="APZCBO_paramImpl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.NLPImpl" id="APZCBO_NLPImpl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.ConversationalUIImpl" id="APZCBO_ConversationalUIImpl" scope="request"/>
+<bean class="com.iexceed.appzillon.dao.MailDetails" id="APZCBO_appzillonMailRequest" scope="request">
+<property name="from" value=""/>
+<property name="password" value=""/>
+<property name="hostName" value=""/>
+<property name="portNumber" value=""/>
+<property name="userName" value=""/>
+<property name="protocol" value=""/>
+</bean>
+
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__SubEstampEsign" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__ESignLinkAPI" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__ReturnDDEFetch" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__RetriggerEsignAPI" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__StampDutyCalAPI" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__GetEsignDocAPI" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DDESignedDocAPI" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__AdditionalLoan" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+
+
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__advancesearch" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__ApplicationDedupe" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__applyCreditCard" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__ApplyRejectApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__ApproveDeviationRaApplications" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__Stagemoment" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__StampCompAPI" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__CommonAPI" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__ApproveRenewalApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.SQLDetails" id="APZCBO_APZCBO__AppVersion" scope="request">
+<property name="query" value="SELECT APP_ID, OS, APP_VERSION FROM TB_ASMI_APP_OS_VERSION WHERE APP_ID =:appID AND OS=:os"/>
+<property name="DSName" value="java:comp/env/jdbc/AppzillonServerDS"/>
+<property name="timeOut" value="120"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__AssignApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__BRECBCheck" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DownloadLoanApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__BRECBReport" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__SignzyPennylessCheck" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__IncomeAssessmentCheck" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__MergeAndDownloadPDF" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__CardFetchApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__CardVerifyApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__CollectionServiceCheck" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__MasterSearchApi" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__CommonCodeParams" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__CreateApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__CreateDeposit" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__CreateLoan" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__UploadRPCLoanData" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__UploadCALoanData" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__UploadDBKITLoanData" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchDBKITMasterData" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchBCMPIMasterData" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DedupeVoterID" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchIFSC" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DeleteDocument" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DepositDiscardApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DepositFetchApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DepositFetchNominee" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DepositVerifyApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DiscardApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DiscardCardApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DiscardCoApplicant" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DownloadApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DownloadApplicationCards" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DownloadApplicationDeposit" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DownloadApplicationLoan" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchBanks" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchBranches" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchCities" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchCountries" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchCustomerDetails" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="30"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__fetchcustomerdetailsforcards" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="30"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchCustomerDetailsforLoan" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchDashboard" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="30"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchEligibleCards" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchFAQ" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchLanguageLIT" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchLovs" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchNominee" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__fetchpincode" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="30"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchProductDetails" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="90"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchProducts" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchROI" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="30"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchRole" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="30"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__GenerateAndDownloadReport" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="30"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchRPCRoleData" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="30"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchStageNesl" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__NeslStageTrackerStoreAPI" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchStateMaster" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchStates" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchTATReport" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__GetExistingLoan" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__HighMarkRenewalServiceCB" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__HighMarkService" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__FetchInsurancePremiumMaster" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__HighMarkServiceCB" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__LoanDiscardApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__LoanFetchApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__LoanVerifyApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__ModifyRejectedApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__OCRService" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__OCRServiceAndUploadFile" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__OtpSmsService" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__PopulateApplicationWorkflow" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__RejectReinitiate" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.SQLDetails" id="APZCBO_APZCBO__RPCStageFields" scope="request">
+<property name="query" value="SELECT id, stage_name, stage_dtls, queries FROM tb_abob_rpc_master WHERE stage_name in (:stage_name)"/>
+<property name="DSName" value="java:comp/env/jdbc/AppzillonBankingDS"/>
+<property name="timeOut" value="120"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.SQLDetails" id="APZCBO_APZCBO__fetcheNachBanks" scope="request">
+<property name="query" value="SELECT * FROM public.tb_abob_ifsc_code_old_new icon LEFT JOIN public.tb_abob_enach_bank_master ebm on icon.new_ifsc = ebm.code"/>
+<property name="DSName" value="java:comp/env/jdbc/AppzillonBankingDS"/>
+<property name="timeOut" value="120"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__SearchApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__SendbackDataFetch" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__UpdateApplicantscount" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__UploadFile" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__ValidateVoterID" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__verifyApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__VerifyNationalID" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AuthenticationServices" id="APZCBO_ChgPas__AuthenticationService_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_ChgPas__AuthenticationService_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_ChgPas__AuthenticationService_intf" scope="request">
+<property name="beanId" value="APZCBO_ChgPas__AuthenticationService_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AuthenticationServices" id="APZCBO_CusVer__AuthenticationService_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_CusVer__AuthenticationService_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_CusVer__AuthenticationService_intf" scope="request">
+<property name="beanId" value="APZCBO_CusVer__AuthenticationService_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_Dashbo__ApproveRejectApplication_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_Dashbo__ApproveRejectApplication_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_Dashbo__ApproveRejectApplication_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_Dashbo__ApproveRejectApplication_intf" scope="request">
+<property name="beanId" value="APZCBO_Dashbo__ApproveRejectApplication_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_Dashbo__FetchStatusReport_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_Dashbo__FetchStatusReport_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_Dashbo__FetchStatusReport_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_Dashbo__FetchStatusReport_intf" scope="request">
+<property name="beanId" value="APZCBO_Dashbo__FetchStatusReport_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_Dashbo__ViewAll_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_Dashbo__ViewAll_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_Dashbo__ViewAll_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_Dashbo__ViewAll_intf" scope="request">
+<property name="beanId" value="APZCBO_Dashbo__ViewAll_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_Dashbo__ViewRejectedHistory_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_Dashbo__ViewRejectedHistory_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_Dashbo__ViewRejectedHistory_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_Dashbo__ViewRejectedHistory_intf" scope="request">
+<property name="beanId" value="APZCBO_Dashbo__ViewRejectedHistory_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_Dashbo__ApproveRejectApplication" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_Dashbo__FetchStatusReport" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="30"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_Dashbo__ViewAll" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_Dashbo__ViewRejectedHistory" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_NomDet__DeleteNominee_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_NomDet__DeleteNominee_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_NomDet__DeleteNominee_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_NomDet__DeleteNominee_intf" scope="request">
+<property name="beanId" value="APZCBO_NomDet__DeleteNominee_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_NomDet__DepositDeleteNominee_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_NomDet__DepositDeleteNominee_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_NomDet__DepositDeleteNominee_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_NomDet__DepositDeleteNominee_intf" scope="request">
+<property name="beanId" value="APZCBO_NomDet__DepositDeleteNominee_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_NomDet__DepositFetchNominee_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_NomDet__DepositFetchNominee_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_NomDet__DepositFetchNominee_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_NomDet__DepositFetchNominee_intf" scope="request">
+<property name="beanId" value="APZCBO_NomDet__DepositFetchNominee_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_NomDet__FetchNominee_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_NomDet__FetchNominee_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_NomDet__FetchNominee_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_NomDet__FetchNominee_intf" scope="request">
+<property name="beanId" value="APZCBO_NomDet__FetchNominee_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_NomDet__ModifyNominee_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_NomDet__ModifyNominee_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_NomDet__ModifyNominee_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_NomDet__ModifyNominee_intf" scope="request">
+<property name="beanId" value="APZCBO_NomDet__ModifyNominee_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__LoanCreation_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_ABZCBO__LoanCreation_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__LoanCreation_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__LoanCreation_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__LoanCreation_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__RppService_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__RppService_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__RppService_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__RppService_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__RppService_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__SanctionMaster_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__SanctionMaster_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__SanctionMaster_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__SanctionMaster_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__SanctionMaster_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__TransactionStatus_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__TransactionStatus_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__TransactionStatus_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__TransactionStatus_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__TransactionStatus_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DbKitDocGenerationAndDownload_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DbKitDocGenerationAndDownload_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DbKitDocGenerationAndDownload_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DbKitDocGenerationAndDownload_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DbKitDocGenerationAndDownload_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+
+
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__AdharRedactOcr_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__AdharRedactOcr_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__AdharRedactOcr_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__AdharRedactOcr_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__AdharRedactOcr_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__Kycpassport_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__Kycpassport_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__Kycpassport_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__Kycpassport_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__Kycpassport_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__KycDrivingLicense_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__KycDrivingLicense_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__KycDrivingLicense_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__KycDrivingLicense_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__KycDrivingLicense_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__DrivingLicenseOcr_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__DrivingLicenseOcr_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__DrivingLicenseOcr_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__DrivingLicenseOcr_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__DrivingLicenseOcr_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__PanCheckOcr_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__PanCheckOcr_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__PanCheckOcr_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__PanCheckOcr_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__PanCheckOcr_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__SignzyPennyCheck_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__SignzyPennyCheck_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__SignzyPennyCheck_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__SignzyPennyCheck_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__SignzyPennyCheck_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__VoterFrontOcr_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__VoterFrontOcr_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__VoterFrontOcr_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__VoterFrontOcr_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__VoterFrontOcr_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__VoterBackOcr_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__VoterBackOcr_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__VoterBackOcr_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__VoterBackOcr_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__VoterBackOcr_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="N"/>
+</bean>
+<bean class="com.iexceed.appzillon.services.HttpService" id="APZCBO_APZCBO__BIPImgProcess_service" scope="request"/>
+<bean class="com.iexceed.appzillonbanking.custom.service.impl.AppzillonBankingServices" id="APZCBO_APZCBO__BIPImgProcess_impl" scope="request"/>
+<bean class="com.iexceed.appzillon.impl.AddlServiceProcessorBeanImpl" id="APZCBO_APZCBO__BIPImgProcess_service_proc" scope="request"/>
+<bean class="com.iexceed.appzillon.intf.ExternalInterfaceDtls" id="APZCBO_APZCBO__BIPImgProcess_intf" scope="request">
+<property name="beanId" value="APZCBO_APZCBO__BIPImgProcess_impl"/>
+<property name="category" value="External"/>
+<property name="sessionReq" value="Y"/>
+</bean>
+
+
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_NomDet__DeleteNominee" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_NomDet__DepositDeleteNominee" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_NomDet__DepositFetchNominee" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_NomDet__FetchNominee" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_NomDet__ModifyNominee" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__LoanCreation" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__RppService" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__SanctionMaster" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__TransactionStatus" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DbKitDocGenerationAndDownload" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+
+
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__AdharRedactOcr" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__Kycpassport" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__KycDrivingLicense" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__DrivingLicenseOcr" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__PanCheckOcr" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__SignzyPennyCheck" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__VoterFrontOcr" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__VoterBackOcr" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+<bean class="com.iexceed.appzillon.dao.HttpDetails" id="APZCBO_APZCBO__BIPImgProcess" scope="request">
+<property name="callType" value="POST"/>
+<property name="responseType" value="JSON"/>
+<property name="requestType" value="JSON"/>
+<property name="payLoadType" value="application/json"/>
+<property name="headerNode" value=""/>
+<property name="headerAttributes" value=""/>
+<property name="SSLRequired" value="N"/>
+<property name="timeOut" value="0"/>
+</bean>
+
+</beans>

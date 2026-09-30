@@ -1,0 +1,16 @@
+{
+  "keysForContent": {
+    "applicationName": "<font face='Tunga'>ಅನುಸೂಚಿ-ಬಿ</font>",
+    "applicationId": "<font face='Tunga'>ಖಾತರಿಗೆ ಸಂಬಂಧಿಸಿದ ಹೆಚ್ಚುವರಿ ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳು</font>",
+    "TnC1": "<font face='Tunga'>ಸಾಲಗಾರ(ರು) ಇದರಿಂದ ಖಾತರಿ ಒಪ್ಪಂದದಲ್ಲಿ ನಮೂದಿಸಲಾದ ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳ ಪ್ರಕಾರ ಕಂಪನಿಯು ಖಾತರಿಯನ್ನು ಪಡೆಯುವುದನ್ನು ಅಂಗೀಕರಿಸಿ ಒಪ್ಪಿಕೊಳ್ಳುತ್ತಾರೆ; ಆ ನಿಯಮಗಳಲ್ಲಿ ಅಂತಹ ಖಾತರಿ ಒಪ್ಪಂದದ ಅಡಿಯಲ್ಲಿ ಗರಿಷ್ಠ ಖಾತರಿ ಮಿತಿಯೂ ಒಳಗೊಂಡಿರುತ್ತದೆ.</font>",
+    "TnC2": "<font face='Tunga'>ಇದಲ್ಲದೆ, ಈ ಸಾಲ ಒಪ್ಪಂದದ ಅಡಿಯಲ್ಲಿ ಡೀಫಾಲ್ಟ್ ಘಟನೆ ಸಂಭವಿಸಿದ ಕಾರಣ ಕಂಪನಿಯು ಖಾತರಿ ಒಪ್ಪಂದದ ಅಡಿಯಲ್ಲಿ ಹಕ್ಕು ಮಂಡಿಸಿದರೆ ಮತ್ತು ಆ ಹಕ್ಕಿನ <font face='Arial Unicode MS'>ಮೊ</font>ತ್ತವನ್ನು ಖಾತರಿದಾರನು ಖಾತರಿ ಒಪ್ಪಂದದ ಪ್ರಕಾರ ಕಂಪನಿಗೆ ಪಾವತಿಸಿದರೆ, ಸಾಲಗಾರ(ರು) ಅಂತಹ ಎಲ್ಲಾ <font face='Arial Unicode MS'>ಮೊ</font>ತ್ತಗಳನ್ನು ಖಾತರಿದಾರನಿಗೆ ನೇರವಾಗಿ ಮರುಪಾವತಿಸಲು/ಹಿಂತಿರುಗಿಸಲು (<font face='Arial Unicode MS'>“</font>ಮರುಪಾವತಿ <font face='Arial Unicode MS'><font face='Arial Unicode MS'>ಮೊ</font></font>ತ್ತ<font face='Arial Unicode MS'>”</font>) ಒಪ್ಪಿಕೊಳ್ಳುತ್ತಾರೆ.</font>",
+    "TnC3": "<font face='Tunga'>ಸಾಲಗಾರ(ರು) ಇದರಿಂದ ಕಂಪನಿಯನ್ನು ತಮ್ಮ ಸತ್ಯಸಂಧ ಮತ್ತು ಕಾನೂನುಬದ್ಧ ಪ್ರತಿನಿಧಿಯಾಗಿ ನೇಮಿಸಿ, ಖಾತರಿ ಒಪ್ಪಂದದ ಅಡಿಯಲ್ಲಿ ಖಾತರಿದಾರನಿಗೆ ಮರುಪಾವತಿ <font face='Arial Unicode MS'>ಮೊ</font>ತ್ತವನ್ನು ಮರುಪಾವತಿಸಲು/ಹಿಂತಿರುಗಿಸಲು ಅಗತ್ಯವಿರುವ ಎಲ್ಲಾ ಕೃತ್ಯಗಳು, ದಾಖಲೆಗಳು ಮತ್ತು ಕಾರ್ಯಗಳನ್ನು ಸಾಲಗಾರ(ರ) ಹೆಸರು ಮತ್ತು ಪರವಾಗಿ ನೆರವೇರಿಸಲು ಅಧಿಕಾರ ನೀಡುತ್ತಾರೆ.</font>",
+    "applicantNameSign": "<font face='Tunga'>ಅರ್ಜಿದಾರರ ಹೆಸರು ಮತ್ತು ಸಹಿ</font>",
+    "coapplicantNameSign": "<font face='Tunga'>ಸಹ-ಅರ್ಜಿದಾರರ ಹೆಸರು ಮತ್ತು ಸಹಿ</font>",
+    "authorizedSign": "<font face='Tunga'>ಅಧಿಕೃತ ಸಹಿದಾರ</font>",
+    "applicantName": "<font face='Tunga'>ಅರ್ಜಿದಾರರ ಹೆಸರು</font>",
+    "applicantSign": "<br><font face='Tunga'>ಅರ್ಜಿದಾರರ ಸಹಿ</font>",
+    "coApplicantName": "<br><font face='Tunga'>ಸಹ-ಅರ್ಜಿದಾರರ ಹೆಸರು</font>",
+    "coApplicantSign": "<br><font face='Tunga'>ಸಹ-ಅರ್ಜಿದಾರರ ಸಹಿ</font>"
+  }
+}

@@ -1,0 +1,32 @@
+[
+    {
+        "id": "1",
+        "question": "<h3>1. Is the income for the household (applicant and co-applicant) from the following sources only and captured in the loan application form?</h3><ul style=\"list-style: disc; padding-left: 1.25rem; margin: 0;\"><li style=\"display: list-item;\">Business / Self-employed / Agri</li><li style=\"display: list-item;\">Salary</li><li style=\"display: list-item;\">Daily wage earner</li><li style=\"display: list-item;\">Rental Income</li><li style=\"display: list-item;\">Pension Income</li></ul>"
+    },
+    {
+        "id": "2",
+        "question": "<h3>2. Is the income captured in the loan application (for the household) only from the sources mentioned above and verified?</h3>"
+    },
+    {
+        "id": "3",
+        "question": "<h3>3. In case of Business or self-employed income, is the business owned/controlled by the applicant or co-applicant only?</h3>",
+        "Yes":"Low Risk",
+        "No":"Medium Risk"
+    },
+    {
+        "id": "4",
+        "question": "<h3>4. The applicant or co-applicant are not engaged in any high-risk business, i.e.:</h3><ul style=\"list-style: disc; padding-left: 1.25rem; margin: 0;\"><li style=\"display: list-item;\">Arms / Weapons manufacturing</li><li style=\"display: list-item;\">Dealers in weapons / arms</li><li style=\"display: list-item;\">Dealers in Explosives</li><li style=\"display: list-item;\">Dealers in nuclear proliferation goods</li><li style=\"display: list-item;\">Dealers in high value goods such as gold jewellery (value above ₹1,00,00,000)</li><li style=\"display: list-item;\">Dealers in antiques</li><li style=\"display: list-item;\">Auction houses</li><li style=\"display: list-item;\">Real estate agents / brokers</li><li style=\"display: list-item;\">Crypto-asset dealers &amp; brokers</li></ul>"
+    },
+    {
+        "id": "5",
+        "question": "<h3>5. Are the applicant and co-applicant residing within India?</h3>"
+    },
+    {
+        "id": "6",
+        "question": "<h3>6. The applicant or co-applicant does not hold any significant public position appointed by a foreign country or associated with any political figures.</h3>"
+    },
+    {
+        "id": "7",
+        "question": "<h3>7. The applicant and co-applicant(s) name has not been found in the AML Sanctions list as published by RBI?</h3>"
+    }
+]

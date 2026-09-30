@@ -1,0 +1,35 @@
+var SelectYourRoleScrId = "Login__SelectYourRole__";
+var roles = ["Maker", "Checker"];
+var selectedRole = "";
+apz.app.onLoad_SelectYourRole = function() {};
+apz.app.onShown_SelectYourRole = function() {
+    apz.app.SelectYourRole.loadOfMakerCheckerBtn();
+};
+apz.app.SelectYourRole.loadOfMakerCheckerBtn = function() {
+    if (roles.length > 0) {
+        let selectElementID = "Login__SelectYourRole__selectYourRoleCount_0";
+        let parentDiv = $("#Login__SelectYourRole__selectYourRole_count");
+        roles.forEach((role, index) => {
+            let currentIndex = parseInt(index) + 1;
+             ApzCOB.cloneDashboardDivs(selectElementID, parentDiv, currentIndex);
+            $(`#Login__SelectYourRole__selectYourRoleCount_${currentIndex} .roleBtn button span`).text(role);
+            $(`#Login__SelectYourRole__selectYourRoleCount_${currentIndex} `).attr('onClick',
+                `apz.app.SelectYourRole.onClickOfMakerCheckerBtn('${role}')`);
+            $(`#Login__SelectYourRole__selectYourRoleCount_${currentIndex}`).removeClass("sno");
+            $(`#Login__SelectYourRole__selectYourRoleCount_${currentIndex} .roleBtn`).removeClass("sno");
+        });
+    }
+    //   $(`#Login__SelectYourRole__loadRoles_ul`).addClass("sno");
+};
+apz.app.SelectYourRole.onClickOfMakerCheckerBtn = function(pthis) {
+    $('body').addClass('unati');
+    let role = pthis;
+    selectedRole = apz.app.SelectYourRole.transformRole(role);
+        ApzCOB.FetchLov()
+    apz.app.BaseScreens.fetchRole();
+};
+
+apz.app.SelectYourRole.transformRole = function(role) {
+    if (!role) return null; // Handle null or undefined roles
+    return `RPC_${role.toUpperCase()}`;
+}

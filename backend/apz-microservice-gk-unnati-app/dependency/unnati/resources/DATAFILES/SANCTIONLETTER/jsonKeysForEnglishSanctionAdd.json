@@ -1,0 +1,163 @@
+{
+  "keysForContent": {
+    "applicationNameSUPPLEMENTARYLOAN": "SANCTION LETTER FOR GRAMEEN UNNATI SUPPLEMENTARY LOAN",
+    "applicationNameFAMILYWELFARELOAN": "SANCTION LETTER FOR GRAMEEN UNNATI - FAMILY WELFARE LOAN",
+    "applicationNameEMERGENCYLOAN": "SANCTION LETTER FOR GRAMEEN UNNATI - EMERGENCY LOAN",
+
+    "customerId": "Customer ID:",
+    "date": "Date:",
+
+    "borrowerType": "Borrower Type",
+    "applicantName": "Applicant Name",
+    "residingAt": "Residing at",
+
+    "applicant": "Applicant",
+    "coApplicant": "Co-Applicant",
+
+    "letter": "Dear Sir/ Madam,",
+
+    "subjectSanction": "Sub: Letter of Sanction",
+    "subjectLoanSanction": "Sub: Letter of Loan Sanction",
+
+    "letter1": "Please refer to your financial assistance application for a business loan facility from CreditAccess Grameen Limited (CA Grameen). We are happy to inform you that we have sanctioned a sum of Rs. <sanctionedAmount>/- against the said application, the following are the broad terms & conditions governing the financial assistance:",
+
+    "grameenUnnatiSupplementaryLoan": "Grameen Unnati Supplementary Loan",
+    "grameenUnnatiEmergencyLoan": "Grameen Unnati - Emergency Loan",
+    "grameenUnnatiFamilyWelfareLoan": "Grameen Unnati - Family Welfare Loan",
+
+
+    "natureOfFacility": "1) Nature of Facility",
+    "purpose": "2) Purpose",
+    "interestRate": "3) Rate of Interest",
+    "interestRateValuePair": "% p.a., payable at monthly rests. The rate of interest is subject to change from time to time.",
+
+    "loanAmount": "4) Amount of Loan",
+    "loanAmountValue": "Rs. <sanctionedAmount>/- (<sanctionedAmountInWords> Only)",
+
+    "instalment": "5) Instalment",
+    "rs": "Rs. ",
+
+    "numberOfInstallments": "6) No. of Installments",
+
+    "repaymentFrequency": "7) Repayment Frequency",
+
+    "tenureInMonths": "8) Tenure (Months)",
+
+    "repayment": "9) Repayment",
+    "repaymentValuePair": "From the date of disbursement, you will be required to pay installment as per the repayment schedule on the meeting day.",
+
+    "incidentalFinancialChargesPayable": "10) Incidental & Financial Charges Payable",
+    "processingFee": "Processing Fee at 1.27% of the loan amount + applicable GST, which is non-refundable.",
+
+    "applicantInsuranceOpted": "Applicant Insurance Opted (Y/N)",
+    "applicantInsurancePremium": "Applicant Insurance Premium",
+    "coApplicantInsuranceOpted": "Co-Applicant Insurance Opted (Y/N)",
+    "coApplicantInsurancePremium": "Co-Applicant Insurance Premium",
+
+    "sumAssured": "Sum Assured",
+    "insuranceTenure": "Insurance Tenure",
+
+    "otherCharges": "11) Other Charges (Contingent)",
+    "otherChargesValuePair": "Repayment Delay Charges: Rs. NIL/- per instalment (including GST)",
+    "disbursement": "12) Disbursement",
+    "disbursementValuePair": "The disbursement (through NEFT/other mode of electronic Fund Transfer), will be released upon the submission of the following additional documents:",
+
+    "disbursementDocumentA": "a) Duly signed Sanction Letter accepting the terms & conditions and the Repayment Schedule.",
+    "disbursementDocumentB": "b) Execution of Demand Promissory Note duly signed by all the parties to the Loan Agreement.",
+    "disbursementDocumentC": "c) Execution of Loan Agreement (on a non-Judicial stamp paper as applicable as per State Stamp Act).",
+    "disbursementDocumentD": "d) MSME Declaration Letter",
+    "disbursementDocumentE": "e) Insurance Consent Letter",
+    "disbursementDocumentF": "f) Consent Letter",
+    "disbursementDocumentG": "g) Accepted Copy of Key Fact Sheet",
+
+    "addendum": "Addendum",
+
+    "sanctionValidity": "13) Sanction Validity",
+    "sanctionValidityValuePair": "30 days from the date of loan sanction",
+
+    "termsAndConditions": "Terms and Conditions",
+
+    "termsAndConditions1": "1. The Applicant/Co-Applicant acknowledge/s the receipt of Key Fact Sheet containing all the material information and terms and conditions governing the loan and the same shall be read in conjunction with the loan transaction documents.",
+
+    "termsAndConditions2": "2. The age of the Applicant/Co-Applicant should be between 22-60 years at the time of applying for the loan.",
+
+    "termsAndConditions3": "3. The Applicant/Co-Applicant should not have overdue with any MFIs/Banks/SHG/JLG/Financial institutions including CA Grameen.",
+
+    "termsAndConditions4": "4. The Applicant/Co-Applicant should possess valid KYC documents.",
+
+    "termsAndConditions5": "5. The Applicant/Co-Applicant acknowledges that all details given are true and correct and no information has been suppressed/withheld.",
+    "termsAndConditions6": "6. The loan amount has to be repaid in installments along with interest as per the repayment tenure and frequency.",
+
+    "termsAndConditions7": "7. The Applicant/Co-Applicant has to utilize the loan for the agreed purpose only, repay loan installments promptly without fail and should not avail loan beyond her/his repayment capacity.",
+
+    "termsAndConditions8": "8. CA Grameen will have discretion to reset the rate of interest from time to time under advice to the Applicant/Co-Applicant. The Applicant/Co-Applicant undertake to pay such revised rate of interest prospectively.",
+
+    "termsAndConditions9": "9. CA Grameen may initiate suitable legal action against the Applicant/Co-Applicant for recovery of dues, in the event of misutilization of the loan or violation of any loan conditions and CA Grameen has the right to recall the loan.",
+
+    "termsAndConditions10": "10. CA Grameen shall respect the privacy of data of the Applicant/Co-Applicant. Notwithstanding the same, CA Grameen shall be entitled to disclose any information and data relating to the Applicant/Co-Applicant (including personal sensitive data or information and any information that requires consent under the Information Technology Act, 2000/2008 and/or any other applicable law). The Applicant/Co-Applicant agree and accept that CA Grameen shall have every right to share such information with any Financial Institution/Bank/Credit Information Company/RBI/SRO/Service Providers.",
+
+    "termsAndConditions11": "11. The Applicant/Co-Applicant shall provide all payment mandates including but not limited to ECS, NACH and UPI AutoPay as and when demanded by CA Grameen. All costs and expenses incurred by CA Grameen including applicable stamp duty shall be borne solely by the Applicant/Co-Applicant. The Applicant/Co-Applicant shall ensure that all payment mandates are honoured and not altered without prior permission of CA Grameen.",
+
+    "termsAndConditions12": "12. Applicant and Co-Applicant, all the loans will be subject to credit bureau check and hence the data will be shared with the credit bureau agencies.",
+
+    "termsAndConditions13": "13. The customer has to attend all the center meetings, utilize the loan for the agreed purpose only and repay loan instalments promptly.",
+
+    "termsAndConditions14": "14. There are no charges levied for pre-closure of loan.",
+
+    "termsAndConditions15": "15. Moratorium of one instalment (principal only) will be given.",
+
+    "termsAndConditions16": "16. Grant of loan is not linked to any other product/service offered by CA Grameen/third parties.",
+
+    "termsAndConditions17": "17. CA Grameen will not collect security deposit or marginal money against the loan.",
+
+    "termsAndConditions18": "18. In case of default, delayed payment charges/penal charges at the contracted rate will be charged on the overdue amount.",
+
+    "termsAndConditions19": "19. In case the loan is not disbursed within 15 days from the date of application, CA Grameen may recheck the Credit Bureau status of the Applicant/Co-Applicant.",
+
+    "termsAndConditions20": "20. Interest will be calculated on the reducing balance with weekly/biweekly/four weekly rests as per the repayment tenure opted by the Applicant/Co-Applicant.",
+    "termsAndConditions21": "21. Due date for the repayment of loan instalment frequency and breakup of the principal and interest shall be provided in the loan passbook. Refer to the loan passbook for the loan repayment schedule.",
+
+    "termsAndConditions22": "22. If the loan account remains in default, such account will be reported to the credit bureau.",
+
+    "termsAndConditions23": "23. In the event of any change of address for communication, any change in contact number or job profession by the Applicant/Co-Applicant, the same should be intimated to CA Grameen immediately without fail for all future correspondences.",
+
+    "termsAndConditions24": "24. The disbursement of the loan is subject to the execution and submission of necessary documents, which forms part of the overall sanction communication from CA Grameen.",
+
+    "termsAndConditions25": "25. CA Grameen is accountable for preventing any inappropriate staff behavior and timely grievance redressal.",
+
+    "termsAndConditions26": "26. The sanctioning of loan facility is at the sole discretion of CA Grameen.",
+
+    "termsAndConditions27": "27. This sanction letter shall remain in force till the validity period mentioned in this sanction letter from the date of sanction. However, the revalidation is subject to and at the sole discretion of CA Grameen, on application of the Applicant/Co-Applicant.",
+
+    "termsAndConditions28": "28. The Borrower(s) shall be liable to repay the loan amount along with the applicable interest in accordance with the Key Fact Statement (KFS) issued.",
+
+    "termsAndConditions29": "29. Key Fact Statement on pricing of the loan has been provided along with this Sanction Letter.",
+
+    "termsAndConditions30": "30. The rate of interest may vary depending upon the credit profile, nature of income of each borrower, vintage of the borrower with CA Grameen and the credit risk assessment of the geography.",
+
+    "termsAndConditions31": "31. Applicant /Co-Applicant has received the Repayment Sheet and Key Fact Statement on the pricing of the loan from CA Grameen. He/ She confirms that the details of the Key Fact Statement have been explained to him/her, and he/she understands them.",
+
+
+    "acceptedTerms": "The Applicant/Co-Applicant may please sign on this Sanction Letter and accept the above-mentioned terms and conditions.",
+
+    "mutualRelationship": "We look forward to a mutually beneficial and long-term relationship.",
+
+    "thankingYou": "Thanking You,",
+
+    "forCreditAccessGrameenLimited": "For CreditAccess Grameen Limited",
+
+    "authorization": "Authorization",
+
+    "name": "Name",
+
+    "designation": "Designation",
+
+    "employeeId": "Employee ID",
+
+    "signature": "Signature",
+
+    "acceptedBy": "Accepted by the Applicant/Co-Applicant",
+    "borrowerName": "Name",
+    "borrowerSignature": "Signature"
+  }
+}

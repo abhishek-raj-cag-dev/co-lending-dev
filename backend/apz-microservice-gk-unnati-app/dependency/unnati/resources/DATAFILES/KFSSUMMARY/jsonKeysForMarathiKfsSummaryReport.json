@@ -1,0 +1,28 @@
+{
+  "keysForContent": {
+    "title": "CreditAccess Grameen Limited",
+    "applicationName": "KFS / के एफ एस सारांश",
+    "LoanProductName": "कर्ज उत्पादन नाव",
+    "subHeading": "(व्याज दर आणि शुल्क/आकार)",
+    "Rs": "रु.",
+    "LoanAmountSanctioned": "कर्जाची मंजूर रक्कम",
+    "RepaymentFrequency": "परतफेड वारंवारता",
+    "NumberofInstalments": "हप्त्यांची संख्या",
+    "InstalmentAmount": "हप्त्यांची रक्कम",
+    "Interest": "व्याज दर (%)",
+    "loantenor": "कर्जाच्या कालावधीत आकारण्यात येणारी एकूण व्याज रक्कम",
+    "ProcessingFees": "प्रक्रिया शुल्क जीएसटीसह",
+    "ProcessingFeesValue": "रु. ______________",
+    "InsuranceCoverage": "विमा प्रीमियम जमा",
+    "StampdutyCharges": "स्टाम्प शुल्क",
+    "LatePaymentChargesGST": "लेट पेमेंट चार्जेस + जीएसटी",
+    "LatePaymentChargesGSTValue": "रु___________",
+    "Perinstalment": "प्रति हप्ता",
+    "AnnualPercentageRate": "वार्षिक टक्केवारी दर (एपीआर %)",
+    "Details1": "मी/आम्ही CreditAccess Grameen Limited कडून जारी करण्यात आलेले Sanction Letter, Loan Repayment Schedule आणि कर्जाच्या दर आणि इतर महत्त्वाच्या अटींचा Key Fact Statement प्राप्त केला/आम्हाला प्राप्त झाले आहे. मी/आम्ही पुष्टी करतो/करतो की Key Fact Statement मध्ये दिलेली सर्व माहिती मला/आम्हाला योग्यरित्या समजावून सांगण्यात आली आहे आणि मी/आम्ही ती समजले आहे/आहोत. मी/आम्ही स्पष्टपणे स्वीकारतो/स्वीकारतो की Sanction Letter, Loan Repayment Schedule आणि Key Fact Statement मध्ये नमूद असलेल्या अटी व शर्तींनी मी/आम्ही बांधील राहील/आहोत.",
+	"Details2": "मी/आम्ही CreditAccess Grameen Limited कडून जारी करण्यात आलेले Sanction Letter, Loan Repayment Schedule आणि कर्जाच्या दर आणि इतर महत्त्वाच्या अटींचा Key Fact Statement प्राप्त केला/आम्हाला प्राप्त झाले आहे. मी/आम्ही पुष्टी करतो/करतो की Key Fact Statement मध्ये दिलेली सर्व माहिती मला/आम्हाला योग्यरित्या समजावून सांगण्यात आली आहे आणि मी/आम्ही ती समजले आहे/आहोत. मी/आम्ही स्पष्टपणे स्वीकारतो/स्वीकारतो की Sanction Letter, Loan Repayment Schedule आणि Key Fact Statement मध्ये नमूद असलेल्या अटी व शर्तींनी मी/आम्ही बांधील राहील/आहोत.",
+    "BorrowerNameSign": "कर्जदाराचे नाव & स्वाक्षरी",
+    "AuthorizedSignatory": "अधिकृत स्वाक्षरी",
+    "CoBorrowerNameSign": "सह-कर्जदाराचे नाव & स्वाक्षरी"
+  }
+}

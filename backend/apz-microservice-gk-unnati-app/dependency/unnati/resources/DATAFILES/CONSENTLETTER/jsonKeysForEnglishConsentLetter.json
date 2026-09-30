@@ -1,0 +1,33 @@
+{
+  "keysForContent": {
+    "applicationName": "CONSENT LETTER",
+    "date": "Date:",
+    "from": "From,",
+    "to": "To,",
+	
+    "subject": "CreditAccess Grameen Limited (CA Grameen)",
+	
+    "line1": "1. I/We hereby authorize CA Grameen to Debit from my/our Grameen Unnati Loan ID <loanId> sanctioned for Rs. <sanctionedAmount> (Rupees <sanctionedAmountInWords>) towards closure of my/our  Group Loan(s)/Retail Finance Loan(s)/other loan (s), outstanding total of Rs. <totalLoanOutstandingAmount> (Rupees <totalLoanOutstandingAmountInWords> in words).",
+    "line1Restr": "",
+	"line1UnnatiLite": "",
+	"line2": "2. I/We, am/are  the Applicant/s in the above referred loan for an amount of Rs. <sanctionedAmount> (Rupees <sanctionedAmountInWords>), which is sanctioned to me/us from CA Grameen.",
+    "line3": "3. With regard to the above loan,  I/We have executed all necessary loan documents. I/We  hereby authorize CA Grameen to credit the disbursement proceeds after deducting  all dues for Group Loan(s)/Retail Finance Loan(s)/Other loan(s) outstanding, and the applicable  charges mentioned in the sanction letter,  to the  bank account  of  <applicantName> , Bank Account No. <bankAccountNumber> with <bankBranchName>  branch of <bankName>., ",
+    "line4": "4. I/We understand that either the Applicant or Co-Applicant shall deliver to the company, NACH/E-NACH mandates for loan repayment or payment of the installments as mentioned in the Schedule A of the loan agreement. Submission of such instructions as aforesaid  shall be deemed to be an unconditional and irrevocable authority given by  us  to the Company to present such instruments for the loan repayment.  I/We  warrant that the instrument  will be honoured on the first presentation.",
+    "line5": "5. I/We consent to collect the NACH mandate for the Co-Applicant in the event of failure or non-availability of NACH mandate for the Applicant.",
+	"line6": "6. Registered NACH Details",
+	
+    "serialNo": "S.No.",
+    "applicantType": "Type of Applicant",
+    "eNachRef": "eNACH Reference",
+	"bankAccountName":"Bank Account Name",
+    "branchName": "Branch Name",
+	"ifscCode":"IFSC Code",
+	"accountNo": "Account No.",
+	
+   
+    "signature": "Signature",
+    "borrowerName": "Name of Applicant:",
+	"coborrowerName": "Name of Co-Applicant:"
+    
+}
+}

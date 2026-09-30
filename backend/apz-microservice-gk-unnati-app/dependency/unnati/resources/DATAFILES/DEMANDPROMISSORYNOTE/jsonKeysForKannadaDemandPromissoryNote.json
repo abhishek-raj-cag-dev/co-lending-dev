@@ -1,0 +1,15 @@
+{
+  "keysForContent": {
+    "applicationName": "<font face='KannadaFontTunga'>ಡಿಮಾಂಡ್ ಪ್ರಾಮಿಸರಿ ನೋಟ್</font>",
+    "rs": "<font face='KannadaFontTunga'>ರೂ.</font>",
+    "date": "<font face='KannadaFontTunga'>ದಿನಾಂಕ:</font>",
+    "place": "<font face='KannadaFontTunga'>ಸ್ಥಳ:</font>",
+   "note":"<font face='KannadaFontTunga'>ಬೇಡಿಕೆಯಮೇರೆಗೆ, ನಾನು <font face='ArialUnicode'><applicantName></font> ವಯಸ್ಸು <font face='ArialUnicode'><applicantAge></font> ವರ್ಷ, <font face='ArialUnicode'><applicantAddress></font> ನಲ್ಲಿ ವಾಸವಾಗಿದ್ದು, ಮತ್ತು <font face='ArialUnicode'><coApplicantName></font> ವಯಸ್ಸು <font face='ArialUnicode'><coApplicantAge></font> ವರ್ಷ, <font face='ArialUnicode'><coApplicantAddress></font> ಜಂಟಿಯಾಗಿ ಮತ್ತು ಪ್ರತ್ಯೇಕವಾಗಿ ಕ್ರೆಡಿಟ್ಆಕ್ಸೆಸ್ ಗ್ರಾಮೀಣ ಲಿಮಿಟೆಡ್ ಸಂಸ್ಥೆ ಯಲ್ಲಿ ಮಂಜೂರಾಗಿರುವ ಹಾಗೂ ಸ್ವೀಕರಿಸಲಾದ ಒಟ್ಟು <font face='Arial Unicode MS'>ಮೊ</font>ತ್ತ ರೂ.<font face='ArialUnicode'><sanctionedAmount></font> (ರೂಪಾಯಿಗಳು <font face='ArialUnicode'><sanctionedAmountInWords></font> ಮಾತ್ರ) ಗಳನ್ನು ವಾರ್ಷಿಕ @ಶೇ. <font face='ArialUnicode'><rateOfInterest></font> ಬಡ್ಡಿ ಸಹಿತವಾಗಿ ಪಾವತಿಸುವುದಾಗಿ ವಾಗ್ದಾನ ಮಾಡುತ್ತಿದ್ದೇನೆ.",  
+   "noteNew":"<font face='KannadaFontTunga'>ಬೇಡಿಕೆಯ ಮೇರೆಗೆ, ನಾನು <font face='ArialUnicode'><applicantName></font> ವಯಸ್ಸು <font face='ArialUnicode'><applicantAge></font> ವರ್ಷ, <font face='ArialUnicode'><applicantAddress></font> ನಲ್ಲಿ ವಾಸವಾಗಿದ್ದು,  ಸ್ವೀಕರಿಸಲಾದ ಪರಿಗಣನೆಯ ಮೇರೆಗೆ ಮಂಜೂರಾದ <font face='Arial Unicode MS'>ಮೊ</font>ತ್ತಕ್ಕೆ ವಾರ್ಷಿಕ@<font face='ArialUnicode'><rateOfInterest></font> ಶೇಕಡಾ ಬಡ್ಡಿದರದೊಂದಿಗೆ  ರೂ.<font face='ArialUnicode'><sanctionedAmount></font> (ರೂಪಾಯಿಗಳು <font face='ArialUnicode'><sanctionedAmountInWords></font> ಮಾತ್ರ) <font face='Arial Unicode MS'>ಮೊ</font>ತ್ತವನ್ನು ಕ್ರೆಡಿಟ್‌ಆಕ್ಸೆಸ್ ಗ್ರಾಮೀಣ್ ಲಿಮಿಟೆಡ್‌ಗೆ ಪಾವತಿಸುವ ಅಥವಾ ಆರ್ಡರ್ ಮಾಡುವ ಭರವಸೆ ನೀಡುತ್ತೇನೆ.</font>",
+
+   "loanAccount": "<font face='KannadaFontTunga'><b>ಸಾಲ ಖಾತೆ ಸಂಖ್ಯೆ:</b></font>",
+    "coApplicantName": "<font face='KannadaFontTunga'><b>2. ಸಹ-ಅರ್ಜಿದಾರರ ಹೆಸರು:</b></font>",
+    "signature": "<font face='KannadaFontTunga'><b>ಸಹಿ<b/></font>",
+    "applicantName": "<font face='KannadaFontTunga'><b>1. ಅರ್ಜಿದಾರರ ಹೆಸರು:</b></font>"
+  }
+}

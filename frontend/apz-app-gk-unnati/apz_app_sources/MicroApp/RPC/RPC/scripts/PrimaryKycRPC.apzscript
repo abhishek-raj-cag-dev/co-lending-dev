@@ -1,0 +1,422 @@
+RPC_CURRENT_STAGE = 'PrimaryKycRPC';
+RPC_CURRENT_STAGE_NO = RPC_STAGES[RPC_CURRENT_STAGE]?.id;
+var primaryKycScrId = `RPC__${RPC_CURRENT_STAGE}__`;
+var maritalapp = false;
+var marriedapp= false;
+var widowapp = false;
+var separatedapp = false;
+window.isRPCLogin = true, window.moblengthErr = false, window.validmobNum = false;
+isCompare = false;
+apz.app.onLoad_PrimaryKycRPC = function() {
+    $(`#${primaryKycScrId}PrimaryKYCStageTag`).text(RPC_STAGES[RPC_CURRENT_STAGE]?.name);
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+    let editedFields = ApzCOB.getStageEditedFields();
+    ApzCOB.updateEditedTags(editedFields);
+    $(`#${primaryKycScrId}primaryVoterVerified p , #${primaryKycScrId}alternateVoterVerified p,#${primaryKycScrId}panNumberVerified p`).addClass('suc');
+    $(`#${primaryKycScrId}InvalidPrimaryVoter p , #${primaryKycScrId}InvalidAltVoter p, #${primaryKycScrId}InvalidpanNumber p`).addClass('failed');
+    $("#APZCBO__BaseScreens__sc_col_283").addClass("sno");
+    $("#APZCBO__BaseScreens__sc_row_200").addClass("dashbrd-header");
+    $('input.hasDatepicker').datepicker("option", {maxDate: Date.parse(DATE_TODAY), yearRange: "-100:+0"});
+};
+apz.app.onShown_PrimaryKycRPC = function() {
+    apz.populateDropdown(document.getElementById(`${primaryKycScrId}maritalStatusInput`), ApzCOB.formatDropDownforArray(maritalStatus));
+    apz.populateDropdown(document.getElementById(`${primaryKycScrId}genderInput`), ApzCOB.formatDropDownforArray(gender));
+    apz.populateDropdown(document.getElementById(`${primaryKycScrId}dobProofInput`), ApzCOB.formatDropDownforArray(DOB_PROOF));
+//-----------------------------------------Swaroop Raj R (CR 85-Title,caste,relagion,Relationship)17thNov2025-----------------------------
+    let filteredReligion = religion;
+    if (ProductData[0].productCode === '1001' && /Other/.test(religion)) {
+        filteredReligion = religion.filter(item => item !== "Others" && item !== "Other");
+    }
+    apz.populateDropdown(document.getElementById(`${primaryKycScrId}religionInput`), ApzCOB.formatDropDownforArray(filteredReligion));
+    apz.populateDropdown(document.getElementById(`${primaryKycScrId}casteInput`), ApzCOB.formatDropDownforArray(caste));
+    if (custType !== 'Applicant') {
+    apz.populateDropdown(document.getElementById(`${primaryKycScrId}relationShipWithApplicantInput`), ApzCOB.formatDropDownforArray(ApzCOB.filterRelns(relations)));
+    }
+//---------------------------------------------------------------------------------------------------------------------------------------
+    apz.app.PrimaryKycRPC.setMinMaxLength();
+    $("input").attr("autocomplete", "off");
+};
+//-----------------------------------------Swaroop Raj R (CR 85-Title,caste,relagion,Relationship)17thNov2025-----------------------------
+apz.app.PrimaryKycRPC.resetTitle = function() {
+    var selectedGender = $('#' + primaryKycScrId + 'genderInput').val();
+    var selectedMaritalStatus = $('#' + primaryKycScrId + 'maritalStatusInput').val();
+    if (!apz.isNull(selectedGender) && selectedGender !== "Please Select" && !apz.isNull(selectedMaritalStatus) && selectedMaritalStatus !==
+        "Please Select") {
+        if (selectedGender === "Male") {
+            $('#' + primaryKycScrId + 'titleInput').val("Mr.").change();
+        } else if (selectedGender === "Female") {
+            if (selectedMaritalStatus?.toLowerCase() === "married" || selectedMaritalStatus === "Separated" || selectedMaritalStatus === "Widow") {
+                $('#' + primaryKycScrId + 'titleInput').val("Mrs.").change();
+            } else {
+                $('#' + primaryKycScrId + 'titleInput').val("Ms.").change();
+            }
+        } else if (selectedGender === "Others") {
+            $('#' + primaryKycScrId + 'titleInput').val("Mx.");
+        }
+    }
+    //swaroop changes for CR-90
+    if (custType === 'Co-App') //here making father name mandatory for Co-Applicant if gender is male 
+    {
+        var selectedGender = $('#' + primaryKycScrId + 'genderInput').val();
+        if (selectedGender === 'Male') {
+            if(editFlag){
+             ApzCOB.removeDisableToInput(`${primaryKycScrId}fathersNameInput`);
+            }
+            $(`#${primaryKycScrId}fathersName label.ett-labl`).toggleClass("req", true);
+            $(`#${primaryKycScrId}fathersNameInput`).val(ApzCOB.getPayloadDatafromWrapper("fathersName", custType, 'customerDetailsList') || '')
+                .focus();
+        }
+        var maritalStatusSelected = $('#' + primaryKycScrId + 'maritalStatusInput').val()
+        if (selectedGender === "Female" && maritalStatusSelected === "Married") {
+            ApzCOB.addFieldMandatory(`${primaryKycScrId}spouseNameInput`);
+            $(`#${primaryKycScrId}fathersNameInput`).val("");
+            ApzCOB.removeFieldMandatory(`${primaryKycScrId}fathersNameInput`);
+            apz.app.PrimaryKycRPC.toggleDisableToInput(`${primaryKycScrId}fathersNameInput`, true);
+        }
+    }
+    //swaroop changes for CR-90
+
+};
+
+apz.app.PrimaryKycRPC.appliInpVal = function(params) {
+    const customerList = params;
+    window.coapplirel = "";
+    // Find Applicant
+    const applicant = customerList.find(customer => customer.customerType === "Applicant");
+    // If Applicant is not found, return the original list
+    if (!applicant) {
+        return customerList;
+    }
+    // Get Applicant's first name
+    const applicantFirstName = applicant.payload?.firstName || "";
+    // Update Co-Applicants
+    customerList.forEach(customer => {
+        if (customer.customerType === "Co-App") {
+            const relationship = customer.payload?.relationShipWithApplicant;
+            window.coapplirel = relationship;
+            console.log(window.coapplirel);
+        }
+    });
+    // Assign modified list back to session store
+    // inSessionStore.customerDetailsList = customerList;
+    // // Return modified list
+    // return inSessionStore.customerDetailsList;
+};
+
+apz.app.PrimaryKycRPC.setDropdowvalues = function() {
+    let allowedValues = [];
+    var selectedRelationship = $('#' + primaryKycScrId + 'relationShipWithApplicantInput').val();
+    let maritalStatus = ApzCOB.getPayloadDatafromWrapper('maritalStatus', 'Applicant', 'customerDetailsList');
+    if (maritalStatus?.toLowerCase() === "married") {
+        allowedValues = ["Please Select", "Spouse", "Son", "Daughter-in-law"];
+    } else if (["Widow", "Separated"].includes(maritalStatus)) {
+        allowedValues = ["Please Select", "Father", "Mother", "Son", "Daughter-in-law"];
+    } else {
+        allowedValues = ["Please Select", "Father", "Mother"];
+    }
+    $("#RPC__PrimaryKycRPC__relationShipWithApplicantInput_div li").each(function() {
+        const value = $(this).attr("data-value");
+        if (!allowedValues.includes(value)) {
+            $(this).remove();
+        }
+    });
+}
+apz.app.PrimaryKycRPC.onChangeApplicantMaritalStatus = function() {
+    if (custType === 'Applicant') {
+        let allowedValues = [];
+        let maritalStatus = ApzCOB.getPayloadDatafromWrapper('maritalStatus', 'Applicant', 'customerDetailsList');
+        if (maritalStatus?.toLowerCase() === "married") {
+            allowedValues = ["Please Select", "Spouse", "Son", "Daughter-in-law"];
+        } else if (["Widow", "Separated"].includes(maritalStatus)) {
+            allowedValues = ["Please Select", "Father", "Mother", "Son", "Daughter-in-law"];
+        } else {
+            allowedValues = ["Please Select", "Father", "Mother"];
+        }
+        maritalapp = $("#RPC__PrimaryKycRPC__rpcStageSubmenuItem_1").hasClass("active") && $("#RPC__PrimaryKycRPC__maritalStatusInput").val()
+            ?.toLowerCase() === "single";
+        
+        marriedapp =
+            $("#RPC__PrimaryKycRPC__rpcStageSubmenuItem_1").hasClass("active") &&
+            $("#RPC__PrimaryKycRPC__maritalStatusInput").val()?.toLowerCase() === "married";
+
+        widowapp =
+            $("#RPC__PrimaryKycRPC__rpcStageSubmenuItem_1").hasClass("active") &&
+            $("#RPC__PrimaryKycRPC__maritalStatusInput").val()?.toLowerCase() === "widow";
+
+        separatedapp =
+            $("#RPC__PrimaryKycRPC__rpcStageSubmenuItem_1").hasClass("active") &&
+            $("#RPC__PrimaryKycRPC__maritalStatusInput").val()?.toLowerCase() === "separated";
+        
+        apz.populateDropdown(document.getElementById(`${primaryKycScrId}relationShipWithApplicantInput`), ApzCOB.formatDropDownforArray(ApzCOB
+            .filterRelns(relations)));
+        $("#RPC__PrimaryKycRPC__relationShipWithApplicantInput_div li").each(function() {
+            const value = $(this).attr("data-value");
+            if (!allowedValues.includes(value)) {
+                $(this).remove();
+            }
+        });
+    }
+}
+apz.app.PrimaryKycRPC.onChangeRelationWithApp = function() {
+    var selectedRelationship = $('#' + primaryKycScrId + 'relationShipWithApplicantInput').val();
+    //repopulate the co applicant status dropdown
+    apz.populateDropdown(document.getElementById(`${primaryKycScrId}maritalStatusInput`), ApzCOB.formatDropDownforArray(maritalStatus));
+    if (maritalapp) {
+        maritalapp = false;
+        $("#RPC__PrimaryKycRPC__relationShipWithApplicantInput").val("Please Select").change();
+        return;
+    }
+    if (marriedapp && (selectedRelationship === "Father" ||selectedRelationship === "Mother")) {
+        marriedapp = false;
+        $("#RPC__PrimaryKycRPC__relationShipWithApplicantInput").val("Please Select").change();
+        return;
+    }
+
+     if (widowapp && selectedRelationship === "Spouse") {
+        widowapp = false;
+        $("#RPC__PrimaryKycRPC__relationShipWithApplicantInput").val("Please Select").change();
+        return;
+    }
+
+    if (separatedapp && selectedRelationship === "Spouse") {
+        separatedapp = false;
+        $("#RPC__PrimaryKycRPC__relationShipWithApplicantInput").val("Please Select").change();
+        return;
+    }
+
+    //  RPC__PrimaryKycRPC__relationShipWithApplicantInput.value ="Please Select";
+    if (!apz.isNull(selectedRelationship) && selectedRelationship !== "Please Select") {
+        if (selectedRelationship === "Spouse" || selectedRelationship === "Son" || selectedRelationship === "Father") {
+            $('#' + primaryKycScrId + 'genderInput').val("Male").change();
+            //remove widow  for the response spouse/son/father 
+            $(`#${primaryKycScrId}maritalStatusInput_div li[data-value="Widow"]`).remove();
+        } else if (selectedRelationship === "Mother" || selectedRelationship === "Daughter-in-law") {
+            $('#' + primaryKycScrId + 'genderInput').val("Female").change();
+            //if the relationship is daughter in law the single value should be removed from the marital status
+            if (selectedRelationship == "Daughter-in-law") {
+                $(`#${primaryKycScrId}maritalStatusInput_div li[data-value="Single"]`).remove();
+            }
+        }
+    }
+};
+//-----------------------------------------------------------------------------------------------------------------------------------------
+apz.app.PrimaryKycRPC.setMinMaxLength = function() {
+    const fieldMap = {
+        customerNameInput: "Name",
+        namePerKycInput: "Name",
+        primaryKycIdInput: "VoterID",
+        alternateVoterIdInput: "VoterID",
+        dobInput: "Dob",
+        maritalStatusInput: "MaritalStatus",
+        fathersNameInput: "Name",
+        spouseNameInput: "Name",
+        mobileNumberInput: "MobileNumber",
+        firstNameInput: "firstName",
+        lastNameInput: "lastName"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: primaryKycScrId + fieldId
+    })));
+};
+apz.app.PrimaryKycRPC.VoterOnChange = function(voterType) {
+    let isApplicant = custType === "Applicant";
+    let voterInputId = voterType === "alternate" ? "alternateVoterIdInput" : "primaryKycIdInput";
+    let verifiedField = voterType === "alternate" ? "alternateVoterVerified" : "primaryVoterVerified";
+    let invalidField = voterType === "alternate" ? "InvalidAltVoter" : "InvalidPrimaryVoter";
+    let verifyButton = voterType === "alternate" ? "verifyAlternateVoter" : "verifyPrimaryVoter";
+    let notVerifyVoterId = voterType === "alternate" ? "NotVerifyAltVoter" : "NotVerifyPrimaryVoter";
+    let voterInput = $(`#${primaryKycScrId}${voterInputId}`);
+    if (apz.isNull(voterInput)) return;
+    let voterId = voterInput.val().trim().toUpperCase();
+    $(`#${primaryKycScrId}${verifiedField}, #${primaryKycScrId}${invalidField}`).addClass("sno");
+    if (!apz.isNull(voterId)) {
+        if (isApplicant) {
+            if (voterType === "alternate") {
+                ALTERNATE_KYC_VERIFICATION = "";
+                IS_ALTERNATE_DEDUPE = true;
+            } else {
+                PRIMARY_KYC_VERIFICATION = "";
+                IS_ALTERNATE_DEDUPE = false; //Swaroop Raj R_CR127(Name as per KYC in RPC)                 
+            }
+        } else {
+            if (voterType === "alternate") {
+                CO_APPLICANT_ALTERNATE_KYC_VERIFICATION = "";
+                IS_CO_APPLICANT_ALTERNATE_DEDUPE = true;
+            } else {
+                CO_APPLICANT_PRIMARY_KYC_VERIFICATION = "";
+                IS_CO_APPLICANT_ALTERNATE_DEDUPE = false; //Swaroop Raj R_CR127(Name as per KYC in RPC) 
+            }
+        }
+        $(`#${primaryKycScrId}${verifyButton}`).removeClass("sno");
+    } else {
+        $(`#${primaryKycScrId}${verifyButton}`).addClass("sno");
+    }
+};
+//-------------------Swaroop Raj R_CR127(Name as per KYC in RPC)changes 7th jan-------------------------
+apz.app.PrimaryKycRPC.nameAsPerPrimaryId = function() {
+    if (!apz.isNull($('#RPC__PrimaryKycRPC__primaryKycIdInput').val().trim().toUpperCase())) {
+        apz.app.PrimaryKycRPC.primaryIdVerification();
+    }
+};
+apz.app.PrimaryKycRPC.primaryIdVerification = function(pthis) {
+    let voterInput = $(`#${primaryKycScrId}primaryKycIdInput`);
+    let primaryVoterId = voterInput.val().trim().toLocaleUpperCase();
+    voterInput.next(".err").remove();
+    IS_PRIMARY_DEDUPE = true;
+    IS_ALTERNATE_DEDUPE = false; //Swaroop Raj R_CR127(Name as per KYC in RPC)
+    if (custType === 'Applicant') {
+        IS_APPLICANT_PRIMARY_DEDUPE = true;
+        PRIMARY_KYC_VERIFICATION = "";
+        PRIMARY_DEDUPE_STATUS = "";
+    } else {
+        IS_CO_APPLICANT_ALTERNATE_DEDUPE = false; //CR127(Name as per KYC in RPC)  23rd Dec
+        IS_CO_APPLICANT_PRIMARY_DEDUPE = true;
+        CO_APPLICANT_PRIMARY_DEDUPE_STATUS = "";
+        CO_APPLICANT_PRIMARY_KYC_VERIFICATION = "";
+    }
+    window.kycVerificationType = "primary";
+    ApzCOB.KycDedupeCheck(primaryVoterId, ApzCOB.rpcDedupeCheckCB);
+};
+apz.app.PrimaryKycRPC.altVoterIdVerification = function(pthis) {
+    let voterInput = $(`#${primaryKycScrId}alternateVoterIdInput`);
+    let alternateVoterId = voterInput.val().trim().toLocaleUpperCase();
+    voterInput.next(".err").remove();
+    IS_ALTERNATE_DEDUPE = true;
+    IS_PRIMARY_DEDUPE = false; //Swaroop Raj R_CR127(Name as per KYC in RPC)
+    if (custType === 'Applicant') {
+        ALTERNATE_KYC_VERIFICATION = "";
+        ALTERNATE_DEDUPE_STATUS = "";
+    } else {
+        IS_CO_APPLICANT_ALTERNATE_DEDUPE = true; //CR127(Name as per KYC in RPC)  7th jan 2026
+        CO_APPLICANT_ALTERNATE_DEDUPE_STATUS = "";
+        CO_APPLICANT_ALTERNATE_KYC_VERIFICATION = "";
+    }
+    window.kycVerificationType = "alternate";
+    ApzCOB.KycDedupeCheck(alternateVoterId, ApzCOB.rpcDedupeCheckCB);
+};
+apz.app.PrimaryKycRPC.maritalStatus = function() {
+    let maritalStatus = $(`#${primaryKycScrId}maritalStatusInput`).val();
+    let isMarried = maritalStatus?.toLowerCase() === "married";
+    $(`#${primaryKycScrId}spouseName label.ett-labl`).toggleClass("req", isMarried);
+    $(`#${primaryKycScrId}fathersName label.ett-labl`).toggleClass("req", !isMarried);
+    if(editFlag){
+    apz.app.PrimaryKycRPC.toggleDisableToInput(`${primaryKycScrId}spouseNameInput`, !isMarried);
+    apz.app.PrimaryKycRPC.toggleDisableToInput(`${primaryKycScrId}fathersNameInput`, isMarried);
+}
+    if (!isMarried) {
+        $(`#${primaryKycScrId}spouseNameInput`).val("");
+        $(`#${primaryKycScrId}fathersNameInput`).val(ApzCOB.getPayloadDatafromWrapper("fathersName", custType, 'customerDetailsList') || '').focus();
+    } else if (isMarried) {
+        $(`#${primaryKycScrId}fathersNameInput`).val("");
+        $(`#${primaryKycScrId}spouseNameInput`).val(ApzCOB.getPayloadDatafromWrapper("spouseName", custType, 'customerDetailsList') || '').focus();
+    }
+};
+apz.app.PrimaryKycRPC.toggleDisableToInput = function(fieldId, disable) {
+    disable ? ApzCOB.addDisableToInput(fieldId) : ApzCOB.removeDisableToInput(fieldId);
+};
+apz.app.PrimaryKycRPC.fetchCustomerPhoto = function() {
+    if (apz.isNull(custType) || apz.isObjectEmpty(inSessionStore)) return;
+    let custDetailID = ApzCOB.getCustDetailID(custType);
+    if (apz.isNull(custDetailID)) return;
+    let customerDocument = inSessionStore.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList?.find(doc => {
+        let payload = doc.payload || "{}"
+        return payload.documentType === "CUSTOMER_PHOTOGRAPH" && doc.custDtlId === custDetailID;
+    });
+    if (!apz.isObjectEmpty(customerDocument)) {
+        let docFileName = customerDocument.payload?.documentFileName;
+        window.ImageLocationDetails = {
+                latitude: customerDocument.payload?.latitude || "",
+                longitude: customerDocument.payload?.longitude || "",
+                uploadedTs: customerDocument.payload?.uploadedTs || ""
+            };
+        if (docFileName) {
+            ApzCOB.downloadFileFromServer(docFileName, apz.app.PrimaryKycRPC.paintCustomerPhoto);
+        }
+    }
+};
+apz.app.PrimaryKycRPC.paintCustomerPhoto = function(params) {
+    apz.stopLoader();
+    let $photoContainer = $(".primaryCustomerPhoto");
+    let $img = $photoContainer.find("img");
+    if (!apz.isNull(params.base64)) {
+        $img.attr("src", `data:image/png;base64,${params.base64}`);
+        $photoContainer.removeClass("sno");
+    } else {
+        $photoContainer.addClass("sno");
+    }
+};
+apz.app.PrimaryKycRPC.updatedKycStatus = function() {
+    $(`#${primaryKycScrId}verifyPrimaryVoter, #${primaryKycScrId}primaryVoterVerified, #${primaryKycScrId}InvalidPrimaryVoter`).addClass('sno');
+    $(`#${primaryKycScrId}verifyAlternateVoter, #${primaryKycScrId}InvalidAltVoter, #${primaryKycScrId}alternateVoterVerified`).addClass('sno');
+    $(`#${primaryKycScrId}verifypanNumber, #${primaryKycScrId}InvalidpanNumber, #${primaryKycScrId}panNumberVerified`).addClass('sno');
+    let [primaryVoterId, alterVoterId,panNumberId] = [$(`#${primaryKycScrId}primaryKycIdInput`), $(`#${primaryKycScrId}alternateVoterIdInput`), $(`#${primaryKycScrId}panNumberInput`)];
+    if (apz.isNull(custType) || apz.isObjectEmpty(inSessionStore)) return;
+    let customerDetails = inSessionStore.customerDetailsList?.find(customer => customer.customerType === custType);
+    if (!apz.isObjectEmpty(customerDetails)) {
+        let custPayload = customerDetails.payload;
+        let primStatus = custPayload?.primaryKycIdValStatus;
+        let primaryKycStatus = ["", "Pending"].includes(primStatus) ? "" : primStatus === "Verified";
+        // let primaryKycStatus = custPayload?.primaryKycIdValStatus !== "" ? custPayload?.primaryKycIdValStatus === "Verified" : ""
+        let alternateKycStatus = custPayload?.alternateVoterIdValStatus !== "" ? custPayload?.alternateVoterIdValStatus === "Verified" : ""
+        let panNumberStatus = custPayload?.panNumberStatus !== "" ? custPayload?.panNumberStatus === "Verified" : ""
+        if (primaryVoterId.val().trim() === '') primaryKycStatus = '';
+        if (alterVoterId.val().trim() === '') alternateKycStatus = '';
+        if (panNumberId.val().trim() === '') panNumberStatus = '';
+        if (custType === "Applicant") {
+            PRIMARY_KYC_VERIFICATION = primaryKycStatus;
+            ALTERNATE_KYC_VERIFICATION = alternateKycStatus;
+        } else {
+            CO_APPLICANT_PRIMARY_KYC_VERIFICATION = primaryKycStatus;
+            CO_APPLICANT_ALTERNATE_KYC_VERIFICATION = alternateKycStatus;
+        }
+        apz.app.PrimaryKycRPC.updateKycUI(primaryKycStatus, alternateKycStatus,panNumberStatus);
+        apz.app.PrimaryKycRPC.updatePanNumber(custPayload);
+        let applicantCBdata = inSessionStore?.cibilDetailsWrapperList?.find(cibil => Number(cibil?.cibilDetails?.custDtlId) === Number(gApzCOB.userDetails.custDtlId));
+        let coApplicantCBdata = inSessionStore?.cibilDetailsWrapperList?.find(cibil => Number(cibil?.cibilDetails?.custDtlId) === Number(gApzCOB.userDetails.CoApplicantCustomerId));
+         if (!apz.isObjectEmpty(applicantCBdata)) {
+             APPLICANT_CIBIL_STATUS = applicantCBdata?.cibilDetails?.cbStatus;
+         }
+          if (!apz.isObjectEmpty(coApplicantCBdata)) {
+              CO_APPLICANT_CIBIL_STATUS = coApplicantCBdata?.cibilDetails?.cbStatus;
+         }
+         
+    }
+};
+apz.app.PrimaryKycRPC.updateKycUI = function(primaryStatus, alternateStatus,panNumberStatus) {
+    if (!apz.isNull(primaryStatus)) {
+        if (primaryStatus) {
+            $(`#${primaryKycScrId}primaryVoterVerified`).removeClass('sno');
+        } else {
+            $(`#${primaryKycScrId}InvalidPrimaryVoter`).removeClass('sno');
+        }
+    }
+    if (!apz.isNull(alternateStatus)) {
+        if (alternateStatus) {
+            $(`#${primaryKycScrId}alternateVoterVerified`).removeClass('sno');
+        } else {
+            $(`#${primaryKycScrId}InvalidAltVoter`).removeClass('sno');
+        }
+    }
+    if (!apz.isNull(panNumberStatus)) {
+        if (panNumberStatus) {
+            $(`#${primaryKycScrId}panNumberVerified`).removeClass('sno');
+        } else {
+            $(`#${primaryKycScrId}InvalidpanNumber`).removeClass('sno');
+        }
+    }
+}
+apz.app.PrimaryKycRPC.updatePanNumber = function(custPayload){
+    let pannumber = custPayload.panNumber;
+    if(apz.isNull(pannumber)) {
+        $(`#${primaryKycScrId}panNumberInput`).val('Not Available');
+    }
+};
+apz.app.PrimaryKycRPC.fetchFirstNameLength = function(){
+    let lengthOfFirstName = $('#RPC__PrimaryKycRPC__firstNameInput').val().trim().toUpperCase().length;
+    if(lengthOfFirstName === 35)
+    {
+        ApzCOB.fnDisplayMsg("First Name field is full. Use Last Name field", "E");
+    }
+}

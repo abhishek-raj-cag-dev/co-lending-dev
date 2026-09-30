@@ -1,0 +1,32 @@
+{
+  "keysForContent": {
+    "title": "CreditAccess Grameen Limited",
+    "applicationName": "KFS Summary",
+    "LoanProductName": "Loan Product Name",
+    "subHeading" : "(Interest rate and fees/charges)",
+    "Rs":"Rs.",
+    "LoanAmountSanctioned": "Loan Amount Sanctioned",
+    "RepaymentFrequency": "Repayment Frequency",
+    "NumberofInstalments": "Number of Instalments",
+    "InstalmentAmount": "Instalment Amount",
+    "Interest": "Rate Of Interest%",
+    "loantenor" : "Total interest amount to be charged during the loan tenor",
+    "ProcessingFees":"Processing Fees Including GST",
+    "InsuranceCoverage": "Insurance Premium Collected",
+    "StampdutyCharges" : "Stamp duty Charges",
+    "LatePaymentChargesGST": "Late Payment Charges + GST",
+    "Perinstalment" : "per instalment",
+    "AnnualPercentageRate": "Annual Percentage Rate (APR %)",
+    "Details1": "I/We have received the Sanction Letter, Loan Repayment Schedule and Key Fact Statement on pricing of the loan and other material terms of the loan issued by CreditAccess Grameen Limited. I/We confirm that the contents of the Key Fact Statement have been duly explained to me/us, and I/We have understood the same. I/We hereby expressly accept and agree to be bound by the terms and conditions set out in the Sanction Letter, Loan Repayment Schedule, and the Key Fact Statement.",
+	"Details2": "I/We have received the Sanction Letter, Loan Repayment Schedule and Key Fact Statement on pricing of the loan and other material terms of the loan issued by CreditAccess Grameen Limited. I/We confirm that the contents of the Key Fact Statement have been duly explained to me/us, and I/We have understood the same. I/We hereby expressly accept and agree to be bound by the terms and conditions set out in the Sanction Letter, Loan Repayment Schedule, and the Key Fact Statement.",
+    "BorrowerNameSign": "Borrower Name & Sign",
+  	"AuthorizedSignatory": "Authorized Signatory",
+ 	"CoBorrowerNameSign": "Co-Borrower Name & Sign"
+  }
+}	 
+
+
+
+
+
+

@@ -1,0 +1,351 @@
+.crdas .drndp .ett-slct.pri{
+    height: 40px;
+    border-radius: 104px;
+}
+
+.drndp .ett-slct .sub-elt {
+    padding: 8px 16px;
+    height: 38px;
+    border-radius: 104px;
+}
+
+.enachsuc {border-radius: 12px;border-width: 1px;gap: 16px;border: 1px solid #039855;box-shadow: 0px 2px 6px  #00000040;min-width:280px;padding: 16px;background:  #F2F9EB;}
+
+.enachsuc .suc-ttl .ett-para{
+font-weight: 600;
+font-size: 14px;
+line-height: 20px;
+letter-spacing: 0%;
+
+}
+
+.srb.wrapped.suc-id span .srb.eoc.wrapped {
+    width: auto;
+}
+.srb.wrapped.suc-id span  {
+    width: auto;
+}
+.srb.wrapped.suc-id span .flb,.srb.wrapped.suc-id span .ett-para{
+font-size:11px !important;
+color:#737373;
+line-height:16px;
+margin:0;
+margin-right:4px; 
+}
+.doc-un .srb.btm-seperator{
+
+    padding-bottom:0px
+}
+
+
+.srb.wrapped.suc-id {
+    /* display: inline-flex; */
+}
+
+body.unati .msg-suc-fail .ett-para {
+    font-family: Open Sans;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 16px;
+    color: #737373;
+}
+body.unati .msg-suc-fail .scb-col15,
+body.unati .msg-suc-fail .scb-col85{width:auto;}
+body.unati .msg-suc-fail svg{
+width:16px;
+    height:16px;
+}
+
+
+
+body.unati .msg-suc-fail  .srb {
+    width: auto;
+    display: flex;
+    gap: 4px;
+    line-height: 20px;
+}
+// for failure estamp
+.enachsuc.fail-msg {
+background: #FEFBE8;
+border: 1px solid #EAAA08;
+}
+
+.doc-main {
+    display: flex;
+    gap: 16px;
+}
+
+.dowl-hyplk .ett-hypl {
+    font-weight: 600;
+    line-height: 20px;
+}
+
+.dowl-hyplk .ett-hypl svg {
+    margin-right: 8px;
+}
+body.unati .note-err .ett-para{
+font-family: Open Sans;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+letter-spacing: 0.2px;
+color:#D92D20}
+
+.srb.enachsuc.docdowlsuc {
+    min-width: 379px;
+    width: 379px;
+    margin: 24px auto;
+    position: fixed;
+    bottom: 70px;
+    left: 35%;
+    display: flex;
+}
+.srb.enachsuc.docdowlsuc .scb-col20,.srb.enachsuc.docdowlsuc .scb-col80{
+    width:auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+.srb.enachsuc.docdowlsuc .scb-col20 ul.srb.eoc{width:auto;/* display:inline; */}
+
+.srb.enachsuc.docdowlsuc .scb-col20 svg {
+    width: 36px;
+    height: 36px;
+}
+
+
+body.unati .suc-doc-tt p.ett-para {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0px;
+}
+body.unati .suc-doc-desc .flb{font-weight: 400;font-size: 11px !important;
+line-height: 16px;letter-spacing: 0px;color:#231f20;}
+
+.document-ftr.srb > span {
+    width: calc(100% - 566px);
+    margin: 24px auto;
+    position: fixed;
+    bottom: 70px;
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+}
+
+.document-ftr span ul.srb.eoc {
+    width: auto;
+    display: flex;
+}
+.document-ftr .pre-view .ett-bttn {
+    width: 100%;
+    display: flex;
+    background: #004886;
+    color: #fff;
+    height: 44px;
+    padding: 12px 24px;
+    letter-spacing:0px;
+}
+.list-doc-upload {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.list-doc-upload .list-cnt {
+    border: 1px solid  #D4D4D4;
+    background:  #FFFFFF;
+border-radius: 12px;
+gap: 8px;
+padding: 16px;
+
+}
+
+.crt-form.hor.pri .lst-ttl .flb {
+    font-family: Open Sans;
+    font-weight: 600;
+    font-size: 14px !important;
+    line-height: 20px;
+    letter-spacing: 0.4px;
+    color: #737373;
+    margin:0;
+}
+
+.list-main-sec.crt-list > ul.tsp > li > span.scb-col15 svg.icon-ca-link,
+.list-main-sec.crt-list > ul.tsp > li > span.scb-col15 svg.icon-rad-sele {display:none}
+
+
+.list-main-sec.crt-list > ul.tsp > li > span.scb-col85 .scb-col80 .file-siz,
+.list-main-sec.crt-list > ul.tsp > li > span.scb-col85 .scb-col20.suc-del{
+display:none;
+}
+
+
+.list-main-sec.crt-list > ul.tsp > li.active > span.scb-col15 svg.icon-ca-link {display:none}
+
+.list-main-sec.crt-list > ul.tsp {
+    display: flex;
+    flex-direction: column;
+}
+
+.list-main-sec.crt-list > ul.tsp li {
+    border-top: 1px solid #E5E5E5;
+    padding: 16px 0;
+    justify-content: flex-start;
+    align-items: center;
+    display: flex;
+    cursor:pointer;
+}
+.list-main-sec.crt-list > ul.tsp li:first-child(){
+    border:none;
+}
+.list-main-sec.crt-list > ul.tsp li .scb-col85 .ett-para{
+font-weight: 600;
+font-size: 14px;
+line-height: 20px;
+letter-spacing: 0.4px;
+position:relative;
+}
+.list-main-sec.crt-list > ul.tsp li.active .scb-col20.suc-del{
+display:flex;
+flex-direction:row;
+}
+
+
+.list-main-sec.crt-list > ul.tsp li:first-child {
+    border: none;
+}
+
+svg.icon-ca-link,svg.icon-rad-def,svg.icon-rad-sele,svg.icon-ca-trash{
+    cursor:pointer;
+}
+.list-main-sec.crt-list > ul.tsp > li.active > span.scb-col15 svg.icon-ca-link,
+.list-main-sec.crt-list > ul.tsp > li.active > span.scb-col15 svg.icon-rad-def{
+display:none
+} 
+.list-main-sec.crt-list > ul.tsp > li.active > span.scb-col15 svg.icon-rad-sele{
+display:block;cursor:pointer;
+}
+
+
+.list-main-sec.crt-list > ul.tsp > li.uploaded > span.scb-col15 svg.icon-ca-link{display:block;min-width: 32px;height: 32px;/* margin-right: 12px; */}
+.list-main-sec.crt-list > ul.tsp > li.uploaded > span.scb-col15 svg.icon-rad-sele,
+.list-main-sec.crt-list > ul.tsp > li.uploaded > span.scb-col15 svg.icon-rad-def{
+display:none
+} 
+.list-main-sec.crt-list > ul.tsp > li.uploaded > span.scb-col85{
+    padding-left:12px;
+    width:100%;
+}
+.list-main-sec.crt-list > ul.tsp > li.uploaded > span.scb-col85 .scb-col80 .file-siz{
+    line-height:13px;
+}
+.list-main-sec.crt-list > ul.tsp > li.uploaded > span.scb-col85 .scb-col80 .file-siz,
+.list-main-sec.crt-list > ul.tsp > li.uploaded > span.scb-col85 .scb-col20.suc-del{display: flex;width: auto;gap: 8px;align-items: center;justify-content: center;}
+.list-main-sec.crt-list > ul.tsp > li.uploaded > span.scb-col85 .scb-col20.suc-del svg:first-child{width:18px;height:18px;min-width: 18px;}
+.list-main-sec.crt-list > ul.tsp > li.uploaded > span.scb-col85 .scb-col20.suc-del svg:last-child{width:20px;height:20px;fill:#D92D20;min-width: 20px;}
+
+.srb.link-desc-icon {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content:space-between;
+}
+
+.list-main-sec.crt-list > ul.tsp > li.uploaded > span.scb-col85 .scb-col80 .file-siz p.ett-para {
+    color: #525252;
+    font-family: Open Sans;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.2px;
+}
+
+.list-main-sec.crt-list > ul.tsp > li.uploaded > span.scb-col15 {
+    width: auto;
+    margin-right:0px;
+}
+.lst-upload {
+    height: 100%;
+    display: flex;
+    min-width: 200px;
+}
+
+.list-main-sec.crt-list > ul.tsp li p.mand:after {
+//position:absolute;
+position: relative;
+color:red;
+content:'*';
+}
+
+.pst-simp.pa0 > div.lmvalues.disburse .srb {
+    margin-bottom: 0px;
+}
+
+.caloandtl .crt-form.lmvalues.disburse {
+    gap: 16px;
+}
+
+.caloandtl.threecol.disburse .crt-form .srb .udyambadge .srb.badgg {
+    height: 28px;
+    padding: 5px 12px;
+    gap: 8px;
+    line-height: 3px;
+}
+
+.list-main-sec.crt-list > ul.tsp li .scb-col85 {
+    width: 100%;
+}
+
+.list-main-sec.crt-list > ul.tsp li .scb-col15 svg{ 
+width:20px;height:20px;}
+.list-main-sec.crt-list > ul.tsp li .scb-col15 {
+    width: 20px;
+    margin-right: 12px;
+}
+.qry-doc .pst-simp.pa0 div.list-main-sec {
+    background: #fff;
+    padding: 24px;
+    border-radius: 12px;
+    margin-top: 24px;
+    border: 1px solid #d4d4d4;
+} 
+.qry-doc .pst-simp.pa0 div.list-main-sec li:first-child {
+    padding-top: 0px;
+}
+
+.qry-doc .pst-simp.pa0 div.list-main-sec li:last-child {
+    padding-bottom: 0px;
+}  
+.qry-doc .pst-simp.pa0 div.list-main-sec .srb.link-desc-icon span {
+    width: auto;
+    display: flex;
+    gap: 8px;
+    margin-right: 0; 
+}
+.qry-doc .pst-simp.pa0 div.list-main-sec .qry-doc-resp p.ett-para {
+    color: #525252; 
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.2px;
+}
+.qry-doc .pst-simp.pa0 div.list-main-sec .srb.link-desc-icon span .scb-col85 {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.qry-doc .pst-simp.pa0 div.list-main-sec .srb.link-desc-icon span .scb-col85 .file-siz p.ett-para { 
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.2px;
+    color: #525252;
+}
+.qry-doc .pst-simp.pa0 div.list-main-sec .qry-doc-resp {
+    margin-top: 12px;
+}

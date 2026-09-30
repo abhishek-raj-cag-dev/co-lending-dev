@@ -1,0 +1,55 @@
+RPC_CURRENT_STAGE = 'RpcStageScreen';
+var RPCSTageScreenID = `RPC__${RPC_CURRENT_STAGE}__`;
+window.currBusinessIndex  = '';
+apz.app.onLoad_RpcStageScreen = function() {
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+    let editedFields = ApzCOB.getStageEditedFields();
+    ApzCOB.updateEditedTags(editedFields);
+};
+apz.app.onShown_RpcStageScreen = function() {
+    // apz.populateDropdown(document.getElementById(`${primaryKycScrId}maritalStatusInput`), ApzCOB.formatDropDownforArray(maritalStatus));
+    // apz.app.PrimaryKycRPC.setMinMaxLength();
+};
+apz.app.RpcStageScreen.closeRPCErrMdl = function() {
+    $(`#${RPCSTageScreenID}RpcError_modal_close`).click();
+}
+apz.app.RpcStageScreen.closeRPCConfirmarionMdl = function() {
+    $(`#${RPCSTageScreenID}conFormation_mdl_close`).click();
+}
+apz.app.RpcStageScreen.closeRPCErrorModal = function() {
+    if ($("#" + BaseScrId + 'RpcfooterSucc_modal').is(":visible")) {
+        $('#' + BaseScrId + 'RpcfooterSucc_modal_close').trigger('click');
+    }
+    ApzCOB.launchMicroApp('Dashbo', 'NewDashBoard', `${gAppId}__BaseScreens__BaseDIV`, window.dashTaskData);
+}
+apz.app.RpcStageScreen.closeSuccessModal = function() {
+    $("#APZCBO__BaseScreens__RpcfooterSucc_modal_close").click();
+};
+apz.app.RpcStageScreen.closeSuccessModalAndProceed = function() {
+    $("#APZCBO__BaseScreens__RpcfooterSucc_modal_close").click();
+    ApzCOB.launchMicroApp('Dashbo', 'NewDashBoard', `${gAppId}__BaseScreens__BaseDIV`, window.dashTaskData);
+};
+apz.app.RpcStageScreen.onClickCompareModal = function() {
+    ApzCOB.toggleModal(RPCSTageScreenID + "coAppRenewalCompareModal");
+    let dataArr = []
+    currentTypeFields.forEach(field => {
+        if (field.fieldId === 'isNewCustomer') return;
+        if (!apz.isNull(field.fieldAttr, field.label)) {
+            const [visibilityAttr, mandatoryAttr, editAttribute] = field.fieldAttr.split("~");
+            if (visibilityAttr?.toUpperCase() === "Y") {
+                dataArr.push({
+                    Label: field.label,
+                    OldData: ApzCOB.getPayloadDatafromWrapper(field.renewalId, "Co-App", "renewalLeadDetails") || '---',
+                    NewData: ApzCOB.getPayloadDatafromWrapper(field.fieldId, "Co-App", "customerDetailsList") || '---'
+                })
+                if (field.renewalId === 'coDateOfBirth') {
+                    dataArr[dataArr.length-1].OldData = ApzCOB.formatDateTimeObj(dataArr[dataArr.length-1]?.OldData);
+                }
+            }
+        }
+    })
+    apz.data.scrdata.RPC__IPaintCoAppRenewalData_Res = [];
+    apz.data.scrdata.RPC__IPaintCoAppRenewalData_Res = dataArr;
+    apz.data.loadData("IPaintCoAppRenewalData", apz.currAppId);
+}

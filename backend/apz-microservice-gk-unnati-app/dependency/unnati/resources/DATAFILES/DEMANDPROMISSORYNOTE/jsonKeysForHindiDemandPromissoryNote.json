@@ -1,0 +1,16 @@
+{
+  "keysForContent": {
+    "applicationName": "डिमांड प्रॉमिसरी नोट (माँग वचन पत्र)",
+    "rs": "रु. ",
+    "date": "दिनांक:",
+	"place":"स्थान:",
+     "note": "ऋण मांगे जाने पर मैं <applicantName> आयु <applicantAge> निवास <applicantAddress> और <coApplicantName> आयु <coApplicantAge> वर्ष, <coApplicantAddress> संयुक्त रूप से और अलग-अलग क्रेडिट एक्सेस ग्रामीण लिमिटेड (सीए ग्रामीण) के भुगतान करने का दावा करते हैं, या ब्याज  @ <rateOfInterest> प्रतिशत प्रति वर्ष के साथ रकम रु <sanctionedAmount> (<sanctionedAmountInWords> only) प्राप्त मुआवजे के मद के रूप में स्वीकार करते हैं।  ",
+	 "noteNew": "ऋण मांगे जाने पर मैं <applicantName> आयु <applicantAge> निवास <applicantAddress> और <coApplicantName> आयु <coApplicantAge> वर्ष, <coApplicantAddress> संयुक्त रूप से और अलग-अलग क्रेडिट एक्सेस ग्रामीण लिमिटेड (सीए ग्रामीण) के भुगतान करने का दावा करते हैं, या ब्याज  @ <rateOfInterest> प्रतिशत प्रति वर्ष के साथ रकम रु <sanctionedAmount> (<sanctionedAmountInWords> only) प्राप्त मुआवजे के मद के रूप में स्वीकार करते हैं।  ",
+	"loanAccount":"ऋण खाता संख्या:",
+    "coApplicantName": "2.नाम:",
+    "signature": "हस्ताक्षर",
+    "applicantName": "1.नाम:"
+	}
+}
+
+

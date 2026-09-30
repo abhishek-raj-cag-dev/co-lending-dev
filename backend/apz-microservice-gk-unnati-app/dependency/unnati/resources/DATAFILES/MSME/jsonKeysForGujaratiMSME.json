@@ -1,0 +1,71 @@
+{
+  "keysForContent": {
+    "applicationName1": "Group Micro Life Insurance Consent Form For",
+    "applicationName2": "A Non-Linked Non-Participating Group Micro Insurance Product",
+    "memberId": "CAGL Member ID:",
+    "loanAccount": "CAGL Loan Account No:",
+    "assuredLife": "Life to be Assured",
+    "borrower": "Applicant",
+    "coborrower": "Spouse /Co Applicant#",
+     
+    "name": "Name",
+    "age": "DOB",
+    "gender": "Gender",
+
+    "subApplicationName1": "MSME માટે ઘોષણા",
+    "to": "<br>પ્રતિ,",
+    "cagl": "ક્રેડિટએક્સેસ ગ્રામીણ લિમિટેડ (CA ગ્રામીણ)",
+    "caglAddress1": "#નંબર 49, 46મો ક્રોસ, 8મો બ્લોક,",
+    "caglAddress2": "જયનગર, બેંગ્લોર – 560071",
+    "appId": "અરજી ID",
+    "loanId": "ધીરાણ ID",
+    "date": "તારીખ",
+
+    "letter1": "\nપ્રિય સર/મેડમ,",
+    "letter2": "હું/અમે આથી સમર્થન આપીએ છીએ કે હું/અમે _<purpose>_/ ના ઉત્પાદનનો વ્યવસાય કરીએ છીએ / _<subPurpose>_ ની સેવાઓ આપીએ છીએ અને _<nameOfTheOrganisation>_ ના નામે વ્યવસાય ચલાવીએ છીએ.",
+    "letter3": "હું/અમે વધુમાં સમર્થન આપીએ છીએ કે પ્લાન્ટ અને મશીનરીમાં (ઉત્પાદન માટે)/ઉપકરણ (સેવાઓ માટે) મારું/અમારું મૂળ રોકાણ રૂ. <sanctionedAmount> (રૂપિયા <sanctionedAmountInWords> ફક્ત), આ રીતે હું મારા વ્યવસાયનું વર્ગીકરણ નીચે મુજબ કરું છું:\n\n",
+
+    "tableName": "ઉત્પાદન અને સેવાનો ઉદ્યોગ",
+    "microLoan": "માઇક્રો",
+    "smallLoan": "નાનું",
+    "mediumLoan": "મધ્યમ",
+
+    "microLoanValue": "<font face='Arial Unicode MS'>☑</font> રોકાણ <રૂ. 1 કરોડ અને ટર્નઓવર < રૂ. 5 કરોડ",
+    "smallLoanValue": "<font face='Arial Unicode MS'>☐</font> રોકાણ < રૂ. 10 કરોડ અને ટર્નઓવર < રૂ. 50 કરોડ",
+    "mediumLoanValue": "<font face='Arial Unicode MS'>☐</font> રોકાણ < રૂ. 20 કરોડ અને ટર્નઓવર < રૂ. 100 કરોડ",
+
+    "particulars": "ઉપર જાહેર કરેલા રોકાણની વિગતો નીચે આપી છે:",
+    "serialNum": "અનુ ક્રમાંક",
+    "machineryDetails": "મશીનરી/ઉપકરણો/ફિક્સચર વિગતો",
+    "cost": "કિંમત",
+
+    "gstinNo": "GSTIN (જો ઉપલબ્ધ હોય તો):",
+    "notApplicable": "",
+    "udyamNo": "ઉદ્યમનો નોંધણી નંબર (જો ઉપલબ્ધ હોય તો):",
+
+    "gstinDeclaration": "જો GSTIN ન આપવામાં આવે તો વ્યવસાયનું કુલ ટર્નઓવર રૂ. 20 લાખથી ઓછું છે",
+    "gstinDeclaration1": "ઉપર જો GSTIN ન આપ્યો હોય તો હું/અમે અહીં જાહેર કરીએ છીએ અને સ્વીકાર કરીએ છીએ કે વ્યવસાયનું કુલ ટર્નઓવર રૂ. 20 લાખથી ઓછું (સેવાઓ માટે) અથવા રૂ. 40 લાખથી ઓછું (વેપાર માટે) છે. હું/અમે જાહેર કરીએ છીએ કે ધીરાણનો ઉપયોગ માત્ર કાર્યકારી મૂડી અને વ્યવસાય વિકાસ માટે જ કરવામાં આવશે અને વ્યક્તિગત ઉપયોગ માટે નહીં.",
+    "gstinDeclaration2": "હું/અમે જાણીએ છીએ કે આ રજૂઆત, જાહેરાત અને સમર્થનના આધારે CA ગ્રામીણ અમારી અરજી મંજૂર કરે છે.",
+    "gstinDeclaration3": "કોઈપણ ખોટી રજૂઆત અથવા જાહેરાતના ભંગથી થતા નુકસાન માટે હું/અમે CA ગ્રામીણને વળતર આપીશું.",
+    "gstinDeclaration4": "હું/અમે સમજીએ છીએ કે ઉપરોક્ત જાહેરાત CA ગ્રામીણ આંતરિક અથવા બાહ્ય ઉપયોગ માટે કરી શકે છે, જેમાં નિયમનકારી જાહેરાતોનો સમાવેશ થાય છે.",
+    "gstinDeclaration5": "હું/અમે ખાતરી આપીએ છીએ કે ઉપરોક્ત જાહેરાત સ્વેચ્છાથી આપી છે અને તે ધીરાણની શરતોને અસર કરતી નથી અને અમે તેમાં રહેલી જવાબદારીઓનું પાલન કરીશું.",
+
+    "thankingYou": "\nઆભાર,",
+    "borrowerSignature": "(અરજદારની સહી)",
+    "coborrowerSignature": "(સહ-અરજદારની સહી)",
+
+    "number1": "<font face='Arial Unicode MS'>1.</font>",
+    "number2": "<font face='Arial Unicode MS'>2.</font>",
+    "number3": "<font face='Arial Unicode MS'>3.</font>",
+    "number4": "<font face='Arial Unicode MS'>4.</font>",
+    "number5": "<font face='Arial Unicode MS'>5.</font>",
+
+    "borrowerNameLabel": "અરજદારનું નામ",
+    "coborrowerNameLabel": "સહ-અરજદારનું નામ",
+	
+	"coborrowerName": "સહ-અરજદારનું નામ",
+	"coborrowerSign": "સહ-અરજદારની સહી",
+	"borrowerName": "અરજદારનું નામ",
+	"borrowerSign": "અરજદારની સહી"
+  }
+}

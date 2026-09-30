@@ -1,0 +1,168 @@
+{
+	
+"keysForContent":{
+	
+	"applicationName":"LOAN APPLICATION FORM - GRAMEEN UNNATI",
+	"applicationNameRenewal":"LOAN APPLICATION FORM - GRAMEEN UNNATI RENEWAL",
+	"applicationNameOpenMarket":"LOAN APPLICATION FORM - GRAMEEN UNNATI OPEN MARKET",
+	"applicationNameUnnatiRestart":"LOAN APPLICATION FORM - GRAMEEN UNNATI-RESTSRT",
+
+		"customerId":"Applicant Customer ID",
+		"appltDate":"Date",
+		"gkBranchName":"Branch Name",
+		"applicationId":"Loan Application ID",
+		"gkAreaName":"Area Name",
+		"gkBranchId":"Branch ID",
+		
+		"loanDetails":"Loan Details:",
+			
+			"reqstdLoanAmount":"Requested loan amount",
+			"loanTenure":"Loan tenure (Months)",
+			"loanFrequency":"Loan frequency",
+			"loanPurpose":"Purpose of Loan",
+			"language":"Communication Language",
+			"loanIntrest":"Rate of Interest",
+		
+		"personalDetails":"Personal Details:",
+		
+		"details":"Details",
+		"applicant":"Applicant",
+		"coApplicant":"Co-Applicant",
+	
+		"title":"Title (Mr/Mrs/Ms)",
+		"memberFirstName": "First Name",
+		"memberLastName": "Last Name",
+		"memberFullName": "Full Name",
+		"memberGender": "Gender",
+		
+		"memberDOB":"Date Of Birth",
+		"memberAge":"Age",
+		"memberMarritalStstus":"Marital Status",
+	
+		"memberFather":"Father’s Name",
+		"memberSpouse":"Spouse Name",
+		"memberMothersFirstName":"Mother’s Maiden Name",
+		
+		"memberMobNumber":"Mobile Number",
+		"memberReligion":"Religion",
+		"memberCast":"Caste",
+		
+		"memberVoterNo":"Voter ID Number.",
+		"otherKYCNameIfAny":"Other KYC Name if any",
+		"otherKYCNumberIfAny":"Other KYC Number if any",
+		"ckycNumber":"CKYC Number",
+        "relationshipWithApplicant":"Applicant Relationship",
+
+
+	"addressDetails": "Address Details:",
+	
+		"presentAddress":"Present Address",
+		"permanentAddress":"Permanent Address",
+		
+		
+	"otherDetails":"Other Details",
+		
+		"presentResidenceOwnership":"Present Residence Ownership",
+		
+		"presentAddressYears":"Residential Stability in Present Address (years)",
+		"presntCityYears":"Residential Stability in Present City (years)",
+
+		"presentResidenceAddressProof":"Present Residence Address Proof",
+		"presentResidenceType":"Present Residence Type of House",
+		"presentResidenceSize":"Present Residence - Area of House (Sq. ft)",
+
+
+	"employemnentDetails": "Occupation / Business Details :",
+		"employment":"Occupation",
+		"employmentTye":"Type of Business Entity/ Employer",
+		"empFormat":"Nature of Business / Employer",
+		"empActivity":"Business/Employment Activity",
+		"empOrganization":"Name of organization / Employer",
+		"empstreetVendor":"Street Vendor (Yes/No)",
+		"empStrtDate":"Business/Employment start date",
+		"empExprience":"Business/Employment vintage (Years)",
+		"empAddress":"Address",
+		
+		"empAddressProof":"Business Address Proof",
+		"empProof":"Employment Proof",
+		"empSize":"Business Premise Area (Sq. ft)",
+		"empOwnership":"Business Premise Ownership",
+		
+		
+	"incomeDetails":"Income Details:",	
+		"empIncomeType":"Mode of Income",
+		"empIncomeFrequency":"Frequency of Income",
+		"empYearlyIncome":"Annual Income",
+		"otherSourcesOfAnnualIncome":"Other source of Income (Annual)",
+
+	"bankingDeatails":"Bank Details :",
+			"bankName":"Bank Name",
+			"bankbranchName":"Branch Name",
+			"accountType":"Type of A/C",
+			"nameAsperAccount":"Name as per bank A/C",
+			"accountNo":"A/c number",
+			"ifscCode":"IFSC code",
+		
+
+	"borrowingDetails":"Borrowing Details :",
+			 "loanApplicantType":"Applicant Type",
+			 "finaciarName":"Name of the Financier",
+			 "loanAmount":"Loan Amount",
+			 "pos":"POS",
+			 "emi":"EMI",
+
+
+	"insuranceDetails" :"Insurance Details:",
+			"forInsurance":"Insurer Name",
+			"optedInsuranceYN":"Opted Insurance (Yes/No)",
+			 "insuranceNominee":"Nominee for the Insurance",
+			 "nomineeDob":"Date of Birth of Nominee",
+			 "nomineeAge":"Age of Nominee",
+			 "nomineeRelationShip":"Relationship with Nominee",
+			 "nomineeGender":"Gender",
+			 
+
+	"leadAndSourcingDetails" :"Lead and Sourcing Details :",
+			 "centreName":"Kendra Name",
+			 "centreId":"Kendra ID",
+			 "glBMName":"BM Name",
+			 "glBMId":"BM ID",
+			 "kmName":"KM Name",
+			 "kmId":"KM ID",
+			
+			
+		
+	"declaration" :"DECLARATIONS:",
+		
+		"declaration1": "<font face='Arial Unicode MS'>I/We declare that the particulars and information given are true, correct, complete and up to date in all respects and I/we have not withheld any information. I/We confirm that I/We have no insolvency proceeding indicated against me/us nor have I/We ever been adjudicated insolvent. I/We have read the application form and am/are aware of all terms and conditions of availing finance from CreditAccess Grameen Limited (CA Grameen). I/We authorize CA Grameen to make reference and inquiries relating to information in this application which CA Grameen considers necessary. I/we authorize CA Grameen to exchange, part/share with all information relating to my/our loan details and repayment history to other banks/financial institutions etc. as may be required and shall not hold the company liable for use of this information. I/We undertake to inform CA Grameen regarding change in my residence/employment and to provide any further information which CA Grameen may require. I/We agree that my/our loan shall be governed by the rules of CA Grameen which may be in force from time to time. I voluntarily permit CA Grameen to disclose my personal and credit related information to Microfinance India Network (MFIN), Association of Karnataka Microfinance Institutions (AKMI), Credit Bureau, any credit investigation/reporting agency and any statutory or regulatory agency, and they can use the said data and information in a manner to meet the regulatory and compliance related requirements. I hereby submit voluntarily at my own discretion, the physical copy of Aadhaar card/e-Aadhaar/masked Aadhaar as issued by UIDAI (Aadhaar), to CreditAccess Grameen Limited for the purpose of establishing my identity/address proof. CreditAccess Grameen Limited has informed me that my Aadhaar submitted herewith shall not be used for any purpose other than mentioned above, or as per requirements of law. The Applicant/Co-applicant/Guarantor further agree(s) that they shall execute such additional documents as may be necessary for the purpose. I/We unconditionally agree and accept that CA Grameen shall be at liberty to reject my/our application at any stage of processing the application for loan, without providing any reason thereof. I/We unconditionally agree and accept that the data provided by me/us to the company during the application process is true to the best of my/our knowledge and belief, and if at any stage of processing the loan, if it comes to the knowledge of CA Grameen or CA Grameen is of the opinion that, I/we have provided any incorrect information, and/or fabricated documents, and/or fake documents, and/or documents appearing to have been manipulated, they will be treated by CA Grameen as having been manipulated by me/us. I/We also unconditionally agree and accept that CA Grameen shall have every right to compare the data available with CA Grameen or provided with any Financial Institution/Bank/Credit Information Company/RBI/SRO during the process of processing my/our application, and in case CA Grameen, in its sole and exclusive opinion determines that, the details provided to secure the relationship with CA Grameen is/are inconsistent with the data that may be available, with various Financial Institution/Bank/Credit Information Company that may be so obtained by CA Grameen, in terms of CA Grameen’s due diligence, policy, process the application, I/We unconditionally agree and accept that such data which is so provided and inconsistent with, may be construed as fraud/cheating/forgery/manipulation/fabrication of documents against CA Grameen, and agree that, CA Grameen shall every right and liberty for not processing my/our application/rejecting the application so approved by CA Grameen and enforce any remedy that may so be available with CA Grameen at the Law & Equity, I/We further unconditionally agree and undertake that, CA Grameen shall be at its liberty, to share my information with any other Banks/Financial Institution/SRO/RBI or to any Credit Information Company as CA Grameen may so decide, I agree and accept that CA Grameen shall have every right to share my information with any Financial Institution/Bank/Credit Information Company/RBI/SRO. Further, I shall not hold CA Grameen liable for such sharing of my information as considered necessary by CA Grameen and hold harmless the Employees, officers, Directors of CA Grameen for all losses and liabilities incurred by CA Grameen consequent to such sharing of information. I/We have voluntarily opted to enroll under Group Insurance Scheme administered by CA Grameen as Master Policy Holder (MPH) after fully understanding the terms & conditions of the said Group Insurance Scheme. I/We have also understood the terms and conditions of the loan being extended to me and subscribe my signature in proof of the same. I/We hereby authorize CA Grameen to disburse my loan amount through NEFT or any other mode of electronic transfer of funds. The rate of interest may vary depending upon the credit profile, nature of income of each borrower, vintage of the borrower with CA Grameen and, the credit risk assessment of the geography.</font>",
+		
+		"declaration2":"<font face='Arial Unicode MS'>I/We <font face='Arial Unicode MS'>☑</font> consent    <font face='Arial Unicode MS'>☐</font> do not consent (tick one) to receive information/services etc. for marketing purposes through phone/mobile/SMS by CA Grameen.</font>",
+				
+		"declaration3":"<font face='Arial Unicode MS'>I am registered <font face='Arial Unicode MS'>☐</font>      not registered <font face='Arial Unicode MS'>☑</font>   under the GST. If registered, please provide the GST No  _______________.</font>",
+		"declaration4":"<font face='Arial Unicode MS'>I required  <font face='Arial Unicode MS'>☑</font>     not require <font face='Arial Unicode MS'>☐</font>  an invoice for the Processing Fee/Charges paid in respect of the loan sanctioned to/availed by me.</font>",		
+			
+			"applicantType":"Applicant Type",
+			 "applicantName":"Name",
+			 "applicantSign":"Signature",
+			 "applicantPhotoAndSign":"Photo and Signature",
+			 
+"confBranch":"CONFIRMATION BY BRANCH STAFF :",
+"branchDeclaration":"I/we have done due diligence on the information given above and certify that the same is correct. I/We have also satisfied myself/ourselves that the customer intends to use the loan for the stated purpose only.",
+
+			 
+		
+			 "staffName":"Name",
+			  "staffId":"GK ID",
+			 "staffSign":"Signature",
+			 "staffDate":"Date"
+				
+		
+
+}
+}	 
+
+
+
+
+
+

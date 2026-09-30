@@ -1,0 +1,295 @@
+var scrId = "DBkitG__DBLoanDetails__",
+dayMap = {
+  MON: 'Monday',
+  TUE: 'Tuesday',
+  WED: 'Wednesday',
+  THU: 'Thursday',
+  FRI: 'Friday',
+  SAT: 'Saturday',
+  SUN: 'Sunday'
+},
+cbSummaryArrDB = ["overdueAmt", "writeOffAmt", "totIndebtness"];
+window.DB_CURRENT_STAGE = "DBLoanDetails";
+window.DB_CURRENT_STAGE_NO = 1;
+var skipNetOffCal = window.SkipNetoffProducts.includes(inSessionStore?.applicationMaster?.productCode);
+apz.app.onLoad_DBLoanDetails = function() {
+};
+apz.app.onShown_DBLoanDetails = function() {
+    $(`#${DbbaseScrId}CAFooter_nav button`).addClass('sno');
+    $(`#${DbbaseScrId}backBtn,#${DbbaseScrId}nextBtn,#${DbbaseScrId}rejectBtn,#${DbbaseScrId}sendbackBtn`).removeClass('sno');
+    $(`#scr__${scrId}main input`).each(function() {
+        ApzCOB.addDisableToInput(this.id)
+    });
+    ApzCOB.addDisableToInput(`${scrId}sanctionComments`);
+    $(`#${scrId}sldTabBtn`).click();
+    apz.app.DBLoanDetails.paintData();
+    apz.app.DBLoanDetails.paintMetricData();
+    apz.app.DBLoanDetails.paintSanctionSummary();
+    if (applicationStatus === "DBPUSHBACK") {
+        raisedQueries = apz.app.DBbase.paintQuery();
+        if(raisedQueries.length > 0) {
+            ["sendBackResponseRow"].show();
+        }
+    }
+    apz.app.DBbase.addInprogressStatus(`${DbbaseScrId}DBLoanDetails_hyp`);
+};
+apz.app.DBLoanDetails.paintData = function() {
+    const getData = (key, entity, section) => ApzCOB.getPayloadDatafromWrapper(key, entity, section);
+    const setVal = (idSuffix, value) => $(`#${scrId}${idSuffix}`).val(value);
+    const loanDetails = ['loanAmount', 'frequencyOfRepayment', 'tenure', 'loanPurpose', 'subCategory', 'sanctionedLoanAmount'].reduce((acc, key) => ({ ...acc, [key]: getData(key, 'Applicant', 'loanDetails') }), {});
+    const applicationMaster = {
+        kendraManager: getData('createdBy', 'Applicant', 'applicationMaster'),
+        sourcingDate: getData('createTs', 'Applicant', 'applicationMaster'),//leadInitiationDate
+        productCode: getData('productCode', 'Applicant', 'applicationMaster')
+    };
+    const { day, month, year } = applicationMaster.sourcingDate?.date || {};
+    let  formattedSourcingDate = inSessionStore.applicationTimelineDtl?.findLast(el => el.actionTaken === "Submitted By" && el.stage ==="KM Sourcing")?.timeStamp;
+    if(window.isAdditionalProduct){
+    const leadDate = inSessionStore.cdhLeadDetails?.leadInitiationDate;
+        if (leadDate) {
+            const { day = '', month = '', year = '' } = leadDate.date;
+            formattedSourcingDate = `${day}/${month}/${year}`;
+        }
+    }
+    const productName = productCodeBasedName[applicationMaster?.productCode] || '';
+    const timeLineData = inSessionStore?.applicationTimelineDtl;
+    const sanctionedTM = timeLineData.findLast(el => el.stage === 'Resanction' || el.stage === 'Sanction');
+    const formattedSanctionDate = !apz.isNull(sanctionedTM.timeStamp) ? ApzCOB.dateformatter(sanctionedTM.timeStamp, 'd/m/Y') : '';
+    const sanctionedBy = sanctionedTM.userId;
+    const leadData = inSessionStore.leadDetails || inSessionStore.renewalLeadDetails || inSessionStore.cdhLeadDetails ||  {};
+    let reAssessmentBy = ''; //Get reassessmentby if exists
+    const reAssessmentTimeline = inSessionStore?.deviationRATrackerList?.filter(el => el?.recordType === "REASSESSMENT") || [];
+    reAssessmentBy = reAssessmentTimeline.map(el => {
+        if (el.authority === "SYSTEM" || el.approvedBy === "SYSTEM") {
+            return "Auto Approved";
+        }
+        return `${el.authority}(${el.approvedBy})`;
+    });
+    reAssessmentBy = reAssessmentBy.join(',');
+    (reAssessmentBy?.length > 0) ? ['reAssessmentByRow'].show() : ['reAssessmentByRow'].hide();
+    let deviationApprovedBy = ''; //Get deviationApprovedBy if exists
+    let deviationList = inSessionStore?.deviationRATrackerList?.filter(el => el?.recordType === "CA_DEVIATION") || [];
+    deviationApprovedBy = deviationList.map(el => {
+        if (el.authority === "SYSTEM" || el.approvedBy === "SYSTEM") {
+            return "Auto Approved";
+        }
+        return `${el.authority}(${el.approvedBy})`;
+    });
+    deviationApprovedBy = deviationApprovedBy.join(',');
+    (deviationApprovedBy?.length > 0) ? ['deviationApprovedByRow'].show() : ['deviationApprovedByRow'].hide();
+    // Set values to DOM
+    setVal('loanAmount', ApzCOB.formatamountVal(loanDetails.loanAmount ?? ''));
+    setVal('frequencyOfRepayment', loanDetails.frequencyOfRepayment ?? '');
+    setVal('tenure', loanDetails.tenure ? loanDetails.tenure + ' months' : '');
+    setVal('sanctionTenure', loanDetails.tenure ? loanDetails.tenure + ' months' : '');
+    setVal('loanPurpose', loanDetails.loanPurpose ?? '');
+    setVal('subCategory', loanDetails.subCategory ?? '');
+    setVal('kendraMeetingFreq', leadData?.kendraMeetingFreq ?? '');
+    setVal('kendraMeetingDay', dayMap[leadData?.kendraMeetingDay] ?? '');
+    setVal('createdBy', leadData.kmId ?? '');
+    setVal('createTs', formattedSourcingDate ?? '');
+    setVal('productName', productName ?? '');
+    setVal('sanctionedLoanAmount', ApzCOB.formatamountVal(loanDetails.sanctionedLoanAmount ?? ''));
+    setVal('sanctionBy', sanctionedBy ?? '');
+    setVal('sanctionDate', formattedSanctionDate ?? '');
+    setVal('deviationApprovedBy', deviationApprovedBy || '---');
+    setVal('reAssessmentBy', reAssessmentBy || '---');
+    let sanctionTMArray = timeLineData.findLast(el => el.stage.toUpperCase() === 'SANCTION') || {};
+    if (!apz.isNull(sanctionTMArray)) {
+        if (sanctionTMArray?.remarks?.includes('|')) {
+            let SanctionRemarks = sanctionTMArray.remarks.split('|')?.[1];
+            $(`#${scrId}sanctionComments`).val(SanctionRemarks ?? '');
+        } else {
+            $(`#${scrId}sanctionComments`).val(sanctionTMArray.remarks ?? '');
+        }
+    }
+     var DBLoanDtls = {
+        loanAmount: ApzCOB.formatamountVal(loanDetails.loanAmount ? loanDetails.loanAmount : ''),
+        frequencyOfRepayment: loanDetails.frequencyOfRepayment ? loanDetails.frequencyOfRepayment : '',
+        tenure: loanDetails.tenure ? loanDetails.tenure + ' months' : '',
+        sanctionTenure: loanDetails.tenure ? loanDetails.tenure + ' months' : '',
+        loanPurpose: loanDetails.loanPurpose ? loanDetails.loanPurpose : '',
+        subCategory: loanDetails.subCategory ? loanDetails.subCategory : '',
+        kendraMeetingFreq: leadData && leadData.kendraMeetingFreq ? leadData.kendraMeetingFreq : '',
+        kendraMeetingDay: leadData && leadData.kendraMeetingDay ? dayMap[leadData.kendraMeetingDay] : '',
+        createdBy: leadData?.kmId ?? '',
+        createTs: formattedSourcingDate ? formattedSourcingDate : '',
+        productName: productName ? productName : '',
+        sanctionedLoanAmount: ApzCOB.formatamountVal(loanDetails.sanctionedLoanAmount ? loanDetails.sanctionedLoanAmount : ''),
+        sanctionBy: sanctionedBy ? sanctionedBy : '',
+        sanctionDate: formattedSanctionDate ? formattedSanctionDate : '',
+        deviationApprovedBy: deviationApprovedBy ? deviationApprovedBy : '---',
+        reAssessmentBy: reAssessmentBy ? reAssessmentBy : '---'
+    };
+    window.DBKitEsign.DBLoanDtls = DBLoanDtls;
+}
+apz.app.DBLoanDetails.tabClick = function(pthis, tabName) {
+    $(`#${scrId}sanctionLoanDetailsTab,#${scrId}decisionDetailsTab`).addClass('sno');
+    $(`#${scrId}detailsTabRow .active`).removeClass('active');
+    $(pthis).addClass("active");
+    (tabName === 'SLD') ? ['sanctionLoanDetailsTab'].show() : ['decisionDetailsTab'].show();
+    (tabName === 'SLD') ? ['amtEligibilityForm'].hide() : ['amtEligibilityForm'].show();
+};
+apz.app.DBLoanDetails.paintMetricData = function() {
+    let applicantCBDetails;
+    let coApplicantCBDetails, appOverDueAmt = '0', coappOverDueAmt = '0', appwriteOffAmt = '0', coappwriteOffAmt = '0',indebtness;
+    let {cibilDetailsWrapperList,loanDetails,leadDetails} = inSessionStore || {};
+    if([cibilDetailsWrapperList, loanDetails].some(apz.isObjectEmpty)) return;
+    cibilDetailsWrapperList.forEach(custType => {
+        if(custType.cibilDetails.custDtlId === gApzCOB.userDetails.custDtlId){
+            applicantCBDetails = custType.cibilDetails.payload;
+        } else if(custType.cibilDetails.custDtlId === gApzCOB.userDetails.CoApplicantCustomerId){
+            coApplicantCBDetails = custType.cibilDetails.payload;
+        }
+    })
+    coApplicantCBDetails.stampDutyCharge = 0; // Hardcoded for Manual process
+    let primaryCBDetails = coApplicantCBDetails || applicantCBDetails;
+    if (window.AdditionalProductsOptionalCoApp.includes(inSessionStore.applicationMaster.productCode)) {
+        primaryCBDetails = applicantCBDetails;
+    }
+    let caglOs = inSessionStore.leadDetails?.caglOs || inSessionStore.renewalLeadDetails?.caglOs || inSessionStore?.cdhLeadDetails?.caglOs  || 0;
+    let insurancePremium = Number(primaryCBDetails?.insuranceChargeJoint) + Number(primaryCBDetails?.insuranceChargeMember) + Number(primaryCBDetails?.insuranceChargeSpouse);
+    let netAmountTotal  = 0 ;
+    if(!skipNetOffCal){
+     netAmountTotal =  Number(primaryCBDetails?.processingFees) + Number(insurancePremium) + Number(primaryCBDetails?.stampDutyCharge) + Number(caglOs);
+    }else{
+     netAmountTotal =  Number(primaryCBDetails?.processingFees) + Number(insurancePremium) + Number(primaryCBDetails?.stampDutyCharge);
+    }
+    let totalAmountValue = Number(loanDetails?.sanctionedLoanAmount) - netAmountTotal;
+    totalAmountValue = Number(totalAmountValue?.toFixed(2));
+    cbSummaryArrDB.forEach(el => ApzCOB.beautifyCbDtlsSummary(el, applicantCBDetails));
+    if(coApplicantCBDetails){
+        cbSummaryArrDB.forEach(el => ApzCOB.beautifyCbDtlsSummary(el, coApplicantCBDetails));
+    }
+    const getFirstSplitValue = val => val?.includes('|') ? val.split('|')[0].trim() || '0' : '0';
+    appOverDueAmt = ApzCOB.formatamountVal(getFirstSplitValue(applicantCBDetails.overdueAmt) ?? '0');
+    coappOverDueAmt = ApzCOB.formatamountVal(getFirstSplitValue(coApplicantCBDetails.overdueAmt) ?? '0');
+    appwriteOffAmt = ApzCOB.formatamountVal(getFirstSplitValue(applicantCBDetails.writeOffAmt) ?? '0');
+    coappwriteOffAmt = ApzCOB.formatamountVal(getFirstSplitValue(coApplicantCBDetails.writeOffAmt) ?? '0');
+    indebtness = ApzCOB.formatamountVal(getFirstSplitValue(primaryCBDetails.totIndebtness) ?? '0');
+    const loanFieldMappings = {
+        loanAmountMetric: ApzCOB.formatamountVal(loanDetails?.sanctionedLoanAmount),
+        roi: primaryCBDetails?.roi,
+        prosessingFee: ApzCOB.formatamountVal(primaryCBDetails?.processingFees ?? '0'),
+        insPrem: ApzCOB.formatamountVal(insurancePremium ?? '0'),
+        stampDutyCharge: ApzCOB.formatamountVal(primaryCBDetails?.stampDutyCharge ?? '0'),
+        caglOS: ApzCOB.formatamountVal(caglOs ?? '0'),
+        cbTriggerDate: (`Current CAGL outstanding (As of ${ApzCOB.getCBTriggerDate() || ''})`),
+        netOffAmt: ApzCOB.formatamountVal(netAmountTotal ?? '0'),
+        postNetAmt: ApzCOB.formatamountVal(totalAmountValue ?? '0'),
+        installmentFreq:  `₹ ${ApzCOB.formatamountVal(primaryCBDetails?.approvedLoanEMI ?? '0')} / ${loanDetails?.payload?.frequencyOfRepayment}`,
+        overdueAmtApp: `₹ ${appOverDueAmt}`,
+        overdueAmtCoApp: `₹ ${coappOverDueAmt}`,
+        writeOffAmtApp: `₹ ${appwriteOffAmt}`,
+        writeOffAmtCoApp: `₹ ${coappwriteOffAmt}`,
+        cbScoreApp: applicantCBDetails.cbScore,
+        cbScoreCoApp: primaryCBDetails.cbScore,
+        netIncome: ApzCOB.formatamountVal(inSessionStore?.bcmpiIncomeDetails?.bcmpiIncomeDetailsWrapper?.fieldAssessedIncome || inSessionStore?.cdhLeadDetails?.annualIncome || '0'),
+        unsecureIndebt: indebtness,
+        foirPercent: primaryCBDetails?.foirPercentage,
+        bmRecommAmt: '₹ ' + ApzCOB.formatamountVal(loanDetails?.bmRecommendedLoanAmount ?? '0'),
+        breLoanAmt: '₹ ' + ApzCOB.formatamountVal(primaryCBDetails?.eligibleAmt ?? '0')
+    };
+    Object.entries(loanFieldMappings).forEach(([elem, val]) => {
+        if(apz.isNull(val) || val === undefined){
+         $(`#${scrId}${elem}`).parents('span.srb.pri').addClass('sno');   
+        }else {
+             $(`#${scrId}${elem}`).parents('span.srb.pri').removeClass('sno');  
+         $(`#${scrId}${elem}`).text(val);   
+        }
+        
+    });
+    window.DBKitEsign.loanFieldMappings = loanFieldMappings;
+    apz.app.DBLoanDetails.paintReAssessmentData();
+    apz.app.DBLoanDetails.paintDeviationData();
+};
+apz.app.DBLoanDetails.paintReAssessmentData = function() {
+    ['reAssessmentHeader', 'reAssessmentForm', 'reAssessmentDocForm'].hide();
+    if (apz.isNull(inSessionStore.deviationRATrackerList)/* && inSessionStore?.deviationRATrackerList.length <= 0*/) {
+        return;
+    }
+    if (inSessionStore.deviationRATrackerList?.length <= 0) return;
+    const reAssessmentTM = inSessionStore.deviationRATrackerList.filter(el => el.recordType === 'REASSESSMENT') || [];
+    if (!apz.isNull(reAssessmentTM) && reAssessmentTM.length > 0) {
+        ['reAssessmentHeader', 'reAssessmentForm', 'reAssessmentDocForm'].show();
+        let paintReAssess = []
+        reAssessmentTM.forEach(el => {
+            paintReAssess.push({
+                reAssessmentComment: el?.recordMsg,
+                reAssessmentTimeStmp: `Completed by ${el?.authority==='SYSTEM' ? "Auto approved" : el?.authority} (${el.approvedTimeStamp})`,
+                reAssessmentRemarks: `Remarks: ${el?.remarks}`
+            })
+        })
+        apz.data.scrdata.DBkitG__IpaintReAssessmentsummary_Res = [];
+        apz.data.scrdata.DBkitG__IpaintReAssessmentsummary_Res = paintReAssess;
+        apz.data.loadData('IpaintReAssessmentsummary', apz.currAppId);
+        paintReAssess.forEach((el, item) => {
+            ApzCOB.removeDisableToInput(`${scrId}ReAssessCompleteBtn_${item}`);
+        })
+        apz.app.DBbase.paintDocumentName('ReAssesmentDoc','Applicant');
+    }
+};
+apz.app.DBLoanDetails.paintDeviationData = function() {
+    ['deviationMetricSumHeader', 'deviationMetricSumList'].hide();
+    if (apz.isNull(inSessionStore.deviationRATrackerList)/* && inSessionStore?.deviationRATrackerList?.length <= 0*/) {
+        return;
+    }
+    if (inSessionStore.deviationRATrackerList?.length <= 0) return;
+    const deviationTM = inSessionStore.deviationRATrackerList?.filter(el => el?.recordType === "CA_DEVIATION") || [];
+    if (!apz.isNull(deviationTM) && deviationTM.length > 0) {
+        ['deviationMetricSumHeader', 'deviationMetricSumList'].show();
+        let paintDeviation = []
+        deviationTM.forEach(el => {
+            paintDeviation.push({
+                deviationRecordMsg: el?.recordMsg,
+                deviationRemarks: el.remarks || '-',
+                deviationApprovedByTM: `${el?.authority==='SYSTEM' ? "Auto approved" : el?.authority} (${el.approvedTimeStamp})`
+            })
+        })
+        apz.data.scrdata.DBkitG__IpaintDeviationsummary_Res = [];
+        apz.data.scrdata.DBkitG__IpaintDeviationsummary_Res = paintDeviation;
+        apz.data.loadData('IpaintDeviationsummary', apz.currAppId);
+        paintDeviation.forEach((el, item) => {
+            ApzCOB.removeDisableToInput(`${scrId}deviationApprovedBtn_${item}`);
+        })
+    }
+};
+apz.app.DBLoanDetails.paintSanctionSummary = function() {
+    let ts = '';
+    let ldate = '';
+    let paintArr = [];
+    let latestTimeline = [];
+    let stageMap = {};
+    ["Pre Sanction", "Sanction", "Resanction"].forEach(stage => {
+    const item = inSessionStore.applicationTimelineDtl.findLast(el => el.stage === stage);
+    if (item) {
+        latestTimeline.push(item);
+    }
+    });
+    latestTimeline.filter(el => {
+        if (!el.actionTaken.includes("Sent Back")) {
+            ldate = typeof(el.timeStamp) === 'string' ? ApzCOB.dateformatter(new Date(el.timeStamp.split(' ')[0]), "d/m/Y") : '---';
+            ts = el.timeStamp.slice(12, 20);
+            let obj = {
+                "stage": el.stage.charAt(0).toUpperCase() + el.stage.slice(1).toLowerCase(),
+                "status": el.status ?? "Approved",
+                "userId": el.userId,
+                "timeStamp": ldate + ' / ' + ts,
+                "amount": '-'
+            }
+            if (!apz.isNull(el.remarks)) {
+                obj.amount = el.remarks.includes('|') ? ApzCOB.formatamountVal(el.remarks.split('|')[0]) : '-';
+            }
+            if (el.stage === "Pre Sanction") {
+                obj.amount = ApzCOB.formatamountVal(
+                    inSessionStore?.loanDetails?.presactionLoanAmount ||
+                    inSessionStore?.loanDetails?.bmRecommendedLoanAmount
+                );
+            }
+            paintArr.push(obj)
+        }
+    })
+    apz.data.scrdata.DBkitG__IpaintSanctionsummary_Res = [];
+    apz.data.scrdata.DBkitG__IpaintSanctionsummary_Res = paintArr;
+    apz.data.loadData('IpaintSanctionsummary', apz.currAppId);
+}

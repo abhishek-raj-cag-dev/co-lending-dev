@@ -1,0 +1,29 @@
+{
+  "keysForContent": {
+    "title": "CreditAccess Grameen Limited",
+    "applicationName": "KFS ସାରାଂଶ",
+    "LoanProductName": "ଋଣ ଉତ୍ପାଦର ନାମ",
+    "subHeading": "(ସୁଧ ହାର ଏବଂ ଫିସ୍/ଦେୟ)",
+    "Rs": "ଟ.",
+    "LoanAmountSanctioned": "ମଞ୍ଜୁର ହୋଇଥିବା ଋଣ ରାଶି",
+    "RepaymentFrequency": "ପରିଶୋଧର ଫ୍ରିକ୍ୱେନ୍ସୀ",
+    "NumberofInstalments": "କିସ୍ତିର ସଂଖ୍ୟା",
+    "InstalmentAmount": "କିସ୍ତି ପରିମାଣ",
+    "Interest": "ସୁଧ ହାର%",
+    "loantenor": "ଋଣ ଅବଧି ମଧ୍ୟରେ ଆଦାୟ ହେବାକୁ ଥିବା ମୋଟ ସୁଧ ପରିମାଣ",
+    "ProcessingFees": "GST ସମେତ ପ୍ରକ୍ରିୟାକରଣ ଫିସ୍",
+    "ProcessingFeesValue": "___________% ଏବଂ ଟ. ______________",
+    "InsuranceCoverage": "ବୀମା ପ୍ରିମିୟମ ସଂଗ୍ରହ",
+    "StampdutyCharges": "ଷ୍ଟାମ୍ପ ଡ୍ୟୁଟି ଦେୟ",
+    "LatePaymentChargesGST": "ବିଳମ୍ବ ଦେୟ ଶୁଳ୍କ + GST",
+    "LatePaymentChargesGSTValue": "ଟ.___________/-",
+    "Perinstalment": "ପ୍ରତି କିସ୍ତି",
+    "AnnualPercentageRate": "ବାର୍ଷିକ ଶତକଡ଼ା ହାର (APR %)",
+    "DetailsIntro": "ଋଣଗ୍ରହୀତା/ ସହ-ଋଣଗ୍ରହୀତାମାନେ କମ୍ପାନୀଠାରୁ ଋଣର ମୂଲ୍ୟ ନିର୍ଦ୍ଧାରଣ ଉପରେ ପରିଶୋଧ ସିଟ୍ ଏବଂ ମୁଖ୍ୟ ତଥ୍ୟ ବିବୃତ୍ତି ପାଇଛନ୍ତି। ସେ ନିଶ୍ଚିତ କରନ୍ତି ଯେ ମୁଖ୍ୟ ତଥ୍ୟ ବିବୃତ୍ତିର ବିବରଣୀ ତାଙ୍କୁ ବୁଝାଇ ଦିଆଯାଇଛି, ଏବଂ ସେ ସେଗୁଡ଼ିକୁ ବୁଝିଛନ୍ତି।",
+    "Details1": "ମୁଁ/ଆମେ CreditAccess Grameen Limited ଦ୍ୱାରା ଜାରୀ କରାଯାଇଥିବା ଅନୁମୋଦନ ପତ୍ର (Sanction Letter), ଋଣ ପୂର୍ଣ୍ଣ ପାଇଁ ଅଦାୟ ତାଲିକା (Loan Repayment Schedule) ଏବଂ ଋଣର ମୂଲ୍ୟ ନୀତି ଓ ଅନ୍ୟାନ୍ୟ ମୂଲ୍ୟବୋଧକ ସର୍ତ୍ତଗୁଡିକର Key Fact Statement ପ୍ରାପ୍ତ କରିଛି। ମୁଁ/ଆମେ ପୃଷ୍ଠାଗତ Key Fact Statement ବିଷୟବସ୍ତୁ ମୋ/ଆମ ପାଇଁ ଯଥାଯଥ ବ୍ୟାଖ୍ୟା କରାଯାଇଛି ବୋଲି ନିଶ୍ଚିତ କରୁଛି/କରୁଛୁ, ଏବଂ ମୁଁ/ଆମେ ଏହାକୁ ଭଲଭାବେ ବୁଝିଥିଲୁ/ବୁଝିଛୁ। ମୁଁ/ଆମେ ଏହିପରି ଘୋଷଣା କରୁଛୁ/କରୁଛୁ ଯେ, Sanction Letter, Loan Repayment Schedule ଏବଂ Key Fact Statementରେ ଦିଆଯାଇଥିବା ଶରତ୍ତ ଏବଂ ନିୟମମାନଙ୍କୁ ସ୍ପଷ୍ଟ ଭାବେ ଗ୍ରହଣ କରିଛି/କରିଛୁ ଏବଂ ସେମାନଙ୍କ ପାଳନରେ ବନ୍ଧିତ ହେବାକୁ ସ୍ୱୀକୃତି ଦେଉଛି/ଦେଉଛୁ।",
+	"Details2": "ମୁଁ/ଆମେ CreditAccess Grameen Limited ଦ୍ୱାରା ଜାରୀ କରାଯାଇଥିବା ଅନୁମୋଦନ ପତ୍ର (Sanction Letter), ଋଣ ପୂର୍ଣ୍ଣ ପାଇଁ ଅଦାୟ ତାଲିକା (Loan Repayment Schedule) ଏବଂ ଋଣର ମୂଲ୍ୟ ନୀତି ଓ ଅନ୍ୟାନ୍ୟ ମୂଲ୍ୟବୋଧକ ସର୍ତ୍ତଗୁଡିକର Key Fact Statement ପ୍ରାପ୍ତ କରିଛି। ମୁଁ/ଆମେ ପୃଷ୍ଠାଗତ Key Fact Statement ବିଷୟବସ୍ତୁ ମୋ/ଆମ ପାଇଁ ଯଥାଯଥ ବ୍ୟାଖ୍ୟା କରାଯାଇଛି ବୋଲି ନିଶ୍ଚିତ କରୁଛି/କରୁଛୁ, ଏବଂ ମୁଁ/ଆମେ ଏହାକୁ ଭଲଭାବେ ବୁଝିଥିଲୁ/ବୁଝିଛୁ। ମୁଁ/ଆମେ ଏହିପରି ଘୋଷଣା କରୁଛୁ/କରୁଛୁ ଯେ, Sanction Letter, Loan Repayment Schedule ଏବଂ Key Fact Statementରେ ଦିଆଯାଇଥିବା ଶରତ୍ତ ଏବଂ ନିୟମମାନଙ୍କୁ ସ୍ପଷ୍ଟ ଭାବେ ଗ୍ରହଣ କରିଛି/କରିଛୁ ଏବଂ ସେମାନଙ୍କ ପାଳନରେ ବନ୍ଧିତ ହେବାକୁ ସ୍ୱୀକୃତି ଦେଉଛି/ଦେଉଛୁ।",
+    "BorrowerNameSign": "ଋଣଗ୍ରହୀତା ନାମ ଏବଂ ଦସ୍ତଖତ",
+    "AuthorizedSignatory": "ପ୍ରାଧିକୃତ ସ୍ୱାକ୍ଷରକାରୀ",
+    "CoBorrowerNameSign": "ସହ-ଋଣଗ୍ରହୀତା ନାମ ଏବଂ ଦସ୍ତଖତ"
+  }
+}

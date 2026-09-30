@@ -1,0 +1,14 @@
+{
+  "keysForContent": {
+    "applicationName": "ഡിമാൻഡ് പ്രോമിസറി നോട്ട്",
+    "rs": "രൂപ.",
+    "date": "തീയതി :",
+    "place":"സ്ഥലം :",
+    "note": "ആവശ്യപ്പെടുന്നതനുസരിച്ച്,ഞാൻ, <applicantName> വയസ് <applicantAge>, <applicantAddress>, കൂടാതെ <coApplicantName> വയസ് <coApplicantAge>, <coApplicantAddress> എന്നിവർ, ഞങ്ങൾക്ക് ലഭിച്ച വായ്പയുമായി ബന്ധപ്പെട്ട്, ക്രെഡിറ്റ്ആക്‌സസ് ഗ്രാമീൺ ലിമിറ്റഡ് (സിഎ ഗ്രാമീൺ) അല്ലെങ്കിൽ അവർ നിർദ്ദേശിക്കുന്നവർക്ക്, രൂപ. <sanctionedAmount> ( <sanctionedAmountInWords> ) @ <rateOfInterest> വാർഷിക പലിശ സഹിതം നൽകാമെന്ന് സംയുക്തമായും വ്യക്തിഗതമായും സമ്മതിക്കുന്നു.",
+	"noteNew": "ആവശ്യപ്പെടുന്നതനുസരിച്ച്,ഞാൻ, <applicantName> വയസ് <applicantAge>, <applicantAddress>, കൂടാതെ <coApplicantName> വയസ് <coApplicantAge>, <coApplicantAddress> എന്നിവർ, ഞങ്ങൾക്ക് ലഭിച്ച വായ്പയുമായി ബന്ധപ്പെട്ട്, ക്രെഡിറ്റ്ആക്‌സസ് ഗ്രാമീൺ ലിമിറ്റഡ് (സിഎ ഗ്രാമീൺ) അല്ലെങ്കിൽ അവർ നിർദ്ദേശിക്കുന്നവർക്ക്, രൂപ. <sanctionedAmount> ( <sanctionedAmountInWords> ) @ <rateOfInterest> വാർഷിക പലിശ സഹിതം നൽകാമെന്ന് സംയുക്തമായും വ്യക്തിഗതമായും സമ്മതിക്കുന്നു.",
+    "loanAccount": "വായ്പ അക്കൗണ്ട് നമ്പർ:",
+    "applicantName": "1. അപേക്ഷകൻ്റെ പേര്:",
+    "signature": "ഒപ്പ്:",
+    "coApplicantName": "2. സഹ-അപേക്ഷകൻ്റെ പേര്:"
+  }
+}

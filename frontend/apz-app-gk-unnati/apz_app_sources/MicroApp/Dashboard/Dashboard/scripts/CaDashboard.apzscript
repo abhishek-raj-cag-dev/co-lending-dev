@@ -1,0 +1,105 @@
+let scrId = "Dashbo__CaDashboard__";
+window.isRPCLogin = true;
+let searchVal = '';
+window.rpcDashboardTypes = ['PENDING', 'COMPLETED', 'PUSHBACK'];
+window.rpcDashboardActiveType = 'PENDING';
+window.isRpcDashboardPreview = false;
+let headerarrId = ['rpc_COMPLETED_Tab', 'rpc_PENDING_Tab', 'rpc_PUSHBACK_Tab'];
+apz.app.onLoad_CaDashboard = function() {
+    $(`#${BaseScrId}sc_col_283`).removeClass("sno");
+    $(`#${BaseScrId}sc_row_200`).removeClass("dashbrd-header");
+    if (($("body").hasClass("crdas"))) {
+        $("body").removeClass("crdas");
+    }
+    if (!($("body").hasClass("unati"))) {
+        $("body").addClass("unati");
+    }
+};
+apz.app.onShown_CaDashboard = function(params) {
+    window.LoanStatusDtls = params;
+    $(`#${BaseScrId}loggedInUserName_txtcnt`).text(
+        `${LoggedInUserDetails.loginResponse.userDet.name} (${LoggedInUserDetails.loginResponse.userDet.id})`);
+    apz.app.NewDashBoard.commonElemHiding();
+    if (gApzCOB.selectedRole == 'RPC_Maker') {
+        apz.app.NewDashBoard.makerScrPainting();
+        $(`#${BaseScrId}loggedInRole_txtcnt`).text("Role: RPC Maker");
+    } else if (gApzCOB.selectedRole == 'RPC_Checker') {
+        apz.app.NewDashBoard.checkerScrPainting();
+        $(`#${BaseScrId}loggedInRole_txtcnt`).text("Role: RPC Checker");
+    }
+    if (LoggedInUserDetails.loginResponse.addInfo1 === "BM") {
+        apz.app.CaDashboard.creditApp();
+    }
+    ApzCOB.fetchSubProduct();
+};
+apz.app.CaDashboard.creditAssFetchAppDetails = function(pthis) {
+    if (window.ISREQ || apz.deviceType !== "WEB") {
+        let rowno = document.getElementById(pthis.id).getAttribute('rowno');
+        window.data = apz.data.scrdata.Dashbo__IPaintCreditAss_Res[rowno];
+        let applnId = data.applicationId;
+        let req = {
+            "apiRequest": {
+                "interfaceName": "",
+                "appId": gAppId,
+                "requestObj": {
+                    "applicationId": applnId,
+                    "userId": gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                    "appId": gApzCOB.userDetails.appId,
+                    "versionNum": 1
+                }
+            }
+        }
+        apz.startLoader();
+        setTimeout(() => {
+            ApzCOB.serverBuildParam(gAppId, "FetchApplication", "N", "N", req, false, apz.app.CaDashboard.creditAssessFetchapplicationCB);
+        }, 1000)
+    } else {
+        ApzCOB.showNewCommonErrorModal("Please use the TAB version.");
+    }
+};
+apz.app.CaDashboard.creditAssessFetchapplicationCB = function(params) {
+    let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchApplication_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            ApzCOB.launchMicroApp('CrdAss', 'Cabase', 'APZCBO__BaseScreens__BaseDIV', '');
+        } else {
+            apz.stopLoader();
+            if (params.res.APZCBO__FetchApplication_Res.apiResponse.ResponseBody.responseObj == ApzCOB.getDescfromLitCode("LIT_fetchLockAppli")) {
+                $(`#${scrId}locktxt_txtcnt`).text(ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"));
+                ApzCOB.toggleModal(scrId + 'lockModal');
+            } else {
+                $(`#${scrId}locktxt_txtcnt`).text(errMsg);
+                ApzCOB.toggleModal(scrId + 'lockModal');
+            }
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.toggleModal(scrId + 'lockModal');
+        $(`#${scrId}locktxt_txtcnt`).html(technicalErrMsg);
+    }
+};
+apz.app.CaDashboard.creditApp = function() {
+    let allArrData = [];
+    if (!apz.isNull(window.dashTaskData)) {
+         let creditAssessmentData = window.dashTaskData.map.pendingBCMPI.myArrayList;
+        for (let i of creditAssessmentData) {
+            allArrData.push(i.map);
+        }
+    }
+    apz.data.scrdata.Dashbo__IPaintCreditAss_Res = allArrData;
+    apz.data.loadData('IPaintCreditAss', 'Dashbo');
+}

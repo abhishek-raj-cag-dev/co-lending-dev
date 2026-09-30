@@ -1,0 +1,233 @@
+apz.app.Common = {};
+apz.app.CommonValidator = {};
+apz.app.BaseScreens = {};
+apz.app.SelectProduct = {};
+apz.app.CustomerVerification = {};
+apz.app.KYCVerification = {};
+apz.app.PersonalDetails = {};
+apz.app.NomineeDetails = {};
+apz.app.EmploymentDetails = {};
+apz.app.BankingFacilities = {};
+apz.app.UploadDocuments = {};
+apz.app.KYCMode = {};
+apz.app.Declaration = {};
+apz.app.ReviewConfirm = {};
+apz.app.Login = {};
+apz.app.Widget = {};
+apz.app.viewallapplication = {};
+apz.app.DashboardViewAllApplication = {};
+apz.app.SearchApplication={}
+apz.app.Approvals = {};
+apz.app.InProgress = {};
+apz.app.Rejected = {};
+apz.app.AssignedLeads = {};
+apz.app.Completed = {};
+apz.app.PushBack = {};
+apz.app.PendingCreditAssesment = {};
+apz.app.PendingResanction = {};
+apz.app.PendingSanction = {};
+apz.app.Dashboard = {};
+apz.app.StatusReport = {};
+apz.app.ProductStatusReport = {};
+apz.app.Landing = {};
+apz.app.ReviewConfirm = {};
+apz.app.SetPassword = {};
+apz.app.ForgotPassword = {};
+apz.app.FATCADeclaration = {};
+apz.app.CRSDeclaration = {};
+apz.app.FixedDeposit = {};
+apz.app.InitialFundRD = {};
+apz.app.AutoPayMI = {};
+apz.app.RecDeposit = {};
+apz.app.CardService = {};
+apz.app.LoanDetails = {};
+apz.app.EMIDetails = {};
+apz.app.CreditDetails = {};
+apz.app.ResPinCode = {};
+apz.app.ApplicationList = {};
+apz.app.SearchLeads = {};
+apz.app.NewDashBoard = {};
+apz.app.PrimaryKycRPC = {};
+apz.app.PANDetailsRPC = {};
+apz.app.ResidencePhotoRPC = {};
+apz.app.ResidenceAddressProofRPC = {};
+apz.app.BusinessPhotoRPC = {};
+apz.app.BusinessAddressProofRPC = {};
+apz.app.BankAccountProofRPC = {};
+apz.app.OtherInformationRPC = {};
+apz.app.SecondaryKYCRPC = {};
+apz.app.CustomerPhotoRPC = {};
+apz.app.SelectYourRole = {};
+apz.app.RPCSidebar = {};
+apz.app.RpcApplicationHeader = {};
+apz.app.RPCFooter = {};
+apz.app.RpcStageScreen = {};
+apz.app.RPC_Query = {};
+apz.app.RPCDocumentSection = {};
+apz.app.Cabase = {};
+apz.app.CaDashboard ={};
+apz.app.Caloandetails ={};
+apz.app.AddressContactus = {};
+apz.app.Insurancedetails = {};
+apz.app.CaInPrincipleDecision = {};
+apz.app.commonca = {};
+apz.app.photokyc = {};
+apz.app.CaIncomeDetails = {};
+apz.app.InformalLoanObligation = {};
+apz.app.CaotherDetails = {};
+apz.app.CaReviewConfirm = {};
+apz.app.CaEkyc = {};
+apz.app.SanctionDashboard = {};
+apz.app.DeviationSanctBase = {};
+apz.app.Saloandetails = {};
+apz.app.SanctionSuc = {};
+//DBKIT
+apz.app.DBbase = {};
+apz.app.DBLoanDetails = {};
+apz.app.eNach = {};
+apz.app.UdyamReg = {};
+apz.app.DocExecutionUnnati = {};
+apz.app.DocExecutionManual = {};
+apz.app.DocExecutionPrayaas = {};
+apz.app.AdditionalDocuDigital = {};
+apz.app.AdditionalDocuManual = {};
+apz.app.RPCVerificationStatus = {};
+apz.app.Disbursement = {};
+apz.app.WelcomeKit = {};
+apz.app.DisbursementStatus = {};
+//RPCDBVerification
+apz.app.RPCDBVerify = {};
+apz.app.RPCdbsanctionDtl = {};
+apz.app.RPCDBDocExecutionUnnati = {};
+apz.app.RPCDBeNach = {};
+apz.app.RPCDBUdyamReg = {};
+apz.app.RPCDBReviewCnf = {};
+apz.app.WelcomeKit = {};
+apz.app.commonPreview = {};
+apz.app.PreviewApplicantDetails = {};
+apz.app.PreviewCA = {};
+apz.app.PreviewSanction = {};
+apz.app.PreviewDBGenreation = {};
+apz.app.PreviewDBveriification = {};
+apz.app.LUCBase = {};
+apz.app.LUCDetails = {};
+apz.app.Kmbase = {};
+apz.app.Kmcommon = {};
+apz.app.CBcheck = {};
+apz.app.AadhaarDetails = {};
+apz.app.AddressDetails = {};
+apz.app.documentCapture = {};
+apz.app.BusinessIncome = {};
+apz.app.OtherInformation = {};
+apz.app.KMReviewConfirm = {};
+apz.app.Kmcommon = {};
+apz.app.AdditionalLoanPreview = {};
+setOrientation = function() { //TO SET THE MOBILE APP TO WORK ALWAYS IN PORTRAIT MODE
+    var json = {};
+    json.orientation = "PORTRAIT";
+    apz.ns.setOrientation(json);
+}
+if (apz.deviceType !== "WEB") {
+    setOrientation();
+}
+Array.prototype.show = function() {
+  $.map(this, function(item){
+        $('#' + apz.currAppId + '__' + apz.childScr + '__' + item).removeClass('sno');
+})
+}
+Array.prototype.hide = function() {
+  $.map(this, function(item){
+        $('#' + apz.currAppId + '__' + apz.childScr + '__' + item).addClass('sno');
+})
+}
+Array.prototype.unique = function() {
+    return Array.from(new Set(this));
+}
+
+// select product
+var SelProdScrId = 'Select__SelectProduct__';
+// var cmpCount = 0;
+var tempArr = [];
+var compArr = [];
+var prodArr = [];
+var selectedProd = [];
+var data = [];
+var b = '';
+var feature = '';
+var benefits = '';
+var CompareDiscription = 'CompareDescTbl_tbody  tr ';
+var groupCode = '';
+//var groupName = '';
+//var productGroupDesc = '';
+var AddToCompare = 'Add to compare';
+var changeMainProduct = '';
+var comDivDash = 'Select__SelectProduct__productList';
+var comSubDivDash = 'Select__SelectProduct__subProductList';
+var comComDiv = 'Select__SelectProduct__compareList';
+var swipercontainertext = "swiper-container";
+var dashboNextBtn = '#Select__SelectProduct__next';
+var dashboPrevBtn = '#Select__SelectProduct__prev';
+var swiperBtnDisable = 'swiper-button-disabled';
+var SecondaryProduct = 'secondary-product';
+var BaseScroll = "#APZCBO__BaseScreens__baseScroll";
+var ProductScreen = 'product-screen';
+var SelectProductName = "select-product";
+var SwiperWrapper = "swiper-wrapper";
+var SwiperSlider = "swiper-slide";
+var SwiperButtonPrev = "swiper-button-prev";
+var SwiperButtonNext = "swiper-button-next";
+var SwiperContainer = '.swiper-container';
+var SwiperPagination = '.swiper-pagination';
+var count = 0;
+/*window.DisbursementDocs = [
+  { id: 1, docType: "LOAN_APPLICATION", displayName: "Loan Application", fileName: "",  size: "", base64:"" },
+  { id: 2, docType: "SANCTION_LETTER", displayName: "Sanction letter", fileName: "",  size: "", base64:"" },
+  { id: 3, docType: "KFS", displayName: "Key Facts Statement (KFS)", fileName: "",  size: "", base64:"" },
+  { id: 4, docType: "LOAN_AGREEMENT", displayName: "Loan Agreement Document", fileName: "",  size: "", base64:"" },
+  { id: 5, docType: "SCHEDULE_A_KFS", displayName: "Schedule A And KFS summary", fileName: "",  size: "", base64:"" },
+  { id: 6, docType: "INSURANCE_CONSENT", displayName: "Insurance consent form", fileName: "",  size: "", base64:"" },
+  { id: 7, docType: "MSME", displayName: "MSME declaration", fileName: "",  size: "", base64:"" },
+  { id: 8, docType: "CONSENT_LETTER_NEW", displayName: "Consent letter", fileName: "",  size: "", base64:"" },
+  { id: 9, docType: "DEMAND_PROMISSORY_NOTE", displayName: "DPN", fileName: "",  size: "", base64:"" },
+  { id: 10, docType: "OTHER_DBDOCS", displayName: "Others", fileName: "", size: "", base64:"" }
+];*/
+window.RPCDBVerify_STAGES = {
+    RPCdbsanctionDtl: {
+        id: 1,
+        name: "Sanction details",
+        stageName: "RPCdbsanctionDtl"
+    },
+    RPCDBeNach: {
+        id: 2,
+        name: "e-NACH verification",
+        stageName: "RPCDBeNach"
+    },
+    RPCDBUdyamReg: {
+        id: 3,
+        name: "Udyam verification",
+        stageName: "RPCDBUdyamReg"
+    },
+    RPCDBDocExecutionUnnati: {
+        id: 4,
+        name: "Document execution (Digital)",
+        stageName: "RPCDBDocExecutionUnnati"
+    },
+    RPCDBReviewCnf: {
+        id: 5,
+        name: "Review and Confirm",
+        stageName: "RPCDBReviewCnf"
+    }
+};
+window.getAppVersion = () => {
+    var json = {};
+json.id = "APPVERSION";
+json.callBack = versionCallback;
+json.appId = apz.appId;
+apz.ns.getAppVersion(json);
+}
+
+var versionCallback = param => {
+  window.APP_VERSION = "V"+param.appVersion;  
+}
+window.DBKitEsign = {};
+window.aplliTypeTxt = "Applicant";

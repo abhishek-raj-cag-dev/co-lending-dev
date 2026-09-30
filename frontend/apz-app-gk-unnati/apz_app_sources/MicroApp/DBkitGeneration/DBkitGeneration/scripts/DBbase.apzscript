@@ -1,0 +1,1536 @@
+var DbbaseScrId = 'DBkitG__DBbase__',
+ dbErrorModalID = 'DBkitG__DBbase__dberrorModal',
+ dbConfModalID = 'DBkitG__DBbase__dbconfirmationModal',
+ dbSuccessModalID = 'DBkitG__DBbase__dbsuccessModal',
+ QLelementID = `${DbbaseScrId}queryList_row_0`,
+ QLParentDiv = $(`#${DbbaseScrId}queryList ul`),
+ disbursementHeaderId = $(`#${DbbaseScrId}DisbursementHeader_hyp`),
+ statusObject = {},
+ clickedAction = '',
+ raisedQueries = [],
+ finalSBQueries = [],
+ sbQueryResponse = '',
+ CASendBackList = ["Q2", "Q3", "OTH"];
+window.DB_CURRENT_STAGE_NO = '';
+window.DB_CURRENT_STAGE = '';
+window.ALL_eNACH_BANKS = '';
+window.currApplicantBankAcc = '';
+window.shownQueries = [];
+window.selectedQueries = [];
+window.returnSBQueries = [];
+window.IS_WELCOMEKIT_VIEW = false;
+window.IS_DISBURSEMENT_STAGE_MOVEMENT = false;
+window.applicationStatus = dashBoardtitle === 'DISBURSEMENT PENDING' ? "DISBURSEMENT" :  inSessionStore?.applicationMaster?.applicationStatus;
+window.isAdditionalProduct = window.AdditionalProducts.includes(inSessionStore?.applicationMaster?.productCode) || false;
+window.isAdditionalProdOptionalCoApp = window.AdditionalProductsOptionalCoApp.includes(inSessionStore?.applicationMaster?.productCode);
+window.DBKIT_STAGES = {
+    DBLoanDetails: { id: 1, name: "Loan details" },
+    eNach: { id: 2, name: "e-NACH registration" },
+    UdyamReg: { id: 3, name: "Udyam registration" },
+    DocExecutionUnnati: { id: 4, name: "Document Execution (Digital)" },
+    DocExecutionManual: { id: 5, name: "Document Execution (Manual)" },
+    DocExecutionPrayaas: { id: 6, name: "Document Execution (Prayaas)" },
+    AdditionalDocuDigital: { id: 7, name: "Additional documentation (Digital)" },
+    AdditionalDocuManual: { id: 8, name: "Additional documentation (Manual)" },
+    RPCVerificationStatus: { id: 9, name: "RPC verification status" },
+    Disbursement: { id: 10, name: "Disbursement" },
+    WelcomeKit: { id: 11, name: "Welcome kit" },
+    DisbursementStatus: { id: 12, name: "Disbursement status" }
+};
+apz.app.onLoad_DBbase = function() {
+    //ApzCOB.fetchSubProduct();//Call while showing DB Dashboard.
+    window.AppCustomerId = ApzCOB.getCustDetailID("Applicant");
+    window.CoAppCustomerId = ApzCOB.getCustDetailID("Co-App");
+    apz.app.DBbase.updateHeaderDetails();
+    window.picture = $('#DBkitG__DBbase__imgView');
+    ApzCOB.intializeGuillotine(picture);
+};
+apz.app.onShown_DBbase = function() {
+     ApzCOB.addApplicationTag();
+    $('body').addClass(' unati crdas dbkit ');
+    const child = document.getElementById("DBkitG__DBbase__eNachRow");
+    if (child && isAdditionalProduct) {
+      child.style.display = "none";
+    }
+    var dialog =
+        `<div id="pdfDialog" class="sno"></div>`;
+    $("div[id=pdfDialog]").remove();
+    $(document.body).append(dialog);
+    $('#APZCBO__BaseScreens__baseScroll').removeClass('custom-form-launch var2');
+    $('#APZCBO__BaseScreens__landingRowHeader').addClass('sno');
+    if(["DBKITVERIFIED", "DISBURSED"].includes(applicationStatus)) {
+        disbursementHeaderId.addClass('active');
+        $(`#${DbbaseScrId}disbDocumentationRow .current`).removeClass('current');
+        $(`#${DbbaseScrId}DBLoanDetails_hyp_txtcnt`).text("Sanction Details");
+    }
+    const ids = ['eNachRow','UdyamRegRow','DocExecutionUnnatiRow','DocExecutionManualRow'];
+    const menuSelector = ids.map(id => `#${DbbaseScrId}${id}`).join(',');
+    $(`#${DbbaseScrId}disbursmentMenu`).removeClass('sno');
+    $(menuSelector).addClass('sno');
+    if (applicationStatus === 'DBKITVERIFIED') {
+        $(`#${DbbaseScrId}Disbursement_hyp`).addClass('current');
+        $(`#${DbbaseScrId}backBtn,#${DbbaseScrId}disburseBtn`).removeClass('sno');
+        if(!window.isAdditionalProduct){
+            $(`#${DbbaseScrId}camHypRow,.extDocument`).removeClass('sno');//
+        }
+        ApzCOB.launchSubScreen("Disbursement", `${DbbaseScrId}DbkitLaunchDiv`);
+    } else if (applicationStatus === 'DISBURSED') {
+        apz.app.DBbase.addCompleteStatus(`${DbbaseScrId}Disbursement_hyp`);
+        $(`#${DbbaseScrId}sendbackBtn,#${DbbaseScrId}nextBtn`).addClass('sno');
+        $(`#${DbbaseScrId}submitBtn`).removeClass('sno');
+        if(!window.isAdditionalProduct){
+            $(`#${DbbaseScrId}camHypRow,.extDocument`).removeClass('sno');
+        }
+        $(`#${DbbaseScrId}WelcomeKit_hyp`).addClass('current');
+        ApzCOB.launchSubScreen("WelcomeKit", `${DbbaseScrId}DbkitLaunchDiv`);
+    } else if(applicationStatus === 'SANCTIONED' || applicationStatus === 'DBPUSHBACK'){
+        $(`#${DbbaseScrId}disbursmentMenu`).addClass('sno');
+        $(menuSelector).removeClass('sno');
+        $(`#${DbbaseScrId}sendbackBtn,#${DbbaseScrId}nextBtn,#${DbbaseScrId}backBtn`).removeClass('sno');
+        if(!window.isAdditionalProduct){
+         $(`#${DbbaseScrId}camHypRow,#${DbbaseScrId}loanAppHypRow`).removeClass('sno');
+        }
+        $(`#${DbbaseScrId}sanctionHypRow,#${DbbaseScrId}kfsHypRow`).removeClass('sno');
+        $(`#${DbbaseScrId}disburseBtn`).addClass('sno');
+        $(`#${DbbaseScrId}DBLoanDetails_hyp`).click();
+        $(`#${DbbaseScrId}sidebarlist_row a`).each(function() {
+            ApzCOB.addDisableToInput(this.id)
+        }); // disabling sidebar navigation
+        ApzCOB.dbKitSideMenuStatusCheck();
+        if (inSessionStore.applicationMaster.productCode === '1009') {
+            window.ApplicationType = 'NEW';
+            window.leadNode = 'cdhLeadDetails';
+        } else if (inSessionStore.applicationMaster.productCode === '1001') {
+            window.ApplicationType = 'OpenMarket';
+            window.leadNode = 'cdhLeadDetails';
+        }
+        else if (inSessionStore.applicationMaster.productCode === '1002') {
+            window.ApplicationType = 'RENEWAL';
+            window.leadNode = 'cdhLeadDetails';
+        }
+        ApzCOB.FetchDBKITMasterData("ALL");
+        ApzCOB.fetcheNachBankData();
+        if (!apz.isNull(inSessionStore.documentList) && inSessionStore?.documentList?.length > 0) {
+            $(`#${DbbaseScrId}DocExecutionManualRow`).removeClass('sno');
+        }
+    }
+    if (applicationStatus === 'DBPUSHBACK') {
+        $(`#${DbbaseScrId}DocExecutionUnnatiRow`).addClass('sno');
+    }
+    if(window.isAdditionalProduct){ 
+        $(`#${DbbaseScrId}souringdetails_row`).addClass('sno');
+        $(`#${DbbaseScrId}rpc_row`).addClass('sno');
+       if(window.isAdditionalProdOptionalCoApp){
+        $(`#${DbbaseScrId}ApplicantCBreport_row`).addClass('sno');
+        $(`#${DbbaseScrId}Co_ApplicantCBreport_row`).addClass('sno');
+        $(`#${DbbaseScrId}CBreport_row`).removeClass('sno');
+        }
+    }
+    apz.app.DBbase.paintHeaderData();
+};
+apz.app.DBbase.updateHeaderDetails = function() {
+    let loginResponse = LoggedInUserDetails.loginResponse;
+    let loginName = loginResponse?.userDet?.name;
+    let loginUserId = loginResponse?.userDet?.id;
+    $(`#${DbbaseScrId}caloggedInUserName_txtcnt`).text(`${loginName} (${loginUserId})`);
+    $(`#${DbbaseScrId}caloggedInRole_txtcnt`).text(`Role:${loginResponse?.addInfo1}`);
+}
+apz.app.DBbase.NavigateSidebar = function(dbsideID, pthis) {
+    raisedQueries = [];
+    finalSBQueries = [];
+    returnSBQueries = [];
+    apz.app.DBbase.nextBtnEnableDisable('enable');
+    $('#DBkitG__DBbase__sidebarForm a').removeClass('active');
+    $('.extDocument').addClass('sno');
+    const disbDocHeaderMenuId = `${DbbaseScrId}disbDocumentation_hyp`;
+    if(pthis.id !== `${DbbaseScrId}DBLoanDetails_hyp`) {
+        if (apz.isNull(inSessionStore.dbKitVerifiedStage) || inSessionStore.dbKitVerifiedStage?.length === 0) {
+            ApzCOB.showNewCommonErrorModal("Please verify Loan Details.");
+            return;
+        } else {
+            if (inSessionStore.dbKitVerifiedStage.length > 0) {
+                let verifiedstageNumbers = inSessionStore.dbKitVerifiedStage.map(entry => parseInt(entry.split('_')[0]));
+                for (let i = 1; i < parseInt(dbsideID); i++) {
+                    if(['1004', '1005', '1006', '1007'].includes(inSessionStore?.applicationMaster?.productCode) && i === 2 ) {
+                        continue;
+                    }
+                    if (!verifiedstageNumbers.includes(i)) {
+                        let screenName = DBKIT_STAGES[Object.keys(DBKIT_STAGES).find(key => DBKIT_STAGES[key].id === i)].name;
+                        if (i === 2 && window.isAdditionalProduct === true) {
+                             continue;
+                        }
+                        if (applicationStatus === 'DBPUSHBACK' && i === 4 && !apz.isNull(inSessionStore.documentList)) {
+                            continue;
+                        }else if (applicationStatus === 'SANCTIONED' ) {
+                            break;
+                        }else {
+                            ApzCOB.showNewCommonErrorModal(`Please verify ${screenName}.`);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        $(`#${disbDocHeaderMenuId}`).addClass('active');
+        $(`#${DbbaseScrId}disbDocumentationRow .current`).removeClass('current');
+        if(pthis.id === `${disbDocHeaderMenuId}`) {
+            $(`#${DbbaseScrId}eNach_hyp`).addClass('current');
+            // add currentClass for unverified stage.
+        } else {
+            $(pthis).addClass('current');
+        }
+    } else {
+        $(pthis).addClass('active');
+        $(`#${DbbaseScrId}disbDocumentationRow .current`).removeClass('current');
+    }
+    let scrName = Object.keys(window.DBKIT_STAGES).find(key => window.DBKIT_STAGES[key].id === parseInt(dbsideID));
+    ApzCOB.launchSubScreen(scrName, `${DbbaseScrId}DbkitLaunchDiv`);
+    ApzCOB.dbKitSideMenuStatusCheck();
+    apz.app.DBbase.addInprogressStatus(`${DbbaseScrId + scrName}_hyp`);
+    window.DB_CURRENT_STAGE_NO = parseInt(dbsideID);
+    ApzCOB.removeDisableToInput("DBkitG__DBbase__backBtn");
+    if (DB_CURRENT_STAGE_NO === 1) {
+        ApzCOB.addDisableToInput("DBkitG__DBbase__backBtn");
+    }
+    $(`#${DbbaseScrId}CAFooter_nav button`).addClass('sno');
+    $(`#${DbbaseScrId}backBtn,#${DbbaseScrId}nextBtn,#${DbbaseScrId}rejectBtn`).removeClass('sno');
+};
+apz.app.DBbase.paintHeaderData = function() {
+    const {
+        applicationMaster: { memberId = "", applicationId = "", branchId = "", branchName = "", productCode = "", kendraId = "", kendraName = "" } = {}
+    } = inSessionStore;
+    let productName = subProductResponse?.filter(el => el.productCode === productCode )?.[0]?.productName;
+    productName = (productName == 'Vishesh') ? 'Unnati Lite' : productName;
+    const custName = ApzCOB.getPayloadDatafromWrapper('customerName','Applicant','customerDetailsList');
+    const setText = (id, value) => $(`#${DbbaseScrId + id}`).text(value);
+    const LoanID = ApzCOB.getPayloadDatafromWrapper('t24LoanId','Applicant','loanDetails') || '-';
+    const custId = (ApplicationType === 'OpenMarket') ? inSessionStore?.cdhLeadDetails?.t24CustId : memberId;
+    setText("custNameID_txtcnt", `${custName} / ${custId}`);
+    setText("applicationId_txtcnt", applicationId);
+    setText("branchInfo_txtcnt", `${branchId} / ${branchName}`);
+    setText("kendraIDName_txtcnt", `${kendraId} / ${kendraName}`);
+    setText("loanProduct_txtcnt", productName);
+    setText("loanID_txtcnt", LoanID);
+};
+apz.app.DBbase.closeDBModal = function(modalId) {
+    $(`#${DbbaseScrId + modalId}_close`).click();
+};
+apz.app.DBbase.downloadFiles = function(pdoctype, pcusttype) {//change applicant co app err message on click
+    window.docSelectedType = pdoctype;
+    window.CB_LOAN_ID = '';
+    if (pdoctype === 'CB') {
+        let custType = (pcusttype === "1") ? 'Applicant' : 'Co-App';
+        let custDetailID = ApzCOB.getCustDetailID(custType);
+        CB_LOAN_ID = ApzCOB.getPayloadDatafromWrapper('cbLoanId', custType, 'cibilDetailsWrapperList');
+        if (apz.isNull(CB_LOAN_ID) && window.isAdditionalProduct ) {
+              CB_LOAN_ID = window.isAdditionalProdOptionalCoApp ? "A01" + gApzCOB.userDetails.applicationId : (( window.isAdditionalProduct &&  custType == "Applicant") ? "A01" + gApzCOB.userDetails.applicationId : "C01" + gApzCOB.userDetails.applicationId  );
+        }
+        ApzCOB.downloadBRECbReport(custDetailID);
+    } else if (pdoctype === 'EXECUTED') {
+        let currLanguage = ApzCOB.getPayloadDatafromWrapper('language', 'Applicant', 'loanDetails');
+        CB_LOAN_ID = `${pdoctype}_${gApzCOB.userDetails.applicationId}`
+        ApzCOB.DBDocGenerateAndDownload('', 'FETCH_MANUAL', 'LOAN_APPLICATION', currLanguage, 'Y', apz.app.DBbase.downloadFilesCB, '');
+    } else if (pdoctype === 'REGENERATE') {
+        let currLanguage = '';
+        if (!apz.isNull(inSessionStore.documentRecordDetails) && inSessionStore.documentRecordDetails.length > 0) {
+            currLanguage = inSessionStore?.documentRecordDetails?.[0]?.language;
+        }
+	if (apz.isNull(currLanguage)){
+            currLanguage = ApzCOB.getPayloadDatafromWrapper('language', 'Applicant', 'loanDetails');
+        }
+        CB_LOAN_ID = `${pdoctype}_${gApzCOB.userDetails.applicationId}`;
+        ApzCOB.DBDocGenerateAndDownload('', 'REGENERATE', 'LOAN_APPLICATION', currLanguage, 'Y', apz.app.DBbase.downloadFilesCB, '');
+    } else {
+        CB_LOAN_ID = `${pdoctype}_${gApzCOB.userDetails.applicationId}`
+        req = {
+            "apiRequest": {
+                "requestObj": {
+                    "appId": "APZCBO",
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "reportType": pdoctype,
+                    "generateReport": false
+                },
+                "interfaceName": "GenerateAndDownloadReport"
+            }
+        }
+        apz.startLoader();
+        ApzCOB.serverBuildParam(gAppId, "GenerateAndDownloadReport", "N", "N", req, false, apz.app.DBbase.downloadFilesCB);
+    }
+};
+apz.app.DBbase.downloadFilesCB = function(params) {
+    let b64Data = "",
+        errMsg = "File download failed.!";
+    let interface = ApzCOB.GetInterfaceResMap(params);
+    const apiResponse = params?.res?.[interface]?.apiResponse;
+    if (apz.isObjectEmpty(apiResponse)) return;
+    errMsg = apiResponse?.ResponseHeader?.ResponseMessage ?? errMsg;
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            const responseStr = apiResponse?.ResponseBody?.responseObj;
+            const response = responseStr ? JSON.parse(responseStr) : {};
+            let State = inSessionStore.leadDetails?.glBranchState || inSessionStore.cdhLeadDetails?.glBranchState || '';
+            let match = language.find(item => item.key.toLowerCase().includes(State.toLowerCase()));
+            window.leadLanguage = match ? match.value : '';
+            function proceedAfterPDFReady() {
+                if (['CB'].includes(docSelectedType)) {
+                    apz.app.DBbase.viewDocumentCB(response, 'pdf');
+                } else if (docSelectedType === 'WelcomeLetter' && IS_WELCOMEKIT_VIEW) {
+                    apz.app.WelcomeKit.viewWelcomeKitDoc(response.base64);
+                } else {
+                    ApzCOB.convertBase64ToPDF(b64Data, window.CB_LOAN_ID);
+                }
+            }
+            if (response?.base64) {
+                if (HTMLDOCARRAY.includes(leadLanguage) && !['CamSheetReport', 'CB', 'EXECUTED'].includes(docSelectedType)) {
+                    let convertedBase64 = response.base64;
+                    convertedBase64 = convertedBase64.replace(/\n/g, "");
+                    convertedBase64 = convertedBase64.replace(/\r/g, "");
+                    let decodedHtml = convertedBase64;
+                    let dialog = `<div id="pdfDialog" style="position:absolute; left:-9999px; visibility:visible;"></div>`;
+                    $("div[id=pdfDialog]").remove();
+                    $(document.body).append(dialog);
+                    $("#pdfDialog").html(decodedHtml);
+                    (async () => {
+                        apz.startLoader();
+                        const pages = document.querySelectorAll(".jrPage");
+                        if (pages.length === 0) {
+                            CBBASE64 = b64Data = response.base64;
+                            console.log("No '.jrPage' elements found");
+                            apz.stopLoader();
+                            return;
+                        }
+                        const opt = {
+                            margin: [5, 5, 5, 5],
+                            filename: "download.pdf",
+                            image: {
+                                type: "jpeg",
+                                quality: 1.0
+                            },
+                            html2canvas: {
+                                scale: 1.5,
+                                useCORS: true,
+                                logging: false,
+                            },
+                            jsPDF: {
+                                unit: "mm",
+                                format: "a4",
+                                orientation: "portrait",
+                                compress: true,
+                            },
+                        };
+                        const {
+                            jsPDF
+                        } = window.jspdf;
+                        const pdf = new jsPDF(opt.jsPDF);
+                        for (let i = 0; i < pages.length; i++) {
+                            if (i !== 0) pdf.addPage();
+                            const canvas = await html2canvas(pages[i], opt.html2canvas);
+                            const imgData = canvas.toDataURL("image/jpeg", 1.0);
+                            const pageWidth = pdf.internal.pageSize.getWidth();
+                            const pageHeight = pdf.internal.pageSize.getHeight();
+                            pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, pageHeight);
+                        }
+                        const pdfBase64 = pdf.output("datauristring");
+                        CBBASE64 = b64Data = pdfBase64.split(",")[1];
+                        proceedAfterPDFReady();
+                        apz.stopLoader();
+                    })();
+                } else {
+                    CBBASE64 = b64Data = response.base64;
+                    proceedAfterPDFReady();
+                }
+            } else if (response.mergedBase64) {
+                if (HTMLDOCARRAY.includes(leadLanguage) && !['CamSheetReport', 'CB', 'EXECUTED'].includes(docSelectedType)) {
+                    apz.startLoader();
+                    mergedBase64 = response.mergedBase64;
+                    let trimmed = mergedBase64.trim();
+                    if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html") || trimmed.startsWith("<body")) {
+                        mergedBase64 = mergedBase64.replace(/\n/g, "");
+                        mergedBase64 = mergedBase64.replace(/\r/g, "");
+                        mergedBase64 = mergedBase64.replace(/<hr\b[^>]*>/gi, '');
+                        mergedBase64 = mergedBase64.replace(/<hr\s*\/>/gi, '');
+                        mergedBase64 = mergedBase64.replace(/\swidth\s*=\s*["']50%["']/gi, '');
+                        mergedBase64 = mergedBase64.replace(/(<td[^>]*style=["'][^"']*)width\s*:\s*50%[;]?([^"']*["'][^>]*>)/gi,
+                            (_, before, after) => before + after);
+                        let customStyle = `<style>
+                                                                    .jrPage {
+                                                                                page-break-after: always !important;
+                                                                                width: 100% !important;
+                                                                            }
+                                                                    .jrPage tbody tr td > img {
+                                                                                width: 100% !important;
+                                                                            }
+                                                            </style>`;
+                        if (mergedBase64.includes("</head>")) {
+                            mergedBase64 = mergedBase64.replace("</head>", `${customStyle}</head>`);
+                        } else if (mergedBase64.includes("</body>")) {
+                            mergedBase64 = mergedBase64.replace("</body>", `${customStyle}</body>`);
+                        } else {
+                            mergedBase64 = customStyle + mergedBase64;
+                        }
+                        const blob = new Blob([mergedBase64], {
+                            type: "text/html"
+                        });
+                        const url = URL.createObjectURL(blob);
+                        let btn = document.getElementById('openInTabBtn');
+                        if (!btn) {
+                            btn = document.createElement('button');
+                            btn.id = 'openInTabBtn';
+                        }
+                        btn.onclick = () => window.open(url, '_blank');
+                        apz.stopLoader();
+                        btn.click();
+                    }
+                } else {
+                    apz.stopLoader();
+                    ApzCOB.convertBase64ToPDF(response.mergedBase64, window.CB_LOAN_ID);
+                }
+            } else {
+                apz.stopLoader();
+                ApzCOB.showNewCommonErrorModal("File Not Found.!");
+            }
+        } else {
+            apz.stopLoader();
+            ApzCOB.showNewCommonErrorModal(errMsg);
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showNewCommonErrorModal(errMsg);
+    }
+};
+apz.app.DBbase.scrollToId = function(id) {
+    $(`#${id}`)[0].scrollIntoView({ behavior: 'smooth' });
+};
+apz.app.DBbase.gotoHome = function(modalId) {
+    if(!apz.isNull(modalId)) ApzCOB.closeCommonModal(modalId);
+    apz.app.Login.OnClickMakerChecker("");
+};
+apz.app.DBbase.reject = function() {
+    clickedAction = 'REJECT';
+    $(`#${DbbaseScrId}SUBMIT_querySave`).parent().find('.err').remove();
+    let stageType = '';
+    if(applicationStatus === 'DBKITVERIFIED'){
+        stageType = 'Disbursement';
+        ApzCOB.fetchRpcStageFields(stageType, apz.app.DBbase.fetchStageFieldsCB);
+    } else {
+        let stageMaster = DBKIT_MASTERDATA.filter(el => el.id === DB_CURRENT_STAGE_NO)?.[0]?.rejectReasons;
+        let rejectReasons = JSON.parse(stageMaster ?? '')?.rejectReason;
+        if (window.isAdditionalProduct) {
+            rejectReasons = rejectReasons.filter(item => item.id !== "R2");
+        } 
+        if(Array.isArray(rejectReasons) && rejectReasons.length > 0) {
+            window.shownQueries = [...rejectReasons,{
+            id: "OTH",
+            value: "Other",
+        }];
+        }
+        apz.app.DBbase.paintQueries(shownQueries);
+        ApzCOB.toggleModal(`${DbbaseScrId}queryModal`);
+        $(`#${DbbaseScrId}queryList`).addClass("pb-70");
+        $(".crt-list li").attr("onClick", "");
+        $(`#${DbbaseScrId}otherQueryReasonInp`).val("");
+        $('#APZCBO__BaseScreens__queryModal_content').scrollTop(0,0);
+        $(`#${DbbaseScrId}otherQueryReasonForm`).addClass("sno");
+    }
+};
+apz.app.DBbase.paintQueries = function(queries) {
+    let queryCategoryElem;
+    $(`#${DbbaseScrId}queryList .dynamic_elems`).remove();
+    if (queries.length === 0) {
+        return;
+    } else {
+        queries.forEach((query, index) => {
+            queryCategoryElem = `<span class="srb pri">
+                    <span class="scb-col5">
+                        <span id ="span_${query.id}" for="${query.id}" class=" etb-chek ett-chek hor pri queryList">
+                            <span class="queryItems">
+                                     <input id="${query.id}" class="" type="CHECKBOX" enabled="enabled" value="${query.id}" onchange = "apz.app.DBbase.checkQuery(this)">
+                                     <label class="flb" for="${query.id}"></label>
+                                 </span>
+                                  </span>
+                                  </span>
+                           <span class="scb-col95">
+                              <p id="query${query.id}_label" class="ett-para pri fs14 ltr-sp4 var2" >${query.value}</p>
+                           </span>
+                        </span>`;
+            $(`#${QLelementID}`).html(queryCategoryElem);
+            let clonedId = ApzCOB.cloneDashboardDivs(QLelementID, QLParentDiv, index + 1);
+            $(`#${clonedId}`).addClass("query dynamic_elems");
+            $(`#${clonedId}`).removeClass("sno ssp");
+            $(`#${QLelementID}`).html("");
+            $(`#${QLelementID}`).addClass('sno');
+        })
+    }
+};
+apz.app.DBbase.fetchStageFieldsCB = function(params) {
+    apz.stopLoader();
+    window.shownQueries = [];
+    window.shownQueries = JSON.parse(params.res.APZCBO__RPCStageFields_Res[0].queries);
+    apz.app.DBbase.paintQueries(shownQueries);
+    ApzCOB.toggleModal(`${DbbaseScrId}queryModal`);
+    // $(`#${DbbaseScrId}QCCloneRow_0`).html('')
+};
+apz.app.DBbase.checkQuery = function(pthis){
+    window.selectedQueries = [];
+    if(pthis.checked){
+        if(pthis.value === "OTH"){
+            $(`#${DbbaseScrId}queryList`).removeClass("pb-70")
+            $(`#${DbbaseScrId}otherQueryReasonForm`).removeClass("sno mt24");
+            $(`#${DbbaseScrId}otherQueryReasonForm`).addClass("pb-70");
+        }
+    } else {
+       if(pthis.value === 'OTH'){
+            $(`#${DbbaseScrId}otherQueryReasonForm`).addClass("sno"); 
+            $(`#${DbbaseScrId}queryList`).addClass("pb-70");
+        } 
+    }
+}
+apz.app.DBbase.sendback = function() {
+    clickedAction = 'SENDBACK';
+    $(`#${DbbaseScrId}SUBMIT_querySave`).parent().find('.err').remove();
+    $('#DBkitG__DBbase__queryModal_window .modal-header h1').text('Sendback');
+    $(`#${DbbaseScrId}otherQueryReasonInp`).val('');
+    $('#APZCBO__BaseScreens__queryModal_content').scrollTop(0, 0);
+    $(`#${DbbaseScrId}otherQueryReasonForm`).addClass("sno");
+    $(`#${DbbaseScrId}queryList`).addClass("pb-70");
+    window.shownQueries = [];
+    let stageData = DBKIT_MASTERDATA.find(el => el.id === DB_CURRENT_STAGE_NO);
+    if (DB_CURRENT_STAGE_NO === 1) {
+        let sendBackMaster = JSON.parse(stageData?.queries ?? '')?.sendbackReason;
+        if(window.isAdditionalProduct) {
+           sendBackMaster = sendBackMaster.filter(item => item.destination !== "Credit Assessment");
+        }
+        if(Array.isArray(sendBackMaster) && sendBackMaster.length > 0) {
+            window.shownQueries = [...sendBackMaster,{
+            id: "OTH",
+            value: "Other",
+        }];
+        }
+        apz.app.DBbase.paintQueries(shownQueries);
+        ApzCOB.toggleModal(`${DbbaseScrId}queryModal`);
+    }
+};
+apz.app.DBbase.back = function() {
+    let prevstageId = (DBKIT_STAGES?.[apz.childScr]?.id ?? DB_CURRENT_STAGE_NO) - 1;
+    if(window.isAdditionalProduct) {
+        if(prevstageId === 2) {
+            prevstageId = 1;
+        }
+    }
+    if (applicationStatus === 'DBPUSHBACK' && prevstageId === 4) prevstageId-=1;
+    if(prevstageId <= 0) return;
+    let hypLinkId = Object.keys(window.DBKIT_STAGES).find(key => window.DBKIT_STAGES[key].id === parseInt(prevstageId));
+    if (apz.childScr === "DBLoanDetails") {
+        ApzCOB.launchMicroApp('Dashbo', 'DashboardViewAllApplication', 'APZCBO__BaseScreens__BaseDIV', '');
+    } else {
+        $(`#${DbbaseScrId + hypLinkId}_hyp`).click();
+    }
+};
+apz.app.DBbase.DBQuerySaveCB = function(params) {
+    apz.stopLoader();
+        try {
+            if (ApzCOB.handleServiceCallBacks(params)) {
+                ApzCOB.updateInsessionData(params);
+                ApzCOB.updateSideMenuStatusTags();
+                apz.app.DBbase.next('YES');
+            } else {
+                ApzCOB.showNewCommonErrorModal("Save query response failed!");
+            }
+        } catch (e) {
+            ApzCOB.traceFrontEndError(e,"");
+            ApzCOB.showNewCommonErrorModal();
+        }
+}
+apz.app.DBbase.validatePushbackBasedOnStage = function() {
+    let sendBackResponse = $(`#${scrId}sendBackResponse`).val() || '';
+    if (apz.isNull(sendBackResponse.trim())) {
+        apz.app.DBbase.scrollToId(`${scrId}sendBackResponse`);
+        ApzCOB.showNewCommonErrorModal('Please enter the response.');
+        return;
+    }
+    if (apz.childScr === 'eNach') {
+        let appRespData = ApzCOB.getPayloadDatafromWrapper("resDesc", 'Applicant', 'enachDetails') || '';
+        let coappRespData = ApzCOB.getPayloadDatafromWrapper("resDesc", 'Co-App', 'enachDetails') || '';
+        let coappBankEdit = ApzCOB.getPayloadDatafromWrapper("rpcEditCheck", 'Co-App', 'bankDetailsWrapperList');
+        let validStatuses = ["success", "initiated"];
+        let appEnachStatus = validStatuses.includes(appRespData?.toLowerCase());
+        let coappEnachStatus = validStatuses.includes(coappRespData?.toLowerCase());
+        if (!(appEnachStatus || (coappEnachStatus/* && coappBankEdit*/))) {
+            ApzCOB.showNewCommonErrorModal('Please re-initiate eNach!');
+            return;
+        }
+    } else if (apz.childScr === 'UdyamReg') {
+        // validate if any changes are made
+    }
+    window.returnSBQueries = [];
+    if (finalSBQueries.length > 0) {
+        let respTS = apz.app.DBbase.getCurrentTS() || '';
+        returnSBQueries = finalSBQueries.map(el => `${el}$${sendBackResponse}$${respTS}`);
+    }
+    if (returnSBQueries.length > 0) {
+        ApzCOB.RpcDBQuerySave(returnSBQueries, apz.app.DBbase.DBQuerySaveCB)
+    }
+};
+apz.app.DBbase.validateBasedOnStage = function(currentStageId, isSendBack){
+    let lnavigate = true;
+    let dbValidation = true;
+    const nextStageId = currentStageId + 1;
+    if (applicationStatus === 'DBPUSHBACK' && raisedQueries.length > 0 && apz.isNull(isSendBack)) {
+        apz.app.DBbase.validatePushbackBasedOnStage();
+        return;
+    }
+    if (apz.childScr === 'eNach') {
+        lnavigate = apz.app.eNach.validateOnClickNext();
+    }
+    if (apz.childScr === "UdyamReg") {
+        if (!apz.isNull(inSessionStore['cdhLeadDetails']?.urn)) {
+            return true;
+        }
+        lnavigate = false;
+        apz.app.UdyamReg.HandleNext();
+    }
+    if (nextStageId === 6) {
+        lnavigate = false;
+        let isValid = true;
+        docsLength = $('#DBkitG__DocExecutionManual__docsList .uploaded .mand').length;
+        let mandDocsLength = $('#DBkitG__DocExecutionManual__docsList .mand').length;
+        if ((docsLength < mandDocsLength) && (paintQueries?.length === 0 && APPROVED_DOCS?.length === 0)) {
+            ApzCOB.showNewCommonErrorModal("Please Upload mandatory documents.");
+            isValid = false;
+            return lnavigate;
+
+        } else if (applicationStatus === 'DBPUSHBACK') {
+            const hasError = paintQueries.some((el, index) => {
+                const responseValue = $(`#DBkitG__DocExecutionManual__responseInput_${index}`).val();
+                const isVisibleReUpload = $(`#DBkitG__DocExecutionManual__reUploadDoc_${index}`).is(":visible");
+
+                if (isVisibleReUpload) {
+                    ApzCOB.showNewCommonErrorModal(
+                        `Please re-upload ${paintQueries[index].displayName} query document!`
+                    );
+                    return true;
+                }
+
+                if (apz.isNull(responseValue)) {
+                    ApzCOB.showNewCommonErrorModal(`Please enter the response for ${paintQueries[index].displayName} documents!`);
+                    return true;
+                }
+
+                return false;
+            });
+            if (hasError) return;
+            if (docsLength < mandDocsLength.length) {
+                ApzCOB.showNewCommonErrorModal("Please upload mandatory documents under approved documents!");
+                return;
+            }
+            if ((docsLength < mandDocsLength) && (paintQueries?.length > 0 || APPROVED_DOCS?.length > 0)) {
+                ApzCOB.showNewCommonErrorModal("Please Upload mandatory documents.");
+                isValid = false;
+                return lnavigate;
+            }
+        }
+
+        remarks = 'DBSUBMITREMARK';
+
+        let dbKitremarks = $(`#${scrId}dbKitComment`).val();
+
+        if (apz.isNull(dbKitremarks)) {
+            ApzCOB.showNewCommonErrorModal("Please enter DBKit comments.");
+            isValid = false;
+            return lnavigate;
+        }
+
+        if (isValid) {
+            let confrmTxt = `Are you sure you want to Submit for RPC DB Verification?`;
+
+            onclickEvents =
+                `ApzCOB.closeCommonModal('newCommonConfModal'); apz.app.DBbase.Stagemoment('','SUBMIT', '${remarks}')`;
+
+            if (applicationStatus === 'DBPUSHBACK') {
+                onclickEvents =
+                    `ApzCOB.closeCommonModal('newCommonConfModal'); ApzCOB.dbStageVerificationService(${currentStageId})`;
+            }
+
+            let popUpObj = {};
+
+            popUpObj.text = confrmTxt;
+
+            popUpObj.Btn1 = {
+                "text": "Yes",
+                "onClick": onclickEvents
+            };
+
+            popUpObj.Btn2 = {
+                "text": "No",
+                "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`)"
+            };
+
+            ApzCOB.showNewCommonConfirmationModal(popUpObj);
+        }
+    }
+
+    return lnavigate;
+};
+apz.app.DBbase.next = function(isSendBack) {
+    const currentStage = DBKIT_STAGES?.[apz.childScr];
+    const currentStageId = Number(currentStage?.id);
+    let isValid = apz.app.DBbase.validateBasedOnStage(currentStageId, isSendBack);
+    //apz.app.DBbase.handlesideBar(); // sidebar icons
+    if(isValid) {
+        if( $('#DBkitG__eNach__eNachMethodRadio input:checked').val() == 'NotAvailable') {
+            apz.app.eNach.saveEnachDetials(window.custType,'NotAvailable');
+        }
+        ApzCOB.dbStageVerificationService(currentStageId);
+    }
+};
+apz.app.DBbase.save = function() {
+    if (DB_CURRENT_STAGE_NO === 2) {
+        apz.app.eNach.saveBankWrapperData();
+    }
+};
+apz.app.DBbase.cancel = function() {
+    if (DB_CURRENT_STAGE_NO === 2) {
+        apz.app.eNach.onClickCancel();
+        if ($("#DBkitG__eNach__accountNumber").hasClass("disabled")) {
+            $("#DBkitG__eNach__verifyACC").addClass("sno");
+        } else {
+            $("#DBkitG__eNach__verifyACC").removeClass("sno");
+        }
+        coAppverified = false;
+        if ($(`#${scrId}verifyACC`).is(':visible')) {
+            $(`#${scrId}verifyACC`).addClass('sno');
+        }
+        if ($(`#${scrId}verifiedAcc_txtcnt`).is(':visible')) {
+            $(`#${scrId}bankACCVerified`).addClass('sno');
+            $("#" + scrId + "verifiedAcc").addClass('sno');
+            $("#" + scrId + "verifiedAcc").removeClass('suc');
+        }
+        if (ApzCOB.getPayloadDatafromWrapper("accntVerified", "Applicant", "bankDetailsWrapperList") == 'Verified') {
+            apz.app.eNach.setAppTag();
+        }
+        if ($(`#${scrId}invalidAcc_txtcnt`).is(':visible')) {
+            $(`#${scrId}InvaildBankACC`).addClass('sno');
+            $("#" + scrId + "invalidAcc").addClass('sno');
+            $("#" + scrId + "invalidAcc").removeClass('failed');
+        }
+        if (coAppverified) {
+            if (setCoappstatus == 'Verified') {
+                $("#" + scrId + "bankACCVerified").removeClass("sno");
+                $("#" + scrId + "verifiedAcc").removeClass('sno');
+                $("#" + scrId + "verifiedAcc").addClass('suc');
+                $("#" + scrId + "InvaildBankACC").addClass("sno");
+                $("#" + scrId + "invalidAcc").addClass('sno');
+                $("#" + scrId + "invalidAcc").removeClass('failed');
+            } else {
+                $("#" + scrId + "bankACCVerified").addClass('sno');
+                $("#" + scrId + "verifiedAcc").addClass('sno');
+                $("#" + scrId + "verifiedAcc").removeClass('suc');
+                $("#" + scrId + "InvaildBankACC").removeClass("sno");
+                $("#" + scrId + "invalidAcc").removeClass('sno');
+                $("#" + scrId + "invalidAcc").addClass('failed');
+            }
+        }
+    }
+};
+apz.app.DBbase.preview = function() {};
+apz.app.DBbase.confirm = function() {};
+apz.app.DBbase.submit = function() {};
+apz.app.DBbase.submitToRPC = function() {
+    let isValid = true;
+    let ldocs = apz.app.eNach.fetchSelectedDocs();
+    if (ldocs.length < 2) {
+        ApzCOB.showNewCommonErrorModal("Please Upload atleast 2 documents.");
+        isValid = false;
+        return;
+    }
+    //service to send the application to rpc
+    if (isValid) {
+        let confrmTxt = `The application will be sent to RPC for bank account update. Do you confirm?`;
+        let popUpObj = {};
+        popUpObj.text = confrmTxt;
+        popUpObj.Btn1 = {
+            "text": "Yes",
+            "onClick": "apz.app.DBbase.Stagemoment(this,'BANKUPDATEPUSHBACK')"
+        }
+        popUpObj.Btn2 = {
+            "text": "No",
+            "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`)"
+        }
+        ApzCOB.showNewCommonConfirmationModal(popUpObj);
+    }
+};
+apz.app.DBbase.Stagemoment = function(pthis, gaction, gremarks) {
+    if (gremarks === 'DBSUBMITREMARK') {
+        gremarks = $(`#${scrId}dbKitComment`).val();
+    }
+    let rMarks = gremarks ?? '';
+    ApzCOB.userDetailsData();
+    ApzCOB.stageBasedOnAction(pthis, gaction);
+    window.approveRejectAction = gaction;
+    window.approveRejectAction = "";
+    switch (gaction) {
+        case "SUBMIT":
+            window.approveRejectAction = "DBKITGENERATED";
+            break;
+        case "REJECTED":
+            window.approveRejectAction = "REJECTED";
+            break;
+        case "PUSHBACK":
+            window.approveRejectAction = "PUSHBACK";
+            break;
+        case "DBCAPUSHBACK":
+            window.approveRejectAction = "RPCVERIFIED";
+            break;
+        case "DBSANCTIONPUSHBACK":
+            window.approveRejectAction = "RESANCTION";
+            break;
+        case "BANKUPDATEPUSHBACK":
+            window.approveRejectAction = "RPCBANKUPDATE";
+            break;
+        default:
+            break;
+    }
+    let req = {
+        apiRequest: {
+            interfaceName: "",
+            appId: gAppId,
+            requestObj: {
+                appId: gApzCOB.userDetails.appId,
+                status: approveRejectAction,
+                userId: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+                applicationId: gApzCOB.userDetails.applicationId,
+                versionNum: gApzCOB.userDetails.versionNum,
+                custDtlId: gApzCOB.userDetails.custDtlId,
+                remarks: rMarks,
+                workflow: {
+                    currentRole: gApzCOB.workflow.currentRole,
+                    action: gApzCOB.workflow.action,
+                    workflowId: gApzCOB.workflow.workflowId,
+                    stage: gApzCOB.workflow.stage,
+                },
+            },
+        },
+    };
+    apz.startLoader();
+    ApzCOB.serverBuildParam(gAppId, "Stagemoment", "N", "N", req, false, apz.app.DBbase.StagemomentCB);
+};
+apz.app.DBbase.StagemomentCB = function(params) {
+    apz.app.DBbase.onClickQueryMdlCancel();
+    ApzCOB.closeCommonModal(`newCommonConfModal`);
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            let ifaceName = ApzCOB.GetInterfaceResMap(params);
+            if (params.res[ifaceName].apiResponse.ResponseHeader.ResponseCode == 0) {
+                apz.stopLoader();
+                if (approveRejectAction === "DBKITGENERATED") {
+                    popUpObj = {
+                        text: `Application No ${gApzCOB.userDetails.applicationId} Submitted Successsfully to RPC DB Verification`,
+                        Btn: {
+                            text: "Ok",
+                            onClick: "apz.app.DBbase.gotoHome(`newCommonSuccModal`)",
+                        }
+                    };
+                    ApzCOB.showNewCommonSuccessModal(popUpObj);
+                    return;
+                }
+                if (["PUSHBACK", "RPCVERIFIED", "RESANCTION", "RPCBANKUPDATE"].includes(approveRejectAction)) {
+                    apz.stopLoader();
+                    popUpObj = {
+                        text: ``,
+                        Btn: {
+                            text: "Ok",
+                            onClick: "apz.app.DBbase.gotoHome(`newCommonSuccModal`)",
+                        }
+                    };
+                    if (approveRejectAction === "PUSHBACK") {
+                        popUpObj.text = `Application No ${gApzCOB.userDetails.applicationId} Sent back to KM Sourcing Successfully.`;
+                        ApzCOB.showNewCommonSuccessModal(popUpObj);
+                        return;
+                    }
+                    if (approveRejectAction === "RPCVERIFIED") {
+                        popUpObj.text = `Application No ${gApzCOB.userDetails.applicationId} Sent back to Credit Assessment Successfully.`;
+                        ApzCOB.showNewCommonSuccessModal(popUpObj);
+                        return;
+                    }
+                    if (approveRejectAction === "RESANCTION") {
+                        popUpObj.text = `Application No ${gApzCOB.userDetails.applicationId} Sent back to Re-Sanction Successfully with queries.`;
+                        ApzCOB.showNewCommonSuccessModal(popUpObj);
+                        return;
+                    }
+                    if (approveRejectAction === "RPCBANKUPDATE") {
+                        popUpObj.text = `Application No ${gApzCOB.userDetails.applicationId} Sent back to RPC Successfully.`;
+                        ApzCOB.showNewCommonSuccessModal(popUpObj);
+                        return;
+                    }
+                }
+                if (approveRejectAction === "REJECTED") {
+                    apz.stopLoader();
+                    let errMsg = `Application No ${gApzCOB.userDetails.applicationId} rejected successfully.`;
+                    let IsMaitriCase = ApzCOB.checkIsMaitriCase();
+                    errMsg = `${errMsg} <br/> ${IsMaitriCase ? maitriMovementText : UnnatiMovementText}`;
+                    popUpObj = {
+                        text: errMsg,
+                        Btn: {
+                            text: "Ok",
+                            onClick: "apz.app.DBbase.gotoHome(`newCommonSuccModal`)",
+                        }
+                    };
+                    ApzCOB.showNewCommonSuccessModal(popUpObj);
+                    return;
+                }
+            } else {
+                let popUpObj = {
+                    text: "Failed",
+                    Btn: {
+                        text: "OK",
+                        onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`)"
+                    }
+                }
+                ApzCOB.showNewCommonErrorModal(popUpObj);
+            }
+        } else {
+            apz.stopLoader(); // to be done after getting the proper response from backend
+            isJSON = ApzCOB.isJSONString(apiResponse?.ResponseBody?.responseObj);
+            let ErrorMsg = ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL");
+            if (isJSON) {
+                let error = JSON.parse(apiResponse?.ResponseBody?.responseObj);
+                ErrorMsg = `Loan Rejection failed.Please try again.! <br/> API : ${error.apiName} <br/> Error : ${error.errorMessage}`;
+            } else if(!apz.isNull(apiResponse?.ResponseBody?.responseObj)) {
+                ErrorMsg = apiResponse.ResponseBody.responseObj;
+            }
+            let popUpObj = {
+                text: ErrorMsg,
+                Btn: {
+                    text: "OK",
+                    onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`)"
+                }
+            }
+            ApzCOB.showNewCommonErrorModal(popUpObj);
+        }
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        let popUpObj = {
+            text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+            Btn: {
+                text: "OK",
+                onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`)"
+            }
+        }
+        ApzCOB.showNewCommonErrorModal(popUpObj);
+    }
+    apz.stopLoader();
+};
+apz.app.DBbase.onClickUploadDoc = function(elmId) {
+    if(apz.childScr === 'eNach') {
+        let ldocs = apz.app.eNach.fetchSelectedDocs();
+        if(ldocs.length >= maxStdDocUpload) {
+            ApzCOB.showNewCommonErrorModal("Document Uploaded limit exceeded.");           
+            return;
+        }
+    }
+    $(`#${elmId}`).click();
+};
+// code yet to be checked
+apz.app.DBbase.FileUploadCB = function(params) {
+    apz.stopLoader();
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            ApzCOB.updateInsessionData(params);
+            apz.app.DBbase.paintDocumentName(uploadType, customerType);
+        }
+    } catch (error) {
+        ApzCOB.traceFrontEndError(error,"");
+        let errMsg = "File upload failed.!";
+        let interface = ApzCOB.GetInterfaceResMap(params);
+        const apiResponse = params?.res?.[interface]?.apiResponse;
+        errMsg = apiResponse?.ResponseHeader?.ResponseMessage ?? errMsg;
+        ApzCOB.showNewCommonErrorModal(errMsg);
+    }
+};
+apz.app.DBbase.paintDocumentName = function(docType, custType) {
+    if (apz.isObjectEmpty(inSessionStore) || !inSessionStore.hasOwnProperty('applicationDocumentsWrapperList')) return;
+    let documentResp = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+    if (documentResp.length > 0) {
+        let cloneDiv = `${scrId}CloneRow_0`;
+        let parentDiv = $(`#${scrId}DocsBlock`);
+        parentDiv.html('');
+        let ldocs = documentResp.filter(docs => docs.payload.documentType === docType && parseInt(docs.custDtlId) === parseInt(ApzCOB.getCustDetailID(custType)));
+        if (ldocs.length > 0) {
+            ldocs.forEach((doc, index) => {
+                let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
+                parentDiv.find('[id*="_0"]').each(function() {
+                    let tempId = this.id.replace(/_0/g, '_'+ (index + 1));
+                    this.id = tempId;
+                });
+                $(`#${newId} .uplnk  a.ett-hypl span`).text(doc.payload.documentFileName);
+                if (!apz.isNull(doc.payload.uploadedBy) && docType === "ReAssesmentDoc") {
+                    $(`#${newId} .docUploadedBy label`).html(`Uploaded By : <span>${doc.payload.uploadedBy}</span>`);
+                } else {
+                    $(`#${newId} .docUploadedBy`).addClass('sno');
+                }
+                $(`#${newId}`).attr('data-id', doc.appDocId);
+                $(`#${newId}`).removeClass('sno');
+                $(`#${newId} .updel ul li .ett-para.pri span`).text((!apz.isNull(doc.payload.docSize) ? (doc.payload.docSize / 1024).toFixed(2) : "-") + " KB");
+            })
+        }
+    }
+};
+apz.app.DBbase.viewDocument = function(pthis) {
+    let documentId = $(pthis).parents('.uploadimg').attr('data-id');
+    let docDetails = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.find(doc => parseInt(doc.appDocId) === parseInt(
+        documentId));
+    if (!apz.isObjectEmpty(docDetails)) {
+        window.paintFileName = docDetails?.payload?.documentFileName;
+        let callBackFn = apz.app.DBbase.viewDocumentCB;
+        window.ImageLocationDetails = {
+            latitude: docDetails.payload.latitude || "",
+            longitude: docDetails.payload.longitude || "",
+            uploadedTs: docDetails.payload.uploadedTs || "",
+            documentFileName: docDetails.payload.documentFileName || ""
+        };
+        ApzCOB.downloadFileFromServer(paintFileName, callBackFn);
+    }
+};
+apz.app.DBbase.viewDocumentCB = function(params, pdocType) {
+    apz.stopLoader();
+    if (!apz.isNull(params.base64)) {
+        if (pdocType === 'pdf') {
+            apz.app.DBbase.viewPDFDocument(params.base64);
+        } else {
+            $(`#${DbbaseScrId}imgView_ul`).removeClass('sno');
+            $(`#${DbbaseScrId}imgView`).attr('src', 'data:image/png;base64,' + params.base64);
+            let id = `#${DbbaseScrId}imgView`;
+            if (Object.keys(window.ImageLocationDetails).length > 0) {
+                apz.app.BaseScreens.paintImageLocationDetails(id, window.ImageLocationDetails);
+            }
+            $(`#${DbbaseScrId}docViewModal .tool-hdr`).removeClass('sno');
+            $(`#${DbbaseScrId}imgView_ul iframe`).remove();
+            $(`#${DbbaseScrId}imgView_li`).removeClass('sno');
+            ApzCOB.toggleModal(`${DbbaseScrId}docViewModal`);
+        }
+    } else {
+        ApzCOB.showNewCommonErrorModal("Failed to fetch Document.");
+    }
+};
+apz.app.DBbase.viewPDFDocument = function(base64) {
+    $(`#${DbbaseScrId}imgView_ul iframe`).remove();
+    const iframe = document.createElement('iframe');
+    Object.assign(iframe, { src: (ApplicationPDFbase64 + base64), width: "700", height: "400"});
+    document.getElementById(`${DbbaseScrId}imgView_ul`).appendChild(iframe);
+    $(`#${DbbaseScrId}docViewModal .tool-hdr`).addClass('sno');
+    ApzCOB.toggleModal(`${DbbaseScrId}docViewModal`);
+    $(`#${DbbaseScrId}imgView_li`).addClass('sno');
+};
+apz.app.DBbase.deleteDocument = function(pthis) {
+    let documentId = $(pthis).parents('.uploadimg').attr('data-id');
+    if (!apz.isNull(documentId)) {
+        let popUpObj = {};
+        popUpObj.text = "Do you want to delete this document?";
+        popUpObj.Btn1 = {
+            "text": "Yes",
+            "onClick": `apz.app.DBbase.deleteDocumentCnfm(${documentId})`
+        }
+        popUpObj.Btn2 = {
+            "text": "No",
+            "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`)"
+        }
+        ApzCOB.showNewCommonConfirmationModal(popUpObj);
+    }
+};
+apz.app.DBbase.deleteDocumentCnfm = function(docId) {
+    let callBackFn = apz.app.DBbase.deleteDocumentCnfmCB;
+    ApzCOB.deleteDocument('', '', '', docId, callBackFn)
+};
+apz.app.DBbase.deleteDocumentCnfmCB = function(params) {
+    apz.stopLoader();
+    try {
+        const isSuccess = ApzCOB.handleServiceCallBacks(params);
+        const modalOptions = {
+            text: isSuccess ? "Document Delete Success" : "Document Delete Failed.",
+            Btn: {
+                text: "OK",
+                onClick: isSuccess ? "ApzCOB.closeCommonModal(`newCommonSuccModal`)" : "ApzCOB.closeCommonModal(`newCommonErrModal`)"
+            }
+        };
+        ApzCOB.closeCommonModal(`newCommonConfModal`);
+        if (isSuccess && params.res.APZCBO__DeleteDocument_Res.apiResponse.ResponseBody.responseObj === 'Success') {
+            let deletedDocId = params?.req?.apiRequest?.requestObj?.appDocId || "";
+            let documentArray = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+            if (!apz.isNull(deletedDocId) && documentArray.length > 0) {
+                let updatedDocs = documentArray.filter(item => Number(item.appDocId) !== Number(deletedDocId));
+                inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = [];
+                inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = structuredClone(updatedDocs);
+            }
+        }
+        let luploadType = '', lcustomerType = '';
+        if (apz.childScr === 'UdyamReg') {
+            luploadType = $(`#${scrId}successTick_ul`).is(":visible") ? "Udyam Reg Success" : "Udyam Reg Failed";
+            lcustomerType = $(`#${scrId}custTypeRadio input:checked`).val();
+        } else if (apz.childScr === 'eNach') {
+            luploadType = 'DBBankUpdate';
+            lcustomerType = custType;
+            //condition for coApp
+        }
+        apz.app.DBbase.paintDocumentName(luploadType, lcustomerType);
+        isSuccess ? ApzCOB.showNewCommonSuccessModal(modalOptions) : ApzCOB.showNewCommonErrorModal(modalOptions);
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        let popUpObj = {
+            text: technicalErrMsg,
+            Btn: {
+                text: "OK",
+                onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`)"
+            }
+        }
+        ApzCOB.showNewCommonErrorModal(popUpObj);
+    }
+};
+apz.app.DBbase.UploadDBKITService = function(req,callback) {
+    let lreq = {
+        "apiRequest": {
+            "appId": gAppId,
+            "userId": gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+            "requestObj": req
+        }
+    }
+    window.gcallback = callback;
+    apz.startLoader();
+        setTimeout(() => {
+            ApzCOB.serverBuildParam(gAppId, "UploadDBKITLoanData", "N", "N", lreq, false, apz.app.DBbase.UploadDBKITServiceCB);
+        }, 1000)
+};
+apz.app.DBbase.UploadDBKITServiceCB = function(params) {
+    let errMsg = "Service Failed";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__UploadDBKITLoanData_Res)) {
+        errMsg = params.resFull.appzillonBody.APZCBO__UploadDBKITLoanData_Res.apiResponse?.ResponseBody?.responseObj;
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            gcallback(params);
+        } else {
+            apz.stopLoader();
+            ApzCOB.showNewCommonErrorModal(errMsg);
+        }
+    } catch(e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        ApzCOB.showNewCommonErrorModal(technicalErrMsg);
+    }
+};
+apz.app.DBbase.onClickQueryMdlCancel = function(){
+    $('#DBkitG__DBbase__queryModal_window .modal-header h1').text('Query');
+    $(`#${DbbaseScrId}queryModal_close`).click();
+};
+apz.app.DBbase.searchInQueryMdl = function() {
+    let query = $(`#${DbbaseScrId}searchQueryInput`).val();
+    window.searchresults = shownQueries.filter((lead) => Object.values(lead).some((value) => String(value).toLowerCase().includes(query
+        .toLowerCase())));
+    if (searchresults?.length > 0) {
+        apz.app.DBbase.paintQueries(searchresults);
+        $(`#${DbbaseScrId}noResult_row`).addClass("sno");
+        $(`#${DbbaseScrId}queryList`).removeClass("sno");
+    } else {
+        $(`#${DbbaseScrId}noResult_row`).removeClass("sno");
+        $(`#${DbbaseScrId}queryList`).addClass("sno");
+        $(`#${DbbaseScrId}otherQueryReasonForm`).addClass("sno");
+    }
+};
+apz.app.DBbase.saveQuery = function(pvalue){
+    window.selectedQueries = [];
+    $(`#${DbbaseScrId}SUBMIT_querySave`).parent().find('.err').remove();
+    const headerTxt = $('#DBkitG__DBbase__queryModal_window .modal-header h1').text();
+    if ($("#OTH").is(":checked")) {
+        let otherQuery = $(`#${DbbaseScrId}otherQueryReasonInp`).val();
+        if (apz.isNull(otherQuery)) {
+            ApzCOB.addErrMessage(`${DbbaseScrId}otherQueryReasonInp`, "element");
+            return;
+        } else {
+            let lobj = {
+                queryID: 'OTH',
+                value: otherQuery
+            };
+            selectedQueries.push(lobj);
+        }
+    }
+    shownQueries.forEach((query, queryIndex) => {
+        let checkboxSelector = `#${query.id}`;
+        if ($(checkboxSelector).is(":checked") && query.id !== 'OTH') {
+            let lobj = {
+                queryID: query.id,
+                value: query.value
+            };
+            selectedQueries.push(lobj);
+        }
+    });
+    if (selectedQueries.length > 0) {
+        if (clickedAction === 'REJECT' && apz.isNull(pvalue)) {
+            let confrmTxt = `Do you want to reject the application?`;
+            let popUpObj = {};
+            popUpObj.text = confrmTxt;
+            popUpObj.Btn1 = {
+                "text": "Yes",
+                "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`);apz.app.DBbase.saveQuery('reject');"
+            }
+            popUpObj.Btn2 = {
+                "text": "No",
+                "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`)"
+            }
+            apz.app.DBbase.onClickQueryMdlCancel();
+            ApzCOB.showNewCommonConfirmationModal(popUpObj);
+            return;
+        }
+        let queryList = [];
+        queryList = selectedQueries.map(item => {
+            return `${item.queryID}_${item.value}`;
+        });
+        let finalQueryData = queryList.join(',');
+        if (apz.childScr === 'Disbursement') {
+            statusObject.lAction = "REJECT";
+            statusObject.remarks = finalQueryData;
+            statusObject.nextStatus = "REJECTED";
+            apz.app.DBbase.DisbursementStageMovementCall();
+        } else {
+            queryList = selectedQueries.map(item => {
+                return item.queryID === "OTH" ? `${DB_CURRENT_STAGE_NO}_A_${item.queryID}?${item.value}` : `${DB_CURRENT_STAGE_NO}_A_${item.queryID}`;
+            });
+            finalQueryData = queryList.join(',');
+            let confrmTxt = ``;
+            if(apz.childScr === 'DBLoanDetails' && headerTxt === 'Sendback') {
+                let finalQueryData = queryList.join(',');
+                let preferredOrder = shownQueries.filter(q => q.id !== "OTH").map(q => q.id).reverse();
+                let selectedStage = [];
+                let sendBackStageName = '';
+                if (window.isAdditionalProduct || queryList?.some(item => item.includes('Q1'))) {
+                    statusObject.lAction = "DBSANCTIONPUSHBACK";
+                    selectedStage.push("Sanction");
+                }
+                let hasMatch = queryList?.some(q => CASendBackList.some(chk => q.includes(chk)));
+                if (!window.isAdditionalProduct && hasMatch) {
+                    statusObject.lAction = "DBCAPUSHBACK";
+                    selectedStage.push("Credit Assessment");
+                }
+                if (selectedStage.length > 1) {
+                    selectedStage = selectedStage?.join(' and ');
+                    sendBackStageName = 'Credit Assessment';
+                } else if (selectedStage.length === 1) {
+                    selectedStage = selectedStage?.[0];
+                    sendBackStageName = (selectedStage == 'Sanction') ? 'Sanction' : 'Credit Assessment';
+                }
+                confrmTxt = `You have selected send back reasons pertaining to ${selectedStage}. Hence the application would be sent back to ${sendBackStageName} stage.`;
+                apz.app.DBbase.onClickQueryMdlCancel();
+                let popUpObj = {};
+                popUpObj.text = confrmTxt;
+                popUpObj.Btn = {
+                    text: "Okay",
+                    onClick: `ApzCOB.closeCommonModal('newCommonErrModal');apz.app.DBbase.Stagemoment('', '${statusObject.lAction}', '${finalQueryData}')`
+                }
+                ApzCOB.showNewCommonErrorModal(popUpObj);
+            } else {
+                statusObject.lAction = 'REJECTED';
+                apz.app.DBbase.Stagemoment('', statusObject.lAction, finalQueryData);
+            }
+        }
+    } else {
+        window.selectedQueries = [];
+        let errtext = "<span class='err' style='color: red; font-size: 14px;'>Please select atleast one query!</span>";
+        $(`#${DbbaseScrId}SUBMIT_querySave`).parent().prepend(errtext);
+    }
+};
+apz.app.DBbase.DisbursementStageMovementCall = function(){
+            if (!apz.isNull(gApzCOB.applnWorkFlowRes)) {
+        gApzCOB.applnWorkFlowRes.filter(function(workFlow) {
+            workFlow.action.split(',').filter(function(s) {
+                if (workFlow.appId === gAppId && statusObject.lAction.split(" ").join("") === s.toLocaleUpperCase()) {
+                    gApzCOB.workflow.currentRole = workFlow.currentRole;
+                    gApzCOB.workflow.action = workFlow.action;
+                    gApzCOB.workflow.workflowId = workFlow.workFlowId;
+                    gApzCOB.workflow.stage = workFlow.fromStageId;
+                }
+            });
+        });
+    }; 
+            let req = {
+            apiRequest: {
+                // "interfaceName": approveRejectAction === 'APPROVED' ? "CreateApplication" : "",
+                interfaceName: "",
+                appId: gAppId,
+                requestObj: {
+                    appId: gApzCOB.userDetails.appId,
+                    status: statusObject.nextStatus,
+                    userId: `${gApzCOB.LoggedInUserDetails.loginResponse.addInfo1}(${gApzCOB.LoggedInUserDetails.loginResponse.userDet.id})`,
+                    applicationId: gApzCOB.userDetails.applicationId,
+                    versionNum: 1,
+                    custDtlId: gApzCOB.userDetails.custDtlId,
+                    remarks: statusObject.remarks,
+                    workflow: {
+                        currentRole: gApzCOB.workflow.currentRole,
+                        action: gApzCOB.workflow.action,
+                        workflowId: gApzCOB.workflow.workflowId,
+                        stage: gApzCOB.workflow.stage,
+                        currentStage: gApzCOB.workflow.stage
+                    }
+                }
+            }
+        };
+        apz.startLoader();
+        ApzCOB.serverBuildParam(gAppId, "Stagemoment", "N", "N", req, false, apz.app.DBbase.DisbStageMovementCallBack);    
+};
+apz.app.DBbase.DisbStageMovementCallBack = function(params){
+    apz.stopLoader();
+    let errMsg = "";
+    const apiResponse = params.res?.APZCBO__Stagemoment_Res?.apiResponse;
+    const responseMessage = apiResponse?.ResponseHeader?.ResponseMessage;
+    if (!apz.isNull(responseMessage)) {
+        errMsg = responseMessage;
+    }
+    try {
+        const { lAction, nextStatus } = statusObject;
+        const showSuccessModal = (message, closeEvt) => {
+            const modalOptions = {
+                text: message,
+                Btn: {
+                    text: "OK",
+                    onClick: closeEvt
+                }
+            };
+            ApzCOB.showNewCommonSuccessModal(modalOptions);
+        };
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            if (lAction === 'REJECT') {
+                ApzCOB.toggleModal(`${DbbaseScrId}queryModal`);
+                let errMsg = `Application No ${gApzCOB.userDetails.applicationId} rejected successfully.`;
+                let IsMaitriCase = ApzCOB.checkIsMaitriCase();
+                errMsg = `${errMsg} <br/> ${IsMaitriCase ? maitriMovementText : UnnatiMovementText}`;
+                showSuccessModal(errMsg, "apz.app.DBbase.launchDashBoard()");
+            } else if (nextStatus === "DISBURSED") {
+                ApzCOB.toggleModal(`${BaseScrId}newCommonConfModal`);
+                if (lAction === 'SUBMIT') {
+                    window.IS_DISBURSEMENT_STAGE_MOVEMENT = true;
+                    // showSuccessModal("Loan Disbursed Successfully", "apz.app.DBbase.launchWelcomeKit()");
+                    showSuccessModal("Loan Disbursed Successfully", "ApzCOB.closeCommonModal(`newCommonSuccModal`);apz.app.Login.OnClickMakerChecker();");
+                } else {
+                    showSuccessModal("The application is moved to service call stage.", "apz.app.DBbase.launchDashBoard()");
+                }
+            } else if (nextStatus === "LUC") {
+                ApzCOB.toggleModal(`${BaseScrId}newCommonConfModal`);
+                showSuccessModal("The application is moved to LUC stage.", "apz.app.DBbase.launchDashBoard()");
+            }
+        } else {
+            // Error handling
+            if (lAction === 'REJECT') {
+                errMsg = "Application Rejection Failed.!";
+            } else if (nextStatus === "DISBURSED") {
+                if(lAction === 'SUBMIT' && apz.childScr !== 'WelcomeKit'){
+                  let error = JSON.parse(apiResponse.ResponseBody.responseObj); 
+                  errMsg = `Disbursement Failed.Please try again.! <br/> API : ${error.apiName} <br/> Error : ${error.errorMessage}`
+                } else {
+                   errMsg = 'Service call stage movement feature not available.!' 
+                }
+            } else if (nextStatus === "LUC") {
+                errMsg = "LUC stage moment Failed.Please try again.!";
+            }
+            const popUpObj = {
+                text: errMsg || technicalErrMsg,
+                Btn: {
+                    text: "OK",
+                    onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`)"
+                }
+            };
+            ApzCOB.toggleModal(`${BaseScrId}newCommonConfModal`);
+            ApzCOB.showNewCommonErrorModal(popUpObj);
+        }
+        statusObject = {}; // Clear status
+    } catch (e) {
+        ApzCOB.traceFrontEndError(e,"");
+        apz.stopLoader();
+        const popUpObj = {
+            text: errMsg || technicalErrMsg,
+            Btn: {
+                text: "OK",
+                onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`)"
+            }
+        };
+        ApzCOB.toggleModal(`${BaseScrId}newCommonConfModal`);
+        ApzCOB.showNewCommonErrorModal(popUpObj);
+    }
+};
+apz.app.DBbase.submitDisbursement = function(){
+    let disbursementComment = $(`#DBkitG__Disbursement__disbursmentComment`).val();
+    if (!apz.isNull(disbursementComment)) {
+        let confrmTxt = `Do you want to disburse the loan?`;
+        let popUpObj = {};
+        popUpObj.text = confrmTxt;
+        popUpObj.Btn1 = {
+            "text": "Yes",
+            "onClick": `apz.app.DBbase.submitDisbursementCnfm('${disbursementComment}')`
+        }
+        popUpObj.Btn2 = {
+            "text": "No",
+            "onClick": "ApzCOB.closeCommonModal(`newCommonConfModal`)"
+        }
+        ApzCOB.showNewCommonConfirmationModal(popUpObj);
+    } else{
+        let popUpObj = {
+            text: "Please enter disbursement comment",
+            Btn: {
+                text: "OK",
+                onClick: "ApzCOB.closeCommonModal(`newCommonErrModal`)"
+            }
+        }
+        ApzCOB.showNewCommonErrorModal(popUpObj);
+    }
+};
+apz.app.DBbase.submitDisbursementCnfm = function(disbCmnt) {
+    statusObject.lAction = "SUBMIT";
+    statusObject.remarks = disbCmnt;
+    statusObject.nextStatus = "DISBURSED";
+    apz.app.DBbase.DisbursementStageMovementCall();
+};
+apz.app.DBbase.launchDashBoard = function(){
+    apz.app.Login.OnClickMakerChecker('');  
+    ApzCOB.toggleModal(`${BaseScrId}newCommonSuccModal`); 
+};
+apz.app.DBbase.launchWelcomeKit = function(){
+    ApzCOB.closeCommonModal(`newCommonSuccModal`);
+    ApzCOB.sanctionSMSService("","disbursed");
+    ApzCOB.launchSubScreen("WelcomeKit", `${DbbaseScrId}DbkitLaunchDiv`);
+};
+apz.app.DBbase.addInprogressStatus = function(hypId) {
+    apz.app.DBbase.clearIcons(hypId);
+    $(`#${hypId} svg`).addClass('inprg');
+    $(`#${hypId} use`).attr("xlink:href", "#icon-sideprg");
+};
+apz.app.DBbase.addCompleteStatus = function(hypId) {
+    apz.app.DBbase.clearIcons(hypId);
+    $(`#${hypId} svg`).addClass('suc');
+    $(`#${hypId} use`).attr("xlink:href", "#icon-sidechk");
+};
+apz.app.DBbase.addErrorStatus = function(hypId) {
+    apz.app.DBbase.clearIcons(hypId);
+    $(`#${hypId} svg`).addClass('error');
+    $(`#${hypId} use`).attr("xlink:href", "#icon-fail-filled");
+};
+apz.app.DBbase.clearIcons = function(hypId) {
+    $(`#${hypId} svg`).removeClass('error suc inprg');
+    if (![`${DbbaseScrId}DBLoanDetails_hyp`, `${DbbaseScrId}disbDocumentation_hyp`].includes(hypId)) {
+        $(`#${hypId} use`).attr("xlink:href", "#icon-sidechldopt");
+    } else {
+        $(`#${hypId} use`).attr("xlink:href", "#icon-sidepnt");
+    }
+};
+apz.app.DBbase.nextBtnEnableDisable = function(gaction) {
+    const nxtBtnId = 'DBkitG__DBbase__nextBtn';
+    if (gaction === 'disable') {
+        ApzCOB.addDisableToInput(nxtBtnId);
+        $('#'+ nxtBtnId).addClass('nxt-disabled');
+    } else {
+        ApzCOB.removeDisableToInput(nxtBtnId);
+        $('#'+ nxtBtnId).removeClass('nxt-disabled');
+    }
+};
+apz.app.DBbase.paintQuery = function(isRaised) {
+    const stageIdMap = {8: 1, 9: 2, 10: 3};
+    ['paintSBQueryDiv'].hide();
+    let currStageData = inSessionStore.dbKitStatDetails.find(el => el.stageID === DB_CURRENT_STAGE_NO);
+    if(apz.isNull(currStageData)) return [];
+    let getStageQueryData = DBKIT_MASTERDATA.find(el => stageIdMap[el.id] === currStageData?.stageID);
+    if(apz.isNull(getStageQueryData)) return [];
+    getStageQueryData = JSON.parse(getStageQueryData.queries).sendbackReason;
+    const queryIds = [];
+    const matchingValues = [];
+    const othQueries = [];
+    sbQueryResponse = '';
+    currStageData.query.forEach(q => {
+        if (q.startsWith("oth?")) {
+            let customValue = q.split('?')[1];
+            if (customValue.includes('$')) {
+                const parts = customValue.split('$');
+                customValue = parts[0];
+                sbQueryResponse = parts[1] || '';
+            }
+            othQueries.push({
+                queryid: q.split('?')[0],
+                queryDesc: customValue
+            });
+        } else {
+            sbQueryResponse = q.includes('$') ? q.split('$')[1] : '';
+            queryIds.push(q.includes('?') ? q.split('?')[0] : (q.includes('$') ? q.split('$')[0] : q));
+        }
+    });
+    matchingValues.push(...getStageQueryData.filter(item => queryIds.includes(item.id)).map(item => ({
+        queryid: item.id,
+        queryDesc: item.value
+    })));
+    const orderedQueries = [...matchingValues, ...othQueries];
+    let finalQueries = orderedQueries.map((item, index) => {
+        if (item.queryDesc.includes('$')) {
+            item.queryDesc = item.queryDesc.split('$')[0];
+        }
+        return {
+            queryid: item.queryid,
+            queryDesc: (index + 1) + '. ' + item.queryDesc
+        };
+    });
+    finalSBQueries = [];
+    orderedQueries.forEach((item, index) => {
+        if (item.queryid === "oth") {
+            finalSBQueries.push(`${item.queryid}?${item.queryDesc}`);
+        } else {
+            finalSBQueries.push(`${item.queryid}`);
+        }
+    });
+    if (finalQueries.length > 0) {
+        ['paintSBQueryDiv'].show();
+        apz.data.scrdata.DBkitG__IpaintQueryInStage_Res = [];
+        apz.data.scrdata.DBkitG__IpaintQueryInStage_Res = finalQueries;
+        apz.data.loadData("IpaintQueryInStage", apz.currAppId);
+        let queryuserId = inSessionStore.applicationTimelineDtl[inSessionStore.applicationTimelineDtl.length - 1]?.userId
+        let formatTM = ApzCOB.formatDateTimeObj(currStageData?.timeStamp[0]);
+        $(`#${scrId}queryRaisedByHeader_txtcnt`).text(`RPC DB verification remarks (${queryuserId} - ${formatTM})`);
+        $(`#${scrId}sendBackResponse`).val(sbQueryResponse); //paintqueryValue if exists
+    }
+    if (isRaised) {
+        return (finalQueries.length > 0) ? true : false;
+    } else {
+        return finalQueries;
+    }
+};
+apz.app.DBbase.downloadShownImg = function() {
+    ApzCOB.downloadCurrImage(`${DbbaseScrId}imgView`, paintFileName);
+};
+apz.app.DBbase.updateUdyamSidebarStatus = function() {
+    let AppUdyamStatus = inSessionStore.udhyamDetails.find(el => el.customerType === 'Applicant')?.udhyamStatus;
+    let CoAppUdyamStatus = inSessionStore.udhyamDetails.find(el => el.customerType === 'Co-App')?.udhyamStatus;
+    if (AppUdyamStatus === "Failed" && CoAppUdyamStatus === "Failed") {
+        apz.app.DBbase.addErrorStatus(`${DbbaseScrId}UdyamReg_hyp`);
+    } else if (AppUdyamStatus === "Success" || CoAppUdyamStatus === "Success") {
+        apz.app.DBbase.addCompleteStatus(`${DbbaseScrId}UdyamReg_hyp`);
+    }
+};
+apz.app.DBbase.getCurrentTS = function() {
+    let now = new Date(),
+        pad = n => n.toString().padStart(2, '0');
+    let docQueryTs = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} - ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    return docQueryTs;
+};
+apz.app.DBbase.showPreview = function (params) {
+    window.previousScreenId = apz.childScr;
+    window.previousMicroAppId = apz.currAppId;
+    if (params === "ApplicationDetails") {
+        ApzCOB.toggleModal("APZCBO__BaseScreens__preview_modal")
+        ApzCOB.launchMicroApp("cmnPre", "PreviewApplicantDetails", "APZCBO__BaseScreens__preview_modal_content", "");
+    }
+    if (params === "CreditAssessmentDetails") {
+        ApzCOB.toggleModal("APZCBO__BaseScreens__preview_modal")
+        ApzCOB.launchMicroApp("cmnPre", "PreviewCA", "APZCBO__BaseScreens__preview_modal_content", "");
+    }
+    if (params === "SanctionDetails") {
+        ApzCOB.toggleModal("APZCBO__BaseScreens__preview_modal")
+        ApzCOB.launchMicroApp("cmnPre", "PreviewSanction", "APZCBO__BaseScreens__preview_modal_content", "");
+    }
+}
